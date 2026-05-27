@@ -4,11 +4,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-// 강제 포트 할당 (AI Studio 개발 환경 등에서의 호환성을 위함)
-if (process.env.DISABLE_HMR === 'true' && !process.env.PORT) {
-  process.env.PORT = '3000';
-}
-
 import { defaultPosts } from './src/data';
 import { GoogleGenAI, Type } from '@google/genai';
 import admin from 'firebase-admin';
@@ -26,7 +21,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const port = process.env.PORT || 8080;
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   const projectRoot = _dirname.endsWith('dist') || _dirname.endsWith('dist/')
     ? path.resolve(_dirname, '..')

@@ -602,20 +602,6 @@ export function Modals({
     const currentEditPost = editingPostId ? posts.find(p => p.id === editingPostId) : null;
 
     // --- State for Write Form ---
-    const defaultGemsInstruction = `[구글 E-E-A-T(전문성·경험·신뢰성) 극대화 블로그 작성 지침]
-
-1. [체험적 서론]: 공인중개사가 직접 현장을 방문해 느낀 "생생한 채광, 공기 순환, 첫인상"을 서술하세요.
-2. [상세한 관찰 본론]: 수압 세기, 보일러 작동, 이중창 방음, 수납력 같은 "실소유자 관점"의 디테일한 관찰 기록을 작성하세요.
-3. [비고 및 특이사항]: 임차인에게 필요한 실제 사실 데이터(주차, 반려동물, 입주일 등)를 투명하고 정확하게 담으세요.
-4. [자동 서명]: 본문 마지막에 아래 신뢰 배지를 항상 포함하세요.
----
-[구미태왕공인중개사 소장 현장 종합 검증 의견 완료]`;
-
-    const [rawDraft, setRawDraft] = useState('');
-    const [customInstruction, setCustomInstruction] = useState(localStorage.getItem('taewang_gems_instruction') || defaultGemsInstruction);
-    const [isParsing, setIsParsing] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
-
     const [formData, setFormData] = useState<Partial<Post>>({
         category: '원룸', transactionType: '월세', dong: '광평동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
         title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
@@ -631,7 +617,6 @@ export function Modals({
                 category: '원룸', transactionType: '월세', dong: '광평동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
                 title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
             });
-            setRawDraft('');
         }
         setSelectedImageIndex(null);
     }, [writeModalOpen, currentEditPost]);
@@ -655,7 +640,7 @@ export function Modals({
         if (writeModalOpen) {
             setTimeout(syncHeights, 100);
         }
-    }, [writeModalOpen, rawDraft, customInstruction, formData.intro, formData.body]);
+    }, [writeModalOpen, formData.intro, formData.body]);
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { id, value, type } = e.target;
@@ -840,64 +825,6 @@ export function Modals({
         
         setFormData(prev => ({ ...prev, ...cleanData }));
         setTimeout(syncHeights, 100);
-    };
-
-    const parseWithAI = async () => {
-        if (!rawDraft) return showToast("원고를 입력해 주세요.", "error");
-        setIsParsing(true);
-        showToast("✨ AI 분석 진행 중...", "success");
-        try {
-            const res = await fetch('/api/gemini/parse', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rawText: rawDraft })
-            });
-            let data;
-            try {
-                data = await res.json();
-            } catch (jsonErr: any) {
-                throw new Error(`서버 응답 파싱 실패 (${res.status})`);
-            }
-            if (res.ok) {
-                normalizeAndSetData(data);
-                showToast("✨ AI 해독 완료!", "success");
-            } else {
-                showToast(data.error || "AI 파싱 실패", "error");
-            }
-        } catch (e: any) {
-            console.error("AI 호출 에러:", e);
-            showToast(`AI 호출 실패: ${e.message || "서버 통신 오류"}`, "error");
-        }
-        setIsParsing(false);
-    };
-
-    const generateWithAI = async () => {
-        if (!rawDraft) return showToast("기본 정보를 적어주세요.", "error");
-        setIsGenerating(true);
-        showToast("✨ AI 맞춤 원고 저술 중...", "success");
-        try {
-            const res = await fetch('/api/gemini/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rawText: rawDraft, customInstruction })
-            });
-            let data;
-            try {
-                data = await res.json();
-            } catch (jsonErr: any) {
-                throw new Error(`서버 응답 파싱 실패 (${res.status})`);
-            }
-            if (res.ok) {
-                normalizeAndSetData(data);
-                showToast("✨ AI 추천 매물 홍보 원고 작성 완료!", "success");
-            } else {
-                showToast(data.error || "AI 자동 생성 실패", "error");
-            }
-        } catch (e: any) {
-            console.error("AI 호출 에러:", e);
-            showToast(`AI 호출 실패: ${e.message || "서버 통신 오류"}`, "error");
-        }
-        setIsGenerating(false);
     };
 
     const handlePostSubmit = async (e: React.FormEvent) => {
@@ -1586,45 +1513,6 @@ export function Modals({
                             </button>
                         </div>
                         <form onSubmit={handlePostSubmit} className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
-                            <div className="bg-gradient-to-br from-teal-50 via-emerald-50 to-indigo-50 border border-emerald-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-inner space-y-3 sm:space-y-3.5">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <span className="text-[11px] sm:text-xs font-black text-emerald-800 flex items-center gap-1.5">
-                                        <i className="fa-solid fa-wand-magic-sparkles text-emerald-600 animate-pulse"></i>
-                                        <span>태왕 AI 원고 비서 스마트 패널</span>
-                                    </span>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        <button type="button" onClick={parseWithAI} disabled={isParsing} className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl transition-all shadow-md flex items-center gap-1">
-                                            {isParsing ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-brain"></i>}
-                                            <span>✨ {isParsing ? '분석 중...' : 'AI 분석'}</span>
-                                        </button>
-                                        <button type="button" onClick={generateWithAI} disabled={isGenerating} className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl transition-all shadow-md flex items-center gap-1">
-                                            {isGenerating ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-sparkles"></i>}
-                                            <span>✨ {isGenerating ? '생성 중...' : 'AI 생성'}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <textarea 
-                                    ref={el => { textAreaRefs.current.rawDraft = el; }}
-                                    value={rawDraft} 
-                                    onChange={e => setRawDraft(e.target.value)} 
-                                    rows={10} 
-                                    className="w-full bg-white border border-emerald-200/80 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-[11px] sm:text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none leading-relaxed overflow-hidden" 
-                                    placeholder="날것의 원고, 카카오톡 메시지를 붙여넣은 뒤 [AI 분석]을 누르세요."></textarea>
-                                <div className="border-t border-emerald-100 pt-2 sm:pt-3">
-                                    <label className="block text-[10px] sm:text-[11px] font-bold text-indigo-700 mb-1 flex items-center gap-1">
-                                        <i className="fa-solid fa-gem text-indigo-500"></i>
-                                        <span>태왕 Gems (나만의 맞춤 작성 지침)</span>
-                                    </label>
-                                    <textarea 
-                                        ref={el => { textAreaRefs.current.customInstruction = el; }}
-                                        value={customInstruction} 
-                                        onChange={e => { setCustomInstruction(e.target.value); localStorage.setItem('taewang_gems_instruction', e.target.value); }} 
-                                        rows={8} 
-                                        className="w-full bg-white border border-indigo-200/80 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none leading-relaxed overflow-hidden" 
-                                        placeholder="예: '30대 직장인 타겟으로 써줘'"></textarea>
-                                </div>
-                            </div>
-                            
                             {/* Standard Form Fields mapped over formData */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div className="sm:col-span-2">

@@ -1,0 +1,8 @@
+{
+  "name": "Remix: 남주근 홈페이지",
+  "description": "",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -21,7 +21,9 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  // AI Studio 환경(DISABLE_HMR=true)이면 3000 포트 강제 할당, 그 외에는 환경변수 PORT 또는 8080 사용
+  const fallbackPort = process.env.DISABLE_HMR === 'true' ? 3000 : 8080;
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : fallbackPort;
 
   const projectRoot = _dirname.endsWith('dist') || _dirname.endsWith('dist/')
     ? path.resolve(_dirname, '..')

@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,10 +9,7 @@
     "rewrites": [
       {
         "source": "**",
-        "run": {
-          "serviceId": "gumi-today-room-tv",
-          "region": "asia-northeast3"
-        }
+        "destination": "/index.html"
       }
     ]
   }

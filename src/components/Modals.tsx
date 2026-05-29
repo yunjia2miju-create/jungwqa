@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { Post, gumiDongs } from '../data';
 import PannellumViewer from './PannellumViewer';
+import RichTextEditor from './RichTextEditor';
 import { GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { 
@@ -827,6 +828,11 @@ export function Modals({
         setTimeout(syncHeights, 100);
     };
 
+    const isFieldFilled = (val: any) => {
+        if (val === undefined || val === null) return false;
+        return String(val).trim().length > 0;
+    };
+
     const handlePostSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
@@ -1516,9 +1522,14 @@ export function Modals({
                             {/* Standard Form Fields mapped over formData */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div className="sm:col-span-2">
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1.5">
-                                        <i className="fa-solid fa-handshake text-emerald-600"></i>
-                                        <span>거래 형태</span>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className="flex items-center gap-1.5 text-emerald-700 font-extrabold">
+                                            <i className="fa-solid fa-handshake"></i>
+                                            <span>거래 형태</span>
+                                        </span>
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100 animate-pulse">
+                                            <i className="fa-solid fa-circle-check"></i> 선택됨
+                                        </span>
                                     </label>
                                     <div className="flex gap-2">
                                         {['매매', '전세', '월세'].map(type => (
@@ -1538,54 +1549,113 @@ export function Modals({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">매물 분류</label>
-                                    <select id="post-category" value={formData.category} onChange={handleFormChange} required className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all">
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className="text-emerald-700 md:font-extrabold">매물 분류</span>
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100">
+                                            <i className="fa-solid fa-circle-check"></i> 선택됨
+                                        </span>
+                                    </label>
+                                    <select id="post-category" value={formData.category} onChange={handleFormChange} required className="w-full bg-emerald-50/20 border border-emerald-500/50 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-600 text-emerald-990 font-medium transition-all">
                                         <option value="원룸매매">원룸매매</option><option value="원룸">원룸</option><option value="미투">미투</option><option value="투룸">투룸</option><option value="쓰리룸">쓰리룸</option><option value="상가">상가</option><option value="아파트">아파트</option><option value="오피스텔">오피스텔</option><option value="다세대">다세대</option><option value="주택">주택</option><option value="땅">땅</option><option value="기타">기타</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">소재지 동</label>
-                                    <select id="post-dong" value={formData.dong} onChange={handleFormChange} required className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all">
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className="text-emerald-700 md:font-extrabold">소재지 동</span>
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100">
+                                            <i className="fa-solid fa-circle-check"></i> 선택됨
+                                        </span>
+                                    </label>
+                                    <select id="post-dong" value={formData.dong} onChange={handleFormChange} required className="w-full bg-emerald-50/20 border border-emerald-500/50 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-600 text-emerald-990 font-medium transition-all">
                                         {gumiDongs.map(d => (
                                              <option key={d} value={d}>{d}</option>
                                          ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">건물명/단지명</label>
-                                    <input type="text" id="post-building" value={formData.building} onChange={handleFormChange} required placeholder="예: 정우해오름" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.building) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>건물명/단지명</span>
+                                        {isFieldFilled(formData.building) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-building" value={formData.building} onChange={handleFormChange} required placeholder="예: 정우해오름" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all ${isFieldFilled(formData.building) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                                 </div>
                             </div>
                             
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">해당층</label>
-                                    <input type="text" id="post-floor" value={formData.floor || ''} onChange={handleFormChange} placeholder="예: 2" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all font-bold"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.floor) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>해당층</span>
+                                        {isFieldFilled(formData.floor) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded font-bold border border-slate-200">선택</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-floor" value={formData.floor || ''} onChange={handleFormChange} placeholder="예: 2" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all font-bold ${isFieldFilled(formData.floor) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">전체층(총층)</label>
-                                    <input type="text" id="post-totalFloor" value={formData.totalFloor || ''} onChange={handleFormChange} placeholder="예: 4" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all font-bold"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.totalFloor) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>전체층(총층)</span>
+                                        {isFieldFilled(formData.totalFloor) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded font-bold border border-slate-200">선택</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-totalFloor" value={formData.totalFloor || ''} onChange={handleFormChange} placeholder="예: 4" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all font-bold ${isFieldFilled(formData.totalFloor) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">금액</label>
-                                    <input type="text" id="post-price" value={formData.price} onChange={handleFormChange} required placeholder="예: 200/23" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.price) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>금액</span>
+                                        {isFieldFilled(formData.price) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-price" value={formData.price} onChange={handleFormChange} required placeholder="예: 200/23" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all ${isFieldFilled(formData.price) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 font-semibold focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                                 </div>
                                 <div className="hidden sm:block">
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">호실(관리용)</label>
-                                    <input type="text" id="post-room" value={formData.room} onChange={handleFormChange} placeholder="예: 205" className="w-full bg-slate-100 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none text-slate-500 font-medium"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.room) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>호실(관리용)</span>
+                                        {isFieldFilled(formData.room) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-bold border border-slate-200">선택</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-room" value={formData.room} onChange={handleFormChange} placeholder="예: 205" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all ${isFieldFilled(formData.room) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-100 border-slate-200 text-slate-500 font-medium'}`}/>
                                 </div>
                             </div>
                             
                             <div className="grid grid-cols-1 gap-3 sm:gap-4">
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">임대인 연락처 <span className="text-amber-500 font-black">*보안</span></label>
-                                    <input type="text" id="post-ownerPhone" value={formData.ownerPhone} onChange={handleFormChange} required placeholder="예: 010-1234-5678" className="w-full bg-amber-50/50 border border-amber-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-amber-500 transition-all font-semibold text-amber-800"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.ownerPhone) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>임대인 연락처 <span className="text-amber-500 font-black">*보안</span></span>
+                                        {isFieldFilled(formData.ownerPhone) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-ownerPhone" value={formData.ownerPhone} onChange={handleFormChange} required placeholder="예: 010-1234-5678" className={`w-full border rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all font-semibold ${isFieldFilled(formData.ownerPhone) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-amber-50/50 border-amber-200 text-amber-800 focus:border-amber-500'}`}/>
                                 </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1.5">
-                                        <i className="fa-solid fa-image text-emerald-600"></i>
-                                        <span>대표 사진</span>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.thumbnail) ? 'text-emerald-700 font-extrabold flex items-center gap-1.5' : 'text-slate-500 flex items-center gap-1.5'}>
+                                            <i className="fa-solid fa-image text-emerald-600"></i>
+                                            <span>대표 사진</span>
+                                        </span>
+                                        {isFieldFilled(formData.thumbnail) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 권장</span>
+                                        )}
                                     </label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-grow">
@@ -1595,7 +1665,7 @@ export function Modals({
                                                 value={formData.thumbnail || ''} 
                                                 onChange={handleFormChange} 
                                                 placeholder="https://... 또는 파일 업로드" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 pr-10 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all font-medium" 
+                                                className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 pr-10 text-xs sm:text-sm focus:outline-none transition-all font-medium ${isFieldFilled(formData.thumbnail) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`} 
                                             />
                                             <button 
                                                 type="button"
@@ -1628,9 +1698,16 @@ export function Modals({
                                     )}
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1.5">
-                                        <i className="fa-solid fa-images text-emerald-600"></i>
-                                        <span>추가 사진</span>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.images) ? 'text-emerald-700 font-extrabold flex items-center gap-1.5' : 'text-slate-500 flex items-center gap-1.5'}>
+                                            <i className="fa-solid fa-images text-emerald-600"></i>
+                                            <span>추가 사진</span>
+                                        </span>
+                                        {isFieldFilled(formData.images) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded font-bold border border-slate-200">선택</span>
+                                        )}
                                     </label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-grow">
@@ -1640,7 +1717,7 @@ export function Modals({
                                                 value={formData.images || ''} 
                                                 onChange={handleFormChange} 
                                                 placeholder="url1 url2... 또는 파일 업로드" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 pr-10 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all font-medium" 
+                                                className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 pr-10 text-xs sm:text-sm focus:outline-none transition-all font-medium ${isFieldFilled(formData.images) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`} 
                                             />
                                             <button 
                                                 type="button"
@@ -1664,39 +1741,39 @@ export function Modals({
                                         <>
                                             <div className="mt-2 flex flex-wrap gap-2">
                                                 {formData.images.split('|').filter(i => i && i !== "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80").map((img, idx) => (
-                                                <div 
-                                                    key={idx} 
-                                                    ref={el => { imageRefs.current[idx] = el; }}
-                                                    className={`relative inline-block group cursor-move transition-all outline-none ${selectedImageIndex === idx ? 'ring-4 ring-emerald-500 ring-offset-2 rounded-lg z-10 scale-105' : 'hover:scale-105'}`}
-                                                    draggable
-                                                    onDragStart={(e) => e.dataTransfer.setData('text/plain', idx.toString())}
-                                                    onDragOver={(e) => e.preventDefault()}
-                                                    onDrop={(e) => {
-                                                        e.preventDefault();
-                                                        const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
-                                                        moveImage(fromIdx, idx);
-                                                    }}
-                                                    onClick={() => setSelectedImageIndex(idx)}
-                                                    onKeyDown={(e) => handleImageKeyDown(e, idx)}
-                                                    tabIndex={0}
-                                                >
-                                                    <img src={img} className="h-20 w-20 sm:h-24 sm:w-24 object-cover rounded-lg border border-slate-200 shadow-sm" alt="Preview" />
-                                                    <button 
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            const imgs = formData.images?.split('|').filter(i => i) || [];
-                                                            imgs.splice(idx, 1);
-                                                            setFormData({...formData, images: imgs.join('|')});
-                                                            setSelectedImageIndex(null);
+                                                    <div 
+                                                        key={idx} 
+                                                        ref={el => { imageRefs.current[idx] = el; }}
+                                                        className={`relative inline-block group cursor-move transition-all outline-none ${selectedImageIndex === idx ? 'ring-4 ring-emerald-500 ring-offset-2 rounded-lg z-10 scale-105' : 'hover:scale-105'}`}
+                                                        draggable
+                                                        onDragStart={(e) => e.dataTransfer.setData('text/plain', idx.toString())}
+                                                        onDragOver={(e) => e.preventDefault()}
+                                                        onDrop={(e) => {
+                                                            e.preventDefault();
+                                                            const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                                                            moveImage(fromIdx, idx);
                                                         }}
-                                                        className="absolute -top-2 -right-2 bg-red-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-500"
+                                                        onClick={() => setSelectedImageIndex(idx)}
+                                                        onKeyDown={(e) => handleImageKeyDown(e, idx)}
+                                                        tabIndex={0}
                                                     >
-                                                        <i className="fa-solid fa-xmark"></i>
-                                                    </button>
-                                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 rounded-lg pointer-events-none transition-opacity"></div>
-                                                </div>
-                                            ))}
+                                                        <img src={img} className="h-20 w-20 sm:h-24 sm:w-24 object-cover rounded-lg border border-slate-200 shadow-sm" alt="Preview" />
+                                                        <button 
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const imgs = formData.images?.split('|').filter(i => i) || [];
+                                                                imgs.splice(idx, 1);
+                                                                setFormData({...formData, images: imgs.join('|')});
+                                                                setSelectedImageIndex(null);
+                                                            }}
+                                                            className="absolute -top-2 -right-2 bg-red-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-500"
+                                                        >
+                                                            <i className="fa-solid fa-xmark"></i>
+                                                        </button>
+                                                        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 rounded-lg pointer-events-none transition-opacity"></div>
+                                                    </div>
+                                                ))}
                                             </div>
                                             <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
                                                 <i className="fa-solid fa-circle-info"></i>
@@ -1706,9 +1783,16 @@ export function Modals({
                                     )}
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1.5">
-                                        <i className="fa-solid fa-earth-asia text-emerald-600"></i>
-                                        <span>360° 가상 투어 공간 (Insta360 등)</span>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.panoramas) ? 'text-emerald-700 font-extrabold flex items-center gap-1.5' : 'text-slate-500 flex items-center gap-1.5'}>
+                                            <i className="fa-solid fa-earth-asia text-emerald-600"></i>
+                                            <span>360° 가상 투어 공간 (Insta360 등)</span>
+                                        </span>
+                                        {isFieldFilled(formData.panoramas) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100 animate-pulse"><i className="fa-solid fa-vr-cardboard"></i> VR 업로드완료</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">선택</span>
+                                        )}
                                     </label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-grow">
@@ -1718,7 +1802,7 @@ export function Modals({
                                                 value={formData.panoramas || ''} 
                                                 onChange={handleFormChange} 
                                                 placeholder="스티칭 완료된 360° 사진 URL들 (| 구분) 또는 파일 업로드" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 pr-10 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all font-medium" 
+                                                className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 pr-10 text-xs sm:text-sm focus:outline-none transition-all font-medium ${isFieldFilled(formData.panoramas) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`} 
                                             />
                                             <button 
                                                 type="button"
@@ -1791,10 +1875,6 @@ export function Modals({
                                         </div>
                                     )}
                                 </div>
-                                <div className="sm:col-span-2">
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">블로그 홍보 제목</label>
-                                    <input type="text" id="post-title" value={formData.title} onChange={handleFormChange} required placeholder="예: 남향 채광 가득한 햇살 원룸 실사" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
-                                </div>
                             </div>
                             </div>
                             
@@ -1809,41 +1889,72 @@ export function Modals({
                             </div>
 
                             <div>
-                                <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">비고 (특이사항 등)</label>
-                                <input type="text" id="post-remarks" value={formData.remarks} onChange={handleFormChange} required placeholder="예: ▶현관:9246 호실:6000" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
+                                <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                    <span className={isFieldFilled(formData.remarks) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>비고 (특이사항 등)</span>
+                                    {isFieldFilled(formData.remarks) ? (
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                    ) : (
+                                        <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                    )}
+                                </label>
+                                <input type="text" id="post-remarks" value={formData.remarks} onChange={handleFormChange} required placeholder="예: ▶현관:9246 호실:6000" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all ${isFieldFilled(formData.remarks) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                             </div>
                             <div>
-                                <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">체험적 서론</label>
-                                <textarea 
-                                    id="post-intro" 
-                                    ref={el => { textAreaRefs.current.intro = el; }}
-                                    value={formData.intro} 
-                                    onChange={handleFormChange} 
-                                    rows={10} 
-                                    required 
-                                    placeholder="예: 오후 2시 무렵 방문하여 채광을 점검..." 
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all resize-none overflow-hidden"></textarea>
+                                <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                    <span className={isFieldFilled(formData.intro) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>체험적 서론</span>
+                                    {isFieldFilled(formData.intro) ? (
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                    ) : (
+                                        <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                    )}
+                                </label>
+                                <RichTextEditor
+                                    id="post-intro"
+                                    value={formData.intro || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, intro: val }))}
+                                    placeholder="예: 오후 2시 무렵 방문하여 채광을 점검..."
+                                    minHeight="220px"
+                                />
                             </div>
                             <div>
-                                <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">상세한 관찰 본론</label>
-                                <textarea 
-                                    id="post-body" 
-                                    ref={el => { textAreaRefs.current.body = el; }}
-                                    value={formData.body} 
-                                    onChange={handleFormChange} 
-                                    rows={15} 
-                                    required 
-                                    placeholder="예: 수압 상태를 점검하였는데 시원하게 작동..." 
-                                    className="w-full bg-slate-50 border border-emerald-200/80 rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all resize-none overflow-hidden"></textarea>
+                                <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                    <span className={isFieldFilled(formData.body) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>상세한 관찰 본론</span>
+                                    {isFieldFilled(formData.body) ? (
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100"><i className="fa-solid fa-circle-check"></i> 입력됨</span>
+                                    ) : (
+                                        <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                    )}
+                                </label>
+                                <RichTextEditor
+                                    id="post-body"
+                                    value={formData.body || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, body: val }))}
+                                    placeholder="예: 수압 상태를 점검하였는데 시원하게 작동..."
+                                    minHeight="350px"
+                                />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">유튜브 동영상 주소</label>
-                                    <input type="url" id="post-video" value={formData.video} onChange={handleFormChange} placeholder="예: https://www.youtube.com/watch?v=..." className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.video) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>유튜브 동영상 주소</span>
+                                        {isFieldFilled(formData.video) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100 animate-pulse"><i className="fa-brands fa-youtube"></i> 연동됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded font-bold border border-slate-200">선택</span>
+                                        )}
+                                    </label>
+                                    <input type="url" id="post-video" value={formData.video} onChange={handleFormChange} placeholder="예: https://www.youtube.com/watch?v=..." className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all ${isFieldFilled(formData.video) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase mb-1">소재지 실제 주소 (지도 연동)</label>
-                                    <input type="text" id="post-address" value={formData.address} onChange={handleFormChange} required placeholder="예: 구미시 광평동 76-6" className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
+                                    <label className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase mb-1">
+                                        <span className={isFieldFilled(formData.address) ? 'text-emerald-700 font-extrabold' : 'text-slate-500'}>소재지 실제 주소 (지도 연동)</span>
+                                        {isFieldFilled(formData.address) ? (
+                                            <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold border border-emerald-100 animate-pulse"><i className="fa-solid fa-map-location-dot"></i> 지도연동됨</span>
+                                        ) : (
+                                            <span className="text-[9px] sm:text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold border border-amber-100">⚠️ 필수</span>
+                                        )}
+                                    </label>
+                                    <input type="text" id="post-address" value={formData.address} onChange={handleFormChange} required placeholder="예: 구미시 광평동 76-6" className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none transition-all ${isFieldFilled(formData.address) ? 'bg-emerald-50/20 border-emerald-500 text-emerald-990 font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' : 'bg-slate-50 border-slate-200 focus:border-emerald-500'}`}/>
                                 </div>
                             </div>
                             

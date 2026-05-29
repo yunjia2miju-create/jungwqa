@@ -16,6 +16,8 @@ export const DetailTab = ({
 
     const [isFetchingDetail, setIsFetchingDetail] = React.useState(true);
     const [copied, setCopied] = React.useState(false);
+    const [activeZoomUrl, setActiveZoomUrl] = React.useState<string | null>(null);
+    const [isHovered, setIsHovered] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         if (selectedPostId) {
@@ -194,6 +196,27 @@ export const DetailTab = ({
                                 
                                 const formatToDoubleSpacing = (text: string) => {
                                     if (!text) return "";
+                                    const isHtml = /<[a-z][\s\S]*>/i.test(text);
+                                    if (isHtml) {
+                                        let cleanText = text
+                                            .replace(/<\/p>/gi, '\n\n')
+                                            .replace(/<\/div>/gi, '\n\n')
+                                            .replace(/<br\s*\/?>/gi, '\n')
+                                            .replace(/<blockquote[^>]*>/gi, '\n🟢 [인용구시작]\n')
+                                            .replace(/<\/blockquote>/gi, '\n[인용구끝]\n\n')
+                                            .replace(/<h[1-6][^>]*>/gi, '\n\n[ ')
+                                            .replace(/<\/h[1-6]>/gi, ' ]\n\n')
+                                            .replace(/<[^>]+>/g, '') // Strip remaining tags
+                                            .replace(/&nbsp;/g, ' ')
+                                            .replace(/&amp;/g, '&')
+                                            .replace(/&lt;/g, '<')
+                                            .replace(/&gt;/g, '>');
+                                        return cleanText
+                                            .split('\n')
+                                            .map(line => line.trim())
+                                            .filter(line => line.length > 0)
+                                            .join('\n\n');
+                                    }
                                     return text
                                         .replace(/\\n/g, '\n')
                                         .split('\n')
@@ -251,11 +274,42 @@ export const DetailTab = ({
                     )}
                 </div>
 
-                <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-sm mb-8 watermark-container">
-                    <img src={p.thumbnail} className="w-full h-full object-cover" />
+                <div 
+                    className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-150 shadow-sm mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
+                    onMouseEnter={() => {
+                        if (!isMobile) setIsHovered(p.thumbnail);
+                    }}
+                    onMouseLeave={() => {
+                        if (!isMobile) setIsHovered(null);
+                    }}
+                    onClick={() => {
+                        setActiveZoomUrl(p.thumbnail || defaultImg);
+                    }}
+                >
+                    <img 
+                        src={p.thumbnail} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        alt="매물 대표 사진"
+                    />
+                    {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                        <span 
+                            className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl lg:text-2xl"
+                            style={{ 
+                                textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                            }}
+                        >
+                            태왕공인중개사
+                        </span>
+                    </div>
                     <div className="watermark-overlay">
                         <i className="fa-solid fa-house-shield text-[10px]"></i>
                         <span>태왕공인중개사</span>
+                    </div>
+                    {/* Hover status tip */}
+                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                        <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
+                        <span>크게 보기 (클릭)</span>
                     </div>
                 </div>
 
@@ -307,12 +361,68 @@ export const DetailTab = ({
 
                 <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-6">
                     <div className="p-6 bg-emerald-50/50 border-l-4 border-emerald-500 rounded-r-2xl">
-                        <p className="text-sm font-semibold text-emerald-900 italic">"{p.intro}"</p>
+                        {p.intro && /<[a-z][\s\S]*>/i.test(p.intro) ? (
+                            <div className="text-sm font-semibold text-emerald-950/90 italic style-rich-intro break-words" dangerouslySetInnerHTML={{ __html: p.intro }} />
+                        ) : (
+                            <p className="text-sm font-semibold text-emerald-900 italic">"{p.intro}"</p>
+                        )}
                     </div>
-                    <div className="text-sm sm:text-base text-slate-600 markdown-content whitespace-pre-wrap leading-relaxed space-y-4">
+                    <div className="text-sm sm:text-base text-slate-600 markdown-content leading-relaxed space-y-4">
                         {p.body ? (() => {
                             let cleared = p.body.replace(/\\n/g, '\n');
-                            // 마크다운 헤더가 깨지거나 날것 그대로 텍스트 (#, ##, ###)로 나오는 것을 방지하기 위해 깔끔하게 정제
+                            const isHtml = /<[a-z][\s\S]*>/i.test(cleared);
+
+                            if (isHtml) {
+                                // Rich HTML layout support with legal disclosures splitter
+                                const legalKeywords = ['중개대상물', '법정 고시', '표시광고', '법정표시사항', '표시사항 고시란', '표시 광고'];
+                                let splitIndex = -1;
+                                for (const keyword of legalKeywords) {
+                                    const idx = cleared.indexOf(keyword);
+                                    if (idx !== -1) {
+                                        let startIdx = idx;
+                                        // Look backward around block containers for perfect tag structure integrity
+                                        const precedingText = cleared.substring(0, idx);
+                                        const blockMatches = [...precedingText.matchAll(/<(h[1-6]|p|div|blockquote|hr|table|ul|ol|li)\b/gi)];
+                                        if (blockMatches.length > 0) {
+                                            const lastBlockMatch = blockMatches[blockMatches.length - 1];
+                                            if (lastBlockMatch.index !== undefined) {
+                                                startIdx = lastBlockMatch.index;
+                                            }
+                                        } else {
+                                            while (startIdx > 0 && cleared[startIdx] !== '\n') {
+                                                startIdx--;
+                                            }
+                                        }
+                                        splitIndex = startIdx;
+                                        break;
+                                    }
+                                }
+
+                                if (splitIndex !== -1) {
+                                    const mainBody = cleared.substring(0, splitIndex).trim();
+                                    const legalDisclosures = cleared.substring(splitIndex).trim();
+                                    return (
+                                        <div className="space-y-6 w-full">
+                                            <div dangerouslySetInnerHTML={{ __html: mainBody }} className="style-rich-body break-words w-full" />
+                                            <div className="mt-8 bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm text-left">
+                                                <div className="flex items-center gap-2 mb-3 text-slate-800 border-b border-slate-200 pb-2 flex-wrap">
+                                                    <i className="fa-solid fa-file-shield text-emerald-600 text-base"></i>
+                                                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900">📋 법정 중개대상물 표시광고 확인서</h4>
+                                                </div>
+                                                <div dangerouslySetInnerHTML={{ __html: legalDisclosures }} className="text-[11px] sm:text-xs text-slate-600 font-sans bg-white border border-slate-100 p-4 rounded-xl shadow-inner max-h-[350px] overflow-y-auto w-full break-all" />
+                                                <p className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-bold leading-relaxed flex items-center gap-1">
+                                                    <i className="fa-solid fa-circle-exclamation text-amber-500"></i>
+                                                    <span>공인중개사법시행령 제17조의2(중개대상물 명시의무)를 준수하는 공식 기재 고시란입니다.</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                return <div dangerouslySetInnerHTML={{ __html: cleared }} className="style-rich-body break-words w-full" />;
+                            }
+
+                            // Legacy plain text / markdown layout parsing
                             cleared = cleared.replace(/(?:^|\n)###\s*(.*?)(?=\n|$)/g, '\n\n[ $1 ]\n');
                             cleared = cleared.replace(/(?:^|\n)##\s*(.*?)(?=\n|$)/g, '\n\n[ $1 ]\n');
                             cleared = cleared.replace(/(?:^|\n)#\s*(.*?)(?=\n|$)/g, '\n\n[ $1 ]\n');
@@ -323,7 +433,6 @@ export const DetailTab = ({
                             for (const keyword of legalKeywords) {
                                 const idx = cleared.indexOf(keyword);
                                 if (idx !== -1) {
-                                    // Search backward for the start of the section
                                     let startIdx = idx;
                                     while (startIdx > 0 && cleared[startIdx] !== '\n') {
                                         startIdx--;
@@ -337,7 +446,7 @@ export const DetailTab = ({
                                 const mainBody = cleared.substring(0, splitIndex).trim();
                                 const legalDisclosures = cleared.substring(splitIndex).trim();
                                 return (
-                                    <div className="space-y-6">
+                                    <div className="space-y-6 whitespace-pre-wrap">
                                         <div className="whitespace-pre-wrap leading-relaxed">{mainBody}</div>
                                         <div className="mt-8 bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm text-left">
                                             <div className="flex items-center gap-2 mb-3 text-slate-800 border-b border-slate-200 pb-2 flex-wrap">
@@ -369,11 +478,44 @@ export const DetailTab = ({
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {imgUrls.map((url, i) => (
-                                <div key={i} className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-100 shadow-sm bg-slate-50 watermark-container">
-                                    <img src={url.trim()} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover" />
+                                <div 
+                                    key={i} 
+                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-slate-50 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
+                                    onMouseEnter={() => {
+                                        if (!isMobile) setIsHovered(url.trim());
+                                    }}
+                                    onMouseLeave={() => {
+                                        if (!isMobile) setIsHovered(null);
+                                    }}
+                                    onClick={() => {
+                                        setActiveZoomUrl(url.trim());
+                                    }}
+                                >
+                                    <img 
+                                        src={url.trim()} 
+                                        onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} 
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                        alt={`실사 추가 사진 ${i+1}`}
+                                    />
+                                    {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                                        <span 
+                                            className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl"
+                                            style={{ 
+                                                textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                                            }}
+                                        >
+                                            태왕공인중개사
+                                        </span>
+                                    </div>
                                     <div className="watermark-overlay">
                                         <i className="fa-solid fa-house-shield text-[10px]"></i>
                                         <span>태왕공인중개사</span>
+                                    </div>
+                                    {/* Hover status tip */}
+                                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                        <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
+                                        <span>크게 보기 (클릭)</span>
                                     </div>
                                 </div>
                             ))}
@@ -516,6 +658,111 @@ export const DetailTab = ({
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* 1. Desktop Hover Magnifier Overlay (for frictionless live zoom preview) */}
+            {!isMobile && isHovered && (
+                <div className="fixed inset-0 z-[9990] flex items-center justify-center p-6 bg-slate-950/45 backdrop-blur-[2px] pointer-events-none select-none animate-fadeIn">
+                    <div className="bg-white rounded-3xl p-3 shadow-2xl border border-white/20 flex flex-col items-center justify-center max-w-3xl max-h-[80vh] transition-all duration-300 scale-100 animate-zoomIn pointer-events-none">
+                        <div className="relative overflow-hidden rounded-2xl aspect-[16/9] max-h-[66vh] bg-slate-50 w-full flex items-center justify-center">
+                            <img 
+                                src={isHovered} 
+                                className="max-w-full max-h-[66vh] object-contain select-none" 
+                                alt="확대 미리보기"
+                            />
+                            {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                                <span 
+                                    className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-lg sm:text-2xl md:text-3xl"
+                                    style={{ 
+                                        textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                                    }}
+                                >
+                                    태왕공인중개사
+                                </span>
+                            </div>
+                            <div className="absolute top-3 right-3 bg-emerald-600/95 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 flex-wrap">
+                                <i className="fa-solid fa-expand"></i>
+                                <span>클릭하여 정밀 뷰어 열기</span>
+                            </div>
+                        </div>
+                        <div className="text-center mt-3 text-xs font-black text-slate-800 flex items-center gap-1.5 justify-center opacity-70">
+                            <i className="fa-solid fa-magnifying-glass-plus text-emerald-650"></i>
+                            <span>마우스 포인터를 사진 영역 밖으로 이동하면 닫힙니다.</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 2. Interactive Fullscreen Lightbox (for both PC, Tablet, and Mobile to view complete detail with custom dismiss UI) */}
+            {activeZoomUrl && (
+                <div 
+                    className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-8 bg-slate-950/90 backdrop-blur-md transition-all duration-300 select-none animate-fadeIn"
+                    onClick={() => setActiveZoomUrl(null)}
+                >
+                    <div 
+                        className="relative w-full max-w-4xl max-h-[85vh] bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-2xl border border-white/10 flex flex-col items-center justify-center animate-zoomIn"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => setActiveZoomUrl(null)}
+                            className="absolute -top-12 sm:top-4 right-1 sm:right-4 bg-white hover:bg-slate-100 text-slate-900 rounded-full w-10 h-10 flex items-center justify-center shadow-lg cursor-pointer transition-transform duration-350 hover:rotate-90 z-20"
+                            title="확대창 닫기"
+                        >
+                            <i className="fa-solid fa-xmark text-lg"></i>
+                        </button>
+
+                        <div className="relative w-full h-full flex items-center justify-center max-h-[72vh] overflow-hidden rounded-xl bg-slate-50">
+                            <img 
+                                src={activeZoomUrl} 
+                                className="max-w-full max-h-[72vh] object-contain rounded-xl select-none cursor-zoom-out" 
+                                alt="매물 고화질 실사"
+                                onClick={() => setActiveZoomUrl(null)}
+                            />
+                            
+                            {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10 w-full h-full">
+                                <span 
+                                    className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-lg sm:text-2xl md:text-3xl lg:text-4xl"
+                                    style={{ 
+                                        textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                                    }}
+                                >
+                                    태왕공인중개사
+                                </span>
+                            </div>
+
+                            {/* Watermark also visible on enlarged screen */}
+                            <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-black shadow flex items-center gap-1.5 select-none opacity-90">
+                                <i className="fa-solid fa-house-shield text-emerald-400"></i>
+                                <span>태왕공인중개사</span>
+                            </div>
+                        </div>
+
+                        <div className="w-full flex flex-col sm:flex-row items-center justify-between mt-3 px-1 gap-2 border-t border-slate-100 pt-3">
+                            <div className="flex items-center gap-2 text-slate-700 w-full justify-start">
+                                <div className="bg-emerald-50 px-2.5 py-1 rounded-md text-emerald-750 text-[10px] sm:text-xs font-black flex items-center gap-1 shrink-0">
+                                    <i className="fa-solid fa-image"></i>
+                                    <span>실사 현장 사진</span>
+                                </div>
+                                <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs">{p.title}</span>
+                            </div>
+                            <button 
+                                onClick={() => setActiveZoomUrl(null)}
+                                className="bg-slate-900 hover:bg-slate-800 text-white font-black rounded-lg px-4 py-1.5 text-xs tracking-tight transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+                            >
+                                <i className="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>원본으로 사진 접기</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Mobile Tap / Swipe Info */}
+                    <div className="mt-4 text-center text-xs text-slate-300 font-black flex items-center gap-1.5 justify-center opacity-90">
+                        <i className="fa-solid fa-circle-info text-emerald-400"></i>
+                        <span>바깥 검은 여백을 터치하거나 우측 상단 X 아이콘을 누르면 원래 크기로 복귀합니다.</span>
                     </div>
                 </div>
             )}

@@ -9,6 +9,7 @@ interface AppState {
     memberEmail: string | null;
     memberName: string | null;
     showOnlyRecommended: boolean;
+    showOnlyVR: boolean;
     activeCategory: string;
     activeDong: string;
     searchVal: string;
@@ -22,6 +23,7 @@ interface AppState {
     setIsAdminLoggedIn: (val: boolean) => void;
     setMemberLoggedIn: (val: boolean, email: string | null, name: string | null) => void;
     setShowOnlyRecommended: (val: boolean) => void;
+    setShowOnlyVR: (val: boolean) => void;
     setActiveCategory: (cat: string) => void;
     setActiveDong: (dong: string) => void;
     setSearchVal: (val: string) => void;
@@ -39,6 +41,7 @@ export const useAppStore = create<AppState>((set) => ({
     memberEmail: null,
     memberName: null,
     showOnlyRecommended: false,
+    showOnlyVR: false,
     activeCategory: 'all',
     activeDong: 'all',
     searchVal: '',
@@ -51,7 +54,16 @@ export const useAppStore = create<AppState>((set) => ({
     setInquiries: (inqs) => set({ inquiries: inqs }),
     setIsAdminLoggedIn: (val) => set({ isAdminLoggedIn: val }),
     setMemberLoggedIn: (val, email, name) => set({ isMemberLoggedIn: val, memberEmail: email, memberName: name }),
-    setShowOnlyRecommended: (val) => set({ showOnlyRecommended: val, currentPage: 1 }),
+    setShowOnlyRecommended: (val) => set((state) => ({ 
+        showOnlyRecommended: val, 
+        showOnlyVR: val ? false : state.showOnlyVR, 
+        currentPage: 1 
+    })),
+    setShowOnlyVR: (val) => set((state) => ({ 
+        showOnlyVR: val, 
+        showOnlyRecommended: val ? false : state.showOnlyRecommended, 
+        currentPage: 1 
+    })),
     setActiveCategory: (cat) => set({ activeCategory: cat, activeDong: 'all', currentPage: 1 }),
     setActiveDong: (dong) => set({ activeDong: dong, currentPage: 1 }),
     setSearchVal: (val) => set({ searchVal: val, currentPage: 1, activeCategory: 'all', activeDong: 'all' }),

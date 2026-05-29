@@ -15,6 +15,8 @@ export const MainTab = ({
         isAdminLoggedIn, 
         showOnlyRecommended, 
         setShowOnlyRecommended, 
+        showOnlyVR,
+        setShowOnlyVR,
         activeCategory, 
         setActiveCategory, 
         activeDong, 
@@ -35,9 +37,9 @@ export const MainTab = ({
         setIsFetching(true);
         const t = setTimeout(() => setIsFetching(false), 500);
         return () => clearTimeout(t);
-    }, [activeCategory, activeDong, showOnlyRecommended, searchVal, currentPage]);
+    }, [activeCategory, activeDong, showOnlyRecommended, showOnlyVR, searchVal, currentPage]);
 
-    const itemsPerPage = 30;
+    const itemsPerPage = 10;
 
     const formatDisplayPrice = (price: string, _manageFee: string) => {
         return price;
@@ -50,6 +52,9 @@ export const MainTab = ({
     let filtered = posts.filter(p => {
         if (!p) return false;
         if (showOnlyRecommended && !(p.isRecommended === true || String(p.isRecommended) === 'true')) return false;
+
+        const hasVR = !((!(p.panoramas && p.panoramas.trim())) && (!(p.panoImage && p.panoImage.trim())));
+        if (showOnlyVR && !hasVR) return false;
 
         const categoryMatch = activeCategory === 'all' || p.category === activeCategory;
         const dongMatch = activeDong === 'all' || (p.dong && String(p.dong) === activeDong) || (p.address && String(p.address).includes(activeDong));
@@ -103,25 +108,42 @@ export const MainTab = ({
         <section id="main-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-opacity duration-300 w-full">
             {/* Desktop Hero */}
             {!isMobile && (
-                <div id="hero-desktop-wrapper" className="lg:grid bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full lg:grid-cols-12 gap-8 items-center hidden">
+                <div id="hero-desktop-wrapper" className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full hidden lg:block">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)] pointer-events-none"></div>
-                    <div className="lg:col-span-7 space-y-4 text-left relative z-10">
+                    <div className="space-y-4 text-left relative z-10 w-full max-w-4xl">
                         <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-widest inline-block">태왕 오리지널 현장 브리핑</span>
                         <h1 className="text-3xl lg:text-5xl font-black leading-tight tracking-tight">
                             발로 뛰어 검증한 <br/>정직한 지역 가치와 현장 답사기
                         </h1>
-                        <div className="flex items-center gap-4 py-6">
-                            <div className="h-px bg-gradient-to-r from-transparent to-emerald-500/50 flex-grow"></div>
-                            <div className="flex flex-col items-center">
-                                <div className="flex items-center gap-2 sm:gap-3">
-                                    <i className="fa-solid fa-vr-cardboard text-emerald-400 text-3xl sm:text-4xl lg:text-5xl animate-vr-icon"></i>
-                                    <span className="text-emerald-400 font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight shrink-0 drop-shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-vr-glow">
+                        <div className="flex items-center gap-4 py-6 w-full max-w-full">
+                            <div className="h-px bg-gradient-to-r from-transparent to-emerald-500/40 flex-grow max-w-[150px] lg:max-w-[250px] animate-pulse hidden md:block"></div>
+                            <div 
+                                onClick={() => {
+                                    setShowOnlyVR(true);
+                                    setShowOnlyRecommended(false);
+                                    setCurrentPage(1);
+                                    setActiveCategory('all');
+                                    setActiveDong('all');
+                                    showToast("360° VR 현장 투어가 포함된 매물을 필터링하여 보여줍니다.", "success");
+                                    setTimeout(() => {
+                                        document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' });
+                                    }, 100);
+                                }}
+                                className="flex flex-col items-center cursor-pointer hover:scale-[1.03] active:scale-95 transition-all select-none bg-emerald-500/10 border border-emerald-500/30 px-6 sm:px-10 py-4 sm:py-5 rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/20 shrink-0 max-w-full box-border"
+                                title="클릭하여 360° VR 매물 모아보기"
+                            >
+                                <div className="flex items-center gap-2 sm:gap-3 flex-nowrap">
+                                    <i className="fa-solid fa-vr-cardboard text-emerald-400 text-2xl sm:text-3xl lg:text-3xl animate-vr-icon shrink-0"></i>
+                                    <span className="text-emerald-400 font-black text-xl sm:text-2xl md:text-3xl lg:text-3xl tracking-tight shrink-0 drop-shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-vr-glow">
                                         공간 실감 360° 현장 VR 투어
                                     </span>
                                 </div>
-                                <span className="text-emerald-400/70 text-[10px] sm:text-xs font-black tracking-[0.25em] mt-1.5 uppercase">NEXT-GEN REAL ESTATE TECHNOLOGY</span>
+                                <span className="text-emerald-300 text-[10px] sm:text-xs font-black tracking-[0.15em] mt-2 flex items-center gap-1.5 uppercase shrink-0">
+                                    <i className="fa-solid fa-circle-play text-[9px] text-emerald-400 animate-pulse"></i>
+                                    <span>클릭하여 360° VR 매물 모아보기</span>
+                                </span>
                             </div>
-                            <div className="h-px bg-gradient-to-l from-transparent to-emerald-500/50 flex-grow"></div>
+                            <div className="h-px bg-gradient-to-l from-transparent to-emerald-500/40 flex-grow max-w-[150px] lg:max-w-[250px] animate-pulse hidden md:block"></div>
                         </div>
                         <p className="text-slate-200 text-base lg:text-lg leading-relaxed font-black mb-2 shadow-black/20 text-shadow-sm">
                             "압도적 공간감! 사진으로는 볼 수 없던 구석구석을 360° 가상 투어로 경험하세요."
@@ -133,6 +155,8 @@ export const MainTab = ({
                             <button 
                                 onClick={() => { 
                                     setShowOnlyRecommended(true); 
+                                    setShowOnlyVR(false);
+                                    setCurrentPage(1);
                                     setActiveCategory('all'); 
                                     setActiveDong('all');
                                     setTimeout(() => {
@@ -159,13 +183,28 @@ export const MainTab = ({
                         <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-left">
                             발로 뛰어 검증한 <br/>정직한 지역 가치와 현장 답사기
                         </h1>
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 my-2.5 shadow-[inset_0_1px_15px_rgba(16,185,129,0.2)]">
+                        <div 
+                            onClick={() => {
+                                setShowOnlyVR(true);
+                                setShowOnlyRecommended(false);
+                                setCurrentPage(1);
+                                setActiveCategory('all');
+                                setActiveDong('all');
+                                showToast("360° VR 현장 투어가 포함된 매물을 필터링하여 보여줍니다.", "success");
+                                setTimeout(() => {
+                                    document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' });
+                                }, 100);
+                            }}
+                            className="bg-emerald-500/15 border border-emerald-500/30 rounded-xl p-4 my-2.5 shadow-[inset_0_1px_15px_rgba(16,185,129,0.25)] cursor-pointer hover:bg-emerald-500/25 active:scale-[0.98] transition-all"
+                            title="터치하여 360° VR 매물 모아보기"
+                        >
                             <div className="text-emerald-400 font-black text-lg sm:text-xl tracking-tight text-left flex items-center gap-2">
                                 <i className="fa-solid fa-vr-cardboard text-xl sm:text-2xl animate-vr-icon"></i>
                                 <span className="animate-vr-glow">공간 실감 360° 현장 VR 투어</span>
                             </div>
-                            <p className="text-slate-300 text-[9px] leading-relaxed text-left font-medium italic mt-1">
-                                "구미 전 지역 공실을 360° 가상 투어로 생생하게"
+                            <p className="text-slate-300 text-[10px] leading-relaxed text-left font-semibold italic mt-1.5 flex items-center justify-between">
+                                <span>"구미 전 지역 공실을 360° 가상 투어로 생생하게"</span>
+                                <span className="text-emerald-400 font-extrabold text-[10px] shrink-0 ml-1">터치하여 모아보기 ➔</span>
                             </p>
                         </div>
                         <p className="text-slate-400 text-[11px] leading-relaxed text-left">
@@ -178,6 +217,8 @@ export const MainTab = ({
                             <button 
                                 onClick={() => { 
                                     setShowOnlyRecommended(true); 
+                                    setShowOnlyVR(false);
+                                    setCurrentPage(1);
                                     setActiveCategory('all'); 
                                     setActiveDong('all');
                                     setTimeout(() => {
@@ -278,7 +319,7 @@ export const MainTab = ({
                 <div className="w-full">
                     <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full">
                         {['all', '원룸매매', '원룸', '미투', '투룸', '쓰리룸', '상가', '아파트', '오피스텔', '다세대', '주택', '땅', '기타'].map((cat) => (
-                            <button key={cat} onClick={() => setActiveCategory(cat)} className={`category-tab px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${activeCategory === cat ? 'active bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}>
+                            <button key={cat} onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} className={`category-tab px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${activeCategory === cat ? 'active bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}>
                                 {cat === 'all' ? '전체' : cat}
                             </button>
                         ))}
@@ -287,10 +328,17 @@ export const MainTab = ({
 
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full font-medium mt-1">
                     <label className="flex items-center justify-center space-x-2 cursor-pointer bg-white border border-slate-200 rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm hover:bg-slate-50 transition-all select-none whitespace-nowrap w-full sm:w-auto">
-                        <input type="checkbox" checked={showOnlyRecommended} onChange={(e) => setShowOnlyRecommended(e.target.checked)} className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" />
+                        <input type="checkbox" checked={showOnlyRecommended} onChange={(e) => { setShowOnlyRecommended(e.target.checked); setCurrentPage(1); }} className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" />
                         <span className="font-extrabold text-slate-700 flex items-center gap-1">
                             <i className="fa-solid fa-star text-amber-500 animate-sparkle"></i>
                             <span>추천 매물만 보기</span>
+                        </span>
+                    </label>
+                    <label className="flex items-center justify-center space-x-2 cursor-pointer bg-white border border-slate-200 rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm hover:bg-slate-50 transition-all select-none whitespace-nowrap w-full sm:w-auto">
+                        <input type="checkbox" checked={showOnlyVR} onChange={(e) => { setShowOnlyVR(e.target.checked); setCurrentPage(1); }} className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" />
+                        <span className="font-extrabold text-slate-700 flex items-center gap-1">
+                            <i className="fa-solid fa-vr-cardboard text-emerald-500"></i>
+                            <span>360° VR 매물만 보기</span>
                         </span>
                     </label>
                     <div className="relative w-full sm:w-80 ml-auto">
@@ -310,11 +358,11 @@ export const MainTab = ({
                         <span>구미시 세부 동네 필터</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                        <button onClick={() => setActiveDong('all')} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === 'all' ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                        <button onClick={() => { setActiveDong('all'); setCurrentPage(1); }} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === 'all' ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                             전체 동
                         </button>
                         {gumiDongs.map(dong => (
-                            <button key={dong} onClick={() => setActiveDong(dong)} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === dong ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                            <button key={dong} onClick={() => { setActiveDong(dong); setCurrentPage(1); }} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === dong ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                                 {dong}
                             </button>
                         ))}
@@ -520,7 +568,7 @@ export const MainTab = ({
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8 font-semibold">
-                    <button onClick={() => setCurrentPage(1)} disabled={safeCurrentPage === 1} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>처음</button>
+                    <button onClick={() => { setCurrentPage(1); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === 1} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>처음</button>
                     {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
                         let pageNum = safeCurrentPage - 2 + i;
                         if (safeCurrentPage <= 3) pageNum = i + 1;
@@ -528,12 +576,12 @@ export const MainTab = ({
                         if (pageNum < 1 || pageNum > totalPages) return null;
                         const isActive = pageNum === safeCurrentPage;
                         return (
-                            <button key={pageNum} onClick={() => setCurrentPage(pageNum)} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${isActive ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                            <button key={pageNum} onClick={() => { setCurrentPage(pageNum); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${isActive ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                                 {pageNum}
                             </button>
                         );
                     })}
-                    <button onClick={() => setCurrentPage(totalPages)} disabled={safeCurrentPage === totalPages} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>마지막</button>
+                    <button onClick={() => { setCurrentPage(totalPages); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === totalPages} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>마지막</button>
                 </div>
             )}
 

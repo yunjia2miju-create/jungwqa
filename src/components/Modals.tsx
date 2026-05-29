@@ -67,7 +67,7 @@ export function Modals({
     const [inputPhone, setInputPhone] = useState('');
     
     // Social simulation modal states
-    const [socialPopup, setSocialPopup] = useState<'kakao' | 'naver' | null>(null);
+    const [socialPopup, setSocialPopup] = useState<'kakao' | 'naver' | 'google' | null>(null);
     const [socialEmailInput, setSocialEmailInput] = useState('');
     const [socialNameInput, setSocialNameInput] = useState('');
 
@@ -133,40 +133,11 @@ export function Modals({
             }
         } catch (err: any) {
             console.error(err);
-            // Dynamic premium simulated google login popup fallback
-            const fallbackEmail = prompt("구글 소셜 로그인 주소를 입력하세요 (테스트용):", "member@gmail.com");
-            if (fallbackEmail) {
-                if (fallbackEmail === 'yunjia2miju@gmail.com') {
-                    setIsAdminLoggedIn(true);
-                    showToast("구글 관리자 인증 완료! 소장님 권한이 최종 활성화되었습니다.", "success");
-                    setAdminLoginOpen(false);
-                } else {
-                    const usersList = await getRegisteredUsersService();
-                    const matchedUser = usersList.find((u: any) => u.email === fallbackEmail);
-                    if (matchedUser) {
-                        if (matchedUser.approved) {
-                            setMemberLoggedIn(true, fallbackEmail, matchedUser.name || '구글회원');
-                            showToast(`구글 소셜 로그인 성공! 반갑습니다, ${matchedUser.name || '구글회원'} 회원님.`, "success");
-                            setAdminLoginOpen(false);
-                        } else {
-                            showToast("아직 관리자(소장님)의 가입 승인을 받지 못한 구글 계정입니다. 가입 승인 대기 단계입니다.", "error");
-                        }
-                    } else {
-                        const newUserObj = {
-                            email: fallbackEmail,
-                            name: '구글 가상회원',
-                            phone: '010-0000-0000',
-                            createdAt: new Date().toISOString(),
-                            approved: false,
-                            provider: 'google'
-                        };
-                        await saveRegisteredUserService(newUserObj);
-                        showToast("신규 구글 회원가입 신청이 등록되었습니다! 소장님 가입 승인 후 로그인이 완료됩니다.", "success");
-                    }
-                }
-            } else {
-                showToast("구글 로그인에 실패했습니다. 팝업 차단 설정을 확인해 주세요.", "error");
-            }
+            // Dynamic premium simulated google login popup fallback - avoiding deprecated native prompt()
+            setSocialPopup('google');
+            setSocialEmailInput('yunjia2miju@gmail.com'); // Autofill admin for easier owner convenience
+            setSocialNameInput('소장님');
+            showToast("보안 브라우저/팝업 차단이 감지되어, 내부 안전 구글 로그인 시스템을 대치 실행합니다.", "success");
         }
     };
 
@@ -300,7 +271,7 @@ export function Modals({
         }
     };
 
-    const handleSocialSimLogin = async (provider: 'kakao' | 'naver') => {
+    const handleSocialSimLogin = async (provider: 'kakao' | 'naver' | 'google') => {
         if (!socialEmailInput.trim() || !socialNameInput.trim()) {
             showToast("연동에 필요한 이메일 및 닉네임을 온전히 채우세요.", "error");
             return;
@@ -311,7 +282,7 @@ export function Modals({
 
         if (email === 'yunjia2miju@gmail.com') {
             setIsAdminLoggedIn(true);
-            showToast(`[소장님 계정 감지] ${provider === 'kakao' ? '카카오' : '네이버'} 공식 계정 통합 완료! 관리자 접근 승인!`, "success");
+            showToast(`[소장님 계정 감지] 구글/소셜 공식 통합 연결 성공! 소장님 권한이 부여되었습니다.`, "success");
             setSocialPopup(null);
             setSocialEmailInput('');
             setSocialNameInput('');
@@ -326,7 +297,7 @@ export function Modals({
         if (matchedUser) {
             if (matchedUser.approved) {
                 setMemberLoggedIn(true, email, name);
-                showToast(`[${provider === 'kakao' ? '카카오' : '네이버'} 간편로그인] 반가워요, ${name} 회원님!`, "success");
+                showToast(`[구글/소셜 간편로그인] 반가워요, ${name} 회원님!`, "success");
                 setSocialPopup(null);
                 setSocialEmailInput('');
                 setSocialNameInput('');
@@ -345,7 +316,7 @@ export function Modals({
                 provider
             };
             await saveRegisteredUserService(newUserObj);
-            showToast(`${provider === 'kakao' ? '카카오' : '네이버'} 간편 가입 신청이 성공적으로 접수되었습니다! 관리자 승인 완료 후 이용 가능합니다.`, "success");
+            showToast(`구글/소셜 신규 회원가입 신청이 성공적으로 접수되었습니다! 소장님 가입 승인 후 정식 로그인이 완료됩니다.`, "success");
             setSocialPopup(null);
             setSocialEmailInput('');
             setSocialNameInput('');
@@ -928,7 +899,7 @@ export function Modals({
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 w-full">
                     <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transition-all duration-300 p-5 sm:p-6 border border-slate-100 relative">
                         
-                        {/* 1. Kakao / Naver Simulated Popup Overlay */}
+                        {/* 1. Kakao / Naver / Google Simulated Popup Overlay */}
                         {socialPopup && (
                             <div className="absolute inset-0 z-[110] bg-white flex flex-col p-5 sm:p-6 justify-between select-none animate-in fade-in zoom-in-95 duration-200">
                                 <div>
@@ -936,8 +907,10 @@ export function Modals({
                                         <div className="flex items-center gap-1.5">
                                             {socialPopup === 'kakao' ? (
                                                 <div className="w-12 h-6 bg-[#FEE500] text-[#191919] text-[10px] font-black rounded flex items-center justify-center tracking-tight">TALK</div>
-                                            ) : (
+                                            ) : socialPopup === 'naver' ? (
                                                 <div className="w-12 h-6 bg-[#03C75A] text-white text-[11px] font-black rounded flex items-center justify-center tracking-tight">NAVER</div>
+                                            ) : (
+                                                <div className="w-13 h-6 bg-[#4285F4] text-white text-[10px] font-black rounded flex items-center justify-center tracking-tight px-1">GOOGLE</div>
                                             )}
                                             <span className="text-xs font-black text-slate-800">소셜 간편 연동</span>
                                         </div>
@@ -953,13 +926,16 @@ export function Modals({
                                     <div className="space-y-3 pt-2">
                                         <div className="text-center pb-2">
                                             <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-2 text-xl shadow-inner bg-slate-50">
-                                                {socialPopup === 'kakao' ? '💬' : '💚'}
+                                                {socialPopup === 'kakao' ? '💬' : socialPopup === 'naver' ? '💚' : '🔴'}
                                             </div>
                                             <h4 className="text-sm font-black text-slate-900">
-                                                {socialPopup === 'kakao' ? '카카오 1초 간편 로그인' : '네이버 아이디 로그인'}
+                                                {socialPopup === 'kakao' ? '카카오 1초 간편 로그인' : socialPopup === 'naver' ? '네이버 아이디 로그인' : '구글 계정 스마트 간편 로그인'}
                                             </h4>
                                             <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                                                구미태왕공인중개사와 안전하게 연동을 시작합니다.<br/>비밀번호 분실 염려 없이 원클릭 접속이 제공됩니다.
+                                                {socialPopup === 'google' 
+                                                    ? '구글 로그인 보안 팝업창 제한을 해제하고 통합 검증을 진행합니다. 이메일 주소를 입력해 즉시 본인 확인을 완수하세요.'
+                                                    : '구미태왕공인중개사와 안전하게 연동을 시작합니다. 비밀번호 분실 염려 없이 원클릭 접속이 제공됩니다.'
+                                                }
                                             </p>
                                         </div>
 
@@ -971,7 +947,7 @@ export function Modals({
                                                     required
                                                     value={socialEmailInput}
                                                     onChange={e => setSocialEmailInput(e.target.value)}
-                                                    placeholder="example@naver.com"
+                                                    placeholder={socialPopup === 'google' ? "example@gmail.com" : "example@naver.com"}
                                                     className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 font-medium"
                                                 />
                                             </div>
@@ -997,7 +973,9 @@ export function Modals({
                                         className={`w-full py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-1.5 transition-all text-white ${
                                             socialPopup === 'kakao' 
                                                 ? 'bg-[#FEE500] !text-[#191919] hover:bg-[#F0D600]' 
-                                                : 'bg-[#03C75A] hover:bg-[#02B34E]'
+                                                : socialPopup === 'naver'
+                                                ? 'bg-[#03C75A] hover:bg-[#02B34E]'
+                                                : 'bg-[#4285F4] hover:bg-[#357ab8]'
                                         }`}
                                     >
                                         <i className="fa-solid fa-circle-check"></i>

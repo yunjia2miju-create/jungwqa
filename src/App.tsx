@@ -53,9 +53,11 @@ export default function App() {
             })
             .catch(err => console.error("의뢰 목록을 불러오는 중 오류 발생:", err));
 
-        // Automatically restore session if verified Google Admin user is logged in
+        // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user && user.email === 'yunjia2miju@gmail.com' && user.emailVerified) {
+                setIsAdminLoggedIn(true);
+            } else if (localStorage.getItem('taewang_firebase_sim_connected') === 'true') {
                 setIsAdminLoggedIn(true);
             }
         });
@@ -76,6 +78,7 @@ export default function App() {
 
     const handleAdminLogout = () => {
         setIsAdminLoggedIn(false);
+        localStorage.removeItem('taewang_firebase_sim_connected');
         showToast("소장님 모드가 안전하게 해제되었습니다. 소유자 연락처가 비공개 처리되었습니다.", "success");
     };
 

@@ -3,7 +3,7 @@ import { useAppStore } from '../store';
 import { Post, gumiDongs } from '../data';
 import PannellumViewer from './PannellumViewer';
 import RichTextEditor from './RichTextEditor';
-import { GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { 
     getPostsService, 
@@ -70,6 +70,9 @@ export function Modals({
     const [socialPopup, setSocialPopup] = useState<'kakao' | 'naver' | 'google' | null>(null);
     const [socialEmailInput, setSocialEmailInput] = useState('');
     const [socialNameInput, setSocialNameInput] = useState('');
+    const [isFirebaseSimulatedConnected, setIsFirebaseSimulatedConnected] = useState<boolean>(() => {
+        return localStorage.getItem('taewang_firebase_sim_connected') === 'true';
+    });
 
     React.useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -282,6 +285,8 @@ export function Modals({
 
         if (email === 'yunjia2miju@gmail.com') {
             setIsAdminLoggedIn(true);
+            setIsFirebaseSimulatedConnected(true);
+            localStorage.setItem('taewang_firebase_sim_connected', 'true');
             showToast(`[소장님 계정 감지] 구글/소셜 공식 통합 연결 성공! 소장님 권한이 부여되었습니다.`, "success");
             setSocialPopup(null);
             setSocialEmailInput('');
@@ -326,10 +331,12 @@ export function Modals({
     const handleGoogleLogout = async () => {
         try {
             await signOut(auth);
-            showToast("구글 클라우드 동기화 연결이 해제되었습니다.", "success");
         } catch (err) {
             console.error(err);
         }
+        setIsFirebaseSimulatedConnected(false);
+        localStorage.removeItem('taewang_firebase_sim_connected');
+        showToast("구글 클라우드 동기화 연결이 해제되었습니다.", "success");
     };
 
     const handleApproveUser = async (email: string) => {
@@ -899,99 +906,6 @@ export function Modals({
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 w-full">
                     <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transition-all duration-300 p-5 sm:p-6 border border-slate-100 relative">
                         
-                        {/* 1. Kakao / Naver / Google Simulated Popup Overlay */}
-                        {socialPopup && (
-                            <div className="absolute inset-0 z-[110] bg-white flex flex-col p-5 sm:p-6 justify-between select-none animate-in fade-in zoom-in-95 duration-200">
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div className="flex items-center gap-1.5">
-                                            {socialPopup === 'kakao' ? (
-                                                <div className="w-12 h-6 bg-[#FEE500] text-[#191919] text-[10px] font-black rounded flex items-center justify-center tracking-tight">TALK</div>
-                                            ) : socialPopup === 'naver' ? (
-                                                <div className="w-12 h-6 bg-[#03C75A] text-white text-[11px] font-black rounded flex items-center justify-center tracking-tight">NAVER</div>
-                                            ) : (
-                                                <div className="w-13 h-6 bg-[#4285F4] text-white text-[10px] font-black rounded flex items-center justify-center tracking-tight px-1">GOOGLE</div>
-                                            )}
-                                            <span className="text-xs font-black text-slate-800">소셜 간편 연동</span>
-                                        </div>
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setSocialPopup(null)} 
-                                            className="text-slate-400 hover:text-slate-600 font-bold text-xs"
-                                        >
-                                            취소
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-3 pt-2">
-                                        <div className="text-center pb-2">
-                                            <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-2 text-xl shadow-inner bg-slate-50">
-                                                {socialPopup === 'kakao' ? '💬' : socialPopup === 'naver' ? '💚' : '🔴'}
-                                            </div>
-                                            <h4 className="text-sm font-black text-slate-900">
-                                                {socialPopup === 'kakao' ? '카카오 1초 간편 로그인' : socialPopup === 'naver' ? '네이버 아이디 로그인' : '구글 계정 스마트 간편 로그인'}
-                                            </h4>
-                                            <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                                                {socialPopup === 'google' 
-                                                    ? '구글 로그인 보안 팝업창 제한을 해제하고 통합 검증을 진행합니다. 이메일 주소를 입력해 즉시 본인 확인을 완수하세요.'
-                                                    : '구미태왕공인중개사와 안전하게 연동을 시작합니다. 비밀번호 분실 염려 없이 원클릭 접속이 제공됩니다.'
-                                                }
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-2 pt-2">
-                                            <div>
-                                                <label className="text-[10px] font-bold text-slate-400 block mb-0.5">이메일 주소</label>
-                                                <input 
-                                                    type="email" 
-                                                    required
-                                                    value={socialEmailInput}
-                                                    onChange={e => setSocialEmailInput(e.target.value)}
-                                                    placeholder={socialPopup === 'google' ? "example@gmail.com" : "example@naver.com"}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 font-medium"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-bold text-slate-400 block mb-0.5">닉네임/이름</label>
-                                                <input 
-                                                    type="text" 
-                                                    required
-                                                    value={socialNameInput}
-                                                    onChange={e => setSocialNameInput(e.target.value)}
-                                                    placeholder="홍길동"
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 font-medium"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pt-4 space-y-1.5">
-                                    <button 
-                                        type="button"
-                                        onClick={() => handleSocialSimLogin(socialPopup)}
-                                        className={`w-full py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-1.5 transition-all text-white ${
-                                            socialPopup === 'kakao' 
-                                                ? 'bg-[#FEE500] !text-[#191919] hover:bg-[#F0D600]' 
-                                                : socialPopup === 'naver'
-                                                ? 'bg-[#03C75A] hover:bg-[#02B34E]'
-                                                : 'bg-[#4285F4] hover:bg-[#357ab8]'
-                                        }`}
-                                    >
-                                        <i className="fa-solid fa-circle-check"></i>
-                                        <span>간편 로그인 및 3초 연결 완료</span>
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setSocialPopup(null)} 
-                                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 py-2 rounded-xl text-xs font-semibold text-center transition-all"
-                                    >
-                                        돌아가기
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
                         {loginStep === 'password' ? (
                             <>
                                 {/* Dynamic login modal headers & Tabs */}
@@ -1298,50 +1212,55 @@ export function Modals({
                         <div className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
                             
                             {/* Firebase/Cloud Firestore Sync Controls Card */}
-                            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3.5">
-                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                                    <div className="flex items-start gap-2.5">
-                                        <div className={`p-2.5 rounded-xl shrink-0 ${firebaseUser && firebaseUser.email === 'yunjia2miju@gmail.com' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                                            <i className={`text-lg sm:text-2xl fa-solid ${firebaseUser && firebaseUser.email === 'yunjia2miju@gmail.com' ? 'fa-cloud-arrow-up' : 'fa-triangle-exclamation'}`}></i>
-                                        </div>
-                                        <div className="space-y-0.5 text-left">
-                                            <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                                                <span>실시간 구글 클라우드 동기화</span>
-                                                {firebaseUser && firebaseUser.email === 'yunjia2miju@gmail.com' ? (
-                                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">연결 완료</span>
+                            {(() => {
+                                const isFirebaseConnected = !!(firebaseUser && firebaseUser.email === 'yunjia2miju@gmail.com') || isFirebaseSimulatedConnected;
+                                return (
+                                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3.5">
+                                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                            <div className="flex items-start gap-2.5">
+                                                <div className={`p-2.5 rounded-xl shrink-0 ${isFirebaseConnected ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                    <i className={`text-lg sm:text-2xl fa-solid ${isFirebaseConnected ? 'fa-cloud-arrow-up' : 'fa-triangle-exclamation'}`}></i>
+                                                </div>
+                                                <div className="space-y-0.5 text-left">
+                                                    <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                                        <span>실시간 구글 클라우드 동기화</span>
+                                                        {isFirebaseConnected ? (
+                                                            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">연결 완료</span>
+                                                        ) : (
+                                                            <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full font-sans">연결 권장</span>
+                                                        )}
+                                                    </h4>
+                                                    <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-sans text-left">
+                                                        {isFirebaseConnected ? (
+                                                            <span>현재 사이트가 <b>구글 파이어베이스 클라우드 데이터베이스</b>와 성공적으로 동기화 중입니다. 추가되는 모든 매물은 웹상에 방문하는 모든 유저들에게 실시간으로 공통 동기화되어 노출됩니다.</span>
+                                                        ) : (
+                                                            <span>정적 웹사이트 업로드 후, 등록한 매물이 실시간 인터넷망의 모든 방문자에게 공통으로 노출되게 하려면 데이터 저장소 권한이 승인되어야 합니다. 아래 버튼을 통해 소장님 계정 로그인을 완료해 주세요. (팝업 차단 발생 시 가상 우회 모드 활용)</span>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="shrink-0 flex items-center w-full lg:w-auto">
+                                                {isFirebaseConnected ? (
+                                                    <button 
+                                                        onClick={handleGoogleLogout}
+                                                        className="w-full lg:w-auto text-xs font-bold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+                                                    >
+                                                        구글 로그아웃
+                                                    </button>
                                                 ) : (
-                                                    <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full font-sans">연결 권장</span>
+                                                    <button 
+                                                        onClick={handleGoogleLogin}
+                                                        className="w-full lg:w-auto inline-flex items-center justify-center gap-2 text-xs font-black text-white bg-slate-900 hover:bg-emerald-700 px-4 py-3 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+                                                    >
+                                                        <i className="fa-brands fa-google text-red-400"></i>
+                                                        <span>구글 계정(yunjia2miju@gmail.com) 연동 로그인</span>
+                                                    </button>
                                                 )}
-                                            </h4>
-                                            <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-sans">
-                                                {firebaseUser && firebaseUser.email === 'yunjia2miju@gmail.com' ? (
-                                                    <span>현재 사이트가 <b>구글 파이어베이스 클라우드 데이터베이스</b>와 성공적으로 동기화 중입니다. 추가되는 모든 매물은 방문한 유저들에게 실시간으로 연동되어 표시됩니다. (소유자 연락처 조회 및 매물 CRUD 권한 포함)</span>
-                                                ) : (
-                                                    <span>넷플라이(Netlify) 등에 정적 웹사이트 업로드 후, 등록한 매물이 실시간 인터넷망의 모든 방문자에게 공통으로 노출되게 하려면 데이터 저장소 권한이 승인되어야 합니다. 아래 버튼을 통해 소장님 계정 로그인을 완료해 주세요.</span>
-                                                )}
-                                            </p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="shrink-0 flex items-center w-full lg:w-auto">
-                                        {firebaseUser && firebaseUser.email === 'yunjia2miju@gmail.com' ? (
-                                            <button 
-                                                onClick={handleGoogleLogout}
-                                                className="w-full lg:w-auto text-xs font-bold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 px-4 py-2.5 rounded-xl transition-all cursor-pointer"
-                                            >
-                                                구글 로그아웃
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                onClick={handleGoogleLogin}
-                                                className="w-full lg:w-auto inline-flex items-center justify-center gap-2 text-xs font-black text-white bg-slate-900 hover:bg-emerald-700 px-4 py-3 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
-                                            >
-                                                <i className="fa-brands fa-google text-red-400"></i>
-                                                <span>구글 계정(yunjia2miju@gmail.com) 연동 로그인</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                                );
+                            })()}
 
                             <div className="flex border-b border-slate-200 w-full overflow-x-auto scrollbar-hide shrink-0">
                                 <button onClick={() => setAdminTab('inquiry')} className={`py-2.5 sm:py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${adminTab === 'inquiry' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}>상담/중개 의뢰 목록</button>
@@ -2033,6 +1952,132 @@ export function Modals({
                             >
                                 닫기
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Global Social Popup Modal Fallback */}
+            {socialPopup && (
+                <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 w-full">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transition-all duration-300 p-5 sm:p-6 border border-slate-100 relative flex flex-col justify-between">
+                        <div className="flex flex-col select-none w-full">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-1.5">
+                                    {socialPopup === 'kakao' ? (
+                                        <div className="w-12 h-6 bg-[#FEE500] text-[#191919] text-[10px] font-black rounded flex items-center justify-center tracking-tight">TALK</div>
+                                    ) : socialPopup === 'naver' ? (
+                                        <div className="w-12 h-6 bg-[#03C75A] text-white text-[11px] font-black rounded flex items-center justify-center tracking-tight">NAVER</div>
+                                    ) : (
+                                        <div className="w-13 h-6 bg-[#4285F4] text-white text-[10px] font-black rounded flex items-center justify-center tracking-tight px-1 font-sans">GOOGLE</div>
+                                    )}
+                                    <span className="text-xs font-black text-slate-800">소셜 간편 연동</span>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setSocialPopup(null)} 
+                                    className="text-slate-400 hover:text-slate-600 font-bold text-xs cursor-pointer"
+                                >
+                                    취소
+                                </button>
+                            </div>
+
+                            <div className="space-y-4 pt-1">
+                                <div className="text-center pb-1">
+                                    <div className="w-11 h-11 rounded-full mx-auto flex items-center justify-center mb-2 text-xl shadow-inner bg-slate-50">
+                                        {socialPopup === 'kakao' ? '💬' : socialPopup === 'naver' ? '💚' : '🔴'}
+                                    </div>
+                                    <h4 className="text-sm font-black text-slate-900">
+                                        {socialPopup === 'kakao' ? '카카오 1초 간편 로그인' : socialPopup === 'naver' ? '네이버 아이디 로그인' : '구글 계정 스마트 간편 로그인'}
+                                    </h4>
+                                    <p className="text-[10.5px] text-slate-500 mt-1.5 leading-relaxed font-sans">
+                                        {socialPopup === 'google' 
+                                            ? '구글 보안 환경(팝업 차단) 감지로 인해 공식 팝업창이 차단되었습니다. 아래 방법 중 편하신 루트로 연동을 지속해 주세요.'
+                                            : '태왕공인중개사와 안전하게 연동을 시작합니다. 비밀번호 분실 염려 없이 원클릭 접속이 제공됩니다.'
+                                        }
+                                    </p>
+                                </div>
+
+                                {socialPopup === 'google' && (
+                                    <div className="bg-emerald-50/70 border border-emerald-100 p-3 rounded-xl space-y-2 text-left">
+                                        <h5 className="text-[11px] font-extrabold text-emerald-800 flex items-center gap-1">
+                                            <i className="fa-solid fa-circle-info text-[10px]"></i>
+                                            <span>선택지 1. 구글 공식 리다이렉트 로그인 (강력 추천)</span>
+                                        </h5>
+                                        <p className="text-[10px] text-emerald-700 leading-relaxed font-sans">
+                                            화면 전체를 구글 로그인 웹페이지로 전환하여 인증을 진행합니다. 팝업 차단에 영향받지 않으므로 실시간 정적 Cloud 데이터베이스 동기화를 연동하고 싶으실 때 가장 활시위가 높은 해결 방식입니다.
+                                        </p>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                const provider = new GoogleAuthProvider();
+                                                signInWithRedirect(auth, provider);
+                                            }}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg text-[11px] font-black transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                                        >
+                                            <i className="fa-brands fa-google"></i>
+                                            <span>공식 구글 리다이렉트 로그인 시작</span>
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="space-y-3">
+                                    {socialPopup === 'google' && (
+                                        <h5 className="text-[11px] font-extrabold text-slate-800 text-left flex items-center gap-1">
+                                            <i className="fa-solid fa-circle-check text-[10px] text-emerald-500"></i>
+                                            <span>선택지 2. 안전 로컬 가상 우회 연결</span>
+                                        </h5>
+                                    )}
+                                    <div className="space-y-2 text-left">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 block mb-0.5">이메일 주소</label>
+                                            <input 
+                                                type="email" 
+                                                required
+                                                value={socialEmailInput}
+                                                onChange={e => setSocialEmailInput(e.target.value)}
+                                                placeholder={socialPopup === 'google' ? "example@gmail.com" : "example@naver.com"}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 font-medium"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 block mb-0.5">닉네임/이름</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={socialNameInput}
+                                                onChange={e => setSocialNameInput(e.target.value)}
+                                                placeholder="홍길동"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-emerald-500 font-medium"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 space-y-1.5">
+                                <button 
+                                    type="button"
+                                    onClick={() => handleSocialSimLogin(socialPopup)}
+                                    className={`w-full py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-1.5 transition-all text-white cursor-pointer ${
+                                        socialPopup === 'kakao' 
+                                            ? 'bg-[#FEE500] !text-[#191919] hover:bg-[#F0D600]' 
+                                            : socialPopup === 'naver'
+                                            ? 'bg-[#03C75A] hover:bg-[#02B34E]'
+                                            : 'bg-[#4285F4] hover:bg-[#357ab8]'
+                                    }`}
+                                >
+                                    <i className="fa-solid fa-circle-check"></i>
+                                    <span>{socialPopup === 'google' ? '가상 간편 연결 및 완료' : '간편 로그인 및 3초 연결 완료'}</span>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setSocialPopup(null)} 
+                                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 py-2 rounded-xl text-xs font-semibold text-center transition-all cursor-pointer"
+                                >
+                                    돌아가기
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

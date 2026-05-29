@@ -67,6 +67,21 @@ service cloud.firestore {
         && data.createdAt is int;
     }
 
+    function isValidRegisteredUser(data) {
+      return data.keys().hasAll(['email', 'name', 'phone', 'createdAt', 'approved', 'provider'])
+        && data.email is string
+        && data.email.size() <= 128
+        && data.name is string
+        && data.name.size() <= 100
+        && data.phone is string
+        && data.phone.size() <= 50
+        && data.createdAt is string
+        && data.createdAt.size() <= 100
+        && data.approved is bool
+        && data.provider is string
+        && data.provider.size() <= 50;
+    }
+
     // --- Path Match Rules ---
 
     // 1. Posts (매물 장부)
@@ -94,6 +109,22 @@ service cloud.firestore {
       // Only the admin can view, change status, or purge inquiries
       allow read: if isAdmin();
       allow update: if isAdmin() && isValidInquiry(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // 3. Registered Users (등록 회원 관리)
+    match /registered_users/{email} {
+      // Allow read so client-side password verification can be checked on pre-auth phases
+      allow read: if true;
+      
+      // Allow clients to register themselves with pending (approved = false) status
+      allow create: if isValidRegisteredUser(request.resource.data)
+        && (isAdmin() || request.resource.data.approved == false);
+        
+      // Allow admins to update or process state, and preserve user details if still waiting for permission
+      allow update: if isValidRegisteredUser(request.resource.data)
+        && (isAdmin() || (request.resource.data.approved == false && resource.data.approved == false));
+        
       allow delete: if isAdmin();
     }
   }

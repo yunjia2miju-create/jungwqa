@@ -45,6 +45,21 @@
         "createdAt": { "type": "number" }
       },
       "required": ["id", "name", "phone", "message", "processed", "createdAt"]
+    },
+    "RegisteredUser": {
+      "title": "RegisteredUser",
+      "description": "A user profile registered for general housing viewing or manager duties",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "approved": { "type": "boolean" },
+        "provider": { "type": "string" }
+      },
+      "required": ["email", "name", "phone", "createdAt", "approved", "provider"]
     }
   },
   "firestore": {
@@ -55,6 +70,10 @@
     "/inquiries/{inquiryId}": {
       "schema": "Inquiry",
       "description": "Customer transactions and counseling requests accessed securely by authorized admins"
+    },
+    "/registered_users/{email}": {
+      "schema": "RegisteredUser",
+      "description": "Information regarding accounts registered for real estate system access"
     }
   }
 }

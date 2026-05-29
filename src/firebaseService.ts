@@ -298,25 +298,82 @@ export interface RegisteredUser {
  * Fetch all registered users
  */
 export async function getRegisteredUsersService(): Promise<RegisteredUser[]> {
+  let firestoreUsers: RegisteredUser[] = [];
+  try {
+    const q = query(collection(db, 'registered_users'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      snapshot.forEach((doc) => {
+        firestoreUsers.push(doc.data() as RegisteredUser);
+      });
+    }
+  } catch (err) {
+    console.warn("Firestore registered_users fetch bypassed (using local storage/API fallback) - likely offline or unmigrated:", err);
+  }
+
+  let expressUsers: RegisteredUser[] = [];
   try {
     const res = await fetch('/api/users');
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
-        return data;
+        expressUsers = data;
       }
     }
   } catch (err) {
     console.warn("Failed fetching registered users from API", err);
   }
-  return [];
+
+  // Fallback to local storage
+  const localList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+
+  const mergedMap = new Map<string, RegisteredUser>();
+
+  // 1. Fill from local storage
+  localList.forEach((u: any) => {
+    if (u && u.email) {
+      mergedMap.set(u.email, u);
+    }
+  });
+
+  // 2. Fill/overwrite from Express API
+  expressUsers.forEach(u => {
+    if (u && u.email) {
+      mergedMap.set(u.email, u);
+    }
+  });
+
+  // 3. Fill/overwrite from Firestore client (the absolute persistent cloud truth)
+  firestoreUsers.forEach(u => {
+    if (u && u.email) {
+      mergedMap.set(u.email, u);
+    }
+  });
+
+  const mergedList = Array.from(mergedMap.values());
+  // Sort descending by createdAt
+  mergedList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  return mergedList;
 }
 
 /**
  * Register or update a user (and cache to local storage as well for fallback consistency)
  */
 export async function saveRegisteredUserService(user: RegisteredUser): Promise<void> {
-  // Sync locally
+  const docPath = `registered_users/${user.email}`;
+  let firestoreError: any = null;
+
+  // 1. Save to Client Firestore
+  try {
+    const docRef = doc(db, 'registered_users', user.email);
+    await setDoc(docRef, user);
+    console.log("User registered to client Firestore:", user.email);
+  } catch (err) {
+    console.warn("Failed saving user to client Firestore (will fall back to local/express):", err);
+    firestoreError = err;
+  }
+
+  // 2. Sync locally in localStorage
   const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
   const index = list.findIndex((u: any) => u.email === user.email);
   if (index !== -1) {
@@ -326,15 +383,24 @@ export async function saveRegisteredUserService(user: RegisteredUser): Promise<v
   }
   localStorage.setItem('taewang_registered_users', JSON.stringify(list));
 
-  // Sync with API
+  // 3. Sync with Express API
+  let expressSuccess = false;
   try {
-    await fetch('/api/users', {
+    const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(user)
     });
+    if (res.ok) {
+      expressSuccess = true;
+    }
   } catch (err) {
     console.warn("Failed saving registered user to API", err);
+  }
+
+  // 4. Force error classification on write failures to diagnose rule constraints
+  if (firestoreError && !expressSuccess) {
+    handleFirestoreError(firestoreError, OperationType.WRITE, docPath);
   }
 }
 
@@ -342,16 +408,35 @@ export async function saveRegisteredUserService(user: RegisteredUser): Promise<v
  * Toggle approval state
  */
 export async function toggleApproveUserService(email: string, currentApproved: boolean): Promise<void> {
-  // Sync locally
+  const docPath = `registered_users/${email}`;
+  let firestoreError: any = null;
+
+  // 1. Update in Client Firestore
+  try {
+    const docRef = doc(db, 'registered_users', email);
+    await updateDoc(docRef, { approved: !currentApproved });
+  } catch (err) {
+    console.warn("Failed toggling user approval on client Firestore:", err);
+    firestoreError = err;
+  }
+
+  // 2. Sync locally
   const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
   const updated = list.map((u: any) => u.email === email ? { ...u, approved: !currentApproved } : u);
   localStorage.setItem('taewang_registered_users', JSON.stringify(updated));
 
-  // Sync with API
+  // 3. Sync with API
+  let expressSuccess = false;
   try {
     await fetch(`/api/users/${email}/toggle`, { method: 'POST' });
+    expressSuccess = true;
   } catch (err) {
     console.warn("Failed toggling user approval on API", err);
+  }
+
+  // 4. Error check
+  if (firestoreError && !expressSuccess) {
+    handleFirestoreError(firestoreError, OperationType.UPDATE, docPath);
   }
 }
 
@@ -359,15 +444,34 @@ export async function toggleApproveUserService(email: string, currentApproved: b
  * Delete a user
  */
 export async function deleteRegisteredUserService(email: string): Promise<void> {
-  // Sync locally
+  const docPath = `registered_users/${email}`;
+  let firestoreError: any = null;
+
+  // 1. Delete on Client Firestore
+  try {
+    const docRef = doc(db, 'registered_users', email);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.warn("Failed deleting user from client Firestore:", err);
+    firestoreError = err;
+  }
+
+  // 2. Sync locally
   const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
   const filtered = list.filter((u: any) => u.email !== email);
   localStorage.setItem('taewang_registered_users', JSON.stringify(filtered));
 
-  // Sync with API
+  // 3. Sync with API
+  let expressSuccess = false;
   try {
     await fetch(`/api/users/${email}`, { method: 'DELETE' });
+    expressSuccess = true;
   } catch (err) {
     console.warn("Failed deleting user from API", err);
+  }
+
+  // 4. Error check
+  if (firestoreError && !expressSuccess) {
+    handleFirestoreError(firestoreError, OperationType.DELETE, docPath);
   }
 }

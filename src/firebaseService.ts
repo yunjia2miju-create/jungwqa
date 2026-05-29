@@ -281,3 +281,93 @@ export async function toggleInquiryProcessedService(id: string, currentProcessed
     handleFirestoreError(firestoreError, OperationType.UPDATE, docPath);
   }
 }
+
+// --- Registered Users Client API ---
+
+export interface RegisteredUser {
+  email: string;
+  password?: string;
+  name: string;
+  phone: string;
+  createdAt: string;
+  approved: boolean;
+  provider: string;
+}
+
+/**
+ * Fetch all registered users
+ */
+export async function getRegisteredUsersService(): Promise<RegisteredUser[]> {
+  try {
+    const res = await fetch('/api/users');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("Failed fetching registered users from API", err);
+  }
+  return [];
+}
+
+/**
+ * Register or update a user (and cache to local storage as well for fallback consistency)
+ */
+export async function saveRegisteredUserService(user: RegisteredUser): Promise<void> {
+  // Sync locally
+  const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+  const index = list.findIndex((u: any) => u.email === user.email);
+  if (index !== -1) {
+    list[index] = { ...list[index], ...user };
+  } else {
+    list.push(user);
+  }
+  localStorage.setItem('taewang_registered_users', JSON.stringify(list));
+
+  // Sync with API
+  try {
+    await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    });
+  } catch (err) {
+    console.warn("Failed saving registered user to API", err);
+  }
+}
+
+/**
+ * Toggle approval state
+ */
+export async function toggleApproveUserService(email: string, currentApproved: boolean): Promise<void> {
+  // Sync locally
+  const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+  const updated = list.map((u: any) => u.email === email ? { ...u, approved: !currentApproved } : u);
+  localStorage.setItem('taewang_registered_users', JSON.stringify(updated));
+
+  // Sync with API
+  try {
+    await fetch(`/api/users/${email}/toggle`, { method: 'POST' });
+  } catch (err) {
+    console.warn("Failed toggling user approval on API", err);
+  }
+}
+
+/**
+ * Delete a user
+ */
+export async function deleteRegisteredUserService(email: string): Promise<void> {
+  // Sync locally
+  const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+  const filtered = list.filter((u: any) => u.email !== email);
+  localStorage.setItem('taewang_registered_users', JSON.stringify(filtered));
+
+  // Sync with API
+  try {
+    await fetch(`/api/users/${email}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn("Failed deleting user from API", err);
+  }
+}

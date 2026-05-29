@@ -29,6 +29,7 @@ async function startServer() {
   const DATA_DIR = path.join(projectRoot, 'data');
   const POSTS_FILE = path.join(DATA_DIR, 'posts.json');
   const INQUIRIES_FILE = path.join(DATA_DIR, 'inquiries.json');
+  const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
   // Ensure data directory exists
   if (!fs.existsSync(DATA_DIR)) {
@@ -43,6 +44,11 @@ async function startServer() {
   // Ensure inquiries.json exists
   if (!fs.existsSync(INQUIRIES_FILE)) {
     fs.writeFileSync(INQUIRIES_FILE, JSON.stringify([], null, 2), 'utf-8');
+  }
+
+  // Ensure users.json exists
+  if (!fs.existsSync(USERS_FILE)) {
+    fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), 'utf-8');
   }
 
   // Load and initialize Firebase Cloud Database
@@ -139,6 +145,26 @@ async function startServer() {
       fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(inqs, null, 2), 'utf-8');
     } catch (err) {
       console.error("Error writing inquiries:", err);
+    }
+  }
+
+  function readUsers() {
+    try {
+      if (fs.existsSync(USERS_FILE)) {
+        const data = fs.readFileSync(USERS_FILE, 'utf-8');
+        return JSON.parse(data);
+      }
+    } catch (err) {
+      console.error("Error reading users:", err);
+    }
+    return [];
+  }
+
+  function writeUsers(users: any) {
+    try {
+      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+    } catch (err) {
+      console.error("Error writing users:", err);
     }
   }
   
@@ -300,6 +326,109 @@ async function startServer() {
     writeInquiries(inquiries);
 
     res.json(inquiries);
+  });
+
+  // --- Users API ---
+  app.get('/api/users', async (req, res) => {
+    const list = await executeFirestoreOp(async (dbInstance) => {
+      const usersRef = dbInstance.collection('registered_users');
+      const snapshot = await usersRef.orderBy('createdAt', 'desc').get();
+      const list: any[] = [];
+      snapshot.forEach((doc: any) => {
+        list.push(doc.data());
+      });
+      return list;
+    }, null);
+
+    if (list !== null) {
+      res.json(list);
+    } else {
+      res.json(readUsers());
+    }
+  });
+
+  app.post('/api/users', async (req, res) => {
+    const userData = req.body;
+    if (!userData.email) {
+      res.status(400).json({ error: "Email is required" });
+      return;
+    }
+
+    // 1. Save to Cloud Firestore
+    await executeFirestoreOp(async (dbInstance) => {
+      const docRef = dbInstance.collection('registered_users').doc(userData.email);
+      await docRef.set(userData, { merge: true });
+      console.log(`[Firestore Admin] User registered/updated: ${userData.email}`);
+      return true;
+    }, false);
+
+    // 2. Save locally as fallback
+    let users = readUsers();
+    const existingIndex = users.findIndex((u: any) => u.email === userData.email);
+    if (existingIndex !== -1) {
+      users[existingIndex] = { ...users[existingIndex], ...userData };
+    } else {
+      users = [userData, ...users];
+    }
+    writeUsers(users);
+
+    res.json(users);
+  });
+
+  app.post('/api/users/:email/toggle', async (req, res) => {
+    const { email } = req.params;
+
+    // 1. Update in Cloud Firestore
+    await executeFirestoreOp(async (dbInstance) => {
+      const docRef = dbInstance.collection('registered_users').doc(email);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        const currentApproved = docSnap.data().approved;
+        await docRef.update({ approved: !currentApproved });
+        console.log(`[Firestore Admin] User approved toggle: ${email}`);
+      } else {
+        // Fallback or update if not exist in Firestore but exists locally
+        let users = readUsers();
+        const localUser = users.find((u: any) => u.email === email);
+        if (localUser) {
+          const newApproved = !localUser.approved;
+          await docRef.set({ ...localUser, approved: newApproved }, { merge: true });
+          console.log(`[Firestore Admin] User created and approved in firestore: ${email}`);
+        }
+      }
+      return true;
+    }, false);
+
+    // 2. Update locally as fallback
+    let users = readUsers();
+    users = users.map((u: any) => {
+      if (u.email === email) {
+        return { ...u, approved: !u.approved };
+      }
+      return u;
+    });
+    writeUsers(users);
+
+    res.json(users);
+  });
+
+  app.delete('/api/users/:email', async (req, res) => {
+    const { email } = req.params;
+
+    // 1. Delete from Cloud Firestore
+    await executeFirestoreOp(async (dbInstance) => {
+      const docRef = dbInstance.collection('registered_users').doc(email);
+      await docRef.delete();
+      console.log(`[Firestore Admin] User deleted: ${email}`);
+      return true;
+    }, false);
+
+    // 2. Delete locally as fallback
+    let users = readUsers();
+    users = users.filter((u: any) => u.email !== email);
+    writeUsers(users);
+
+    res.json(users);
   });
 
   // API 404 Fallback

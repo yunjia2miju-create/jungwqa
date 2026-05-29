@@ -10,7 +10,11 @@ import {
     savePostService, 
     deletePostService, 
     getInquiriesService, 
-    toggleInquiryProcessedService 
+    toggleInquiryProcessedService,
+    getRegisteredUsersService,
+    saveRegisteredUserService,
+    toggleApproveUserService,
+    deleteRegisteredUserService
 } from '../firebaseService';
 
 interface ModalsProps {
@@ -76,8 +80,13 @@ export function Modals({
 
     React.useEffect(() => {
         if (adminDashboardOpen) {
-            const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
-            setRegisteredUsers(list);
+            getRegisteredUsersService().then((list) => {
+                setRegisteredUsers(list);
+                localStorage.setItem('taewang_registered_users', JSON.stringify(list));
+            }).catch(() => {
+                const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+                setRegisteredUsers(list);
+            });
         }
     }, [adminDashboardOpen]);
 
@@ -94,8 +103,8 @@ export function Modals({
                 showToast("구글 관리자 인증 완료! 소장님 권한이 최종 활성화되었습니다.", "success");
                 setAdminLoginOpen(false);
             } else {
-                // Check local registered users list for approval status
-                const usersList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+                // Check live registered users list for approval status
+                const usersList = await getRegisteredUsersService();
                 const matchedUser = usersList.find((u: any) => u.email === email);
 
                 if (matchedUser) {
@@ -117,8 +126,7 @@ export function Modals({
                         approved: false, // Must be approved by manager!
                         provider: 'google'
                     };
-                    usersList.push(newUserObj);
-                    localStorage.setItem('taewang_registered_users', JSON.stringify(usersList));
+                    await saveRegisteredUserService(newUserObj);
                     showToast("구글 회원가입 신청이 접수되었습니다! 소장님(관리자) 승인 완료 후 로그인이 가능합니다.", "success");
                     await signOut(auth);
                 }
@@ -133,7 +141,7 @@ export function Modals({
                     showToast("구글 관리자 인증 완료! 소장님 권한이 최종 활성화되었습니다.", "success");
                     setAdminLoginOpen(false);
                 } else {
-                    const usersList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+                    const usersList = await getRegisteredUsersService();
                     const matchedUser = usersList.find((u: any) => u.email === fallbackEmail);
                     if (matchedUser) {
                         if (matchedUser.approved) {
@@ -152,8 +160,7 @@ export function Modals({
                             approved: false,
                             provider: 'google'
                         };
-                        usersList.push(newUserObj);
-                        localStorage.setItem('taewang_registered_users', JSON.stringify(usersList));
+                        await saveRegisteredUserService(newUserObj);
                         showToast("신규 구글 회원가입 신청이 등록되었습니다! 소장님 가입 승인 후 로그인이 완료됩니다.", "success");
                     }
                 }
@@ -188,9 +195,7 @@ export function Modals({
                 approved: false, // Under admin inspection
                 provider: 'email'
             };
-            const usersList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
-            usersList.push(newUserObj);
-            localStorage.setItem('taewang_registered_users', JSON.stringify(usersList));
+            await saveRegisteredUserService(newUserObj);
 
             showToast("회원가입이 완료되었습니다! 소장님(관리자)의 승인 완료 후 로그인할 수 있습니다.", "success");
             setAuthMode('login');
@@ -199,7 +204,7 @@ export function Modals({
         } catch (err: any) {
             console.warn("Firebase email creation bypassed, initiating high-availability fallback:", err);
             
-            const usersList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+            const usersList = await getRegisteredUsersService();
             const userExists = usersList.some((u: any) => u.email === inputEmail);
             if (userExists) {
                 showToast("이미 가입된 이메일 주소입니다. 로그인을 시도하세요.", "error");
@@ -215,8 +220,7 @@ export function Modals({
                 approved: false, // Under admin inspection
                 provider: 'email'
             };
-            usersList.push(newUser);
-            localStorage.setItem('taewang_registered_users', JSON.stringify(usersList));
+            await saveRegisteredUserService(newUser);
             
             showToast("회원가입 신청이 정상 접수되었습니다! 소장님(관리자) 가입 승인 후 로그인할 수 있습니다.", "success");
             setAuthMode('login');
@@ -259,7 +263,7 @@ export function Modals({
         }
 
         // Standard user verification checking approved lists
-        const usersList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+        const usersList = await getRegisteredUsersService();
         const matchedUser = usersList.find((u: any) => u.email === inputEmail);
 
         if (matchedUser) {
@@ -296,7 +300,7 @@ export function Modals({
         }
     };
 
-    const handleSocialSimLogin = (provider: 'kakao' | 'naver') => {
+    const handleSocialSimLogin = async (provider: 'kakao' | 'naver') => {
         if (!socialEmailInput.trim() || !socialNameInput.trim()) {
             showToast("연동에 필요한 이메일 및 닉네임을 온전히 채우세요.", "error");
             return;
@@ -316,7 +320,7 @@ export function Modals({
         }
 
         // Standard social user check
-        const usersList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
+        const usersList = await getRegisteredUsersService();
         const matchedUser = usersList.find((u: any) => u.email === email);
 
         if (matchedUser) {
@@ -340,8 +344,7 @@ export function Modals({
                 approved: false, // Default to pending approval
                 provider
             };
-            usersList.push(newUserObj);
-            localStorage.setItem('taewang_registered_users', JSON.stringify(usersList));
+            await saveRegisteredUserService(newUserObj);
             showToast(`${provider === 'kakao' ? '카카오' : '네이버'} 간편 가입 신청이 성공적으로 접수되었습니다! 관리자 승인 완료 후 이용 가능합니다.`, "success");
             setSocialPopup(null);
             setSocialEmailInput('');
@@ -358,27 +361,28 @@ export function Modals({
         }
     };
 
-    const handleApproveUser = (email: string) => {
-        const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
-        const updated = list.map((u: any) => u.email === email ? { ...u, approved: true } : u);
-        localStorage.setItem('taewang_registered_users', JSON.stringify(updated));
+    const handleApproveUser = async (email: string) => {
+        const user = registeredUsers.find((u: any) => u.email === email);
+        const currentApproved = user ? user.approved : false;
+        await toggleApproveUserService(email, currentApproved);
+        const updated = await getRegisteredUsersService();
         setRegisteredUsers(updated);
         showToast(`${email} 회원의 가입을 최종 승인하였습니다. 이제 로그인이 가능합니다.`, "success");
     };
 
-    const handleRevokeUser = (email: string) => {
-        const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
-        const updated = list.map((u: any) => u.email === email ? { ...u, approved: false } : u);
-        localStorage.setItem('taewang_registered_users', JSON.stringify(updated));
+    const handleRevokeUser = async (email: string) => {
+        const user = registeredUsers.find((u: any) => u.email === email);
+        const currentApproved = user ? user.approved : true;
+        await toggleApproveUserService(email, currentApproved);
+        const updated = await getRegisteredUsersService();
         setRegisteredUsers(updated);
         showToast(`${email} 회원의 가입 승인을 취소/보류 처리했습니다.`, "success");
     };
 
-    const handleDeleteUser = (email: string) => {
+    const handleDeleteUser = async (email: string) => {
         if (window.confirm(`정말 ${email} 회원을 데이터베이스에서 영구 삭제하시겠습니까?`)) {
-            const list = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
-            const updated = list.filter((u: any) => u.email !== email);
-            localStorage.setItem('taewang_registered_users', JSON.stringify(updated));
+            await deleteRegisteredUserService(email);
+            const updated = await getRegisteredUsersService();
             setRegisteredUsers(updated);
             showToast(`${email} 회원의 데이터를 영구 삭제했습니다.`, "success");
         }

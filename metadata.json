@@ -1,6 +1,6 @@
 {
   "name": "Remix: 남주근 홈페이지",
-  "description": "",
+  "description": "태왕공인중개사 소장님 전용 프리미엄 매물 및 회원 관리 솔루션",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

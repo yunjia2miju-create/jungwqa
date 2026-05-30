@@ -55,14 +55,16 @@ export const DetailTab = ({
         );
     }
 
-    const formatDisplayPrice = (price: string, transactionType: string) => {
-        if (transactionType === '매매') return `매매 ${price}만원`;
-        if (transactionType === '전세') return `전세 ${price}만원`;
-        if (transactionType === '월세' && price.includes('/')) {
-            const parts = price.split('/');
+    const formatDisplayPrice = (price: any, transactionType: any) => {
+        const safePrice = String(price || '');
+        const safeType = String(transactionType || '월세');
+        if (safeType === '매매') return `매매 ${safePrice}만원`;
+        if (safeType === '전세') return `전세 ${safePrice}만원`;
+        if (safeType === '월세' && safePrice.includes('/')) {
+            const parts = safePrice.split('/');
             return `보 ${parts[0]}만 / 월 ${parts[1]}만`;
         }
-        return price;
+        return safePrice;
     };
 
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024 || isMobileSimulationMode);
@@ -77,20 +79,23 @@ export const DetailTab = ({
 
     const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
     const imgUrls = React.useMemo(() => {
-        return p.images 
-            ? p.images.split('|').map(i => i.trim()).filter(i => i && i !== defaultImg) 
+        const safeImages = String(p.images || '');
+        return safeImages 
+            ? safeImages.split('|').map(i => i.trim()).filter(i => i && i !== defaultImg) 
             : [];
     }, [p.images]);
 
     const panoUrls = React.useMemo(() => {
-        return p.panoramas
-            ? p.panoramas.split('|').map(i => i.trim()).filter(i => i)
-            : (p.panoImage ? [p.panoImage] : []);
+        const safePanos = String(p.panoramas || '');
+        const safePanoImg = String(p.panoImage || '');
+        return safePanos
+            ? safePanos.split('|').map(i => i.trim()).filter(i => i)
+            : (safePanoImg ? [safePanoImg] : []);
     }, [p.panoramas, p.panoImage]);
 
     const [activePanoIndex, setActivePanoIndex] = React.useState(0);
 
-    let embedUrl = p.video || '';
+    let embedUrl = String(p.video || '');
     if (embedUrl.includes('watch?v=')) {
         const vid = embedUrl.split('v=')[1]?.split('&')[0];
         embedUrl = `https://www.youtube.com/embed/${vid}`;
@@ -102,14 +107,16 @@ export const DetailTab = ({
     // Recommendation logic
     let potentialRecs = posts.filter(item => item && item.id !== p.id);
     let matchingRecs = [];
-    if (['원룸', '미투', '투룸', '쓰리룸'].includes(p.category)) {
-        matchingRecs = potentialRecs.filter(item => item && item.dong === p.dong);
+    const safeCat = String(p.category || '');
+    const safeDong = String(p.dong || '');
+    if (['원룸', '미투', '투룸', '쓰리룸'].includes(safeCat)) {
+        matchingRecs = potentialRecs.filter(item => item && String(item.dong || '') === safeDong);
         if (matchingRecs.length < 3) {
-            const extraCategory = potentialRecs.filter(item => item && item.category === p.category && !matchingRecs.some(m => m.id === item.id));
+            const extraCategory = potentialRecs.filter(item => item && String(item.category || '') === safeCat && !matchingRecs.some(m => m.id === item.id));
             matchingRecs = [...matchingRecs, ...extraCategory];
         }
     } else {
-        matchingRecs = potentialRecs.filter(item => item && item.category === p.category);
+        matchingRecs = potentialRecs.filter(item => item && String(item.category || '') === safeCat);
     }
     if (matchingRecs.length < 3) {
         const anyExtra = potentialRecs.filter(item => item && !matchingRecs.some(m => m.id === item.id));
@@ -361,15 +368,15 @@ export const DetailTab = ({
 
                 <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-6">
                     <div className="p-6 bg-emerald-50/50 border-l-4 border-emerald-500 rounded-r-2xl">
-                        {p.intro && /<[a-z][\s\S]*>/i.test(p.intro) ? (
-                            <div className="text-sm font-semibold text-emerald-950/90 italic style-rich-intro break-words" dangerouslySetInnerHTML={{ __html: p.intro }} />
+                        {p.intro && /<[a-z][\s\S]*>/i.test(String(p.intro)) ? (
+                            <div className="text-sm font-semibold text-emerald-950/90 italic style-rich-intro break-words" dangerouslySetInnerHTML={{ __html: String(p.intro) }} />
                         ) : (
-                            <p className="text-sm font-semibold text-emerald-900 italic">"{p.intro}"</p>
+                            <p className="text-sm font-semibold text-emerald-900 italic">"{p.intro || ''}"</p>
                         )}
                     </div>
                     <div className="text-sm sm:text-base text-slate-600 markdown-content leading-relaxed space-y-4">
                         {p.body ? (() => {
-                            let cleared = p.body.replace(/\\n/g, '\n');
+                            let cleared = String(p.body).replace(/\\n/g, '\n');
                             const isHtml = /<[a-z][\s\S]*>/i.test(cleared);
 
                             if (isHtml) {

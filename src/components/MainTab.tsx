@@ -41,8 +41,8 @@ export const MainTab = ({
 
     const itemsPerPage = 10;
 
-    const formatDisplayPrice = (price: string, _manageFee: string) => {
-        return price;
+    const formatDisplayPrice = (price: any, _manageFee: any) => {
+        return String(price || '');
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,15 +53,17 @@ export const MainTab = ({
         if (!p) return false;
         if (showOnlyRecommended && !(p.isRecommended === true || String(p.isRecommended) === 'true')) return false;
 
-        const hasVR = !((!(p.panoramas && p.panoramas.trim())) && (!(p.panoImage && p.panoImage.trim())));
+        const pPanoramas = String(p.panoramas || '');
+        const pPanoImage = String(p.panoImage || '');
+        const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
         if (showOnlyVR && !hasVR) return false;
 
-        const categoryMatch = activeCategory === 'all' || p.category === activeCategory;
+        const categoryMatch = activeCategory === 'all' || String(p.category || '') === activeCategory;
         const dongMatch = activeDong === 'all' || (p.dong && String(p.dong) === activeDong) || (p.address && String(p.address).includes(activeDong));
         
-        const buildingMatch = (p.building || '').toLowerCase().includes(searchVal);
-        const addressMatch = (p.address || '').toLowerCase().includes(searchVal);
-        const remarksMatch = (p.remarks || '').toLowerCase().includes(searchVal);
+        const buildingMatch = String(p.building || '').toLowerCase().includes(searchVal);
+        const addressMatch = String(p.address || '').toLowerCase().includes(searchVal);
+        const remarksMatch = String(p.remarks || '').toLowerCase().includes(searchVal);
         return categoryMatch && dongMatch && (buildingMatch || addressMatch || remarksMatch);
     });
 
@@ -267,11 +269,21 @@ export const MainTab = ({
                     <div className="animate-scroll-up flex flex-col pt-2 pb-2">
                         {(() => {
                             const tickerPosts = [...posts]
-                                .filter(p => ['원룸', '미투', '투룸', '쓰리룸'].includes(p.category))
+                                .filter(p => p && p.category && ['원룸', '미투', '투룸', '쓰리룸'].includes(String(p.category)))
                                 .reverse()
                                 .slice(0, 15);
                             return [...tickerPosts, ...tickerPosts].map((p, idx) => {
                                 const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
+                                const pPanoramas = String(p.panoramas || '');
+                                const pPanoImage = String(p.panoImage || '');
+                                const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
+                                const floorVal = p.floor ? String(p.floor) : '';
+                                const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
+                                const roomVal = p.room ? String(p.room) : '';
+                                const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
+                                const dongVal = String(p.dong || '');
+                                const addrVal = String(p.address || '');
+                                const remarksVal = String(p.remarks || '');
                                 return (
                                     <div key={`${p.id}-${idx}`} onClick={() => setSelectedPostId(p.id)} className="flex items-center gap-2 sm:gap-4 px-3 py-2.5 sm:px-4 sm:py-3.5 border-b border-dashed border-slate-200/80 hover:bg-slate-50/90 cursor-pointer transition-colors w-full group select-none">
                                         <div className="w-4 sm:w-6 shrink-0 flex items-center justify-center">
@@ -286,13 +298,13 @@ export const MainTab = ({
                                         </span>
                                         <div className="text-xs sm:text-[13.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 truncate min-w-[70px] sm:w-[170px] sm:min-w-0 flex items-center gap-1.5 transition-colors">
                                             <span className="shrink-0 font-black">{p.building}</span>
-                                            {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
+                                            {hasVR && (
                                                 <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-0.5 animate-pulse border border-emerald-200">
                                                     <i className="fa-solid fa-vr-cardboard"></i>
                                                     <span>360°</span>
                                                 </span>
                                             )}
-                                            <span className="text-slate-600 bg-slate-100 px-1.5 py-[1px] rounded text-[9px] sm:text-[10px] font-bold border border-slate-200/60 leading-none shrink-0">{p.floor && p.totalFloor ? `${p.floor}/${p.totalFloor}층` : p.room + '호'}</span>
+                                            <span className="text-slate-600 bg-slate-100 px-1.5 py-[1px] rounded text-[9px] sm:text-[10px] font-bold border border-slate-200/60 leading-none shrink-0">{floorLabel}</span>
                                         </div>
                                         <div className="text-xs sm:text-[13.5px] font-black text-indigo-800 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
                                             {formatDisplayPrice(p.price, p.manageFee)}
@@ -301,7 +313,7 @@ export const MainTab = ({
                                             {p.category}
                                         </div>
                                         <div className="text-[10px] sm:text-[12px] font-semibold text-slate-600 truncate hidden sm:block ml-0 flex-1 border-l border-slate-200 pl-3">
-                                            {p.dong || p.address.split(' ')[0]} {p.remarks && `· ${p.remarks.replace(/▶|■/g, '').slice(0, 50)}...`}
+                                            {dongVal || (addrVal && addrVal.split(' ')[0]) || ''} {remarksVal && `· ${remarksVal.replace(/▶|■/g, '').slice(0, 50)}...`}
                                         </div>
                                     </div>
                                 );
@@ -411,24 +423,29 @@ export const MainTab = ({
                             {isFetching ? (
                                 Array.from({length: 5}).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-3/4"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-full"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-full"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-6 mx-auto"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto animate-pulse"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto animate-pulse"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto animate-pulse"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div></td>
+                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-6 mx-auto animate-pulse"></div></td>
                                     </tr>
                                 ))
                             ) : (
                                 paginatedItems.map(p => {
                                     const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
+                                    const pPanoramas = String(p.panoramas || '');
+                                    const pPanoImage = String(p.panoImage || '');
+                                    const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
+                                    const thumbnailVal = String(p.thumbnail || '');
+                                    const imagesVal = String(p.images || '');
                                     return (
                                         <tr key={p.id} onClick={() => setSelectedPostId(p.id)} className="hover:bg-slate-50 border-b border-slate-100 transition-colors cursor-pointer text-sm">
                                             <td className="p-4 font-bold text-slate-800 text-left pl-5">
                                                 <div className="flex items-center gap-1">
                                                     <div className="w-5 shrink-0 flex items-center justify-center">
-                                                        {isRec && <span className="text-amber-500 animate-sparkle"><i className="fa-solid fa-star"></i></span>}
+                                                         {isRec && <span className="text-amber-500 animate-sparkle"><i className="fa-solid fa-star"></i></span>}
                                                     </div>
                                                     <span className="truncate max-w-[150px] lg:max-w-none">{p.building}</span>
                                                 </div>
@@ -449,12 +466,12 @@ export const MainTab = ({
                                             <td className="p-4 text-slate-500 text-xs text-left max-w-xs break-all">{p.remarks}</td>
                                             <td className="p-4 text-center whitespace-nowrap">
                                                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-black">
-                                                     {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) ? (
+                                                     {hasVR ? (
                                                          <div className="flex items-center bg-emerald-500 text-white px-2 py-1 rounded-md shadow-sm animate-pulse scale-105">
                                                              <i className="fa-solid fa-vr-cardboard mr-1"></i>
                                                              <span className="text-[10px]">360° 투어</span>
                                                          </div>
-                                                     ) : (p.thumbnail || p.images) ? (
+                                                     ) : (thumbnailVal || imagesVal) ? (
                                                          <div className="flex items-center text-slate-400">
                                                              <i className="fa-solid fa-camera mr-1"></i>
                                                              <span className="text-[10px]">일반사진</span>
@@ -491,6 +508,15 @@ export const MainTab = ({
                         ) : (
                             paginatedItems.map(p => {
                                 const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
+                                const pPanoramas = String(p.panoramas || '');
+                                const pPanoImage = String(p.panoImage || '');
+                                const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
+                                const thumbnailVal = String(p.thumbnail || '');
+                                const imagesVal = String(p.images || '');
+                                const floorVal = p.floor ? String(p.floor) : '';
+                                const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
+                                const roomVal = p.room ? String(p.room) : '';
+                                const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
                                 return (
                                     <div key={p.id} onClick={() => setSelectedPostId(p.id)} className="p-4 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex items-center justify-between gap-4 cursor-pointer text-left w-full">
                                         <div className="flex-grow min-w-0 flex flex-col gap-1">
@@ -506,13 +532,13 @@ export const MainTab = ({
                                                     {p.transactionType || '월세'}
                                                 </span>
                                                 <span className="truncate mr-1">{p.building}</span>
-                                                {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
+                                                {hasVR && (
                                                     <span className="shrink-0 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-emerald-200 animate-pulse-slow mr-1">
                                                         <i className="fa-solid fa-vr-cardboard"></i>
                                                         <span>VR</span>
                                                     </span>
                                                 )}
-                                                <span className="text-slate-500 font-medium">{p.floor && p.totalFloor ? `${p.floor}/${p.totalFloor}층` : `${p.room}호`}</span>
+                                                <span className="text-slate-500 font-medium">{floorLabel}</span>
                                             </div>
                                             <div className="text-[13px] text-red-500 font-black">
                                                 {formatDisplayPrice(p.price, p.manageFee)}
@@ -530,12 +556,12 @@ export const MainTab = ({
                                         </div>
                                         <div className="flex items-center gap-2.5 shrink-0 pl-1">
                                             <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                                                {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) ? (
+                                                {hasVR ? (
                                                     <div className="bg-emerald-500 text-white w-full h-full rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-900/30 animate-pulse-slow">
                                                         <i className="fa-solid fa-vr-cardboard text-[14px]"></i>
                                                         <span className="text-[7px] font-black uppercase tracking-tighter">VR</span>
                                                     </div>
-                                                ) : (p.thumbnail || p.images) ? (
+                                                ) : (thumbnailVal || imagesVal) ? (
                                                     <div className="text-slate-400">
                                                         <i className="fa-solid fa-camera text-lg"></i>
                                                     </div>

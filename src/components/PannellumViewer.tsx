@@ -13,17 +13,29 @@ interface PannellumViewerProps {
     height?: string;
 }
 
-const PannellumViewer: React.FC<PannellumViewerProps> = ({ images, activeIndex, onSceneChange, height = "aspect-[16/9] md:aspect-[1920/800] min-h-[500px] md:h-[600px] lg:h-[800px]" }) => {
+const PannellumViewer: React.FC<PannellumViewerProps> = ({ 
+    images, 
+    activeIndex, 
+    onSceneChange, 
+    height = "aspect-[16/9] md:aspect-[1920/800] min-h-[500px] md:h-[600px] lg:h-[800px]" 
+}) => {
     const viewerRef = React.useRef<HTMLDivElement>(null);
     const [viewerInstance, setViewerInstance] = React.useState<any>(null);
 
+    // If height contains explicit CSS units (px, %, vh, etc) or numbers, render it as style, else as className
+    const isStyleHeight = /^[0-9]+(px|%|vh|rem|em)$/.test(height) || /^[0-9]+$/.test(height);
+    const heightClass = isStyleHeight ? '' : height;
+    const heightStyle = isStyleHeight ? { height: /^[0-9]+$/.test(height) ? `${height}px` : height } : undefined;
+
     React.useEffect(() => {
         let v: any = null;
-        if (viewerRef.current && window.pannellum) {
+        const currentSrc = images[activeIndex];
+        
+        if (viewerRef.current && window.pannellum && currentSrc) {
             try {
                 v = window.pannellum.viewer(viewerRef.current, {
                     type: 'equirectangular',
-                    panorama: images[activeIndex] || '',
+                    panorama: currentSrc,
                     autoLoad: true,
                     autoRotate: -1,
                     showFullscreenCtrl: true,
@@ -34,48 +46,10 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({ images, activeIndex, 
                     maxHfov: 120,
                     hotSpots: []
                 });
-                setViewerInstance(v);
-            } catch (err) {
-                console.error("Pannellum init error:", err);
-            }
-        }
-        return () => {
-            if (v) {
-                try {
-                    v.destroy();
-                } catch (e) {}
-            }
-        };
-    }, []);
-
-    React.useEffect(() => {
-        if (viewerInstance && images[activeIndex]) {
-            try {
-                const currentConfig = viewerInstance.getConfig();
                 
-                // If the panorama didn't change, we still might need to refresh hotspots
-                if (currentConfig.panorama !== images[activeIndex]) {
-                    viewerInstance.setPanorama(images[activeIndex], {
-                        autoLoad: true
-                    });
-                }
-                
-                // Clear existing nav hotspots
-                if (currentConfig.hotSpots) {
-                    const hotspotIdsToRemove = currentConfig.hotSpots
-                        .filter((hs: any) => hs.id && String(hs.id).startsWith('nav-'))
-                        .map((hs: any) => hs.id);
-                    
-                    hotspotIdsToRemove.forEach((id: string) => {
-                        try {
-                            viewerInstance.removeHotSpot(id);
-                        } catch (e) {}
-                    });
-                }
-
                 if (images.length > 1 && onSceneChange) {
                     // Next Hotspot
-                    viewerInstance.addHotSpot({
+                    v.addHotSpot({
                         id: 'nav-next',
                         pitch: -20,
                         yaw: 35,
@@ -88,7 +62,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({ images, activeIndex, 
                     });
                     
                     // Prev Hotspot
-                    viewerInstance.addHotSpot({
+                    v.addHotSpot({
                         id: 'nav-prev',
                         pitch: -20,
                         yaw: -35,
@@ -100,11 +74,23 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({ images, activeIndex, 
                         clickHandlerFunc: () => onSceneChange(activeIndex > 0 ? activeIndex - 1 : images.length - 1)
                     });
                 }
+                
+                setViewerInstance(v);
             } catch (err) {
-                console.error("Pannellum update error:", err);
+                console.error("Pannellum init error:", err);
             }
         }
-    }, [viewerInstance, activeIndex, images, onSceneChange]);
+        
+        return () => {
+            if (v) {
+                try {
+                    v.destroy();
+                } catch (e) {
+                    console.error("Pannellum destroy error:", e);
+                }
+            }
+        };
+    }, [images, activeIndex, onSceneChange]);
 
     return (
         <div className="relative group">
@@ -141,7 +127,11 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({ images, activeIndex, 
                     content: '➡' !important;
                 }
             `}} />
-            <div ref={viewerRef} className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 ${height}`}></div>
+            <div 
+                ref={viewerRef} 
+                className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 ${heightClass}`}
+                style={heightStyle}
+            ></div>
             
             <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
                 <div className="bg-black/50 backdrop-blur-md text-white text-[10px] sm:text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 group-hover:bg-emerald-600 transition-colors w-fit">

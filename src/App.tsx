@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAppStore } from './store';
 import { MainTab } from './components/MainTab';
 import { DetailTab } from './components/DetailTab';
+import { AdminLoginSection } from './components/AdminLoginSection';
+import { AdminDashboardSection } from './components/AdminDashboardSection';
+import { AdminWriteSection } from './components/AdminWriteSection';
 import { Modals } from './components/Modals';
 import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -28,10 +31,6 @@ export default function App() {
     } = useAppStore();
 
     // Modals state
-    const [writeModalOpen, setWriteModalOpen] = useState(false);
-    const [editingPostId, setEditingPostId] = useState<string | null>(null);
-    const [adminLoginOpen, setAdminLoginOpen] = useState(false);
-    const [adminDashboardOpen, setAdminDashboardOpen] = useState(false);
     const [phoneModalOpen, setPhoneModalOpen] = useState(false);
     const [phoneModalData, setPhoneModalData] = useState<{mobile: string, owner: string} | null>(null);
 
@@ -79,11 +78,14 @@ export default function App() {
     const handleAdminLogout = () => {
         setIsAdminLoggedIn(false);
         localStorage.removeItem('taewang_firebase_sim_connected');
+        localStorage.removeItem('taewang_editing_post_id');
+        setActiveSection('main');
         showToast("소장님 모드가 안전하게 해제되었습니다. 소유자 연락처가 비공개 처리되었습니다.", "success");
     };
 
     const handleMemberLogout = () => {
         setMemberLoggedIn(false, null, null);
+        setActiveSection('main');
         showToast("회원 로그아웃이 완료되었습니다. 웹 전용 탐색 모드로 전환되었습니다.", "success");
     };
 
@@ -156,6 +158,9 @@ export default function App() {
                 <main className="flex-grow w-full">
                     {activeSection === 'main' && <MainTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
                     {activeSection === 'detail' && <DetailTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
+                    {activeSection === 'admin-login' && <AdminLoginSection showToast={showToast} />}
+                    {activeSection === 'admin-dashboard' && <AdminDashboardSection showToast={showToast} />}
+                    {activeSection === 'admin-write' && <AdminWriteSection showToast={showToast} />}
                 </main>
 
                 <footer className="bg-slate-950 text-slate-500 py-12 border-t border-slate-900 w-full font-medium mt-auto">
@@ -172,10 +177,10 @@ export default function App() {
                         <div className="w-full md:w-auto flex justify-center mt-4 md:mt-0">
                             {isAdminLoggedIn ? (
                                 <div className="flex flex-col gap-2.5 w-full max-w-[280px] mx-auto md:mx-0">
-                                    <button onClick={() => { setEditingPostId(null); setWriteModalOpen(true); }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all">
+                                    <button onClick={() => { localStorage.removeItem('taewang_editing_post_id'); setActiveSection('admin-write'); }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all">
                                         <i className="fa-solid fa-pen-nib text-xs"></i><span>1. 새 매물 등록</span>
                                     </button>
-                                    <button onClick={() => setAdminDashboardOpen(true)} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all">
+                                    <button onClick={() => setActiveSection('admin-dashboard')} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all">
                                         <i className="fa-solid fa-chart-line text-xs"></i><span>2. 관리 센터</span>
                                     </button>
                                     <button onClick={handleAdminLogout} className="w-full bg-red-600 hover:bg-red-500 text-white py-3 px-4 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all">
@@ -195,7 +200,7 @@ export default function App() {
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2.5 w-full max-w-[280px] mx-auto md:mx-0">
-                                    <button onClick={() => setAdminLoginOpen(true)} className="w-full bg-slate-850 hover:bg-slate-700 text-slate-200 py-3 px-4 rounded-xl text-xs font-black shadow-md border border-slate-700 flex items-center justify-center gap-2 transition-all">
+                                    <button onClick={() => setActiveSection('admin-login')} className="w-full bg-slate-850 hover:bg-slate-700 text-slate-200 py-3 px-4 rounded-xl text-xs font-black shadow-md border border-slate-700 flex items-center justify-center gap-2 transition-all">
                                         <i className="fa-solid fa-lock text-xs"></i><span>소셜 로그인 / 회원 가입</span>
                                     </button>
                                 </div>
@@ -207,10 +212,6 @@ export default function App() {
 
             <Modals
                 showToast={showToast}
-                writeModalOpen={writeModalOpen} setWriteModalOpen={setWriteModalOpen}
-                editingPostId={editingPostId} setEditingPostId={setEditingPostId}
-                adminLoginOpen={adminLoginOpen} setAdminLoginOpen={setAdminLoginOpen}
-                adminDashboardOpen={adminDashboardOpen} setAdminDashboardOpen={setAdminDashboardOpen}
                 phoneModalOpen={phoneModalOpen} setPhoneModalOpen={setPhoneModalOpen} phoneModalData={phoneModalData}
             />
 

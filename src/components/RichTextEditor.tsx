@@ -16,7 +16,23 @@ export default function RichTextEditor({
     id
 }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [isMounted, setIsMounted] = useState(false);
+
+    // Selection Formatting Tooltip States (Image 1)
+    const [showSelectionToolbar, setShowSelectionToolbar] = useState(false);
+    const [selectionCoords, setSelectionCoords] = useState<{ top: number; left: number } | null>(null);
+    const [showTooltipFontDropdown, setShowTooltipFontDropdown] = useState(false);
+    const [showTooltipSizeDropdown, setShowTooltipSizeDropdown] = useState(false);
+
+    // Naver Blog Quick Add Menu States (Image 2)
+    const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
+    const [quickAddCoords, setQuickAddCoords] = useState<{ top: number; left: number } | null>(null);
+    const [quickAddMenuSub, setQuickAddMenuSub] = useState<'main' | 'sticker' | 'photo' | 'divider' | 'quote'>('main');
+
+    // Circular Floating Plus Button States
+    const [plusButtonY, setPlusButtonY] = useState<number | null>(null);
+    const [showPlusButton, setShowPlusButton] = useState(false);
 
     // Dropdown States
     const [showFontDropdown, setShowFontDropdown] = useState(false);
@@ -207,14 +223,158 @@ export default function RichTextEditor({
         }
     };
 
+    // Real Estate themed blog stickers
+    const stickerTemplates = [
+        { icon: '⭐', label: '최고강추', color: '#ecfdf5', text: '#047857', border: '#a7f3d0' },
+        { icon: '🏠', label: '실사완료', color: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+        { icon: '💎', label: '단독독점', color: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe' },
+        { icon: '📝', label: '계약유력', color: '#fff7ed', text: '#c2410c', border: '#ffedd5' },
+        { icon: '🚗', label: '주차완벽', color: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
+        { icon: '💡', label: '소장추천', color: '#fffde7', text: '#a16207', border: '#fef3c7' },
+        { icon: '🌿', label: '친환경방', color: '#f0fdfa', text: '#0f766e', border: '#ccfbf1' },
+        { icon: '💸', label: '월세전환', color: '#fdf2f8', text: '#be185d', border: '#fbcfe8' },
+        { icon: '🐕', label: '반려가능', color: '#fafaf9', text: '#44403c', border: '#e7e5e4' }
+    ];
+
+    // High resolution aesthetic photo presets for real estate
+    const photoPresets = [
+        { name: '대형 거실', url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80' },
+        { name: '럭셔리 욕실', url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=800&q=80' },
+        { name: '모던 주방', url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80' },
+        { name: '아늑한 침실', url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80' },
+        { name: '감성 발코니', url: 'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=800&q=80' }
+    ];
+
+    const insertHtml = (html: string) => {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const frag = document.createDocumentFragment();
+            let node;
+            while ((node = tempDiv.firstChild)) {
+                frag.appendChild(node);
+            }
+            range.insertNode(frag);
+            
+            // Move cursor position after the element
+            selection.removeAllRanges();
+            const newRange = document.createRange();
+            if (frag.lastChild) {
+                newRange.selectNodeContents(frag.lastChild);
+                newRange.collapse(false);
+            } else {
+                newRange.selectNodeContents(editorRef.current || tempDiv);
+                newRange.collapse(false);
+            }
+            selection.addRange(newRange);
+        } else if (editorRef.current) {
+            editorRef.current.innerHTML += html;
+        }
+        handleInput();
+        if (editorRef.current) {
+            editorRef.current.focus();
+        }
+    };
+
+    // Caret line position and Selection tracker (Naver Blog workflow)
+    const updatePlusButtonAndSelection = () => {
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0 || !editorRef.current) {
+            setShowPlusButton(false);
+            setShowSelectionToolbar(false);
+            return;
+        }
+
+        const range = sel.getRangeAt(0);
+        if (!editorRef.current.contains(range.commonAncestorContainer)) {
+            setShowPlusButton(false);
+            setShowSelectionToolbar(false);
+            return;
+        }
+
+        // 1. Highlight Selections Formatting Tooltip (Image #1)
+        if (!sel.isCollapsed && sel.toString().trim().length > 0) {
+            const rect = range.getBoundingClientRect();
+            const container = containerRef.current;
+            if (container) {
+                const containerRect = container.getBoundingClientRect();
+                const leftOffset = rect.left - containerRect.left + (rect.width / 2);
+                const topOffset = rect.top - containerRect.top - 62;
+
+                const halfWidth = 250; // Half of tooltip width (~500px total width) to ensure it stays fully inside the editor bounds
+                let safeLeft = leftOffset;
+                if (containerRect.width >= halfWidth * 2) {
+                    safeLeft = Math.max(halfWidth, Math.min(containerRect.width - halfWidth, leftOffset));
+                } else {
+                    safeLeft = containerRect.width / 2;
+                }
+
+                setSelectionCoords({
+                    top: Math.max(10, topOffset),
+                    left: safeLeft
+                });
+                setShowSelectionToolbar(true);
+            }
+        } else {
+            setShowSelectionToolbar(false);
+        }
+
+        // 2. Floating Circular Green Plus Button (Naver Blog Style)
+        const rects = range.getClientRects();
+        let caretRect = rects.length > 0 ? rects[0] : null;
+
+        if (!caretRect) {
+            caretRect = range.getBoundingClientRect();
+        }
+
+        const container = containerRef.current;
+        if (caretRect && container && caretRect.top > 0) {
+            const containerRect = container.getBoundingClientRect();
+            const plusWidth = 24;
+            const relativeY = caretRect.top - containerRect.top + (caretRect.height / 2) - (plusWidth / 2);
+            
+            // Keep inside typing frame vertical range
+            if (relativeY > 40 && relativeY < containerRect.height - 40) {
+                setPlusButtonY(relativeY);
+                setShowPlusButton(true);
+            } else {
+                setShowPlusButton(false);
+            }
+        } else {
+            setShowPlusButton(false);
+        }
+    };
+
+    useEffect(() => {
+        const handleSelChange = () => {
+            setTimeout(updatePlusButtonAndSelection, 10);
+        };
+        
+        document.addEventListener('selectionchange', handleSelChange);
+        return () => {
+            document.removeEventListener('selectionchange', handleSelChange);
+        };
+    }, []);
+
     // Close options when clicking outside
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (!(e.target as HTMLElement).closest(`.toolbar-dropdown-${id}`)) {
+            const elem = e.target as HTMLElement;
+            if (!elem.closest(`.toolbar-dropdown-${id}`)) {
                 setShowFontDropdown(false);
                 setShowSizeDropdown(false);
                 setShowColorPicker(false);
                 setShowBgColorPicker(false);
+            }
+            if (!elem.closest('.tooltip-dropdown')) {
+                setShowTooltipFontDropdown(false);
+                setShowTooltipSizeDropdown(false);
+            }
+            if (!elem.closest('.rich-text-editor-relative-wrapper')) {
+                setShowQuickAddMenu(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -222,10 +382,13 @@ export default function RichTextEditor({
     }, [id]);
 
     return (
-        <div className="w-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all">
+        <div 
+            ref={containerRef}
+            className="relative w-full bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all rich-text-editor-relative-wrapper"
+        >
             
             {/* Nav style Editor Toolbar */}
-            <div className={`p-1.5 sm:p-2 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-1 items-center text-slate-700 toolbar-dropdown-${id} select-none`}>
+            <div className={`relative z-30 p-1.5 sm:p-2 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-1 items-center text-slate-700 toolbar-dropdown-${id} select-none rounded-t-xl`}>
                 
                 {/* Font selector */}
                 <div className="relative">
@@ -475,6 +638,25 @@ export default function RichTextEditor({
                     </div>
                 </div>
 
+                {/* Quick Add Menu Shortcut in Toolbar */}
+                <button
+                    type="button"
+                    onClick={() => {
+                        const containerRect = containerRef.current?.getBoundingClientRect();
+                        setQuickAddCoords({
+                            top: 50,
+                            left: (containerRect?.width || 300) - 200
+                        });
+                        setQuickAddMenuSub('main');
+                        setShowQuickAddMenu(!showQuickAddMenu);
+                    }}
+                    className="h-8 px-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-extrabold text-[11px] sm:text-xs text-white flex items-center gap-1 cursor-pointer shadow-sm active:scale-95 transition-all ml-1.5"
+                    title="블로그 소스 추가 메뉴 (사이드 팝업)"
+                >
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                    <span className="hidden sm:inline">초고속 편집</span>
+                </button>
+
                 {/* Divide Bar */}
                 <div className="h-4 w-px bg-slate-300 mx-1 hidden lg:block"></div>
 
@@ -499,13 +681,419 @@ export default function RichTextEditor({
                 </div>
             </div>
 
+            {/* Circular Floating Plus Button (Naver / Medium style) */}
+            {showPlusButton && plusButtonY !== null && (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // Open quick-add menu right next to the plus button
+                        setQuickAddCoords({
+                            top: plusButtonY - 10,
+                            left: 36 // positioned nicely next to left margin helper
+                        });
+                        setQuickAddMenuSub('main');
+                        setShowQuickAddMenu(!showQuickAddMenu);
+                    }}
+                    style={{ top: `${plusButtonY}px` }}
+                    className="absolute left-2.5 z-40 w-6 h-6 rounded-full bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center cursor-pointer shadow-md transition-all text-[11px] border border-emerald-400"
+                    title="초고속 편집 메뉴 열기 (+)"
+                >
+                    <i className={`fa-solid ${showQuickAddMenu ? 'fa-times' : 'fa-plus'} transition-transform duration-200`}></i>
+                </button>
+            )}
+
+            {/* Floating Selection Tooltip Formatting Toolbar (Image 1) */}
+            {showSelectionToolbar && selectionCoords && (
+                <div 
+                    style={{ 
+                        top: `${selectionCoords.top}px`, 
+                        left: `${selectionCoords.left}px`,
+                        transform: 'translateX(-50%)'
+                    }}
+                    className="absolute z-50 bg-slate-900 text-white rounded-xl shadow-2xl p-1 flex items-center gap-1 border border-slate-800 animate-slideUpAndFade select-none"
+                >
+                    {/* Tooltip Font Selector */}
+                    <div className="relative tooltip-dropdown">
+                        <button 
+                            type="button" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowTooltipFontDropdown(!showTooltipFontDropdown);
+                                setShowTooltipSizeDropdown(false);
+                            }}
+                            className="h-7 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] font-bold flex items-center justify-between gap-1 w-24 text-slate-100 hover:text-emerald-400 transition-all cursor-pointer"
+                            title="글꼴 변경"
+                        >
+                            <span className="truncate">{currentFont}</span>
+                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        {showTooltipFontDropdown && (
+                            <div className="absolute bottom-8 left-0 z-50 bg-slate-950 border border-slate-700 rounded-lg shadow-2xl w-32 py-1 text-slate-100 animate-fadeIn mb-1">
+                                {Object.entries(fontFamilies).map(([fontName, value]) => (
+                                    <button
+                                        key={fontName}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            applyStyleToSelection('fontFamily', value);
+                                            setCurrentFont(fontName);
+                                            setShowTooltipFontDropdown(false);
+                                        }}
+                                        className={`w-full text-left px-2 py-1.5 hover:bg-slate-805 hover:text-white text-[10px] font-bold ${currentFont === fontName ? 'text-emerald-400 font-extrabold bg-emerald-950/40' : 'text-slate-200'}`}
+                                        style={{ fontFamily: value }}
+                                    >
+                                        {fontName}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Tooltip Font Size Selector */}
+                    <div className="relative tooltip-dropdown font-mono">
+                        <button 
+                            type="button" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowTooltipSizeDropdown(!showTooltipSizeDropdown);
+                                setShowTooltipFontDropdown(false);
+                            }}
+                            className="h-7 px-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] font-bold flex items-center justify-between gap-1 w-14 text-slate-100 hover:text-emerald-400 transition-all cursor-pointer"
+                            title="글자 크기"
+                        >
+                            <span>{currentSize}</span>
+                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        {showTooltipSizeDropdown && (
+                            <div className="absolute bottom-8 left-0 z-50 bg-slate-950 border border-slate-700 rounded-lg shadow-2xl w-20 py-1 text-slate-100 max-h-36 overflow-y-auto animate-fadeIn mb-1">
+                                {fontSizes.map((size) => (
+                                    <button
+                                        key={size}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            applyStyleToSelection('fontSize', size);
+                                            setCurrentSize(size);
+                                            setShowTooltipSizeDropdown(false);
+                                        }}
+                                        className={`w-full text-left px-2.5 py-1.5 hover:bg-slate-805 hover:text-white text-[10px] font-bold ${currentSize === size ? 'text-emerald-400 font-extrabold bg-emerald-950/40' : 'text-slate-200'}`}
+                                    >
+                                        {size}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+
+                    <button
+                        type="button"
+                        onClick={() => execCommand('bold')}
+                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] font-extrabold flex items-center justify-center text-emerald-400"
+                        title="굵게"
+                    >
+                        <i className="fa-solid fa-bold"></i>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => execCommand('italic')}
+                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] italic flex items-center justify-center text-emerald-400"
+                        title="기울임"
+                    >
+                        <i className="fa-solid fa-italic"></i>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => execCommand('underline')}
+                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] underline underline-offset-2 flex items-center justify-center text-emerald-400"
+                        title="밑줄"
+                    >
+                        <i className="fa-solid fa-underline"></i>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => execCommand('strikeThrough')}
+                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] line-through flex items-center justify-center text-emerald-400"
+                        title="취소선"
+                    >
+                        <i className="fa-solid fa-strikethrough"></i>
+                    </button>
+
+                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+
+                    {/* Pre-styled color selectors for high-speed selection formatting */}
+                    <button
+                        type="button"
+                        onClick={() => applyStyleToSelection('color', '#dc2626')}
+                        className="w-4 h-4 rounded-full bg-red-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        title="빨간색 적용"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => applyStyleToSelection('color', '#16a34a')}
+                        className="w-4 h-4 rounded-full bg-emerald-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        title="녹색 적용"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => applyStyleToSelection('color', '#2563eb')}
+                        className="w-4 h-4 rounded-full bg-blue-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        title="파란색 적용"
+                    />
+
+                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+
+                    <button
+                        type="button"
+                        onClick={() => applyStyleToSelection('backgroundColor', '#fef08a')}
+                        className="w-4 h-4 rounded bg-yellow-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        title="노란 형광펜"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => applyStyleToSelection('backgroundColor', '#bbf7d0')}
+                        className="w-4 h-4 rounded bg-green-200 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        title="녹색 형광펜"
+                    />
+
+                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+
+                    <button
+                        type="button"
+                        onClick={() => insertQuote('border')}
+                        className="px-2 h-7 rounded hover:bg-slate-800 text-[9px] font-black text-amber-400 flex items-center gap-1 cursor-pointer"
+                        title="선택된 내용으로 인용구 삽입"
+                    >
+                        <i className="fa-solid fa-quote-left"></i>
+                        <span>인용구</span>
+                    </button>
+                </div>
+            )}
+
+            {/* Naver Blog Style Quick Insert Menu (Image 2) */}
+            {showQuickAddMenu && quickAddCoords && (
+                <div 
+                    style={{ 
+                        top: `${quickAddCoords.top}px`, 
+                        left: `${quickAddCoords.left}px` 
+                    }}
+                    className="absolute z-50 bg-white border border-slate-200 rounded-xl shadow-2xl w-44 sm:w-48 overflow-hidden animate-fadeIn"
+                >
+                    {/* Header with Title and Close 'X' button */}
+                    <div className="bg-slate-50 px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                        <span className="text-[10px] sm:text-xs font-black text-slate-505 uppercase tracking-wider flex items-center gap-1.5 text-slate-500">
+                            <i className="fa-solid fa-cube text-emerald-500 animate-pulse"></i>
+                            블로그 소스 추가
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setShowQuickAddMenu(false)}
+                            className="w-5 h-5 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+                        >
+                            <i className="fa-solid fa-times text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    {/* Sub-menu rendering */}
+                    {quickAddMenuSub === 'main' && (
+                        <div className="p-1 flex flex-col">
+                            <button
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('photo')}
+                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <i className="fa-solid fa-image text-blue-500 w-4"></i>
+                                    사진
+                                </span>
+                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('sticker')}
+                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <i className="fa-solid fa-face-smile text-amber-500 w-4"></i>
+                                    스티커
+                                </span>
+                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('divider')}
+                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <i className="fa-solid fa-minus text-emerald-500 w-4"></i>
+                                    구분선
+                                </span>
+                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('quote')}
+                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <i className="fa-solid fa-quote-left text-indigo-500 w-4"></i>
+                                    인용구
+                                </span>
+                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Photo selection submenu */}
+                    {quickAddMenuSub === 'photo' && (
+                        <div className="p-2 space-y-2">
+                            <button 
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('main')}
+                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1"
+                            >
+                                <i className="fa-solid fa-caret-left"></i> 이전으로
+                            </button>
+                            <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto">
+                                {photoPresets.map((photo) => (
+                                    <button
+                                        key={photo.name}
+                                        type="button"
+                                        onClick={() => {
+                                            const photoHtml = `
+                                                <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
+                                                    <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+                                                    <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 실사 촬영 이미지 - ${photo.name}</p>
+                                                </div>
+                                                <p contenteditable="true"><br></p>
+                                            `;
+                                            insertHtml(photoHtml);
+                                            setShowQuickAddMenu(false);
+                                        }}
+                                        className="bg-slate-50 hover:bg-emerald-50 text-left p-1.5 rounded-lg border border-slate-100 flex items-center gap-2 transition-all cursor-pointer text-xs font-bold"
+                                    >
+                                        <img src={photo.url} referrerPolicy="no-referrer" className="w-8 h-8 rounded object-cover" />
+                                        <span className="text-[10px] text-slate-700 truncate">{photo.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Sticker selection submenu */}
+                    {quickAddMenuSub === 'sticker' && (
+                        <div className="p-2 space-y-2">
+                            <button 
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('main')}
+                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1"
+                            >
+                                <i className="fa-solid fa-caret-left"></i> 이전으로
+                            </button>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 max-h-48 overflow-y-auto">
+                                {stickerTemplates.map((sticker) => (
+                                    <button
+                                        key={sticker.label}
+                                        type="button"
+                                        onClick={() => {
+                                            const stickerHtml = `
+                                                <span contenteditable="false" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; background-color: ${sticker.color}; color: ${sticker.text}; border: 1px solid ${sticker.border}; font-weight: bold; font-size: 11px; margin: 2px; vertical-align: middle; user-select: none;">
+                                                    <span>${sticker.icon}</span>
+                                                    <span>${sticker.label}</span>
+                                                </span>&nbsp;
+                                            `;
+                                            insertHtml(stickerHtml);
+                                            setShowQuickAddMenu(false);
+                                        }}
+                                        className="text-center p-1.5 hover:bg-slate-50 rounded border border-slate-100 flex flex-col items-center justify-center transition-all cursor-pointer"
+                                    >
+                                        <span className="text-sm">{sticker.icon}</span>
+                                        <span className="text-[9px] font-black text-slate-500 truncate mt-0.5">{sticker.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Divider selection submenu */}
+                    {quickAddMenuSub === 'divider' && (
+                        <div className="p-1 flex flex-col">
+                            <button 
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('main')}
+                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1 px-2.5 py-1"
+                            >
+                                <i className="fa-solid fa-caret-left"></i> 이전으로
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { insertDivider('dashed'); setShowQuickAddMenu(false); }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                            >
+                                --- 점선 구분선
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { insertDivider('solid'); setShowQuickAddMenu(false); }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                            >
+                                ─── 실선 구분선
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { insertDivider('double'); setShowQuickAddMenu(false); }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                            >
+                                ═══ 이중 구분선
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Quote selection submenu */}
+                    {quickAddMenuSub === 'quote' && (
+                        <div className="p-1 flex flex-col">
+                            <button 
+                                type="button"
+                                onClick={() => setQuickAddMenuSub('main')}
+                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1 px-2.5 py-1"
+                            >
+                                <i className="fa-solid fa-caret-left"></i> 이전으로
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { insertQuote('border'); setShowQuickAddMenu(false); }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                            >
+                                ▍ 왼쪽 실선형 인용구
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { insertQuote('box'); setShowQuickAddMenu(false); }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                            >
+                                🗳 박스 강조형 인용구
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { insertQuote('bubble'); setShowQuickAddMenu(false); }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                            >
+                                💡 말풍선 추천형 인용구
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Editable Content Frame */}
             <div 
                 id={id}
                 ref={editorRef}
                 contentEditable
                 onInput={handleInput}
-                className="p-4 sm:p-5 text-slate-800 text-sm sm:text-base outline-none min-h-[300px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all"
+                className="pt-4 pb-4 pr-4 pl-12 sm:pt-5 sm:pb-5 sm:pr-5 sm:pl-14 text-slate-800 text-sm sm:text-base outline-none min-h-[300px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all rounded-b-xl"
                 style={{ 
                     minHeight, 
                     fontFamily: '"NanumSquare", "Inter", sans-serif'

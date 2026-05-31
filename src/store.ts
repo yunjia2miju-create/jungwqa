@@ -15,7 +15,7 @@ interface AppState {
     searchVal: string;
     currentPage: number;
     isMobileSimulationMode: boolean;
-    activeSection: 'main' | 'detail';
+    activeSection: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write';
     selectedPostId: string | null;
 
     setPosts: (posts: Post[]) => void;
@@ -29,7 +29,7 @@ interface AppState {
     setSearchVal: (val: string) => void;
     setCurrentPage: (page: number) => void;
     setIsMobileSimulationMode: (val: boolean) => void;
-    setActiveSection: (sec: 'main' | 'detail') => void;
+    setActiveSection: (sec: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write') => void;
     setSelectedPostId: (id: string | null) => void;
 }
 
@@ -71,7 +71,7 @@ export const useAppStore = create<AppState>((set) => ({
     setIsMobileSimulationMode: (val) => set({ isMobileSimulationMode: val }),
     setActiveSection: (sec) => set((state) => ({ 
         activeSection: sec,
-        selectedPostId: sec === 'main' ? null : state.selectedPostId 
+        selectedPostId: (sec === 'main' || sec === 'admin-login' || sec === 'admin-dashboard' || sec === 'admin-write') ? null : state.selectedPostId 
     })),
     setSelectedPostId: (id) => set({ 
         selectedPostId: id, 

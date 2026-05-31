@@ -4,6 +4,8 @@ import { Post, gumiDongs } from '../data';
 import PannellumViewer from './PannellumViewer';
 import RichTextEditor from './RichTextEditor';
 import { savePostService, getPostsService } from '../firebaseService';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase';
 
 const ADMIN_CATEGORIES_PRESETS = [
     { value: '원룸', label: '원룸 (One-room)', desc: '1인가구를 위한 최적의 원룸 공간', icon: 'fa-house-user', textColor: 'text-indigo-600', selectedBg: 'bg-indigo-50/90 border-indigo-600 text-indigo-950 ring-indigo-100', hoverBg: 'hover:bg-indigo-50/30 hover:border-indigo-300', lightBg: 'bg-indigo-50/50', iconBg: 'bg-indigo-100/55' },
@@ -42,6 +44,32 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [activeVRIndex, setActiveVRIndex] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [uploadProgress, setUploadProgress] = useState<string>('');
+
+    const dataURLtoBlob = (dataurl: string): Blob => {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)![1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+    };
+
+    const uploadResizedBlobToStorage = async (base64Data: string, originalName: string, prefix = 'posts'): Promise<string> => {
+        const blob = dataURLtoBlob(base64Data);
+        const timestamp = Date.now();
+        const randomStr = Math.random().toString(36).substring(2, 8);
+        const cleanName = originalName.replace(/[^a-zA-Z0-9.]/g, '_');
+        const safeName = `${timestamp}_${randomStr}_${cleanName}`;
+        
+        const storageRef = ref(storage, `${prefix}/${safeName}`);
+        await uploadBytes(storageRef, blob, { contentType: blob.type });
+        return await getDownloadURL(storageRef);
+    };
 
     const movePanorama = (fromIndex: number, toIndex: number) => {
         const panos = formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
@@ -146,6 +174,9 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
+        setIsUploading(true);
+        setUploadProgress('이미지 최적화 처리 중...');
+
         const processFile = (file: File, isPano = false): Promise<string> => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -184,24 +215,46 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             });
         };
 
-        if (type === 'thumbnail') {
-            const base64 = await processFile(files[0]);
-            setFormData(prev => ({ ...prev, thumbnail: base64 }));
-            showToast("대표 대표 사진이 안전하게 등록되었습니다.", "success");
-        } else if (type === 'pano') {
-            const filePromises = Array.from(files).map((file: File) => processFile(file, true));
-            const base64s = await Promise.all(filePromises);
-            const currentPanos = formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
-            setFormData(prev => ({ ...prev, panoramas: [...currentPanos, ...base64s].join('|') }));
-            showToast(`${files.length}장의 360° 파노라마 VR 사진이 대형 등록되었습니다.`, "success");
-        } else {
-            const filePromises = Array.from(files).map((file: File) => processFile(file));
-            const base64s = await Promise.all(filePromises);
-            const currentImages = formData.images ? formData.images.split('|').filter(i => i) : [];
-            setFormData(prev => ({ ...prev, images: [...currentImages, ...base64s].join('|') }));
-            showToast(`${files.length}장의 상세 전경 사진이 대형 추가 등록되었습니다.`, "success");
+        try {
+            if (type === 'thumbnail') {
+                setUploadProgress(`대표 사진 업로드 중 (1 / 1)...`);
+                const base64 = await processFile(files[0]);
+                const downloadURL = await uploadResizedBlobToStorage(base64, files[0].name, 'thumbnails');
+                setFormData(prev => ({ ...prev, thumbnail: downloadURL }));
+                showToast("대표 대표 사진이 파이어베이스 스토리지에 성공적으로 업로드되었습니다.", "success");
+            } else if (type === 'pano') {
+                const total = files.length;
+                const urls: string[] = [];
+                for (let i = 0; i < total; i++) {
+                    setUploadProgress(`파노라마 VR 업로드 중 (${i + 1} / ${total})...`);
+                    const base64 = await processFile(files[i], true);
+                    const downloadURL = await uploadResizedBlobToStorage(base64, files[i].name, 'panoramas');
+                    urls.push(downloadURL);
+                }
+                const currentPanos = formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
+                setFormData(prev => ({ ...prev, panoramas: [...currentPanos, ...urls].join('|') }));
+                showToast(`${total}장의 360° 파노라마 VR 사진이 파이어베이스 스토리지에 성공적으로 업로드되었습니다.`, "success");
+            } else {
+                const total = files.length;
+                const urls: string[] = [];
+                for (let i = 0; i < total; i++) {
+                    setUploadProgress(`전경 사진 업로드 중 (${i + 1} / ${total})...`);
+                    const base64 = await processFile(files[i]);
+                    const downloadURL = await uploadResizedBlobToStorage(base64, files[i].name, 'gallery');
+                    urls.push(downloadURL);
+                }
+                const currentImages = formData.images ? formData.images.split('|').filter(i => i) : [];
+                setFormData(prev => ({ ...prev, images: [...currentImages, ...urls].join('|') }));
+                showToast(`${total}장의 상세 전경 사진이 파이어베이스 스토리지에 업로드 완료되었습니다.`, "success");
+            }
+        } catch (error) {
+            console.error("Storage upload error:", error);
+            showToast("사진 업로드 중 원격 스토리지 전송 오류가 발생했습니다. 파이어베이스 권한을 확인해주세요.", "error");
+        } finally {
+            setIsUploading(false);
+            setUploadProgress('');
+            e.target.value = '';
         }
-        e.target.value = '';
     };
 
     const imageRefs = useRef<{[key: number]: HTMLDivElement | null}>({});
@@ -289,6 +342,10 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     const handlePostSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
+        if (isUploading) {
+            showToast("현재 이미지를 클라우드 업로드하는 중입니다. 잠시만 기다려 주세요.", "error");
+            return;
+        }
 
         setIsSubmitting(true);
         const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
@@ -343,6 +400,30 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
 
     return (
         <div className="max-w-[1700px] w-full mx-auto px-4 sm:px-8 lg:px-10 py-8 animate-fadeIn">
+            {/* Upload Progress Loader Overlay */}
+            {isUploading && (
+                <div id="upload-overlay" className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md text-white animate-fadeIn">
+                    <div className="relative flex flex-col items-center p-8 bg-slate-950 border-[3px] border-emerald-500 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center">
+                        <div className="relative w-20 h-20 mb-5">
+                            <div className="absolute inset-0 rounded-full border-[5px] border-slate-800 border-t-emerald-500 animate-spin"></div>
+                            <div className="absolute inset-3.5 rounded-full bg-emerald-500/20 animate-pulse flex items-center justify-center">
+                                <i className="fa-solid fa-cloud-arrow-up text-2xl text-emerald-400"></i>
+                            </div>
+                        </div>
+                        <h3 className="text-lg font-extrabold text-white mb-1">원격 스토리지 업로드 중</h3>
+                        <p className="text-xs font-bold text-slate-300 mb-4">수십장의 고화질 사진도 영구 보관용 스토리지에 무제한 안심 저장됩니다.</p>
+                        
+                        <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden mb-3">
+                            <div className="bg-emerald-500 h-full w-full rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <p className="text-xs font-black text-emerald-400 bg-emerald-950/60 px-4 py-2 rounded-xl border border-emerald-800/55 shadow-inner leading-relaxed">
+                            {uploadProgress}
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Form Title & Inline Navbar */}
             <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-md p-6 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-3 text-left">

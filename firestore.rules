@@ -27,6 +27,7 @@ service cloud.firestore {
     // --- Validation Functions for Entities ---
     function isValidPost(data) {
       return data.keys().hasAll(['id', 'category', 'dong', 'building', 'room', 'price', 'manageFee', 'phone', 'title', 'address', 'transactionType', 'isRecommended', 'createdAt'])
+        && data.keys().size() <= 24
         && data.id is string
         && data.id.size() <= 128
         && data.category is string
@@ -50,7 +51,18 @@ service cloud.firestore {
         && data.transactionType is string
         && data.transactionType.size() <= 50
         && data.isRecommended is bool
-        && data.createdAt is int;
+        && data.createdAt is int
+        && (!('floor' in data) || (data.floor is string && data.floor.size() <= 50))
+        && (!('totalFloor' in data) || (data.totalFloor is string && data.totalFloor.size() <= 50))
+        && (!('ownerPhone' in data) || (data.ownerPhone is string && data.ownerPhone.size() <= 50))
+        && (!('remarks' in data) || (data.remarks is string && data.remarks.size() <= 5000))
+        && (!('intro' in data) || (data.intro is string && data.intro.size() <= 1000))
+        && (!('body' in data) || (data.body is string && data.body.size() <= 60000))
+        && (!('video' in data) || (data.video is string && data.video.size() <= 1000))
+        && (!('panoImage' in data) || (data.panoImage is string && data.panoImage.size() <= 1000))
+        && (!('thumbnail' in data) || (data.thumbnail is string && data.thumbnail.size() <= 600000))
+        && (!('images' in data) || (data.images is string && data.images.size() <= 2000000))
+        && (!('panoramas' in data) || (data.panoramas is string && data.panoramas.size() <= 2000000));
     }
 
     function isValidInquiry(data) {

@@ -31,6 +31,13 @@ export const MainTab = ({
         setInquiries
     } = useAppStore();
 
+    const activeDongsInPosts = React.useMemo(() => {
+        const dongsWithPosts = Array.from(new Set(posts.map(p => p.dong).filter(dong => dong && dong.trim() !== '')));
+        const presentGumiDongs = gumiDongs.filter(d => dongsWithPosts.includes(d));
+        const extraDongs = dongsWithPosts.filter(d => !gumiDongs.includes(d));
+        return [...presentGumiDongs, ...extraDongs];
+    }, [posts]);
+
     const [isFetching, setIsFetching] = React.useState(true);
 
     React.useEffect(() => {
@@ -373,7 +380,7 @@ export const MainTab = ({
                         <button onClick={() => { setActiveDong('all'); setCurrentPage(1); }} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === 'all' ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                             전체 동
                         </button>
-                        {gumiDongs.map(dong => (
+                        {activeDongsInPosts.map(dong => (
                             <button key={dong} onClick={() => { setActiveDong(dong); setCurrentPage(1); }} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === dong ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                                 {dong}
                             </button>

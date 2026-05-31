@@ -283,12 +283,6 @@ export const DetailTab = ({
 
                 <div 
                     className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-150 shadow-sm mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
-                    onMouseEnter={() => {
-                        if (!isMobile) setIsHovered(p.thumbnail);
-                    }}
-                    onMouseLeave={() => {
-                        if (!isMobile) setIsHovered(null);
-                    }}
                     onClick={() => {
                         setActiveZoomUrl(p.thumbnail || defaultImg);
                     }}
@@ -301,9 +295,9 @@ export const DetailTab = ({
                     {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
                         <span 
-                            className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl lg:text-2xl"
+                            className="text-white/[0.03] select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl lg:text-2xl"
                             style={{ 
-                                textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.25)'
                             }}
                         >
                             태왕공인중개사
@@ -488,12 +482,6 @@ export const DetailTab = ({
                                 <div 
                                     key={i} 
                                     className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-slate-50 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
-                                    onMouseEnter={() => {
-                                        if (!isMobile) setIsHovered(url.trim());
-                                    }}
-                                    onMouseLeave={() => {
-                                        if (!isMobile) setIsHovered(null);
-                                    }}
                                     onClick={() => {
                                         setActiveZoomUrl(url.trim());
                                     }}
@@ -507,9 +495,9 @@ export const DetailTab = ({
                                     {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
                                         <span 
-                                            className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl"
+                                            className="text-white/[0.03] select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl"
                                             style={{ 
-                                                textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                                                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.25)'
                                             }}
                                         >
                                             태왕공인중개사
@@ -669,39 +657,7 @@ export const DetailTab = ({
                 </div>
             )}
 
-            {/* 1. Desktop Hover Magnifier Overlay (for frictionless live zoom preview) */}
-            {!isMobile && isHovered && (
-                <div className="fixed inset-0 z-[9990] flex items-center justify-center p-6 bg-slate-950/45 backdrop-blur-[2px] pointer-events-none select-none animate-fadeIn">
-                    <div className="bg-white rounded-3xl p-3 shadow-2xl border border-white/20 flex flex-col items-center justify-center max-w-3xl max-h-[80vh] transition-all duration-300 scale-100 animate-zoomIn pointer-events-none">
-                        <div className="relative overflow-hidden rounded-2xl aspect-[16/9] max-h-[66vh] bg-slate-50 w-full flex items-center justify-center">
-                            <img 
-                                src={isHovered} 
-                                className="max-w-full max-h-[66vh] object-contain select-none" 
-                                alt="확대 미리보기"
-                            />
-                            {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                                <span 
-                                    className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-lg sm:text-2xl md:text-3xl"
-                                    style={{ 
-                                        textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
-                                    }}
-                                >
-                                    태왕공인중개사
-                                </span>
-                            </div>
-                            <div className="absolute top-3 right-3 bg-emerald-600/95 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 flex-wrap">
-                                <i className="fa-solid fa-expand"></i>
-                                <span>클릭하여 정밀 뷰어 열기</span>
-                            </div>
-                        </div>
-                        <div className="text-center mt-3 text-xs font-black text-slate-800 flex items-center gap-1.5 justify-center opacity-70">
-                            <i className="fa-solid fa-magnifying-glass-plus text-emerald-650"></i>
-                            <span>마우스 포인터를 사진 영역 밖으로 이동하면 닫힙니다.</span>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* 2. Interactive Fullscreen Lightbox (for both PC, Tablet, and Mobile to view complete detail with custom dismiss UI) */}
             {activeZoomUrl && (
@@ -732,9 +688,9 @@ export const DetailTab = ({
                             {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10 w-full h-full">
                                 <span 
-                                    className="text-white/10 select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-lg sm:text-2xl md:text-3xl lg:text-4xl"
+                                    className="text-white/[0.03] select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-lg sm:text-2xl md:text-3xl lg:text-4xl"
                                     style={{ 
-                                        textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6), -1px -1px 3px rgba(255, 255, 255, 0.15)'
+                                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.25)'
                                     }}
                                 >
                                     태왕공인중개사

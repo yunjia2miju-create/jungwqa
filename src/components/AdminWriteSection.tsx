@@ -933,6 +933,16 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             value={formData.body || ''} 
                             onChange={(val) => setFormData(prev => ({ ...prev, body: val }))} 
                             placeholder="이 매물을 직접 실사하시고 느낀 장점이나 주변 도보 환경을 친절하게 기술해주세요."
+                            uploadedImages={[
+                                ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
+                                ...(formData.images 
+                                    ? formData.images.split('|').filter(img => img.trim()).map((img, idx) => ({
+                                        name: `실내 전경 #${idx + 1}`,
+                                        url: img.trim()
+                                    }))
+                                    : []
+                                )
+                            ]}
                         />
                     </div>
                 </div>

@@ -6,6 +6,7 @@ interface RichTextEditorProps {
     placeholder?: string;
     minHeight?: string;
     id: string;
+    uploadedImages?: { name: string; url: string }[];
 }
 
 export default function RichTextEditor({
@@ -13,7 +14,8 @@ export default function RichTextEditor({
     onChange,
     placeholder = '여기에 내용을 입력하세요...',
     minHeight = '250px',
-    id
+    id,
+    uploadedImages = []
 }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -957,9 +959,9 @@ export default function RichTextEditor({
                                 <i className="fa-solid fa-caret-left"></i> 이전으로
                             </button>
                             <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto">
-                                {photoPresets.map((photo) => (
+                                {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, photoIndex) => (
                                     <button
-                                        key={photo.name}
+                                        key={photoIndex + '-' + photo.name}
                                         type="button"
                                         onClick={() => {
                                             const photoHtml = `

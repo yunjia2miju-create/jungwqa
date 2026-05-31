@@ -247,9 +247,10 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 setFormData(prev => ({ ...prev, images: [...currentImages, ...urls].join('|') }));
                 showToast(`${total}장의 상세 전경 사진이 파이어베이스 스토리지에 업로드 완료되었습니다.`, "success");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Storage upload error:", error);
-            showToast("사진 업로드 중 원격 스토리지 전송 오류가 발생했습니다. 파이어베이스 권한을 확인해주세요.", "error");
+            const errMsg = error?.message || String(error);
+            showToast(`사진 업로드 실패: ${errMsg.substring(0, 80)}`, "error");
         } finally {
             setIsUploading(false);
             setUploadProgress('');
@@ -385,9 +386,10 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             // Go back to dashboard on complete
             localStorage.removeItem('taewang_editing_post_id');
             setActiveSection('admin-dashboard');
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            showToast("매물 전고 쓰기에 실패했습니다.", "error");
+            const errMsg = err?.message || String(err);
+            showToast(`매물 저장 실패: ${errMsg.substring(0, 100)}`, "error");
         } finally {
             setIsSubmitting(false);
         }

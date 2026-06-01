@@ -1,0 +1,21 @@
+[
+  {
+    "origin": [
+      "https://구미태왕공인중개사.com",
+      "https://www.구미태왕공인중개사.com",
+      "http://localhost:3000",
+      "https://ais-dev-j2nrm7uohcvxggfusdck7w-416193107872.asia-northeast1.run.app",
+      "https://ais-pre-j2nrm7uohcvxggfusdck7w-416193107872.asia-northeast1.run.app",
+      "https://iigumi-today-room-tv-321272965760.asia-northeast3.run.app"
+    ],
+    "method": ["GET", "HEAD", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Access-Control-Allow-Origin",
+      "Access-Control-Allow-Headers",
+      "Authorization",
+      "X-Requested-With"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

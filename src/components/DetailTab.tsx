@@ -93,6 +93,36 @@ export const DetailTab = ({
             : (safePanoImg ? [safePanoImg] : []);
     }, [p.panoramas, p.panoImage]);
 
+    // Fast-loading Preloader: Proactively fetch all panoramic images in the background
+    React.useEffect(() => {
+        if (panoUrls.length > 0) {
+            panoUrls.forEach((url, idx) => {
+                if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                    // Prevent double-proxying same-origin or already proxied URLs
+                    let proxiedUrl = url;
+                    if (url.includes('/api/proxy-image')) {
+                        try {
+                            const base = url.startsWith('http') ? undefined : 'http://dummy.com';
+                            const urlObj = new URL(url, base);
+                            const originalUrl = urlObj.searchParams.get('url');
+                            if (originalUrl) {
+                                proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}&v=360-pano-${idx}`;
+                            }
+                        } catch (e) {
+                            console.warn("Preloader URL parse error:", e);
+                        }
+                    } else if (!url.startsWith('/') && !url.startsWith(window.location.origin)) {
+                        proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(url)}&v=360-pano-${idx}`;
+                    }
+
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.src = proxiedUrl;
+                }
+            });
+        }
+    }, [panoUrls]);
+
     const [activePanoIndex, setActivePanoIndex] = React.useState(0);
 
     let embedUrl = String(p.video || '');
@@ -187,7 +217,7 @@ export const DetailTab = ({
                         </span>
                     )}
                 </h1>
-                <p className="text-xl font-bold text-emerald-600 border-b border-slate-100 pb-4 mb-6">{formatDisplayPrice(p.price, p.transactionType || '월세')}</p>
+                <p className="text-xl font-black text-red-500 border-b border-slate-100 pb-4 mb-6">{formatDisplayPrice(p.price, p.transactionType || '월세')}</p>
 
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
@@ -336,7 +366,7 @@ export const DetailTab = ({
                             )}
                         </div>
                         <PannellumViewer 
-                            key={`${p.id}-${activePanoIndex}`}
+                            key={`${p.id}-${panoUrls.length}`}
                             images={panoUrls} 
                             activeIndex={activePanoIndex} 
                             onSceneChange={(idx) => setActivePanoIndex(idx)} 

@@ -56,7 +56,7 @@ export default function RichTextEditor({
     };
 
     // Font size configurations
-    const fontSizes = ['11px', '13px', '15px', '16px', '19px', '24px', '30px', '36px'];
+    const fontSizes = ['16px', '19px', '24px', '30px', '36px'];
 
     // Professional color palette matching Naver Blog palette & branding
     const colors = [

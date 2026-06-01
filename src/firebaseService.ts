@@ -18,34 +18,41 @@ import { Post, Inquiry, defaultPosts } from './data';
  */
 export async function getPostsService(): Promise<Post[]> {
   let firestorePosts: Post[] = [];
-  try {
-    // 1. Try Firestore first
-    const postsRef = collection(db, 'posts');
-    const q = query(postsRef, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    
-    if (!snapshot.empty) {
-      snapshot.forEach((doc) => {
-        firestorePosts.push(doc.data() as Post);
-      });
-    }
-  } catch (err) {
-    console.warn("Firestore posts retrieval bypassed, trying local API fallback:", err);
-  }
-
   let expressPosts: Post[] = [];
-  // 2. Fetch from Express backend /api/posts
-  try {
-    const res = await fetch('/api/posts');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        expressPosts = data;
+
+  const postsRef = collection(db, 'posts');
+  const q = query(postsRef, orderBy('createdAt', 'desc'));
+
+  // Run BOTH cloud firestore query and local server fetch concurrently!
+  await Promise.allSettled([
+    (async () => {
+      try {
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const list: Post[] = [];
+          snapshot.forEach((doc) => {
+            list.push(doc.data() as Post);
+          });
+          firestorePosts = list;
+        }
+      } catch (err) {
+        console.warn("Firestore posts retrieval bypassed, trying local API fallback:", err);
       }
-    }
-  } catch (err) {
-    console.warn("Express backend posts endpoint failed", err);
-  }
+    })(),
+    (async () => {
+      try {
+        const res = await fetch('/api/posts');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            expressPosts = data;
+          }
+        }
+      } catch (err) {
+        console.warn("Express backend posts endpoint failed", err);
+      }
+    })()
+  ]);
 
   // 3. Fallback to bundled static default data if both are empty
   if (firestorePosts.length === 0 && expressPosts.length === 0) {

@@ -52,6 +52,14 @@ export const MainTab = ({
         return String(price || '');
     };
 
+    const formatDisplayAddress = (addr: string | undefined | null) => {
+        if (!addr) return '';
+        return addr.split(/\s+/)
+            .filter(word => !/\d/.test(word))
+            .join(' ')
+            .trim();
+    };
+
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchVal(e.target.value.toLowerCase().trim());
     };
@@ -313,7 +321,7 @@ export const MainTab = ({
                                             )}
                                             <span className="text-slate-600 bg-slate-100 px-1.5 py-[1px] rounded text-[9px] sm:text-[10px] font-bold border border-slate-200/60 leading-none shrink-0">{floorLabel}</span>
                                         </div>
-                                        <div className="text-xs sm:text-[13.5px] font-black text-indigo-800 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
+                                        <div className="text-xs sm:text-[13.5px] font-black text-red-500 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
                                             {formatDisplayPrice(p.price, p.manageFee)}
                                         </div>
                                         <div className="text-[10px] sm:text-[11.5px] font-black text-slate-700 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded-md whitespace-nowrap sm:w-[70px] text-center shrink-0">
@@ -469,7 +477,7 @@ export const MainTab = ({
                                             </td>
                                             <td className="p-4 text-slate-600 font-bold text-center whitespace-nowrap">{p.category}</td>
                                             <td className="p-4 text-red-500 font-black text-center whitespace-nowrap">{formatDisplayPrice(p.price, p.manageFee)}</td>
-                                            <td className="p-4 text-slate-600 text-center"><span className="block truncate max-w-[140px] lg:max-w-none">{p.address}</span></td>
+                                            <td className="p-4 text-slate-600 text-center"><span className="block truncate max-w-[140px] lg:max-w-none">{formatDisplayAddress(p.address)}</span></td>
                                             <td className="p-4 text-slate-500 text-xs text-left max-w-xs break-all">{p.remarks}</td>
                                             <td className="p-4 text-center whitespace-nowrap">
                                                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-black">
@@ -552,7 +560,7 @@ export const MainTab = ({
                                             </div>
                                             <div className="text-[11px] text-slate-500 font-bold flex items-center gap-1.5 truncate">
                                                 <span className="text-slate-700">{p.category}</span>
-                                                <span className="truncate">{p.address}</span>
+                                                <span className="truncate">{formatDisplayAddress(p.address)}</span>
                                                 {isAdminLoggedIn && <span className="text-slate-500">{p.phone || '010-7590-0111'}</span>}
                                             </div>
                                             {p.remarks && (

@@ -238,25 +238,6 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     return;
                 }
 
-                // D. Preload the panorama image with CORS check before invoking Pannellum viewer
-                await new Promise<void>((resolve, reject) => {
-                    const preCheckImg = new Image();
-                    const isSandbox = window.location.hostname.includes('ais-dev') || 
-                                      window.location.hostname.includes('ais-pre') ||
-                                      window.location.hostname.includes('localhost') ||
-                                      window.self !== window.top;
-                    const crossOriginAttr = isSandbox ? 'use-credentials' : 'anonymous';
-                    preCheckImg.crossOrigin = crossOriginAttr;
-
-                    preCheckImg.onload = () => {
-                        resolve();
-                    };
-                    preCheckImg.onerror = () => {
-                        reject(new Error("CORS 또는 네트워크 보안 규칙으로 인해 파노라마 이미지 로드에 실패했습니다."));
-                    };
-                    preCheckImg.src = currentSrc;
-                });
-
                 if (!isComponentMounted) return;
 
                 // E. Setup Hotspots for navigation
@@ -297,11 +278,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 container.innerHTML = '';
 
                 // F. Instantiate Pannellum viewer with pre-verified data
-                const isSandbox = window.location.hostname.includes('ais-dev') || 
-                                  window.location.hostname.includes('ais-pre') ||
-                                  window.location.hostname.includes('localhost') ||
-                                  window.self !== window.top;
-                const crossOriginAttr = isSandbox ? 'use-credentials' : 'anonymous';
+                const crossOriginAttr = 'anonymous'; 
 
                 console.log('뷰어 데이터:', currentSrc);
                 v = window.pannellum.viewer(container, {
@@ -548,6 +525,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
             
             <div 
                 ref={viewerRef} 
+                id="panorama"
                 className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 ${heightClass} ${mode === 'webgl' ? 'block' : 'hidden'}`}
                 style={heightStyle}
             ></div>

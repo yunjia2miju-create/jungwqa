@@ -251,7 +251,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     
                     v = window.pannellum.viewer(container, {
                         type: 'equirectangular',
-                        panorama: currentSrc,
+                        panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
                         hfov: 110,
                         minHfov: 45,
                         maxHfov: 130,

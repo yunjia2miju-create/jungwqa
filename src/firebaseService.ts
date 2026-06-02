@@ -27,6 +27,7 @@ export async function getPostsService(): Promise<Post[]> {
   await Promise.allSettled([
     (async () => {
       try {
+    
         const snapshot = await getDocs(q);
         if (!snapshot.empty) {
           const list: Post[] = [];

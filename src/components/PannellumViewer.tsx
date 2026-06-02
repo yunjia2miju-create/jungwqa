@@ -34,10 +34,12 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
     const viewerInstanceRef = React.useRef<any>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [viewerError, setViewerError] = React.useState<string | null>(null);
-    const [diagnosticsOpen, setDiagnosticsOpen] = React.useState(false);
-    const [diagLogs, setDiagLogs] = React.useState<string[]>([]);
-    const [isTestingFetch, setIsTestingFetch] = React.useState(false);
     const imagesKey = images.join('|');
+
+    // 투어 시스템 진단 상태 복구
+    const [diagnosticsOpen, setDiagnosticsOpen] = React.useState(false);
+    const [isTestingFetch, setIsTestingFetch] = React.useState(false);
+    const [testLogs, setTestLogs] = React.useState<Array<{ name: string; status: 'success' | 'warning' | 'error'; message: string }>>([]);
 
     // Dual-mode visualization setup: Interactive 360 WebGL VS Grab-and-Drag Touch-enhanced Flat Panorama
     const [mode, setMode] = React.useState<'webgl' | 'flat'>(() => {
@@ -112,6 +114,54 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
         const fallback = url.length > 36 ? url.substring(0, 36) + '...' : url;
         return fallback;
     };
+
+    // 투어 가속 및 원본 리소스 자가진단 로직 복구
+    const runDiagnostics = React.useCallback(async () => {
+        setIsTestingFetch(true);
+        setDiagnosticsOpen(true);
+        const logs: Array<{ name: string; status: 'success' | 'warning' | 'error'; message: string }> = [];
+
+        // 1. WebGL 가속 점검
+        const webglSupport = isWebGLSupported();
+        if (webglSupport) {
+            logs.push({ name: 'WebGL 하드웨어 가속', status: 'success', message: '브라우저의 WebGL 하드웨어 가속 드라이버가 정상 활성화되었습니다 (360° 투어 가동 가능).' });
+        } else {
+            logs.push({ name: 'WebGL 하드웨어 가속', status: 'error', message: '이 기기/브라우저는 WebGL 가속을 지원하지 않거나 설정에서 비활성화되어 360도 공간 뷰어 구동이 불가능합니다.' });
+        }
+
+        // 2. Pannellum 라이브러리 상태 점검
+        const pannellumOk = typeof window !== 'undefined' && !!window.pannellum;
+        if (pannellumOk) {
+            logs.push({ name: 'Pannellum 가상 투어 엔진', status: 'success', message: 'Pannellum CDN 코어가 정상 로딩되었으며 메모리에 안전하게 배치되었습니다.' });
+        } else {
+            logs.push({ name: 'Pannellum 가상 투어 엔진', status: 'error', message: 'Pannellum 코어 에셋을 외부 CDN에서 가져오는 과정에서 대역폭 부족 또는 로딩 실패가 유도되었습니다.' });
+        }
+
+        // 3. 교차 출처 (CORS) 자원 검사
+        const rawUrl = images[activeIndex] || images[0] || '';
+        const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
+        const directUrl = getDirectSrc(cleanUrl);
+
+        if (directUrl) {
+            logs.push({ name: 'VR 파노라마 원본 리소스 점검', status: 'success', message: `파노라마 이미지 URL 인식 성공: ${getCleanName(directUrl)}` });
+            try {
+                // Perform a lightweight CORS HEAD check to test if GCS of Firebase is permitting requests directly
+                const res = await fetch(directUrl, { method: 'HEAD', mode: 'cors' });
+                if (res.ok) {
+                    logs.push({ name: 'CORS 보안 승인 검토', status: 'success', message: 'Firebase Storage 교차 출처 정책(GCS CORS) 검증 완료. 브라우저에서 직접 파노라마 텍스처를 획득하는 데 성공했습니다.' });
+                } else {
+                    logs.push({ name: 'CORS 보안 승인 검토', status: 'warning', message: `외부 저장소 서버에서 에러 응답을 반환했습니다 (상태 코드: ${res.status}). 파노라마 접근이 제한될 수 있습니다.` });
+                }
+            } catch (e: any) {
+                logs.push({ name: 'CORS 보안 승인 검토', status: 'error', message: `CORS 교차 출처 제한 감지! 브라우저 로컬 샌드박스가 원본 파일 텍스처 맵핑을 가로막았습니다 (오류: ${e.message}).` });
+            }
+        } else {
+            logs.push({ name: 'VR 파노라마 원본 리소스 점검', status: 'warning', message: '표시하려는 360 VR 공간 파노라마 에셋 주소가 비어있거나 올바르지 않습니다.' });
+        }
+
+        setTestLogs(logs);
+        setIsTestingFetch(false);
+    }, [images, activeIndex, getDirectSrc]);
 
     // Interactive grab-to-scroll Mouse navigation for Flat Panorama mode
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -284,18 +334,13 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 v = window.pannellum.viewer(container, {
                     type: 'equirectangular',
                     panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
-                    hfov: 110,
-                    minHfov: 45,
-                    maxHfov: 130,
-                    yaw: 0,
-                    pitch: 0,
-                    crossOrigin: crossOriginAttr,
                     autoLoad: true,
-                    autoRotate: -1.2,
-                    showFullscreenCtrl: true,
-                    showZoomCtrl: true,
+                    showControls: true,
                     compass: true,
-                    avoidShowingBackground: true,
+                    hfov: 110,
+                    pitch: 0,
+                    yaw: 0,
+                    crossOrigin: crossOriginAttr,
                     hotSpots: hotSpots,
                     errorCallback: (errMess: string) => {
                         console.warn("Pannellum internal errorCallback caught:", errMess);
@@ -315,6 +360,11 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
 
                 v.on('load', () => {
                     if (isComponentMounted) {
+                        try {
+                            v.resize();
+                        } catch (e) {
+                            console.warn("Pannellum resize failed:", e);
+                        }
                         setIsLoading(false);
                         setViewerError(null);
                         setMode('webgl'); // ensure WebGL mode representation is solid
@@ -346,129 +396,6 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
             viewerInstanceRef.current = null;
         };
     }, [imagesKey, activeIndex]);
-
-    const runDiagnostics = async () => {
-        setIsTestingFetch(true);
-        const logs: string[] = [];
-        logs.push(`[진단] 시작 시각: ${new Date().toISOString()}`);
-        logs.push(`[진단] window.location.origin: "${window.location.origin}"`);
-        logs.push(`[진단] window.location.href: "${window.location.href}"`);
-        
-        try {
-            const calculatedOrigin = new URL(window.location.href).origin;
-            logs.push(`[진단] 계산된 origin (href 기준): "${calculatedOrigin}"`);
-        } catch (e: any) {
-            logs.push(`[진단] origin 계산 실패: ${e.message}`);
-        }
-
-        // 1. Pannellum Library status check
-        if (window.pannellum) {
-            logs.push(`[진단] Pannellum 라이브러리 로드 상태: 성공 (버전 정보 감지 완료)`);
-        } else {
-            logs.push(`[진단] ❌ 에러: window.pannellum 객체가 정의되지 않았습니다. 외부 CDN 스크립트 로드 실패일 수 있습니다.`);
-        }
-
-        // 2. WebGL Browser Capabilities check
-        try {
-            const canvas = document.createElement('canvas');
-            const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
-            if (gl) {
-                logs.push(`[진단] WebGL 브라우저 가속 컨텍스트: 지원 가능 (활성화됨)`);
-                const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-                logs.push(`[진단] WebGL 최대 텍스처 해상도 제한: ${maxTextureSize}px (충분한 하드웨어 가속)`);
-            } else {
-                logs.push(`[진단] ❌ 에러: WebGL 컨텍스트 획득 실패. 브라우저가 하드웨어 WebGL 가속을 비활성화했거나 지원하지 않습니다.`);
-            }
-        } catch (webglErr: any) {
-            logs.push(`[진단] ❌ WebGL 탐지 파이프라인 에러: ${webglErr.message}`);
-        }
-
-        // 3. Pannellum Viewer Container dimension measurement
-        if (viewerRef.current) {
-            const rect = viewerRef.current.getBoundingClientRect();
-            if (rect.width >= 16 && rect.height >= 36) {
-                logs.push(`[진단] 투어 컨테이너 오프셋 수치: 너비 ${rect.width.toFixed(1)}px, 높이 ${rect.height.toFixed(1)}px`);
-            } else {
-                logs.push(`[진단] 투어 컨테이너 오프셋 수치: 관측 대기 중 (정상 범주 이하)`);
-            }
-            
-            // Check DOM child nodes
-            const childList = Array.from(viewerRef.current.children);
-            logs.push(`[진단] 컨테이너 내 렌더링된 자식 노드 개수: ${childList.length}개`);
-            childList.forEach((child, i) => {
-                logs.push(`   * 자식 #${i+1}: <${child.tagName.toLowerCase()}> class="${child.className}"`);
-                if (child.children.length > 0) {
-                    Array.from(child.children).forEach((subChild, spi) => {
-                        logs.push(`     └ 서브노드 #${spi+1}: <${subChild.tagName.toLowerCase()}> class="${subChild.className}"`);
-                    });
-                }
-            });
-        } else {
-            logs.push(`[진단] ❌ 에러: viewerRef.current가 바인딩되지 않았습니다.`);
-        }
-
-        logs.push(`[진단] 전달된 이미지 개수: ${images.length}개`);
-        
-        if (images.length === 0) {
-            logs.push(`[진단] 경고: 360° 파노라마 이미지 목록이 비어있습니다.`);
-            setDiagLogs(logs);
-            setIsTestingFetch(false);
-            return;
-        }
-
-        const imgTarget = images[activeIndex] || images[0];
-        logs.push(`[진단] 테스트 대상 이미지 (인덱스 ${activeIndex || 0}): "${getCleanName(imgTarget)}"`);
-
-        let resolvedUrl = imgTarget;
-        if (resolvedUrl.includes('/api/proxy-image')) {
-            try {
-                const urlObj = new URL(resolvedUrl, window.location.origin);
-                const originalUrl = urlObj.searchParams.get('url');
-                if (originalUrl) {
-                    resolvedUrl = `${window.location.origin}/api/proxy-image?url=${encodeURIComponent(originalUrl)}&v=360-pano-${activeIndex}`;
-                }
-            } catch (e: any) {
-                logs.push(`[진단] URL 파싱 에러: ${e.message}`);
-            }
-        } else if (!resolvedUrl.startsWith('/') && !resolvedUrl.startsWith(window.location.origin)) {
-            resolvedUrl = `${window.location.origin}/api/proxy-image?url=${encodeURIComponent(resolvedUrl)}&v=360-pano-${activeIndex}`;
-        } else if (resolvedUrl.startsWith('/')) {
-            resolvedUrl = `${window.location.origin}${resolvedUrl}`;
-        }
-
-        logs.push(`[진단] WebGL 최종 전송 고유 URL: "${getCleanName(resolvedUrl)} (Proxy 경로 최적화)"`);
-        logs.push(`[진단] 브라우저 Fetch API를 통한 실시간 CORS 통신 무결성 모니터링 진행 중...`);
-
-        try {
-            const controller = new AbortController();
-            const timerId = setTimeout(() => controller.abort(), 8000);
-
-            const testStart = Date.now();
-            const res = await fetch(resolvedUrl, { 
-                method: 'GET',
-                signal: controller.signal,
-                credentials: 'omit',
-                headers: {
-                    'Accept': 'image/*'
-                }
-            });
-            clearTimeout(timerId);
-            const duration = Date.now() - testStart;
-
-            logs.push(`[진단] CORS Host 응답 상태: ${res.status} (${res.statusText}) (통신 지연: ${duration}ms)`);
-            const contentType = res.headers.get('content-type');
-            logs.push(`[진단] 반환 Content-Type: "${contentType}"`);
-            
-            const blob = await res.blob();
-            logs.push(`[진단] WebGL 텍스처 가해 완료! 이진 데이터 확보 크기: ${blob.size} bytes`);
-        } catch (err: any) {
-            logs.push(`[진단] ❌ 네트워크/CORS 에러 발생: ${err.name === 'AbortError' ? '연결 제한시간 초과 (8초)' : err.message}`);
-            logs.push(`[진단] 해결 가이드: WebGL 컨텍스트가 타사 iFrame 격리 규칙에 의해 Tainted(오염)되었을 확률이 매우 높습니다.`);
-        }
-
-        setDiagLogs(logs);
-        setIsTestingFetch(false);
-    };
 
     return (
         <div className="relative group">
@@ -625,31 +552,28 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 {images.length > 1 && onSceneChange && (
                     <div className="bg-blue-600/80 backdrop-blur-md text-white text-[10px] sm:text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit animate-bounce shadow-lg">
                         <i className="fa-solid fa-hand-pointer"></i>
-                        <span>{mode === 'webgl' ? '화살표를 클릭하여 공간을 이동하세요' : '좌우 초록색 버튼 혹은 아래 축소판으로 공간을 이동하세요'}</span>
+                        <span>{mode === 'webgl' ? '화살표나 드래그로 공간을 둘러보세요' : '좌우 제스처로 둘러보기'}</span>
                     </div>
                 )}
             </div>
 
-            {/* Premium Immersive VR Mode Badge */}
-            <div className="absolute top-4 right-4 z-40 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center shadow-2xl pointer-events-none select-none gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <i className="fa-solid fa-vr-cardboard text-emerald-400 text-xs"></i>
-                <span className="text-white text-[10px] sm:text-xs font-black">{mode === 'webgl' ? '360° VR 모드' : '평면 보정 뷰어 (자동 우회)'}</span>
+            {/* Manual diagnostics trigger button on the top-right */}
+            <div className="absolute top-4 right-4 flex gap-2 z-30 pointer-events-auto">
+                <button 
+                    onClick={() => {
+                        runDiagnostics();
+                    }}
+                    className="bg-slate-900/80 backdrop-blur-md text-emerald-400 hover:text-emerald-300 font-extrabold px-3 py-1.5 rounded-full text-[10px] sm:text-xs border border-emerald-500/30 flex items-center gap-1.5 cursor-pointer shadow-lg transition-all hover:scale-105"
+                    title="투어 시스템 진단 도구"
+                >
+                    <i className="fa-solid fa-square-poll-horizontal text-xs"></i>
+                    <span>투어 시스템 진단</span>
+                </button>
             </div>
-
-            <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-xl border border-white/20 shadow-xl flex items-center gap-2 z-30 select-none">
-                <span className="text-emerald-400">TOUR</span>
-                <span className="w-px h-3 bg-white/20"></span>
-                <span>공간 {activeIndex + 1} / {images.length}</span>
-            </div>
-
-            <div className="absolute bottom-4 right-4 bg-emerald-600 text-white text-[10px] sm:text-xs font-bold px-3 py-1.5 rounded-full shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                360° 가상 실감 투어
-            </div>
-
+            
             {/* Intelligent Fallback Error Overlay Banner */}
             {viewerError && (
-                <div className="absolute inset-x-4 bottom-16 bg-red-600/95 backdrop-blur-md text-white p-3.5 rounded-xl border border-red-500/20 shadow-2xl z-50 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs font-semibold gap-3">
+                <div className="absolute inset-x-4 bottom-16 bg-red-600/95 backdrop-blur-md text-white p-3.5 rounded-xl border border-red-500/20 shadow-2xl z-50 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs font-semibold gap-3 pointer-events-auto">
                     <div className="flex items-center gap-2.5">
                         <i className="fa-solid fa-circle-exclamation text-base text-yellow-300 animate-bounce"></i>
                         <div className="flex flex-col text-left">
@@ -661,6 +585,16 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                         <button 
                             onClick={(e) => {
                                 e.stopPropagation();
+                                runDiagnostics();
+                            }}
+                            className="bg-blue-500 hover:bg-blue-400 text-white font-extrabold px-3 py-1.5 rounded-lg border-0 transition-all text-[11px] cursor-pointer flex items-center gap-1"
+                        >
+                            <i className="fa-solid fa-wrench"></i>
+                            <span>장애 원인 분석</span>
+                        </button>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 setMode('flat');
                                 setViewerError(null);
                             }}
@@ -669,86 +603,72 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                             <i className="fa-solid fa-image mr-1"></i>
                             <span>평면 뷰어로 감상</span>
                         </button>
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                runDiagnostics();
-                            }}
-                            className="bg-slate-950 border border-white/25 text-white font-black px-2.5 py-1.5 rounded-lg hover:bg-slate-800 transition-all text-[11px] cursor-pointer"
-                        >
-                            원인 분석 실행
-                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Diagnostic trigger button */}
-            <div className="absolute bottom-4 right-4 z-40 flex items-center gap-2 pointer-events-auto">
-                <button 
-                    onClick={() => {
-                        setDiagnosticsOpen(true);
-                        runDiagnostics();
-                    }}
-                    className="bg-slate-950/80 hover:bg-slate-900 text-white hover:text-emerald-400 font-bold text-[9px] px-2.5 py-1.5 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm transition-all flex items-center gap-1 cursor-pointer"
-                >
-                    <i className="fa-solid fa-wrench"></i>
-                    <span>투어 시스템 진단</span>
-                </button>
-            </div>
-
-            {/* Diagnostics Console Modal */}
+            {/* Seamless Interactive Diagnostics Modal Overlay */}
             <AnimatePresence>
                 {diagnosticsOpen && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 cursor-default"
                         onClick={() => setDiagnosticsOpen(false)}
                     >
-                        <motion.div 
-                            initial={{ scale: 0.95, y: 15 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.95, y: 15 }}
-                            className="bg-slate-900 border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl p-6 overflow-hidden flex flex-col max-h-[85vh] text-left"
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative text-left text-white overflow-hidden pointer-events-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="flex justify-between items-center pb-4 border-b border-white/10 mb-4">
-                                <div className="flex items-center gap-2">
-                                    <i className="fa-solid fa-circle-info text-emerald-400 text-lg"></i>
-                                    <h3 className="text-white font-black text-sm sm:text-base">시스템 360° 투어 원격 진단기</h3>
-                                </div>
+                            {/* Accent line */}
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500"></div>
+
+                            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+                                <h3 className="text-base sm:text-lg font-black flex items-center gap-2 text-emerald-400">
+                                    <i className="fa-solid fa-square-poll-horizontal"></i>
+                                    <span>360° 투어 시스템 가속 및 원본 리소스 자가진단</span>
+                                </h3>
                                 <button 
                                     onClick={() => setDiagnosticsOpen(false)}
-                                    className="text-white/40 hover:text-white p-1 hover:bg-white/10 rounded"
+                                    className="text-white/45 hover:text-white/80 transition-colors bg-white/5 border-0 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer"
+                                    title="창 닫기"
                                 >
-                                    <i className="fa-solid fa-xmark"></i>
+                                    <i className="fa-solid fa-xmark text-sm"></i>
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto space-y-4 pr-1 font-mono text-xs text-emerald-300">
-                                <div className="bg-slate-950 p-4 rounded-xl space-y-1.5 overflow-x-auto select-all max-h-[400px]">
-                                    {diagLogs.map((log, index) => (
-                                        <div key={index} className={log.includes('❌') ? 'text-red-400 font-extrabold' : log.includes('성공') || log.includes('완료') ? 'text-emerald-400' : 'text-slate-300'}>
-                                            {log}
+                            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                                <div className="space-y-3">
+                                    {testLogs.map((log, i) => (
+                                        <div key={i} className="flex gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
+                                            <div className="mt-0.5 shrink-0">
+                                                {log.status === 'success' ? (
+                                                    <i className="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                                ) : log.status === 'warning' ? (
+                                                    <i className="fa-solid fa-triangle-exclamation text-yellow-400 text-sm"></i>
+                                                ) : (
+                                                    <i className="fa-solid fa-circle-xmark text-red-400 text-sm"></i>
+                                                )}
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <h4 className="font-extrabold text-xs text-white/90">{log.name}</h4>
+                                                <p className="text-[11px] text-white/60 leading-relaxed">{log.message}</p>
+                                            </div>
                                         </div>
                                     ))}
-                                    {diagLogs.length === 0 && (
-                                        <div className="text-slate-500 italic">진단 데이터 초기화 중...</div>
-                                    )}
-                                    {isTestingFetch && (
-                                        <div className="text-emerald-400 font-black flex items-center gap-2 mt-2 animate-pulse">
-                                            <i className="fa-solid fa-circle-notch animate-spin"></i>
-                                            <span>실시간 CORS 네트워크 무결성 진단 진행 중...</span>
+                                    {testLogs.length === 0 && (
+                                        <div className="text-center py-4 text-white/45 text-xs font-semibold">
+                                            로그 정보가 없습니다. 아래 '진단 재실행' 버튼을 클릭하여 장치 및 네트워크 연결 상태를 진단하세요.
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="bg-emerald-900/10 border border-emerald-500/20 p-3.5 rounded-xl space-y-1.5 text-slate-300 text-[11px] leading-relaxed font-sans">
-                                    <h4 className="text-emerald-400 font-bold text-xs flex items-center gap-1.5">
-                                        <i className="fa-solid fa-wand-magic-sparkles"></i>
-                                        CORS 격리 해결 및 기술 조치 사항
-                                    </h4>
+                                <div className="bg-emerald-950/20 border border-emerald-500/20 p-3.5 rounded-xl text-[11px] text-emerald-300 leading-relaxed space-y-2">
+                                    <h4 className="font-black text-xs text-emerald-400">※ 가이드라인:</h4>
                                     <p>
                                         구글 AI 스튜디오 및 클라우드 서비스의 호스트 환경(Iframe Isolation)에서는 32비트 WebGL 픽스맵 처리 방식에 따른 교차 출처 제한이 발생할 수 있습니다.
                                     </p>
@@ -758,18 +678,18 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-2 pt-4 border-t border-white/10 mt-4">
+                            <div className="flex justify-end gap-2 pt-4 border-t border-white/10 mt-4 font-sans">
                                 <button 
                                     onClick={() => runDiagnostics()}
                                     disabled={isTestingFetch}
-                                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 disabled:opacity-50"
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer border-0 shadow-md transition-colors"
                                 >
                                     <i className="fa-solid fa-rotate-right"></i>
                                     <span>진단 재실행</span>
                                 </button>
                                 <button 
                                     onClick={() => setDiagnosticsOpen(false)}
-                                    className="bg-white/10 hover:bg-white/20 text-white font-black px-4 py-2 rounded-xl text-xs"
+                                    className="bg-white/10 hover:bg-white/20 text-white font-black px-4 py-2 rounded-xl text-xs cursor-pointer border-0 shadow-md transition-colors"
                                 >
                                     <span>창 닫기</span>
                                 </button>

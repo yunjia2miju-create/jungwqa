@@ -222,7 +222,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
 
                 const rawUrl = images[activeIndex] || images[0] || '';
                 const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
-                const currentSrc = getProxiedSrc(cleanUrl, activeIndex);
+                const currentSrc = getDirectSrc(cleanUrl);
 
                 if (!cleanUrl) {
                     throw new Error("파노라마 이미지 주소가 유효하지 않습니다.");

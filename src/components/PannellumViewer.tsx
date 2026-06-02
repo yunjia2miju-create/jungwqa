@@ -177,7 +177,9 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
             return;
         }
 
-        const currentSrc = getProxiedSrc(images[activeIndex] || images[0], activeIndex);
+        const rawUrl = images[activeIndex] || images[0] || '';
+        const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
+        const currentSrc = getProxiedSrc(cleanUrl, activeIndex);
 
         const hotSpots: any[] = [];
         if (images.length > 1) {
@@ -232,7 +234,12 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 // Silent pre-flight CORS verification to ensure the WebGL texture can load securely.
                 // If it fails (due to old backend returning 404, or server issues), we immediately switch to flat mode.
                 const preCheckImg = new Image();
-                preCheckImg.crossOrigin = 'anonymous';
+                const isSandbox = window.location.hostname.includes('ais-dev') || 
+                                  window.location.hostname.includes('ais-pre') ||
+                                  window.location.hostname.includes('localhost') ||
+                                  window.self !== window.top;
+                const crossOriginAttr = isSandbox ? 'use-credentials' : 'anonymous';
+                preCheckImg.crossOrigin = crossOriginAttr;
                 
                 preCheckImg.onload = () => {
                     if (!isComponentMounted) return;
@@ -250,7 +257,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                         maxHfov: 130,
                         yaw: 0,
                         pitch: 0,
-                        crossOrigin: 'anonymous',
+                        crossOrigin: crossOriginAttr,
                         autoLoad: true,
                         autoRotate: -1.2, // Snappy realistic rotation rate
                         showFullscreenCtrl: true,
@@ -540,7 +547,11 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 >
                     <div className="absolute inset-0 bg-black/15 pointer-events-none z-10 rounded-2xl"></div>
                     <img 
-                        src={getDirectSrc(images[activeIndex] || images[0])} 
+                        src={(() => {
+                            const rawUrl = images[activeIndex] || images[0] || '';
+                            const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
+                            return getDirectSrc(cleanUrl);
+                        })()} 
                         className={`h-full min-w-[240%] sm:min-w-[180%] md:min-w-[140%] max-w-none object-cover pointer-events-none select-none transition-transform duration-500 ease-out ${isDragging ? '' : 'animate-float-pan'}`}
                         alt="평면 파노라마 VR 뷰"
                         referrerPolicy="no-referrer"

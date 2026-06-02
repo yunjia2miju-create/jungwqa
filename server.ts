@@ -322,7 +322,20 @@ async function startServer() {
     }
 
     // CORS & CORS-Resource-Policy Header Setup to satisfy rigid browser WebGL texture contexts
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const clientOrigin = req.get('Origin') || req.get('Referer') || '*';
+    let cleanOrigin = '*';
+    if (clientOrigin !== '*') {
+      try {
+        const urlObj = new URL(clientOrigin);
+        cleanOrigin = urlObj.origin;
+      } catch (e) {
+        cleanOrigin = clientOrigin;
+      }
+    }
+    res.setHeader('Access-Control-Allow-Origin', cleanOrigin);
+    if (cleanOrigin !== '*') {
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Vary', 'Origin');

@@ -116,7 +116,11 @@ export const DetailTab = ({
                     }
 
                     const img = new Image();
-                    img.crossOrigin = "anonymous";
+                    const isSandbox = window.location.hostname.includes('ais-dev') || 
+                                      window.location.hostname.includes('ais-pre') ||
+                                      window.location.hostname.includes('localhost') ||
+                                      window.self !== window.top;
+                    img.crossOrigin = isSandbox ? "use-credentials" : "anonymous";
                     img.src = proxiedUrl;
                 }
             });

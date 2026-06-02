@@ -173,171 +173,192 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
         let checkSizeInterval: any = null;
         
         const container = viewerRef.current;
-        if (!container || !window.pannellum || images.length === 0 || mode !== 'webgl') {
+        if (!container) {
             return;
         }
 
-        const rawUrl = images[activeIndex] || images[0] || '';
-        const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
-        const currentSrc = getProxiedSrc(cleanUrl, activeIndex);
-
-        const hotSpots: any[] = [];
-        if (images.length > 1) {
-            // Next Hotspot
-            hotSpots.push({
-                pitch: -15,
-                yaw: 40,
-                type: 'info',
-                cssClass: 'pnlm-hotspot-nav next',
-                text: activeIndex < images.length - 1 
-                    ? `다음 공간 (공간 ${activeIndex + 2})으로 이동` 
-                    : `처음 공간 (공간 1)으로 이동`,
-                clickHandlerFunc: () => {
-                    if (onSceneChangeRef.current) {
-                        onSceneChangeRef.current(activeIndex < images.length - 1 ? activeIndex + 1 : 0);
-                    }
-                }
-            });
-            
-            // Prev Hotspot
-            hotSpots.push({
-                pitch: -15,
-                yaw: -40,
-                type: 'info',
-                cssClass: 'pnlm-hotspot-nav prev',
-                text: activeIndex > 0 
-                    ? `이전 공간 (공간 ${activeIndex})으로 이동` 
-                    : `마지막 공간 (공간 ${images.length})으로 이동`,
-                clickHandlerFunc: () => {
-                    if (onSceneChangeRef.current) {
-                        onSceneChangeRef.current(activeIndex > 0 ? activeIndex - 1 : images.length - 1);
-                    }
-                }
-            });
-        }
-
-        const loadTimer = setTimeout(() => {
-            if (isComponentMounted && isLoading && mode === 'webgl') {
-                console.warn("WebGL Pannellum load taking longer than expected. Falling back to flat panoramic viewer...");
-                setMode('flat');
-                setIsLoading(false);
-            }
-        }, 6000); // 6 seconds smart auto-fallback for immediate access
-
-        const initPannellumInstance = () => {
+        const initViewerAsync = async () => {
+            console.log('뷰어 초기화 시작');
             try {
                 if (!isComponentMounted) return;
-                
                 setIsLoading(true);
                 setViewerError(null);
-                
-                // Silent pre-flight CORS verification to ensure the WebGL texture can load securely.
-                // If it fails (due to old backend returning 404, or server issues), we immediately switch to flat mode.
-                const preCheckImg = new Image();
+
+                // A. Wait for window.pannellum script to be available on window object (max 50 attempts = 5s)
+                let attempts = 0;
+                while (!window.pannellum && attempts < 50) {
+                    if (!isComponentMounted) return;
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    attempts++;
+                }
+
+                if (!window.pannellum) {
+                    throw new Error("Pannellum 라이브러리를 CDN에서 로드하지 못했거나 아직 사용할 준비가 되지 않았습니다.");
+                }
+
+                // B. Wait for image URLs to be parsed and completed (especially if empty originally during Firestore query)
+                if (images.length === 0) {
+                    let imageWaitAttempts = 0;
+                    while (images.length === 0 && imageWaitAttempts < 30) {
+                        if (!isComponentMounted) return;
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                        imageWaitAttempts++;
+                    }
+                    if (images.length === 0) {
+                        setIsLoading(false);
+                        return; // Exit if still no images
+                    }
+                }
+
+                // C. Protect against 0px initial width/height rendering from parent tab switching
+                let rectAttempts = 0;
+                let rect = container.getBoundingClientRect();
+                while ((rect.width <= 20 || rect.height <= 20) && rectAttempts < 20) {
+                    if (!isComponentMounted) return;
+                    await new Promise((resolve) => setTimeout(resolve, 150));
+                    rect = container.getBoundingClientRect();
+                    rectAttempts++;
+                }
+
+                const rawUrl = images[activeIndex] || images[0] || '';
+                const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
+                const currentSrc = getProxiedSrc(cleanUrl, activeIndex);
+
+                if (!cleanUrl) {
+                    throw new Error("파노라마 이미지 주소가 유효하지 않습니다.");
+                }
+
+                // Reset mode to webgl if WebGL is supported, to try interactive mode first
+                const webglAvail = isWebGLSupported();
+                if (webglAvail) {
+                    setMode('webgl');
+                } else {
+                    setMode('flat');
+                    setIsLoading(false);
+                    return;
+                }
+
+                // D. Preload the panorama image with CORS check before invoking Pannellum viewer
+                await new Promise<void>((resolve, reject) => {
+                    const preCheckImg = new Image();
+                    const isSandbox = window.location.hostname.includes('ais-dev') || 
+                                      window.location.hostname.includes('ais-pre') ||
+                                      window.location.hostname.includes('localhost') ||
+                                      window.self !== window.top;
+                    const crossOriginAttr = isSandbox ? 'use-credentials' : 'anonymous';
+                    preCheckImg.crossOrigin = crossOriginAttr;
+
+                    preCheckImg.onload = () => {
+                        resolve();
+                    };
+                    preCheckImg.onerror = () => {
+                        reject(new Error("CORS 또는 네트워크 보안 규칙으로 인해 파노라마 이미지 로드에 실패했습니다."));
+                    };
+                    preCheckImg.src = currentSrc;
+                });
+
+                if (!isComponentMounted) return;
+
+                // E. Setup Hotspots for navigation
+                const hotSpots: any[] = [];
+                if (images.length > 1) {
+                    hotSpots.push({
+                        pitch: -15,
+                        yaw: 40,
+                        type: 'info',
+                        cssClass: 'pnlm-hotspot-nav next',
+                        text: activeIndex < images.length - 1 
+                            ? `다음 공간 (공간 ${activeIndex + 2})으로 이동` 
+                            : `처음 공간 (공간 1)으로 이동`,
+                        clickHandlerFunc: () => {
+                            if (onSceneChangeRef.current) {
+                                onSceneChangeRef.current(activeIndex < images.length - 1 ? activeIndex + 1 : 0);
+                            }
+                        }
+                    });
+                    
+                    hotSpots.push({
+                        pitch: -15,
+                        yaw: -40,
+                        type: 'info',
+                        cssClass: 'pnlm-hotspot-nav prev',
+                        text: activeIndex > 0 
+                            ? `이전 공간 (공간 ${activeIndex})으로 이동` 
+                            : `마지막 공간 (공간 ${images.length})으로 이동`,
+                        clickHandlerFunc: () => {
+                            if (onSceneChangeRef.current) {
+                                onSceneChangeRef.current(activeIndex > 0 ? activeIndex - 1 : images.length - 1);
+                            }
+                        }
+                    });
+                }
+
+                // Clean the existing elements completely to prevent context collisions and memory leaks
+                container.innerHTML = '';
+
+                // F. Instantiate Pannellum viewer with pre-verified data
                 const isSandbox = window.location.hostname.includes('ais-dev') || 
                                   window.location.hostname.includes('ais-pre') ||
                                   window.location.hostname.includes('localhost') ||
                                   window.self !== window.top;
                 const crossOriginAttr = isSandbox ? 'use-credentials' : 'anonymous';
-                preCheckImg.crossOrigin = crossOriginAttr;
-                
-                preCheckImg.onload = () => {
-                    if (!isComponentMounted) return;
-                    
-                    // Clear container inner elements before recreating (prevents double WebGL context collisions and grey screen fallback issues)
-                    if (container) {
-                        container.innerHTML = '';
-                    }
-                    
-                    v = window.pannellum.viewer(container, {
-                        type: 'equirectangular',
-                        panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
-                        hfov: 110,
-                        minHfov: 45,
-                        maxHfov: 130,
-                        yaw: 0,
-                        pitch: 0,
-                        crossOrigin: crossOriginAttr,
-                        autoLoad: true,
-                        autoRotate: -1.2, // Snappy realistic rotation rate
-                        showFullscreenCtrl: true,
-                        showZoomCtrl: true,
-                        compass: true,
-                        avoidShowingBackground: true,
-                        hotSpots: hotSpots,
-                        errorCallback: (errMess: string) => {
-                            console.warn("Pannellum internal errorCallback caught:", errMess);
-                            if (isComponentMounted) {
-                                clearTimeout(loadTimer);
-                                setIsLoading(false);
-                                // Fallback automatically to flat mode to display the image with pan/drag controls!
-                                setMode('flat');
-                                setViewerError(errMess && typeof errMess === 'string' ? errMess : "360° 가상 투어 이미지를 불러오는데 실패했습니다 (평면 모드로 자동 보정 우회됨)");
-                            }
-                        },
-                        strings: {
-                            loadingLabel: "공간 데이터를 고해상도로 로드하고 있습니다...",
-                            loadButtonLabel: "360° 투어 입장",
-                            noWebGLError: "이 브라우저는 가상 투어에 필요한 WebGL 가속을 지원하지 않습니다.",
-                            bylineLabel: "태왕공인중개사사무소"
-                        }
-                    });
-                    
-                    v.on('load', () => {
+
+                console.log('뷰어 데이터:', currentSrc);
+                v = window.pannellum.viewer(container, {
+                    type: 'equirectangular',
+                    panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
+                    hfov: 110,
+                    minHfov: 45,
+                    maxHfov: 130,
+                    yaw: 0,
+                    pitch: 0,
+                    crossOrigin: crossOriginAttr,
+                    autoLoad: true,
+                    autoRotate: -1.2,
+                    showFullscreenCtrl: true,
+                    showZoomCtrl: true,
+                    compass: true,
+                    avoidShowingBackground: true,
+                    hotSpots: hotSpots,
+                    errorCallback: (errMess: string) => {
+                        console.warn("Pannellum internal errorCallback caught:", errMess);
                         if (isComponentMounted) {
-                            clearTimeout(loadTimer);
                             setIsLoading(false);
-                            setViewerError(null);
+                            setMode('flat');
+                            setViewerError(errMess && typeof errMess === 'string' ? errMess : "360° 가상 투어 이미지를 불러오는데 실패했습니다 (평면 모드로 자동 보정 우회됨)");
                         }
-                    });
-                    
-                    viewerInstanceRef.current = v;
-                };
-                
-                preCheckImg.onerror = () => {
-                    if (!isComponentMounted) return;
-                    console.warn("[Pannellum CORS pre-check] Failed to preload WebGL texture cross-origin. Switching immediately to HTML5 flat panoramic mode.");
-                    clearTimeout(loadTimer);
-                    setIsLoading(false);
-                    setMode('flat');
-                };
-                
-                preCheckImg.src = currentSrc;
-            } catch (err) {
-                console.error("Pannellum instantiation crash:", err);
+                    },
+                    strings: {
+                        loadingLabel: "공간 데이터를 고해상도로 로드하고 있습니다...",
+                        loadButtonLabel: "360° 투어 입장",
+                        noWebGLError: "이 브라우저는 가상 투어에 필요한 WebGL 가속을 지원하지 않습니다.",
+                        bylineLabel: "태왕공인중개사사무소"
+                    }
+                });
+
+                v.on('load', () => {
+                    if (isComponentMounted) {
+                        setIsLoading(false);
+                        setViewerError(null);
+                        setMode('webgl'); // ensure WebGL mode representation is solid
+                    }
+                });
+
+                viewerInstanceRef.current = v;
+
+            } catch (err: any) {
+                console.warn("[Pannellum Async Init failure]", err.message);
                 if (isComponentMounted) {
-                    clearTimeout(loadTimer);
                     setIsLoading(false);
                     setMode('flat');
-                    setViewerError("360° 투어 뷰어를 생성하는 도중 오류가 발생했습니다. 평면 모드로 안전 복구되었습니다.");
                 }
             }
         };
 
-        // DIMENSION CHECKER: Protect against 0px initial width/hierarchy container rendering crash
-        const attemptInitWithLayout = () => {
-            if (!isComponentMounted) return;
-            const rect = container.getBoundingClientRect();
-            if (rect.width > 20 && rect.height > 20) {
-                // Ensure proper micro-ticks for the DOM render cycle to settle completely 
-                setTimeout(() => {
-                    if (isComponentMounted) {
-                        initPannellumInstance();
-                    }
-                }, 100);
-            } else {
-                // If dimension is still 0px, poll quickly to capture layout updates
-                checkSizeInterval = setTimeout(attemptInitWithLayout, 150);
-            }
-        };
-
-        attemptInitWithLayout();
+        initViewerAsync();
 
         return () => {
             isComponentMounted = false;
-            clearTimeout(loadTimer);
-            if (checkSizeInterval) clearTimeout(checkSizeInterval);
-            
             if (v) {
                 try {
                     v.destroy();
@@ -347,7 +368,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
             }
             viewerInstanceRef.current = null;
         };
-    }, [imagesKey, activeIndex, mode]);
+    }, [imagesKey, activeIndex]);
 
     const runDiagnostics = async () => {
         setIsTestingFetch(true);

@@ -17,6 +17,38 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
     const [currentPassInput, setCurrentPassInput] = useState('');
     const [newPassInput, setNewPassInput] = useState('');
 
+    // Real-time search query for posts
+    const [adminSearchQuery, setAdminSearchQuery] = useState('');
+
+    // Real-time filtered posts list
+    const filteredPosts = posts.filter(p => {
+        if (!adminSearchQuery.trim()) return true;
+        const query = adminSearchQuery.trim().toLowerCase();
+        
+        // 1. 매물 번호 (e.g. default-1, default-2, 1, 2)
+        const matchId = p.id.toLowerCase().includes(query) || (p.id.startsWith('default-') && p.id.replace('default-', '').includes(query));
+        
+        // 2. 주소 (Matches dong e.g. 송정동, or detailed address address)
+        const matchDong = p.dong.toLowerCase().includes(query);
+        const matchAddress = p.address ? p.address.toLowerCase().includes(query) : false;
+        
+        // 3. 매물 종류 (Matches category e.g. 원룸, 미투, 투룸)
+        const matchCategory = p.category ? p.category.toLowerCase().includes(query) : false;
+        
+        // 4. 금액 (Matches price e.g. 200/23, 200, 23)
+        const matchPrice = p.price ? p.price.toLowerCase().includes(query) : false;
+        
+        // 5. 건물명 및 호실 (building name or room number)
+        const matchBuilding = p.building ? p.building.toLowerCase().includes(query) : false;
+        const matchRoom = p.room ? p.room.toLowerCase().includes(query) : false;
+        
+        // 6. 타이틀 및 비고 (title or remarks)
+        const matchTitle = p.title ? p.title.toLowerCase().includes(query) : false;
+        const matchRemarks = p.remarks ? p.remarks.toLowerCase().includes(query) : false;
+        
+        return matchId || matchDong || matchAddress || matchCategory || matchPrice || matchBuilding || matchRoom || matchTitle || matchRemarks;
+    });
+
     const [isFirebaseSimulatedConnected, setIsFirebaseSimulatedConnected] = useState<boolean>(() => {
         return localStorage.getItem('taewang_firebase_sim_connected') === 'true';
     });
@@ -312,61 +344,108 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
 
             {adminTab === 'posts' && (
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 animate-fadeIn">
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest leading-none">전체 {posts.length}건의 발행 매물</span>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <span className="text-xs font-extrabold text-slate-450 uppercase tracking-widest leading-none">
+                            {adminSearchQuery.trim() ? (
+                                <span>
+                                    검색 매칭 <span className="text-emerald-600 font-extrabold">{filteredPosts.length}</span>건 / 전체 {posts.length}건
+                                </span>
+                            ) : (
+                                `전체 ${posts.length}건의 발행 매물`
+                            )}
+                        </span>
                         <button 
                             onClick={() => {
                                 // Clear editing post ID and open write page
                                 localStorage.removeItem('taewang_editing_post_id');
                                 setActiveSection('admin-write');
                             }} 
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center gap-1 shadow-md transition-colors"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-1.5 shadow-md hover:shadow-emerald-100 transition-all font-sans"
                         >
                             <i className="fa-solid fa-circle-plus"></i>
                             <span>신규 매물 등록</span>
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {posts.map(p => (
-                            <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-4 rounded-2xl flex items-center justify-between transition-all">
-                                <div className="flex items-center space-x-3 text-left">
-                                    <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-200">
-                                        <img src={p.thumbnail} alt={p.building} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{p.category}</span>
-                                            <span className="bg-slate-200 text-slate-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{p.dong}</span>
-                                            {p.isRecommended && <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded">추천★</span>}
-                                        </div>
-                                        <h4 className="text-sm font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''}</h4>
-                                        <p className="text-[11px] text-slate-400 font-semibold">{p.title || '등록된 타이틀 내용 없음'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-1.5 shrink-0">
-                                    <button 
-                                        onClick={() => {
-                                            // Open write module specifying editing post
-                                            localStorage.setItem('taewang_editing_post_id', p.id);
-                                            setActiveSection('admin-write');
-                                        }} 
-                                        className="text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 p-2.5 rounded-xl text-xs font-bold transition-all"
-                                        title="매물 상세 내용 및 답사 기록 수정"
-                                    >
-                                        <i className="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                    <button 
-                                        onClick={() => handleDeletePost(p.id)} 
-                                        className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-2.5 rounded-xl text-xs font-bold transition-all"
-                                        title="데이터 영구 삭제"
-                                    >
-                                        <i className="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                    {/* 실시간 매물 검색창 */}
+                    <div className="mb-6 relative font-sans">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <i className="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                        </div>
+                        <input
+                            type="text"
+                            value={adminSearchQuery}
+                            onChange={(e) => setAdminSearchQuery(e.target.value)}
+                            placeholder="검색어를 입력하세요 (매물 번호, 동이름/주소, 원룸/미투, 금액, 건물명 등)"
+                            className="w-full pl-10 pr-10 py-3.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 hover:border-slate-350 focus:border-emerald-500 focus:bg-white rounded-2xl focus:outline-none transition-all font-semibold text-slate-800 shadow-sm"
+                        />
+                        {adminSearchQuery && (
+                            <button
+                                onClick={() => setAdminSearchQuery('')}
+                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-650 transition-colors cursor-pointer"
+                                title="검색어 초기화"
+                            >
+                                <i className="fa-solid fa-circle-xmark"></i>
+                            </button>
+                        )}
                     </div>
+
+                    {filteredPosts.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {filteredPosts.map(p => (
+                                <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-4 rounded-2xl flex items-center justify-between transition-all">
+                                    <div className="flex items-center space-x-3 text-left">
+                                        <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                                            <img src={p.thumbnail} alt={p.building} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{p.category}</span>
+                                                <span className="bg-slate-200 text-slate-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{p.dong}</span>
+                                                {p.isRecommended && <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded">추천★</span>}
+                                                <span className="bg-slate-100 text-slate-500 text-[8px] font-semibold px-1 py-0.5 rounded">ID: {p.id.replace('default-', '')}</span>
+                                            </div>
+                                            <h4 className="text-sm font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-xs text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
+                                            <p className="text-[11px] text-slate-400 font-semibold">{p.title || '등록된 타이틀 내용 없음'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-1.5 shrink-0">
+                                        <button 
+                                            onClick={() => {
+                                                // Open write module specifying editing post
+                                                localStorage.setItem('taewang_editing_post_id', p.id);
+                                                setActiveSection('admin-write');
+                                            }} 
+                                            className="text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 p-2.5 rounded-xl text-xs font-bold transition-all"
+                                            title="매물 상세 내용 및 답사 기록 수정"
+                                        >
+                                            <i className="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDeletePost(p.id)} 
+                                            className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-2.5 rounded-xl text-xs font-bold transition-all"
+                                            title="데이터 영구 삭제"
+                                        >
+                                            <i className="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 text-slate-400 border border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                            <i className="fa-solid fa-magnifying-glass text-3xl mb-3 text-slate-300 block"></i>
+                            <p className="text-sm font-black text-slate-700">검색 조건에 맞는 매물이 없습니다.</p>
+                            <p className="text-xs text-slate-450 font-semibold mt-1.5">입력하신 검색어 "{adminSearchQuery}"를 확인하시거나 다른 키워드로 검색해 보세요.</p>
+                            <p className="text-[11px] text-slate-400 font-medium mt-1">예: 동 이름 (송정동), 매물 형태 (원룸, 미투), 가격 (200, 23/2.5) 등</p>
+                            <button
+                                onClick={() => setAdminSearchQuery('')}
+                                className="mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 active:scale-95 rounded-xl text-xs font-extrabold transition-all"
+                            >
+                                검색 피드 초기화
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 

@@ -43,7 +43,7 @@ export const MainTab = ({
 
     React.useEffect(() => {
         const filteredPosts = posts.filter(
-            p => p && p.category && ['원룸', '미투', '투룸', '쓰리룸'].includes(String(p.category))
+            p => p && p.category
         );
         if (filteredPosts.length === 0) {
             setTickerPosts([]);
@@ -94,7 +94,16 @@ export const MainTab = ({
         const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
         if (showOnlyVR && !hasVR) return false;
 
-        const categoryMatch = activeCategory === 'all' || String(p.category || '') === activeCategory;
+        let categoryMatch = false;
+        if (activeCategory === 'all') {
+            categoryMatch = true;
+        } else if (activeCategory === '빌라') {
+            const pCat = String(p.category || '');
+            categoryMatch = pCat === '빌라' || pCat === '다세대' || pCat === '주택' || pCat === '상가주택';
+        } else {
+            categoryMatch = String(p.category || '') === activeCategory;
+        }
+
         const dongMatch = activeDong === 'all' || (p.dong && String(p.dong) === activeDong) || (p.address && String(p.address).includes(activeDong));
         
         const buildingMatch = String(p.building || '').toLowerCase().includes(searchVal);
@@ -304,7 +313,7 @@ export const MainTab = ({
                     {/* Create a duplicate list to ensure smooth infinite scrolling. */}
                     <div 
                         className="animate-scroll-up flex flex-col pt-2 pb-2"
-                        style={{ animationDuration: `${tickerPosts.length * 0.09}s` }}
+                        style={{ animationDuration: `${tickerPosts.length * 0.5}s` }}
                     >
                         {tickerPosts.map((p, idx) => {
                             const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
@@ -363,7 +372,7 @@ export const MainTab = ({
             <div id="blog-list" className="flex flex-col mb-4 sm:mb-6 gap-3 sm:gap-4 border-b border-slate-200 pb-4 sm:pb-5 w-full">
                 <div className="w-full">
                     <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full">
-                        {['all', '원룸매매', '원룸', '미투', '투룸', '쓰리룸', '상가', '아파트', '오피스텔', '다세대', '주택', '땅', '기타'].map((cat) => (
+                        {['all', '원룸매매', '원룸', '미투', '투룸', '쓰리룸', '상가', '아파트', '오피스텔', '빌라', '땅', '기타'].map((cat) => (
                             <button key={cat} onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} className={`category-tab px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${activeCategory === cat ? 'active bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}>
                                 {cat === 'all' ? '전체' : cat}
                             </button>

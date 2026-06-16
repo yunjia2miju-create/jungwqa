@@ -43,16 +43,20 @@ export default function RichTextEditor({
     const [showBgColorPicker, setShowBgColorPicker] = useState(false);
 
     // Current Style States
-    const [currentFont, setCurrentFont] = useState('나눔스퀘어');
+    const [currentFont, setCurrentFont] = useState('기본서체');
     const [currentSize, setCurrentSize] = useState('16px');
 
     // Font family configurations
     const fontFamilies = {
-        '나눔스퀘어': '"NanumSquare", "Inter", sans-serif',
+        '기본서체': 'system-ui, -apple-system, sans-serif',
         '나눔고딕': '"Nanum Gothic", sans-serif',
-        '마루부리 (세리프)': '"MaruBuri", "Playfair Display", serif',
-        '기본고딕': 'ui-sans-serif, system-ui, sans-serif',
-        '코딩용 고딕': 'ui-monospace, SFMono-Regular, "JetBrains Mono", monospace'
+        '나눔명조': '"Nanum Myeongjo", serif',
+        '나눔바른고딕': '"NanumBarunGothic", sans-serif',
+        '나눔스퀘어': '"NanumSquare", sans-serif',
+        '마루부리': '"MaruBuri", serif',
+        '다시시작해': '"Nanum Da Si Si Jag Hae", cursive',
+        '바른히피': '"Nanum Ba Reun Hi Pi", cursive',
+        '우리딸손글씨': '"Nanum Uri Ddal Son Geul Csi", cursive'
     };
 
     // Font size configurations
@@ -304,9 +308,9 @@ export default function RichTextEditor({
             if (container) {
                 const containerRect = container.getBoundingClientRect();
                 const leftOffset = rect.left - containerRect.left + (rect.width / 2);
-                const topOffset = rect.top - containerRect.top - 62;
+                const topOffset = rect.top - containerRect.top - 78;
 
-                const halfWidth = 250; // Half of tooltip width (~500px total width) to ensure it stays fully inside the editor bounds
+                const halfWidth = 290; // Adjusted for 1.5x enlargement (~580px total width) to ensure it stays fully inside the editor bounds
                 let safeLeft = leftOffset;
                 if (containerRect.width >= halfWidth * 2) {
                     safeLeft = Math.max(halfWidth, Math.min(containerRect.width - halfWidth, leftOffset));
@@ -705,7 +709,7 @@ export default function RichTextEditor({
                 </button>
             )}
 
-            {/* Floating Selection Tooltip Formatting Toolbar (Image 1) */}
+            {/* Floating Selection Tooltip Formatting Toolbar (Image 1) - 1.5x Enlarged */}
             {showSelectionToolbar && selectionCoords && (
                 <div 
                     style={{ 
@@ -713,7 +717,7 @@ export default function RichTextEditor({
                         left: `${selectionCoords.left}px`,
                         transform: 'translateX(-50%)'
                     }}
-                    className="absolute z-50 bg-slate-900 text-white rounded-xl shadow-2xl p-1 flex items-center gap-1 border border-slate-800 animate-slideUpAndFade select-none"
+                    className="absolute z-50 bg-slate-900 text-white rounded-2xl shadow-2xl p-2 flex items-center gap-2 border-[1.5px] border-slate-850 animate-slideUpAndFade select-none"
                 >
                     {/* Tooltip Font Selector */}
                     <div className="relative tooltip-dropdown">
@@ -724,14 +728,14 @@ export default function RichTextEditor({
                                 setShowTooltipFontDropdown(!showTooltipFontDropdown);
                                 setShowTooltipSizeDropdown(false);
                             }}
-                            className="h-7 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] font-bold flex items-center justify-between gap-1 w-24 text-slate-100 hover:text-emerald-400 transition-all cursor-pointer"
+                            className="h-11 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm font-bold flex items-center justify-between gap-2 w-36 text-slate-100 hover:text-emerald-400 transition-all cursor-pointer"
                             title="글꼴 변경"
                         >
                             <span className="truncate">{currentFont}</span>
-                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                            <i className="fa-solid fa-chevron-down text-xs text-slate-400"></i>
                         </button>
                         {showTooltipFontDropdown && (
-                            <div className="absolute bottom-8 left-0 z-50 bg-slate-950 border border-slate-700 rounded-lg shadow-2xl w-32 py-1 text-slate-100 animate-fadeIn mb-1">
+                            <div className="absolute bottom-12 left-0 z-50 bg-slate-950 border border-slate-705 rounded-xl shadow-2xl w-48 py-2 text-slate-100 animate-fadeIn mb-2 max-h-none overflow-visible">
                                 {Object.entries(fontFamilies).map(([fontName, value]) => (
                                     <button
                                         key={fontName}
@@ -742,7 +746,7 @@ export default function RichTextEditor({
                                             setCurrentFont(fontName);
                                             setShowTooltipFontDropdown(false);
                                         }}
-                                        className={`w-full text-left px-2 py-1.5 hover:bg-slate-805 hover:text-white text-[10px] font-bold ${currentFont === fontName ? 'text-emerald-400 font-extrabold bg-emerald-950/40' : 'text-slate-200'}`}
+                                        className={`w-full text-left px-3 py-2 hover:bg-slate-800 hover:text-white text-sm font-bold ${currentFont === fontName ? 'text-emerald-400 font-extrabold bg-emerald-950/40' : 'text-slate-200'}`}
                                         style={{ fontFamily: value }}
                                     >
                                         {fontName}
@@ -761,14 +765,14 @@ export default function RichTextEditor({
                                 setShowTooltipSizeDropdown(!showTooltipSizeDropdown);
                                 setShowTooltipFontDropdown(false);
                             }}
-                            className="h-7 px-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] font-bold flex items-center justify-between gap-1 w-14 text-slate-100 hover:text-emerald-400 transition-all cursor-pointer"
+                            className="h-11 px-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm font-bold flex items-center justify-between gap-2 w-21 text-slate-100 hover:text-emerald-400 transition-all cursor-pointer"
                             title="글자 크기"
                         >
                             <span>{currentSize}</span>
-                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                            <i className="fa-solid fa-chevron-down text-xs text-slate-400"></i>
                         </button>
                         {showTooltipSizeDropdown && (
-                            <div className="absolute bottom-8 left-0 z-50 bg-slate-950 border border-slate-700 rounded-lg shadow-2xl w-20 py-1 text-slate-100 max-h-36 overflow-y-auto animate-fadeIn mb-1">
+                            <div className="absolute bottom-12 left-0 z-50 bg-slate-950 border border-slate-705 rounded-xl shadow-2xl w-28 py-2 text-slate-100 max-h-48 overflow-y-auto animate-fadeIn mb-2">
                                 {fontSizes.map((size) => (
                                     <button
                                         key={size}
@@ -779,7 +783,7 @@ export default function RichTextEditor({
                                             setCurrentSize(size);
                                             setShowTooltipSizeDropdown(false);
                                         }}
-                                        className={`w-full text-left px-2.5 py-1.5 hover:bg-slate-805 hover:text-white text-[10px] font-bold ${currentSize === size ? 'text-emerald-400 font-extrabold bg-emerald-950/40' : 'text-slate-200'}`}
+                                        className={`w-full text-left px-3.5 py-2 hover:bg-slate-800 hover:text-white text-sm font-bold ${currentSize === size ? 'text-emerald-400 font-extrabold bg-emerald-950/40' : 'text-slate-200'}`}
                                     >
                                         {size}
                                     </button>
@@ -788,12 +792,12 @@ export default function RichTextEditor({
                         )}
                     </div>
 
-                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+                    <div className="w-[1.5px] h-6 bg-slate-700/80 mx-1"></div>
 
                     <button
                         type="button"
                         onClick={() => execCommand('bold')}
-                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] font-extrabold flex items-center justify-center text-emerald-400"
+                        className="w-10 h-10 rounded-lg hover:bg-slate-800 text-[15px] font-extrabold flex items-center justify-center text-emerald-400"
                         title="굵게"
                     >
                         <i className="fa-solid fa-bold"></i>
@@ -801,7 +805,7 @@ export default function RichTextEditor({
                     <button
                         type="button"
                         onClick={() => execCommand('italic')}
-                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] italic flex items-center justify-center text-emerald-400"
+                        className="w-10 h-10 rounded-lg hover:bg-slate-800 text-[15px] italic flex items-center justify-center text-emerald-400"
                         title="기울임"
                     >
                         <i className="fa-solid fa-italic"></i>
@@ -809,7 +813,7 @@ export default function RichTextEditor({
                     <button
                         type="button"
                         onClick={() => execCommand('underline')}
-                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] underline underline-offset-2 flex items-center justify-center text-emerald-400"
+                        className="w-10 h-10 rounded-lg hover:bg-slate-800 text-[15px] underline underline-offset-2 flex items-center justify-center text-emerald-400"
                         title="밑줄"
                     >
                         <i className="fa-solid fa-underline"></i>
@@ -817,60 +821,48 @@ export default function RichTextEditor({
                     <button
                         type="button"
                         onClick={() => execCommand('strikeThrough')}
-                        className="w-7 h-7 rounded hover:bg-slate-800 text-[11px] line-through flex items-center justify-center text-emerald-400"
+                        className="w-10 h-10 rounded-lg hover:bg-slate-800 text-[15px] line-through flex items-center justify-center text-emerald-400"
                         title="취소선"
                     >
                         <i className="fa-solid fa-strikethrough"></i>
                     </button>
 
-                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+                    <div className="w-[1.5px] h-6 bg-slate-700/80 mx-1"></div>
 
                     {/* Pre-styled color selectors for high-speed selection formatting */}
                     <button
                         type="button"
                         onClick={() => applyStyleToSelection('color', '#dc2626')}
-                        className="w-4 h-4 rounded-full bg-red-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        className="w-6 h-6 rounded-full bg-red-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer border border-white/20"
                         title="빨간색 적용"
                     />
                     <button
                         type="button"
                         onClick={() => applyStyleToSelection('color', '#16a34a')}
-                        className="w-4 h-4 rounded-full bg-emerald-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        className="w-6 h-6 rounded-full bg-emerald-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer border border-white/20"
                         title="녹색 적용"
                     />
                     <button
                         type="button"
                         onClick={() => applyStyleToSelection('color', '#2563eb')}
-                        className="w-4 h-4 rounded-full bg-blue-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        className="w-6 h-6 rounded-full bg-blue-600 hover:scale-110 active:scale-95 transition-transform cursor-pointer border border-white/20"
                         title="파란색 적용"
                     />
 
-                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
+                    <div className="w-[1.5px] h-6 bg-slate-700/80 mx-1"></div>
 
                     <button
                         type="button"
                         onClick={() => applyStyleToSelection('backgroundColor', '#fef08a')}
-                        className="w-4 h-4 rounded bg-yellow-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        className="w-6 h-6 rounded-md bg-yellow-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
                         title="노란 형광펜"
                     />
                     <button
                         type="button"
                         onClick={() => applyStyleToSelection('backgroundColor', '#bbf7d0')}
-                        className="w-4 h-4 rounded bg-green-200 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                        className="w-6 h-6 rounded-md bg-green-200 hover:scale-110 active:scale-95 transition-transform cursor-pointer"
                         title="녹색 형광펜"
                     />
-
-                    <div className="w-px h-4 bg-slate-800 mx-0.5"></div>
-
-                    <button
-                        type="button"
-                        onClick={() => insertQuote('border')}
-                        className="px-2 h-7 rounded hover:bg-slate-800 text-[9px] font-black text-amber-400 flex items-center gap-1 cursor-pointer"
-                        title="선택된 내용으로 인용구 삽입"
-                    >
-                        <i className="fa-solid fa-quote-left"></i>
-                        <span>인용구</span>
-                    </button>
                 </div>
             )}
 
@@ -881,84 +873,84 @@ export default function RichTextEditor({
                         top: `${quickAddCoords.top}px`, 
                         left: `${quickAddCoords.left}px` 
                     }}
-                    className="absolute z-50 bg-white border border-slate-200 rounded-xl shadow-2xl w-44 sm:w-48 overflow-hidden animate-fadeIn"
+                    className="absolute z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl w-80 sm:w-[380px] md:w-[410px] overflow-hidden animate-fadeIn border-t-4 border-t-emerald-500"
                 >
                     {/* Header with Title and Close 'X' button */}
-                    <div className="bg-slate-50 px-3 py-2 border-b border-slate-100 flex items-center justify-between">
-                        <span className="text-[10px] sm:text-xs font-black text-slate-505 uppercase tracking-wider flex items-center gap-1.5 text-slate-500">
-                            <i className="fa-solid fa-cube text-emerald-500 animate-pulse"></i>
+                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200/70 flex items-center justify-between">
+                        <span className="text-xs sm:text-sm font-extrabold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                            <i className="fa-solid fa-cube text-emerald-500 animate-pulse text-[14px]"></i>
                             블로그 소스 추가
                         </span>
                         <button
                             type="button"
                             onClick={() => setShowQuickAddMenu(false)}
-                            className="w-5 h-5 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+                            className="w-7 h-7 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-650 transition-all cursor-pointer"
                         >
-                            <i className="fa-solid fa-times text-[10px]"></i>
+                            <i className="fa-solid fa-times text-[12px]"></i>
                         </button>
                     </div>
 
                     {/* Sub-menu rendering */}
                     {quickAddMenuSub === 'main' && (
-                        <div className="p-1 flex flex-col">
+                        <div className="p-3.5 flex flex-col gap-2.5 bg-white">
                             <button
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('photo')}
-                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
                             >
-                                <span className="flex items-center gap-2">
-                                    <i className="fa-solid fa-image text-blue-500 w-4"></i>
-                                    사진
+                                <span className="flex items-center gap-3">
+                                    <i className="fa-solid fa-image text-blue-500 text-base w-5 text-center"></i>
+                                    사진 추가 (실사 위주)
                                 </span>
-                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('sticker')}
-                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
                             >
-                                <span className="flex items-center gap-2">
-                                    <i className="fa-solid fa-face-smile text-amber-500 w-4"></i>
-                                    스티커
+                                <span className="flex items-center gap-3">
+                                    <i className="fa-solid fa-face-smile text-amber-500 text-base w-5 text-center"></i>
+                                    감성 스티커 삽입
                                 </span>
-                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('divider')}
-                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
                             >
-                                <span className="flex items-center gap-2">
-                                    <i className="fa-solid fa-minus text-emerald-500 w-4"></i>
-                                    구분선
+                                <span className="flex items-center gap-3">
+                                    <i className="fa-solid fa-minus text-emerald-500 text-base w-5 text-center"></i>
+                                    구분선 삽입 (경계 구분)
                                 </span>
-                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('quote')}
-                                className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-750 flex items-center justify-between cursor-pointer text-slate-700"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
                             >
-                                <span className="flex items-center gap-2">
-                                    <i className="fa-solid fa-quote-left text-indigo-500 w-4"></i>
-                                    인용구
+                                <span className="flex items-center gap-3">
+                                    <i className="fa-solid fa-quote-left text-indigo-500 text-base w-5 text-center"></i>
+                                    인용구 삽입 (강조 문구)
                                 </span>
-                                <i className="fa-solid fa-angle-right text-[10px] text-slate-400"></i>
+                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
                             </button>
                         </div>
                     )}
 
                     {/* Photo selection submenu */}
                     {quickAddMenuSub === 'photo' && (
-                        <div className="p-2 space-y-2">
+                        <div className="p-3.5 sm:p-4 space-y-3 bg-white">
                             <button 
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('main')}
-                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1"
+                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
                             >
                                 <i className="fa-solid fa-caret-left"></i> 이전으로
                             </button>
-                            <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto">
+                            <div className="grid grid-cols-1 gap-3 max-h-[440px] overflow-y-auto pr-1">
                                 {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, photoIndex) => (
                                     <button
                                         key={photoIndex + '-' + photo.name}
@@ -974,10 +966,15 @@ export default function RichTextEditor({
                                             insertHtml(photoHtml);
                                             setShowQuickAddMenu(false);
                                         }}
-                                        className="bg-slate-50 hover:bg-emerald-50 text-left p-1.5 rounded-lg border border-slate-100 flex items-center gap-2 transition-all cursor-pointer text-xs font-bold"
+                                        className="bg-slate-50 hover:bg-emerald-50 text-left p-2.5 sm:p-3 rounded-xl border border-slate-200/60 flex items-center gap-3 sm:gap-4 transition-all cursor-pointer shadow-sm hover:border-emerald-300 group"
                                     >
-                                        <img src={photo.url} referrerPolicy="no-referrer" className="w-8 h-8 rounded object-cover" />
-                                        <span className="text-[10px] text-slate-700 truncate">{photo.name}</span>
+                                        <div className="w-24 h-16 sm:w-28 sm:h-20 md:w-32 md:h-22 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 bg-slate-100">
+                                            <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                                        </div>
+                                        <div className="flex flex-col min-w-0 flex-1 py-1">
+                                            <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate group-hover:text-emerald-700 transition-colors">{photo.name}</span>
+                                            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1 leading-snug">클릭 시 본문에 선명한 고품질 사진 삽입</span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
@@ -986,15 +983,15 @@ export default function RichTextEditor({
 
                     {/* Sticker selection submenu */}
                     {quickAddMenuSub === 'sticker' && (
-                        <div className="p-2 space-y-2">
+                        <div className="p-3.5 sm:p-4 space-y-3 bg-white">
                             <button 
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('main')}
-                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1"
+                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
                             >
                                 <i className="fa-solid fa-caret-left"></i> 이전으로
                             </button>
-                            <div className="grid grid-cols-2 gap-1 p-0.5 max-h-48 overflow-y-auto">
+                            <div className="grid grid-cols-3 gap-2.5 max-h-[400px] overflow-y-auto pr-1">
                                 {stickerTemplates.map((sticker) => (
                                     <button
                                         key={sticker.label}
@@ -1009,10 +1006,10 @@ export default function RichTextEditor({
                                             insertHtml(stickerHtml);
                                             setShowQuickAddMenu(false);
                                         }}
-                                        className="text-center p-1.5 hover:bg-slate-50 rounded border border-slate-100 flex flex-col items-center justify-center transition-all cursor-pointer"
+                                        className="text-center p-2.5 bg-slate-50/50 hover:bg-emerald-50 rounded-xl border border-slate-200/60 hover:border-emerald-300 flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm group"
                                     >
-                                        <span className="text-sm">{sticker.icon}</span>
-                                        <span className="text-[9px] font-black text-slate-500 truncate mt-0.5">{sticker.label}</span>
+                                        <span className="text-xl group-hover:scale-110 transition-transform">{sticker.icon}</span>
+                                        <span className="text-[10px] sm:text-xs font-bold text-slate-600 truncate mt-1.5 group-hover:text-emerald-700">{sticker.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -1021,68 +1018,68 @@ export default function RichTextEditor({
 
                     {/* Divider selection submenu */}
                     {quickAddMenuSub === 'divider' && (
-                        <div className="p-1 flex flex-col">
+                        <div className="p-3.5 sm:p-4 bg-white flex flex-col gap-2 bg-white">
                             <button 
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('main')}
-                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1 px-2.5 py-1"
+                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
                             >
                                 <i className="fa-solid fa-caret-left"></i> 이전으로
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { insertDivider('dashed'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
                             >
-                                --- 점선 구분선
+                                <span className="text-emerald-500">---</span> 점선 구분선
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { insertDivider('solid'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
                             >
-                                ─── 실선 구분선
+                                <span className="text-emerald-500">───</span> 실선 구분선
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { insertDivider('double'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
                             >
-                                ═══ 이중 구분선
+                                <span className="text-emerald-500">═══</span> 이중 구분선
                             </button>
                         </div>
                     )}
 
                     {/* Quote selection submenu */}
                     {quickAddMenuSub === 'quote' && (
-                        <div className="p-1 flex flex-col">
+                        <div className="p-3.5 sm:p-4 bg-white flex flex-col gap-2 bg-white">
                             <button 
                                 type="button"
                                 onClick={() => setQuickAddMenuSub('main')}
-                                className="text-[10px] font-black text-slate-400 hover:text-slate-605 flex items-center gap-1 mb-1 px-2.5 py-1"
+                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
                             >
                                 <i className="fa-solid fa-caret-left"></i> 이전으로
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { insertQuote('border'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
                             >
-                                ▍ 왼쪽 실선형 인용구
+                                <span className="text-indigo-500 font-bold text-base">▍</span> 왼쪽 실선형 인용구
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { insertQuote('box'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
                             >
-                                🗳 박스 강조형 인용구
+                                <span className="text-indigo-500 text-base">🗳️</span> 박스 강조형 인용구
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { insertQuote('bubble'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-100 rounded text-xs font-bold text-slate-600 cursor-pointer"
+                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
                             >
-                                💡 말풍선 추천형 인용구
+                                <span className="text-indigo-500 text-base">💡</span> 말풍선 추천형 인용구
                             </button>
                         </div>
                     )}
@@ -1098,7 +1095,7 @@ export default function RichTextEditor({
                 className="pt-4 pb-4 pr-4 pl-12 sm:pt-5 sm:pb-5 sm:pr-5 sm:pl-14 text-slate-800 text-sm sm:text-base outline-none min-h-[300px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all rounded-b-xl"
                 style={{ 
                     minHeight, 
-                    fontFamily: '"NanumSquare", "Inter", sans-serif'
+                    fontFamily: fontFamilies[currentFont as keyof typeof fontFamilies] || '"NanumSquare", "Inter", sans-serif'
                 }}
                 data-placeholder={placeholder}
             />

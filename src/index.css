@@ -1,4 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+@import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css');
+@import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css');
+@import url('https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css');
+
+@font-face {
+    font-family: 'NanumDaSiSiJagHae';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/NanumDaSiSiJagHae.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'NanumBaReunHiPi';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/NanumBaReunHiPi.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'NanumUriDdalSonGeulCsi';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/NanumUriDdalSonGeulCsi.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 @import "tailwindcss";
 
 body {

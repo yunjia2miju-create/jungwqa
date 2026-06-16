@@ -8,17 +8,17 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
 
 const ADMIN_CATEGORIES_PRESETS = [
-    { value: '원룸', label: '원룸 (One-room)', desc: '1인가구를 위한 최적의 원룸 공간', icon: 'fa-house-user', textColor: 'text-indigo-600', selectedBg: 'bg-indigo-50/90 border-indigo-600 text-indigo-950 ring-indigo-100', hoverBg: 'hover:bg-indigo-50/30 hover:border-indigo-300', lightBg: 'bg-indigo-50/50', iconBg: 'bg-indigo-100/55' },
-    { value: '미투', label: '미니투룸 (Mini Two-room)', desc: '실용적인 거실 독립 분리형 미투 구조', icon: 'fa-door-closed', textColor: 'text-sky-600', selectedBg: 'bg-sky-50/90 border-sky-600 text-sky-950 ring-sky-100', hoverBg: 'hover:bg-sky-50/30 hover:border-sky-300', lightBg: 'bg-sky-50/50', iconBg: 'bg-sky-100/55' },
-    { value: '투룸', label: '정품투룸 (Two-room)', desc: '안락하고 쾌적한 방 2개와 거실 공간 설계', icon: 'fa-bed', textColor: 'text-cyan-600', selectedBg: 'bg-cyan-50/90 border-cyan-600 text-cyan-950 ring-cyan-100', hoverBg: 'hover:bg-cyan-50/30 hover:border-cyan-300', lightBg: 'bg-cyan-50/50', iconBg: 'bg-cyan-100/55' },
-    { value: '쓰리룸', label: '쓰리룸/주인세대 (Three-room)', desc: '가족 단위 가구를 위한 대형 최고급 연립주택', icon: 'fa-hotel', textColor: 'text-emerald-700', selectedBg: 'bg-emerald-50/90 border-emerald-600 text-emerald-950 ring-emerald-100', hoverBg: 'hover:bg-emerald-50/30 hover:border-emerald-300', lightBg: 'bg-emerald-50/50', iconBg: 'bg-emerald-100/55' },
-    { value: '오피스텔', label: '주거형 오피스텔', desc: '도심 역세권 중심 초특급 인프라 생활 환경', icon: 'fa-building', textColor: 'text-amber-600', selectedBg: 'bg-amber-50/95 border-amber-600 text-amber-950 ring-amber-100', hoverBg: 'hover:bg-amber-50/30 hover:border-amber-300', lightBg: 'bg-amber-50/50', iconBg: 'bg-amber-100/55' },
-    { value: '아파트', label: '공동주택 아파트', desc: '경관 수려하고 주차 자리가 넉넉한 대단지', icon: 'fa-city', textColor: 'text-rose-600', selectedBg: 'bg-rose-50/90 border-rose-600 text-rose-950 ring-rose-100', hoverBg: 'hover:bg-rose-50/30 hover:border-rose-300', lightBg: 'bg-rose-50/50', iconBg: 'bg-rose-100/55' },
-    { value: '상가', label: '상업용 점포/상가', desc: '최상의 배후 세대와 유동인구를 품은 상가 및 사무실', icon: 'fa-store', textColor: 'text-purple-600', selectedBg: 'bg-purple-50/90 border-purple-600 text-purple-950 ring-purple-100', hoverBg: 'hover:bg-purple-50/30 hover:border-purple-300', lightBg: 'bg-purple-50/50', iconBg: 'bg-purple-100/55' },
-    { value: '상가주택', label: '상가형 단독주택', desc: '내집 주거와 고정 월세 수익을 모두 갖춘 단독주택', icon: 'fa-warehouse', textColor: 'text-violet-600', selectedBg: 'bg-violet-50/90 border-violet-600 text-violet-950 ring-violet-100', hoverBg: 'hover:bg-violet-50/30 hover:border-violet-300', lightBg: 'bg-violet-50/50', iconBg: 'bg-violet-100/55' },
-    { value: '원룸매매', label: '구미 통원룸 매매', desc: '풍부한 월 임대수익 연금식 노후 보장형 통건물 매입', icon: 'fa-chart-line', textColor: 'text-fuchsia-600', selectedBg: 'bg-fuchsia-50/90 border-fuchsia-600 text-fuchsia-950 ring-fuchsia-100', hoverBg: 'hover:bg-fuchsia-50/30 hover:border-fuchsia-300', lightBg: 'bg-fuchsia-50/50', iconBg: 'bg-fuchsia-100/55' },
-    { value: '땅', label: '토지/임야/대지', desc: '기반 개발 호재가 가득한 알짜배기 구미시 토지', icon: 'fa-mountain', textColor: 'text-lime-700', selectedBg: 'bg-lime-50/90 border-lime-600 text-lime-950 ring-lime-100', hoverBg: 'hover:bg-lime-50/30 hover:border-lime-300', lightBg: 'bg-lime-50/50', iconBg: 'bg-lime-100/55' },
-    { value: '기타', label: '기타 매물', desc: '그 외 다용도 개발 대지 또는 특수 목적 매물', icon: 'fa-ellipsis-h', textColor: 'text-slate-600', selectedBg: 'bg-slate-100 border-slate-600 text-slate-950 ring-slate-100', hoverBg: 'hover:bg-slate-50 hover:border-slate-350', lightBg: 'bg-slate-150', iconBg: 'bg-slate-200/70' }
+    { value: '원룸매매', label: '원룸매매', icon: 'fa-chart-line', textColor: 'text-fuchsia-600' },
+    { value: '원룸', label: '원룸', icon: 'fa-house-user', textColor: 'text-indigo-600' },
+    { value: '미투', label: '미투', icon: 'fa-door-closed', textColor: 'text-sky-600' },
+    { value: '투룸', label: '투룸', icon: 'fa-bed', textColor: 'text-cyan-600' },
+    { value: '쓰리룸', label: '쓰리룸', icon: 'fa-hotel', textColor: 'text-emerald-700' },
+    { value: '상가', label: '상가', icon: 'fa-store', textColor: 'text-purple-600' },
+    { value: '아파트', label: '아파트', icon: 'fa-city', textColor: 'text-rose-600' },
+    { value: '오피스텔', label: '오피스텔', icon: 'fa-building', textColor: 'text-amber-600' },
+    { value: '빌라', label: '빌라', icon: 'fa-warehouse', textColor: 'text-violet-600' },
+    { value: '땅', label: '땅', icon: 'fa-mountain', textColor: 'text-lime-700' },
+    { value: '기타', label: '기타', icon: 'fa-ellipsis-h', textColor: 'text-slate-600' }
 ];
 
 interface AdminWriteSectionProps {
@@ -305,7 +305,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         else cleanData.transactionType = '월세';
         
         const rawCat = safeStr(data.category);
-        const validCategories = ["원룸매매", "원룸", "미투", "투룸", "쓰리룸", "상가", "아파트", "오피스텔", "다세대", "주택", "땅", "기타"];
+        const validCategories = ["원룸매매", "원룸", "미투", "투룸", "쓰리룸", "상가", "아파트", "오피스텔", "빌라", "다세대", "주택", "땅", "기타"];
         const found = validCategories.find(c => rawCat.includes(c) || c.includes(rawCat));
         cleanData.category = found || '원룸';
         
@@ -454,87 +454,55 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 </div>
             </div>
 
-            <form onSubmit={handlePostSubmit} className="space-y-6">
-                {/* Visual Wide Column Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    
-                    {/* LEFT COLUMN: Vertical Category Grid Cards (Widescreen layout) */}
-                    <div className="lg:col-span-4 bg-white rounded-3xl border-3 border-emerald-500/30 p-6 shadow-md space-y-6">
-                        <div className="border-b border-slate-200 pb-3 text-left">
-                            <label className="flex items-center gap-2 text-sm font-extrabold uppercase text-slate-900">
-                                <i className="fa-solid fa-folder-open text-emerald-600 text-xl animate-bounce"></i>
-                                <span className="text-xl font-black tracking-tight text-slate-900">매물 분류 카테고리</span>
-                            </label>
-                            <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1.5 leading-relaxed">
-                                해당 매물의 종류를 세로 목록에서 크게 한눈에 보며 편리하게 선택하세요.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-4 max-h-[75vh] lg:max-h-[1050px] overflow-y-auto pr-1">
-                            {ADMIN_CATEGORIES_PRESETS.map((cat) => {
-                                const isSelected = formData.category === cat.value;
-                                return (
-                                    <button
-                                        key={cat.value}
-                                        type="button"
-                                        onClick={() => setFormData(p => ({ ...p, category: cat.value }))}
-                                        className={`relative text-left w-full rounded-2xl p-5 border-[3.5px] transition-all duration-300 shadow-md flex items-center justify-between group cursor-pointer ${
-                                            isSelected 
-                                                ? `${cat.selectedBg} border-emerald-600 ring-4 ring-emerald-150 scale-[1.01] shadow-emerald-500/10` 
-                                                : `bg-white border-slate-405 ${cat.hoverBg} hover:border-slate-500 hover:scale-[1.01]`
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-5">
-                                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${
-                                                isSelected ? 'bg-white shadow-md border-2 border-emerald-500/20' : cat.lightBg
-                                            }`}>
-                                                <i className={`fa-solid ${cat.icon} text-xl ${cat.textColor}`}></i>
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className={`text-lg sm:text-xl font-black tracking-tight ${
-                                                        isSelected ? 'text-slate-950 font-black' : cat.textColor
-                                                    }`}>
-                                                        {cat.label}
-                                                    </span>
-                                                </div>
-                                                <p className={`text-xs sm:text-[13px] font-bold mt-1.5 leading-relaxed max-w-[240px] ${
-                                                    isSelected ? 'text-emerald-900/90 font-bold' : 'text-slate-500'
-                                                }`}>
-                                                    {cat.desc}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Selection Indicators with dynamic backgrounds */}
-                                        {isSelected ? (
-                                            <div className="flex flex-col items-center justify-center gap-0.5 bg-emerald-600 text-white rounded-xl py-2 px-3 shadow-md border-2 border-emerald-700 select-none animate-fadeIn">
-                                                <i className="fa-solid fa-check text-xs font-black"></i>
-                                                <span className="text-[10px] font-black leading-none tracking-tighter mt-0.5">선택됨</span>
-                                            </div>
-                                        ) : (
-                                            <div className="w-7 h-7 rounded-full border-[2.5px] border-slate-400 flex items-center justify-center group-hover:border-slate-500 transition-colors">
-                                                <div className="w-3.5 h-3.5 rounded-full bg-transparent group-hover:bg-slate-300 transition-colors"></div>
-                                            </div>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
+            <form onSubmit={handlePostSubmit} className="space-y-6 w-full animate-fadeIn">
+                
+                {/* 1. Category Classification Card (Full Width Horizontal Checked Buttons) */}
+                <div className="bg-white rounded-3xl border-2 border-slate-300 p-6 sm:p-8 shadow-md">
+                    <div className="border-b border-slate-200 pb-3 mb-5 text-left">
+                        <label className="flex items-center gap-2 text-sm font-extrabold uppercase text-slate-900">
+                            <i className="fa-solid fa-folder-open text-emerald-600 text-xl"></i>
+                            <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900">매물 분류 카테고리</span>
+                        </label>
+                        <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1.5 leading-relaxed">
+                            원하시는 매물의 분류를 체크해 주세요. (중복 선택 불가)
+                        </p>
                     </div>
 
-                    {/* RIGHT COLUMN: Extensive Details & Images Form Cards */}
-                    <div className="lg:col-span-8 bg-white rounded-3xl border-2 border-slate-300 p-6 sm:p-8 shadow-md space-y-6">
+                    <div className="flex flex-wrap gap-2.5">
+                        {ADMIN_CATEGORIES_PRESETS.map((cat) => {
+                            const isSelected = formData.category === cat.value;
+                            return (
+                                <button
+                                    key={cat.value}
+                                    type="button"
+                                    onClick={() => setFormData(p => ({ ...p, category: cat.value }))}
+                                    className={`flex items-center gap-2 px-5 py-3.5 rounded-2xl border-[3px] text-base font-black transition-all duration-300 hover:scale-[1.01] cursor-pointer ${
+                                        isSelected 
+                                            ? 'bg-emerald-600 border-emerald-700 text-white shadow-lg scale-[1.01]' 
+                                            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    {isSelected ? (
+                                        <i className="fa-solid fa-square-check text-lg text-white"></i>
+                                    ) : (
+                                        <i className="fa-regular fa-square text-lg text-slate-400"></i>
+                                    )}
+                                    <span className="ml-1">{cat.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="w-full space-y-8">
+                    
+                    {/* 2. Main Input Form Container (Horizontal-free Full Width Space Flow) */}
+                    <div className="w-full bg-white rounded-3xl border-2 border-slate-300 p-6 sm:p-8 shadow-md space-y-8">
                         
-                        {/* 1. Transaction Type Segment (No dropdown either!) */}
-                        <div className="border-b border-slate-100 pb-5">
-                            <label className="flex items-center justify-between text-xs font-extrabold mb-3.5 uppercase">
-                                <span className="flex items-center gap-1.5 text-emerald-805 font-extrabold text-sm">
-                                    <i className="fa-solid fa-handshake"></i>
-                                    <span>거래 성격 (계약 방식)</span>
-                                </span>
-                            </label>
-                            <div className="grid grid-cols-3 gap-3">
+                        {/* (1) 거래 성격 (계약 방식) */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">거래 성격 (계약 방식)</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 {['월세', '전세', '매매'].map((t) => {
                                     const isSelected = formData.transactionType === t;
                                     return (
@@ -542,135 +510,141 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                                             key={t}
                                             type="button"
                                             onClick={() => setFormData(p => ({ ...p, transactionType: t }))}
-                                            className={`py-4 px-5 rounded-2xl text-sm font-black border-[3px] transition-all cursor-pointer ${
+                                            className={`py-4 px-5 rounded-2xl text-base font-black border-[3.5px] transition-all cursor-pointer ${
                                                 isSelected
-                                                    ? 'bg-emerald-600 border-emerald-650 text-white shadow-md scale-[1.01]'
-                                                    : 'bg-slate-50 border-slate-200 text-slate-705 hover:bg-slate-100 hover:border-slate-300'
+                                                    ? 'bg-emerald-600 border-emerald-700 text-white shadow-md scale-[1.01]'
+                                                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
                                             }`}
                                         >
-                                            {t === '월세' ? '임대차 (월세)' : t === '전세' ? '임대차 (전세)' : '소유권 이전 (매매)'}
+                                            {t === '월세' ? '임대차 (월세)' : t === '전세' ? '임대차 (전세)' : '매매'}
                                         </button>
                                     );
                                 })}
                             </div>
-                        {/* Address & Dong Location */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4">
-                            <div>
-                                <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">소재지 관할 법정동</label>
-                                <select 
-                                    id="post-dong"
-                                    value={formData.dong}
-                                    onChange={handleFormChange}
-                                    className={getSelectClass(formData.dong)}
-                                >
-                                    {gumiDongs.map(d => <option key={d} value={d}>{d}</option>)}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">매물 상세 지번/도로명 주소</label>
-                                <input 
-                                    type="text" 
-                                    id="post-address" 
-                                    required
-                                    value={formData.address} 
-                                    onChange={handleFormChange}
-                                    placeholder="예: 구미시 송정동 472-10 2층" 
-                                    className={getInputClass(formData.address)}
-                                />
-                            </div>
                         </div>
-                </div>
 
-                {/* Building Details Structure (Grid) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">건물명 (블록) 명칭</label>
-                        <input 
-                            type="text" 
-                            id="post-building" 
-                            required
-                            value={formData.building} 
-                            onChange={handleFormChange}
-                            placeholder="예: 태왕 빌리지" 
-                            className={getInputClass(formData.building)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">호수 또는 섹션</label>
-                        <input 
-                            type="text" 
-                            id="post-room" 
-                            value={formData.room} 
-                            onChange={handleFormChange}
-                            placeholder="예: 301호" 
-                            className={getInputClass(formData.room)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">해당 매물 층수</label>
-                        <input 
-                            type="text" 
-                            id="post-floor" 
-                            value={formData.floor} 
-                            onChange={handleFormChange}
-                            placeholder="예: 3" 
-                            className={getInputClass(formData.floor)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">건물 최고 층수</label>
-                        <input 
-                            type="text" 
-                            id="post-totalFloor" 
-                            value={formData.totalFloor} 
-                            onChange={handleFormChange}
-                            placeholder="예: 4" 
-                            className={getInputClass(formData.totalFloor)}
-                        />
-                    </div>
-                </div>
+                        {/* (2) 소재지 관할 법정동 */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">소재지 관할 법정동</label>
+                            <select 
+                                id="post-dong"
+                                value={formData.dong}
+                                onChange={handleFormChange}
+                                className={getSelectClass(formData.dong)}
+                            >
+                                {gumiDongs.map(d => <option key={d} value={d}>{d}</option>)}
+                            </select>
+                        </div>
 
-                {/* Price Rates and Contact Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">보증금 / 매매가격 (문자가능)</label>
-                        <input 
-                            type="text" 
-                            id="post-price" 
-                            required
-                            value={formData.price} 
-                            onChange={handleFormChange}
-                            placeholder="예: 200 (월세) 또는 2억5천 (매매)" 
-                            className={getInputClass(formData.price)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">월세 / 관리비 정보 (문자가능)</label>
-                        <input 
-                            type="text" 
-                            id="post-manageFee" 
-                            value={formData.manageFee} 
-                            onChange={handleFormChange}
-                            placeholder="예: 월세 25만 / 관리비 5만" 
-                            className={getInputClass(formData.manageFee)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2 flex items-center gap-1.5 justify-between">
-                            <span>임대인 관리자 수첩 (소장님 단독 비공개)</span>
-                            <span className="text-[10px] text-amber-800 bg-amber-100 font-black px-2 py-0.5 rounded-lg">보안 기밀</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="post-ownerPhone" 
-                            value={formData.ownerPhone} 
-                            onChange={handleFormChange}
-                            placeholder="예: 임대인 010-1234-5678" 
-                            className={getInputClass(formData.ownerPhone, true)}
-                        />
-                    </div>
-                </div>
+                        {/* (3) 매물 상세 지번/도로명 주소 */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">매물 상세 지번/도로명 주소</label>
+                            <input 
+                                type="text" 
+                                id="post-address" 
+                                required
+                                value={formData.address} 
+                                onChange={handleFormChange}
+                                placeholder="예: 구미시 송정동 472-10 2층" 
+                                className={getInputClass(formData.address)}
+                            />
+                        </div>
+
+                        {/* (4) 건물명 (블록) 명칭 */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">건물명 (블록) 명칭</label>
+                            <input 
+                                type="text" 
+                                id="post-building" 
+                                required
+                                value={formData.building} 
+                                onChange={handleFormChange}
+                                placeholder="예: 태왕 빌리지" 
+                                className={getInputClass(formData.building)}
+                            />
+                        </div>
+
+                        {/* (5) 호수 또는 섹션 */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">호수 또는 섹션</label>
+                            <input 
+                                type="text" 
+                                id="post-room" 
+                                value={formData.room} 
+                                onChange={handleFormChange}
+                                placeholder="예: 301호" 
+                                className={getInputClass(formData.room)}
+                            />
+                        </div>
+
+                        {/* (6) 해당 매물 층수 */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">해당 매물 층수</label>
+                            <input 
+                                type="text" 
+                                id="post-floor" 
+                                value={formData.floor} 
+                                onChange={handleFormChange}
+                                placeholder="예: 3" 
+                                className={getInputClass(formData.floor)}
+                            />
+                        </div>
+
+                        {/* (7) 건물 최고 층수 */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">건물 최고 층수</label>
+                            <input 
+                                type="text" 
+                                id="post-totalFloor" 
+                                value={formData.totalFloor} 
+                                onChange={handleFormChange}
+                                placeholder="예: 4" 
+                                className={getInputClass(formData.totalFloor)}
+                            />
+                        </div>
+
+                        {/* (8) 보증금 / 매매가격 (문자가능) */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">보증금 / 매매가격 (문자가능)</label>
+                            <input 
+                                type="text" 
+                                id="post-price" 
+                                required
+                                value={formData.price} 
+                                onChange={handleFormChange}
+                                placeholder="예: 200 (월세) 또는 2억5천 (매매)" 
+                                className={getInputClass(formData.price)}
+                            />
+                        </div>
+
+                        {/* (9) 월세 / 관리비 정보 (문자가능) */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">월세 / 관리비 정보 (문자가능)</label>
+                            <input 
+                                type="text" 
+                                id="post-manageFee" 
+                                value={formData.manageFee} 
+                                onChange={handleFormChange}
+                                placeholder="예: 월세 25만 / 관리비 5만" 
+                                className={getInputClass(formData.manageFee)}
+                            />
+                        </div>
+
+                        {/* (10) 임대인 관리자 수첩 (소장님 단독 비공개) */}
+                        <div className="w-full text-left">
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-905 mb-2.5 flex items-center justify-between">
+                                <span>임대인 관리자 수첩 (소장님 단독 비공개)</span>
+                                <span className="text-[10px] text-amber-800 bg-amber-100 font-black px-2 py-0.5 rounded-lg">보안 기밀</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="post-ownerPhone" 
+                                value={formData.ownerPhone} 
+                                onChange={handleFormChange}
+                                placeholder="예: 임대인 010-1234-5678" 
+                                className={getInputClass(formData.ownerPhone, true)}
+                            />
+                        </div>
 
                 {/* Contact Information */}
                 <div>
@@ -732,7 +706,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             </span>
                             
                             {formData.images?.split('|').filter(i => i).length ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full mb-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full mb-4">
                                     {formData.images.split('|').filter(i => i).map((img, i) => (
                                         <div 
                                             key={i} 
@@ -1088,8 +1062,8 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     </button>
                 </div>
 
-                </div> {/* Closes right column: lg:col-span-8 */}
-            </div> {/* Closes Visual Wide Column Grid wrapper: grid-cols-12 */}
+                </div> {/* Closes Main Input Form Container */}
+            </div> {/* Closes Full Width Wrapper */}
         </form>
     </div>
     );

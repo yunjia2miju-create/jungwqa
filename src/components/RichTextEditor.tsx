@@ -56,7 +56,12 @@ export default function RichTextEditor({
         '마루부리': '"MaruBuri", serif',
         '다시시작해': '"Nanum Da Si Si Jag Hae", cursive',
         '바른히피': '"Nanum Ba Reun Hi Pi", cursive',
-        '우리딸손글씨': '"Nanum Uri Ddal Son Geul Csi", cursive'
+        '우리딸손글씨': '"Nanum Uri Ddal Son Geul Csi", cursive',
+        '나눔 손글씨 펜': "'Nanum Pen Script', cursive",
+        '감자꽃체': "'Gamja Flower', cursive",
+        '하이멜로디': "'Hi Melody', cursive",
+        '푸어스토리': "'Poor Story', cursive",
+        '해바라기체': "'Sunflower', sans-serif"
     };
 
     // Font size configurations

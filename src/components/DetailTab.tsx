@@ -160,9 +160,8 @@ export const DetailTab = ({
 
     return (
         <section id="detail-section" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 transition-opacity duration-300 w-full">
-            <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-emerald-950/20 text-xs sm:text-sm mb-4 sm:mb-6 w-full">
-                <i className="fa-solid fa-chevron-left"></i>
-                <span>매물 대장으로 돌아가기</span>
+            <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-emerald-950/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
+                {"<<<< 앞 바로가기 <<<<"}
             </button>
 
             <article className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xl overflow-hidden p-5 sm:p-10 w-full">
@@ -277,9 +276,13 @@ export const DetailTab = ({
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="space-y-1">
+                    <div className="space-y-1 w-full max-w-full overflow-hidden">
                         <span className="text-xs font-bold text-slate-400">책임중개 소장 한마디 및 블로그 원고</span>
-                        <p className="text-sm font-black text-slate-800">"{p.title}"</p>
+                        {p.title && /<[a-z][\s\S]*>/i.test(String(p.title)) ? (
+                            <div className="text-sm font-black text-slate-800 break-words prose prose-slate max-w-none text-left" dangerouslySetInnerHTML={{ __html: String(p.title) }} />
+                        ) : (
+                            <p className="text-sm font-black text-slate-800">"{p.title || ''}"</p>
+                        )}
                     </div>
                     {isAdminLoggedIn ? (
                         <button 
@@ -382,10 +385,12 @@ export const DetailTab = ({
                     {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
                         <span 
-                            className="text-white/[0.03] select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl lg:text-2xl"
+                            className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-[10px] sm:text-xs md:text-sm"
                             style={{ 
-                                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.25)'
-                            }}
+                                color: '#FFFFFF',
+                                opacity: 0.15,
+                                textShadow: 'none'
+                             }}
                         >
                             태왕공인중개사
                         </span>
@@ -582,9 +587,11 @@ export const DetailTab = ({
                                     {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
                                         <span 
-                                            className="text-white/[0.03] select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-sm sm:text-lg md:text-xl"
+                                            className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-[10px] sm:text-xs md:text-sm"
                                             style={{ 
-                                                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.25)'
+                                                color: '#FFFFFF',
+                                                opacity: 0.15,
+                                                textShadow: 'none'
                                             }}
                                         >
                                             태왕공인중개사
@@ -673,9 +680,8 @@ export const DetailTab = ({
             </article>
 
             <div className="mt-6 sm:mt-10 text-center w-full">
-                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center space-x-2 sm:space-x-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-emerald-950/20 text-xs sm:text-sm">
-                    <i className="fa-solid fa-list-ul"></i>
-                    <span>다른 구미 알짜 매물 장부 구경하러 가기</span>
+                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-emerald-950/20 text-lg sm:text-2xl tracking-wider">
+                    {"<<<< 앞 바로가기 <<<<"}
                 </button>
             </div>
 
@@ -744,7 +750,11 @@ export const DetailTab = ({
                 </div>
             )}
 
-
+            <div className="mt-6 sm:mt-10 text-center w-full pb-4">
+                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-emerald-950/20 text-lg sm:text-2xl tracking-wider">
+                    {"<<<< 앞 바로가기 <<<<"}
+                </button>
+            </div>
 
             {/* 2. Interactive Fullscreen Lightbox (for both PC, Tablet, and Mobile to view complete detail with custom dismiss UI) */}
             {activeZoomUrl && (
@@ -775,9 +785,11 @@ export const DetailTab = ({
                             {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10 w-full h-full">
                                 <span 
-                                    className="text-white/[0.03] select-none pointer-events-none font-black tracking-[0.25em] whitespace-nowrap text-lg sm:text-2xl md:text-3xl lg:text-4xl"
+                                    className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-xs sm:text-sm md:text-base lg:text-lg"
                                     style={{ 
-                                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.25)'
+                                        color: '#FFFFFF',
+                                        opacity: 0.15,
+                                        textShadow: 'none'
                                     }}
                                 >
                                     태왕공인중개사

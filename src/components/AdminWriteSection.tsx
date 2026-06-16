@@ -936,47 +936,69 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-signature text-emerald-600"></i>
-                            <span>매물 통합 설명 타이틀 (Title)</span>
+                            <span>책임 중개 소장 한마디 및 블로그 원고</span>
                         </label>
-                        <input 
-                            type="text" 
-                            id="post-title" 
-                            required
-                            value={formData.title} 
-                            onChange={handleFormChange}
-                            placeholder="예: [풀옵션 송정동 신축급] 깔끔하고 햇볕 잘 드는 남향 리모델링 원룸" 
-                            className={getInputClass(formData.title)}
+                        <RichTextEditor 
+                            id="admin-write-title-editor"
+                            value={formData.title || ''} 
+                            onChange={(val) => setFormData(prev => ({ ...prev, title: val }))} 
+                            placeholder="예: [풀옵션 송정동 신축급] 깔끔하고 햇볕 잘 드는 남향 리모델링 원룸"
+                            uploadedImages={[
+                                ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
+                                ...(formData.images 
+                                    ? formData.images.split('|').filter(img => img.trim()).map((img, idx) => ({
+                                        name: `실내 전경 #${idx + 1}`,
+                                        url: img.trim()
+                                    }))
+                                    : []
+                                )
+                            ]}
                         />
                     </div>
 
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-tag text-emerald-600"></i>
-                            <span>요약 및 한줄평 (Remarks)</span>
+                            <span>매물특징(홈페이지-1페이지-실시간 공실현황, 매물의 비고에 나옴)</span>
                         </label>
-                        <input 
-                            type="text" 
-                            id="post-remarks" 
-                            value={formData.remarks} 
-                            onChange={handleFormChange}
-                            placeholder="예: 즉시 입주 가능 / 반려동물 협의 가능 / 깔끔 내부" 
-                            className={getInputClass(formData.remarks)}
+                        <RichTextEditor 
+                            id="admin-write-remarks-editor"
+                            value={formData.remarks || ''} 
+                            onChange={(val) => setFormData(prev => ({ ...prev, remarks: val }))} 
+                            placeholder="예: 즉시 입주 가능 / 반려동물 협의 가능 / 깔끔 내부"
+                            uploadedImages={[
+                                ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
+                                ...(formData.images 
+                                    ? formData.images.split('|').filter(img => img.trim()).map((img, idx) => ({
+                                        name: `실내 전경 #${idx + 1}`,
+                                        url: img.trim()
+                                    }))
+                                    : []
+                                )
+                            ]}
                         />
                     </div>
 
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-905 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-quote-left text-emerald-600"></i>
-                            <span>매물 3대 특징 / 한줄 요약 (글머리에 전면 노출됨)</span>
+                            <span>블로그 인용구</span>
                         </label>
-                        <textarea 
-                            id="post-intro" 
-                            ref={el => { textAreaRefs.current['intro'] = el; }}
-                            value={formData.intro} 
-                            onChange={handleFormChange}
-                            placeholder="예: - 2026년 리모델링을 완전 마친 최상의 에어컨 탑재 신축급 컨디션&#10;- 송정동 먹자골목 및 관공서 도보 5분 천혜의 주거 인프라&#10;- 보증금 조절 적극 지원 및 인근 대비 넓은 서비스 전용 면적" 
-                            className={getTextareaClass(formData.intro)}
-                            rows={3}
+                        <RichTextEditor 
+                            id="admin-write-intro-editor"
+                            value={formData.intro || ''} 
+                            onChange={(val) => setFormData(prev => ({ ...prev, intro: val }))} 
+                            placeholder="예: - 2026년 리모델링을 완전 마친 최상의 에어컨 탑재 신축급 컨디션&#10;- 송정동 먹자골목 및 관공서 도보 5분 천혜의 주거 인프라&#10;- 보증금 조절 적극 지원 및 인근 대비 넓은 서비스 전용 면적"
+                            uploadedImages={[
+                                ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
+                                ...(formData.images 
+                                    ? formData.images.split('|').filter(img => img.trim()).map((img, idx) => ({
+                                        name: `실내 전경 #${idx + 1}`,
+                                        url: img.trim()
+                                    }))
+                                    : []
+                                )
+                            ]}
                         />
                     </div>
 

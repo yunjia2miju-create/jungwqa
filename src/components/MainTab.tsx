@@ -73,6 +73,14 @@ export const MainTab = ({
         return String(price || '');
     };
 
+    const stripHtml = (htmlText: string | undefined | null) => {
+        if (!htmlText) return '';
+        return String(htmlText)
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
     const formatDisplayAddress = (addr: string | undefined | null) => {
         if (!addr) return '';
         return addr.split(/\s+/)
@@ -108,7 +116,7 @@ export const MainTab = ({
         
         const buildingMatch = String(p.building || '').toLowerCase().includes(searchVal);
         const addressMatch = String(p.address || '').toLowerCase().includes(searchVal);
-        const remarksMatch = String(p.remarks || '').toLowerCase().includes(searchVal);
+        const remarksMatch = stripHtml(p.remarks).toLowerCase().includes(searchVal);
         return categoryMatch && dongMatch && (buildingMatch || addressMatch || remarksMatch);
     });
 
@@ -356,7 +364,7 @@ export const MainTab = ({
                                         {p.category}
                                     </div>
                                     <div className="text-[10px] sm:text-[12px] font-semibold text-slate-600 truncate hidden sm:block ml-0 flex-1 border-l border-slate-200 pl-3">
-                                        {dongVal || (addrVal && addrVal.split(' ')[0]) || ''} {remarksVal && `· ${remarksVal.replace(/▶|■/g, '').slice(0, 50)}...`}
+                                        {dongVal || (addrVal && addrVal.split(' ')[0]) || ''} {remarksVal && `· ${stripHtml(remarksVal).replace(/▶|■/g, '').slice(0, 50)}...`}
                                     </div>
                                 </div>
                             );
@@ -369,14 +377,49 @@ export const MainTab = ({
             )}
 
             {/* Filter Tabs & Search */}
-            <div id="blog-list" className="flex flex-col mb-4 sm:mb-6 gap-3 sm:gap-4 border-b border-slate-200 pb-4 sm:pb-5 w-full">
+            <div id="blog-list" className="flex flex-col mb-4 sm:mb-6 gap-5 sm:gap-6 border-b border-slate-200 pb-5 sm:pb-6 w-full">
+                {/* 대형 매물검색 섹션 타이틀 */}
+                <div id="property-search-title" className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 select-none w-full bg-slate-50 border border-slate-200/80 p-5 rounded-2xl shadow-sm mt-2">
+                    <div className="flex items-center gap-4">
+                        {/* 눈에 확 띄는 큼직한 집 모양 아이콘 */}
+                        <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-600 to-indigo-950 text-white rounded-xl sm:rounded-2xl shadow-md shrink-0 border border-emerald-400">
+                            <i className="fa-solid fa-house-chimney text-2xl sm:text-3xl text-emerald-300 drop-shadow-[0_2px_8px_rgba(52,211,153,0.4)] animate-pulse-slow"></i>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+                                    매물검색
+                                </h2>
+                                <span className="bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] sm:text-xs font-black px-2 mt-0.5 sm:mt-0 py-0.5 rounded-full shadow-sm">
+                                    SEARCH
+                                </span>
+                            </div>
+                            <p className="text-slate-500 text-xs sm:text-sm font-semibold mt-1.5">
+                                구미 대표 브랜드 태왕공인중개사사무소에서 검증한 추천 매물 찾기
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 카테고리 기획 수정: 버튼 크기 확대 및 디자인 시인성 극대화 */}
                 <div className="w-full">
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full">
-                        {['all', '원룸매매', '원룸', '미투', '투룸', '쓰리룸', '상가', '아파트', '오피스텔', '빌라', '땅', '기타'].map((cat) => (
-                            <button key={cat} onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} className={`category-tab px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${activeCategory === cat ? 'active bg-emerald-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}>
-                                {cat === 'all' ? '전체' : cat}
-                            </button>
-                        ))}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-3 w-full">
+                        {['all', '원룸매매', '원룸', '미투', '투룸', '쓰리룸', '상가', '아파트', '오피스텔', '빌라', '땅', '기타'].map((cat) => {
+                            const isSelected = activeCategory === cat;
+                            return (
+                                <button 
+                                    key={cat} 
+                                    onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} 
+                                    className={`category-tab select-none cursor-pointer flex items-center justify-center text-center whitespace-nowrap transition-all duration-200 ease-out rounded-2xl py-3.5 sm:py-4.5 px-2.5 font-black text-sm sm:text-base border-2 shadow-[0_4px_10px_rgba(15,23,42,0.08)] ${
+                                        isSelected 
+                                            ? 'active bg-gradient-to-br from-emerald-600 to-teal-700 text-white border-emerald-500 scale-[1.03] shadow-[0_6px_20px_rgba(16,185,129,0.35)] ring-2 ring-emerald-400/20' 
+                                            : 'bg-white text-slate-800 border-slate-200 hover:bg-emerald-50/50 hover:text-emerald-700 hover:border-emerald-500 hover:scale-[1.04] hover:shadow-[0_8px_16px_rgba(16,185,129,0.15)] active:scale-95'
+                                    }`}
+                                >
+                                    {cat === 'all' ? '전체' : cat}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -505,7 +548,7 @@ export const MainTab = ({
                                             <td className="p-4 text-slate-600 font-bold text-center whitespace-nowrap">{p.category}</td>
                                             <td className="p-4 text-red-500 font-black text-center whitespace-nowrap">{formatDisplayPrice(p.price, p.manageFee)}</td>
                                             <td className="p-4 text-slate-600 text-center"><span className="block truncate max-w-[140px] lg:max-w-none">{formatDisplayAddress(p.address)}</span></td>
-                                            <td className="p-4 text-slate-500 text-xs text-left max-w-xs break-all">{p.remarks}</td>
+                                            <td className="p-4 text-slate-500 text-xs text-left max-w-xs break-all">{stripHtml(p.remarks)}</td>
                                             <td className="p-4 text-center whitespace-nowrap">
                                                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-black">
                                                      {hasVR ? (
@@ -616,11 +659,11 @@ export const MainTab = ({
                                             </div>
 
                                             {/* Row 4: Highlight / Emphasis Field - Beautiful styled box designed for the subscriber */}
-                                            {p.remarks && (
+                                            {p.remarks && stripHtml(p.remarks) && (
                                                 <div className="text-[11.5px] font-black text-emerald-950 bg-emerald-50/60 border border-emerald-200/40 rounded-xl px-2.5 py-1.5 mt-1.5 flex items-start gap-1.5 w-full max-w-full">
                                                     <span className="text-emerald-500 shrink-0 text-xs mt-0.5">✨</span>
                                                     <span className="font-bold text-slate-700 break-all leading-relaxed flex-grow min-w-0">
-                                                        {p.remarks}
+                                                        {stripHtml(p.remarks)}
                                                     </span>
                                                 </div>
                                             )}

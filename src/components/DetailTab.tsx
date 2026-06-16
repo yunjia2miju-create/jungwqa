@@ -145,18 +145,18 @@ export const DetailTab = ({
     const safeDong = String(p.dong || '');
     if (['원룸', '미투', '투룸', '쓰리룸'].includes(safeCat)) {
         matchingRecs = potentialRecs.filter(item => item && String(item.dong || '') === safeDong);
-        if (matchingRecs.length < 3) {
+        if (matchingRecs.length < 18) {
             const extraCategory = potentialRecs.filter(item => item && String(item.category || '') === safeCat && !matchingRecs.some(m => m.id === item.id));
             matchingRecs = [...matchingRecs, ...extraCategory];
         }
     } else {
         matchingRecs = potentialRecs.filter(item => item && String(item.category || '') === safeCat);
     }
-    if (matchingRecs.length < 3) {
+    if (matchingRecs.length < 18) {
         const anyExtra = potentialRecs.filter(item => item && !matchingRecs.some(m => m.id === item.id));
         matchingRecs = [...matchingRecs, ...anyExtra];
     }
-    matchingRecs = matchingRecs.slice(0, 3);
+    matchingRecs = matchingRecs.slice(0, 18);
 
     return (
         <section id="detail-section" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 transition-opacity duration-300 w-full">
@@ -212,16 +212,69 @@ export const DetailTab = ({
                             <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">{p.dong || '구미시'}</span>
                         </div>
 
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight mb-2 flex items-center gap-2">
-                    <span>{p.building}</span>
-                    {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
-                        <span className="shrink-0 bg-emerald-600 text-white text-[10px] sm:text-xs font-black px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg shadow-emerald-900/20 animate-pulse">
-                            <i className="fa-solid fa-vr-cardboard"></i>
-                            <span>VR 투어 가능</span>
-                        </span>
-                    )}
-                </h1>
-                <p className="text-xl font-black text-red-500 border-b border-slate-100 pb-4 mb-6">{formatDisplayPrice(p.price, p.transactionType || '월세')}</p>
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 border-b border-slate-150 pb-6 mb-6 w-full">
+                    {/* 왼쪽: 건축물 정보, 동, 가격 */}
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight mb-3 flex items-center gap-2 flex-wrap">
+                            <span>{p.building} {p.room ? `${p.room}호` : ''}</span>
+                            {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
+                                <span className="shrink-0 bg-emerald-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg shadow-emerald-900/20 animate-pulse">
+                                    <i className="fa-solid fa-vr-cardboard"></i>
+                                    <span>VR 투어 가능</span>
+                                </span>
+                            )}
+                        </h1>
+                        <p className="text-2xl sm:text-3xl font-extrabold text-red-500 tracking-tight">{formatDisplayPrice(p.price, p.transactionType || '월세')}</p>
+                    </div>
+
+                    {/* 오른쪽: 매물 핵심 요약 제원표 (허전한 우측 여백을 최적화하여 꽉 채움) */}
+                    <div className="w-full md:w-[340px] bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 flex flex-col gap-3 shadow-inner text-xs shrink-0">
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                            <span className="font-black text-slate-800 flex items-center gap-1.5">
+                                <i className="fa-solid fa-building-circle-check text-emerald-600 text-sm"></i>
+                                <span>매물 요약 정보 (Fact Sheet)</span>
+                            </span>
+                            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
+                                #{p.id.substring(0, 8)}
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-slate-600 py-0.5">
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-bold text-slate-400">거래 구분</span>
+                                <span className="font-extrabold text-slate-800">{p.transactionType || '월세'} / {p.category}</span>
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-bold text-slate-400">기본 관리비</span>
+                                <span className="font-extrabold text-[#0d9488]">{p.manageFee && p.manageFee !== '없음' ? `${p.manageFee}` : '없음 (상세문의)'}</span>
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-bold text-slate-400">해당/전체 층수</span>
+                                <span className="font-extrabold text-slate-800">
+                                    {p.floor && p.totalFloor ? `${p.floor}층 / 전체 ${p.totalFloor}층` : (p.floor ? `${p.floor}층` : '지상층')}
+                                </span>
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-bold text-slate-400">매물 핵심 지번</span>
+                                <span className="font-extrabold text-slate-800 truncate" title={p.address}>{p.address || p.dong || '구미시'}</span>
+                            </div>
+                        </div>
+
+                        {/* 소장님 직통 빠른 빠른 문의 전화 버튼 */}
+                        <a 
+                            href={`tel:${p.phone || '010-7590-0111'}`}
+                            onClick={(e) => { 
+                                if (isAdminLoggedIn) {
+                                    e.preventDefault(); 
+                                    openPhoneSelectModal(e, p.phone || '010-7590-0111', p.ownerPhone); 
+                                }
+                            }}
+                            className="mt-1 w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-950/10 transition-all text-center select-none cursor-pointer text-xs"
+                        >
+                            <i className="fa-solid fa-phone animate-bounce"></i>
+                            <span>태왕 공인중개사 직통 빠른 전화</span>
+                        </a>
+                    </div>
+                </div>
 
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">

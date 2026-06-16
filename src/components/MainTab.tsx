@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppStore } from '../store';
 import { gumiDongs } from '../data';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { submitInquiryService, getInquiriesService } from '../firebaseService';
 
 export const MainTab = ({ 
@@ -38,6 +39,26 @@ export const MainTab = ({
         return [...presentGumiDongs, ...extraDongs];
     }, [posts]);
 
+    const [tickerPosts, setTickerPosts] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        const filteredPosts = posts.filter(
+            p => p && p.category && ['원룸', '미투', '투룸', '쓰리룸'].includes(String(p.category))
+        );
+        if (filteredPosts.length === 0) {
+            setTickerPosts([]);
+            return;
+        }
+        // Shuffle using Fisher-Yates algorithm for genuine randomness on load/visit
+        const shuffled = [...filteredPosts];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        // Duplicate the entire set to allow beautiful, seamless infinite looping
+        setTickerPosts([...shuffled, ...shuffled]);
+    }, [posts]);
+
     const [isFetching, setIsFetching] = React.useState(true);
 
     React.useEffect(() => {
@@ -46,7 +67,7 @@ export const MainTab = ({
         return () => clearTimeout(t);
     }, [activeCategory, activeDong, showOnlyRecommended, showOnlyVR, searchVal, currentPage]);
 
-    const itemsPerPage = 10;
+    const itemsPerPage = 30;
 
     const formatDisplayPrice = (price: any, _manageFee: any) => {
         return String(price || '');
@@ -279,61 +300,58 @@ export const MainTab = ({
                         <i className="fa-solid fa-plus"></i>
                     </div>
                 </div>
-                <div className="relative h-[220px] sm:h-[260px] overflow-hidden bg-white px-2">
+                <div className="relative h-[540px] sm:h-[720px] overflow-hidden bg-white px-2">
                     {/* Create a duplicate list to ensure smooth infinite scrolling. */}
-                    <div className="animate-scroll-up flex flex-col pt-2 pb-2">
-                        {(() => {
-                            const tickerPosts = [...posts]
-                                .filter(p => p && p.category && ['원룸', '미투', '투룸', '쓰리룸'].includes(String(p.category)))
-                                .reverse()
-                                .slice(0, 15);
-                            return [...tickerPosts, ...tickerPosts].map((p, idx) => {
-                                const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
-                                const pPanoramas = String(p.panoramas || '');
-                                const pPanoImage = String(p.panoImage || '');
-                                const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
-                                const floorVal = p.floor ? String(p.floor) : '';
-                                const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
-                                const roomVal = p.room ? String(p.room) : '';
-                                const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
-                                const dongVal = String(p.dong || '');
-                                const addrVal = String(p.address || '');
-                                const remarksVal = String(p.remarks || '');
-                                return (
-                                    <div key={`${p.id}-${idx}`} onClick={() => setSelectedPostId(p.id)} className="flex items-center gap-2 sm:gap-4 px-3 py-2.5 sm:px-4 sm:py-3.5 border-b border-dashed border-slate-200/80 hover:bg-slate-50/90 cursor-pointer transition-colors w-full group select-none">
-                                        <div className="w-4 sm:w-6 shrink-0 flex items-center justify-center">
-                                            {isRec && <span className="text-amber-500 animate-sparkle text-[11px] sm:text-sm drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]"><i className="fa-solid fa-star"></i></span>}
-                                        </div>
-                                        <span className={`shrink-0 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black border tracking-tight ${
-                                            p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
-                                            p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                                            'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                        }`}>
-                                            {p.transactionType || '월세'}
-                                        </span>
-                                        <div className="text-xs sm:text-[13.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 truncate min-w-[70px] sm:w-[170px] sm:min-w-0 flex items-center gap-1.5 transition-colors">
-                                            <span className="shrink-0 font-black">{p.building}</span>
-                                            {hasVR && (
-                                                <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-0.5 animate-pulse border border-emerald-200">
-                                                    <i className="fa-solid fa-vr-cardboard"></i>
-                                                    <span>360°</span>
-                                                </span>
-                                            )}
-                                            <span className="text-slate-600 bg-slate-100 px-1.5 py-[1px] rounded text-[9px] sm:text-[10px] font-bold border border-slate-200/60 leading-none shrink-0">{floorLabel}</span>
-                                        </div>
-                                        <div className="text-xs sm:text-[13.5px] font-black text-red-500 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
-                                            {formatDisplayPrice(p.price, p.manageFee)}
-                                        </div>
-                                        <div className="text-[10px] sm:text-[11.5px] font-black text-slate-700 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded-md whitespace-nowrap sm:w-[70px] text-center shrink-0">
-                                            {p.category}
-                                        </div>
-                                        <div className="text-[10px] sm:text-[12px] font-semibold text-slate-600 truncate hidden sm:block ml-0 flex-1 border-l border-slate-200 pl-3">
-                                            {dongVal || (addrVal && addrVal.split(' ')[0]) || ''} {remarksVal && `· ${remarksVal.replace(/▶|■/g, '').slice(0, 50)}...`}
-                                        </div>
+                    <div 
+                        className="animate-scroll-up flex flex-col pt-2 pb-2"
+                        style={{ animationDuration: `${tickerPosts.length * 0.09}s` }}
+                    >
+                        {tickerPosts.map((p, idx) => {
+                            const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
+                            const pPanoramas = String(p.panoramas || '');
+                            const pPanoImage = String(p.panoImage || '');
+                            const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
+                            const floorVal = p.floor ? String(p.floor) : '';
+                            const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
+                            const roomVal = p.room ? String(p.room) : '';
+                            const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
+                            const dongVal = String(p.dong || '');
+                            const addrVal = String(p.address || '');
+                            const remarksVal = String(p.remarks || '');
+                            return (
+                                <div key={`${p.id}-${idx}`} onClick={() => setSelectedPostId(p.id)} className="flex items-center gap-2 sm:gap-4 px-3 py-1.5 sm:px-4 sm:py-2 border-b border-dashed border-slate-200/80 hover:bg-slate-50/90 cursor-pointer transition-colors w-full group select-none">
+                                    <div className="w-4 sm:w-6 shrink-0 flex items-center justify-center">
+                                        {isRec && <span className="text-amber-500 animate-sparkle text-[11px] sm:text-sm drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]"><i className="fa-solid fa-star"></i></span>}
                                     </div>
-                                );
-                            });
-                        })()}
+                                    <span className={`shrink-0 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black border tracking-tight ${
+                                        p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                                        p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                                        'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                    }`}>
+                                        {p.transactionType || '월세'}
+                                    </span>
+                                    <div className="text-xs sm:text-[13.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 truncate min-w-[70px] sm:w-[170px] sm:min-w-0 flex items-center gap-1.5 transition-colors">
+                                        <span className="shrink-0 font-black">{p.building}</span>
+                                        {hasVR && (
+                                            <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-0.5 animate-pulse border border-emerald-200">
+                                                <i className="fa-solid fa-vr-cardboard"></i>
+                                                <span>360°</span>
+                                            </span>
+                                        )}
+                                        <span className="text-slate-600 bg-slate-100 px-1.5 py-[1px] rounded text-[9px] sm:text-[10px] font-bold border border-slate-200/60 leading-none shrink-0">{floorLabel}</span>
+                                    </div>
+                                    <div className="text-xs sm:text-[13.5px] font-black text-red-500 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
+                                        {formatDisplayPrice(p.price, p.manageFee)}
+                                    </div>
+                                    <div className="text-[10px] sm:text-[11.5px] font-black text-slate-700 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded-md whitespace-nowrap sm:w-[70px] text-center shrink-0">
+                                        {p.category}
+                                    </div>
+                                    <div className="text-[10px] sm:text-[12px] font-semibold text-slate-600 truncate hidden sm:block ml-0 flex-1 border-l border-slate-200 pl-3">
+                                        {dongVal || (addrVal && addrVal.split(' ')[0]) || ''} {remarksVal && `· ${remarksVal.replace(/▶|■/g, '').slice(0, 50)}...`}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                     <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-white to-transparent pointer-events-none z-10"></div>
                     <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
@@ -533,12 +551,15 @@ export const MainTab = ({
                                 const roomVal = p.room ? String(p.room) : '';
                                 const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
                                 return (
-                                    <div key={p.id} onClick={() => setSelectedPostId(p.id)} className="p-4 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex items-center justify-between gap-4 cursor-pointer text-left w-full">
-                                        <div className="flex-grow min-w-0 flex flex-col gap-1">
-                                            <div className="text-[14px] font-black text-slate-900 flex items-center gap-1.5">
-                                                <div className="md:w-5 shrink-0 flex items-center justify-center">
-                                                    {isRec && <span className="text-amber-500 animate-sparkle"><i className="fa-solid fa-star"></i></span>}
-                                                </div>
+                                    <div key={p.id} onClick={() => setSelectedPostId(p.id)} className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex items-center justify-between gap-4 cursor-pointer text-left w-full">
+                                        <div className="flex-grow min-w-0 flex flex-col gap-1.5">
+                                            {/* Row 1: Badges & Building Name - Styled to prevent overlap and truncate beautifully */}
+                                            <div className="text-[14px] font-black text-slate-900 flex items-center gap-1.5 min-w-0 w-full flex-wrap xs:flex-nowrap">
+                                                {isRec && (
+                                                    <div className="shrink-0 flex items-center justify-center text-amber-500 animate-sparkle">
+                                                        <i className="fa-solid fa-star"></i>
+                                                    </div>
+                                                )}
                                                 <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-black border ${
                                                     p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' :
                                                     p.transactionType === '전세' ? 'bg-amber-50 border-amber-100 text-amber-600' :
@@ -546,26 +567,52 @@ export const MainTab = ({
                                                 }`}>
                                                     {p.transactionType || '월세'}
                                                 </span>
-                                                <span className="truncate mr-1">{p.building}</span>
+                                                <span className="font-extrabold text-slate-900 text-[14.5px] truncate flex-grow min-w-0 mr-1 leading-snug">
+                                                    {p.building}
+                                                </span>
                                                 {hasVR && (
-                                                    <span className="shrink-0 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-emerald-200 animate-pulse-slow mr-1">
-                                                        <i className="fa-solid fa-vr-cardboard"></i>
-                                                        <span>VR</span>
+                                                    <span className="shrink-0 bg-emerald-100 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-emerald-200 animate-pulse-slow">
+                                                        VR
                                                     </span>
                                                 )}
-                                                <span className="text-slate-500 font-medium">{floorLabel}</span>
                                             </div>
-                                            <div className="text-[13px] text-red-500 font-black">
-                                                {formatDisplayPrice(p.price, p.manageFee)}
+
+                                            {/* Row 2: Price & Floor Label moved side by side in a clean layout to guarantee spacing */}
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                <span className="text-[14.5px] text-red-500 font-extrabold font-mono tracking-tight leading-none shrink-0">
+                                                    {formatDisplayPrice(p.price, p.manageFee)}
+                                                </span>
+                                                <span className="text-slate-500 font-bold text-[10px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60 leading-none shrink-0">
+                                                    {floorLabel}
+                                                </span>
                                             </div>
-                                            <div className="text-[11px] text-slate-500 font-bold flex items-center gap-1.5 truncate">
-                                                <span className="text-slate-700">{p.category}</span>
-                                                <span className="truncate">{formatDisplayAddress(p.address)}</span>
-                                                {isAdminLoggedIn && <span className="text-slate-500">{p.phone || '010-7590-0111'}</span>}
+
+                                            {/* Row 3: Metadata Row - Category & Address Details */}
+                                            <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 min-w-0 flex-wrap">
+                                                <span className="text-slate-700 font-bold bg-slate-100/80 border border-slate-200/50 px-1.5 py-0.5 rounded text-[9.5px] leading-none shrink-0">
+                                                    {p.category}
+                                                </span>
+                                                <span className="text-slate-300 leading-none shrink-0">|</span>
+                                                <span className="truncate text-slate-600 leading-relaxed font-semibold">
+                                                    {formatDisplayAddress(p.address)}
+                                                </span>
+                                                {isAdminLoggedIn && (
+                                                    <>
+                                                        <span className="text-slate-300 leading-none shrink-0">|</span>
+                                                        <span className="text-emerald-700 font-black shrink-0 border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 rounded text-[9.5px] leading-none">
+                                                            {p.phone || '010-7590-0111'}
+                                                        </span>
+                                                    </>
+                                                )}
                                             </div>
+
+                                            {/* Row 4: Highlight / Emphasis Field - Beautiful styled box designed for the subscriber */}
                                             {p.remarks && (
-                                                <div className="text-[12px] font-semibold text-indigo-600 truncate mt-0.5">
-                                                    {p.remarks}
+                                                <div className="text-[11.5px] font-black text-emerald-950 bg-emerald-50/60 border border-emerald-200/40 rounded-xl px-2.5 py-1.5 mt-1.5 flex items-start gap-1.5 w-full max-w-full">
+                                                    <span className="text-emerald-500 shrink-0 text-xs mt-0.5">✨</span>
+                                                    <span className="font-bold text-slate-700 break-all leading-relaxed flex-grow min-w-0">
+                                                        {p.remarks}
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>
@@ -608,21 +655,47 @@ export const MainTab = ({
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8 font-semibold">
-                    <button onClick={() => { setCurrentPage(1); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === 1} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>처음</button>
-                    {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
-                        let pageNum = safeCurrentPage - 2 + i;
-                        if (safeCurrentPage <= 3) pageNum = i + 1;
-                        if (safeCurrentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                        if (pageNum < 1 || pageNum > totalPages) return null;
-                        const isActive = pageNum === safeCurrentPage;
-                        return (
-                            <button key={pageNum} onClick={() => { setCurrentPage(pageNum); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${isActive ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
-                                {pageNum}
-                            </button>
-                        );
-                    })}
-                    <button onClick={() => { setCurrentPage(totalPages); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === totalPages} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>마지막</button>
+                <div className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8 font-semibold font-mono">
+                    {/* First Page */}
+                    <button onClick={() => { setCurrentPage(1); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === 1} className={`px-3 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>처음</button>
+                    
+                    {/* Previous Page Arrow */}
+                    <button onClick={() => { setCurrentPage(Math.max(1, safeCurrentPage - 1)); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === 1} className={`px-2 py-1.5 rounded-xl text-xs font-black border transition-all flex items-center justify-center ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`} aria-label="이전 페이지">
+                        <ChevronLeft className="w-4 h-4" />
+                    </button>
+
+                    {/* Numeric Pages */}
+                    {(() => {
+                        const pages: number[] = [];
+                        let startPage = Math.max(1, safeCurrentPage - 2);
+                        let endPage = Math.min(totalPages, safeCurrentPage + 2);
+                        if (safeCurrentPage <= 3) {
+                            startPage = 1;
+                            endPage = Math.min(totalPages, 5);
+                        } else if (safeCurrentPage >= totalPages - 2) {
+                            startPage = Math.max(1, totalPages - 4);
+                            endPage = totalPages;
+                        }
+                        for (let p = startPage; p <= endPage; p++) {
+                            pages.push(p);
+                        }
+                        return pages.map(pageNum => {
+                            const isActive = pageNum === safeCurrentPage;
+                            return (
+                                <button key={pageNum} onClick={() => { setCurrentPage(pageNum); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${isActive ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                    {pageNum}
+                                </button>
+                            );
+                        });
+                    })()}
+
+                    {/* Next Page Arrow */}
+                    <button onClick={() => { setCurrentPage(Math.min(totalPages, safeCurrentPage + 1)); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === totalPages} className={`px-2 py-1.5 rounded-xl text-xs font-black border transition-all flex items-center justify-center ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`} aria-label="다음 페이지">
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    {/* Last Page */}
+                    <button onClick={() => { setCurrentPage(totalPages); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === totalPages} className={`px-3 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>마지막</button>
                 </div>
             )}
 

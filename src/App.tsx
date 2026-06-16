@@ -121,7 +121,7 @@ export default function App() {
 
                 <header className="sticky top-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 z-40 w-full transition-all">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
-                        <div className="flex items-center justify-between w-full lg:w-auto cursor-pointer" onClick={() => setActiveSection('main')}>
+                        <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
                             <div className="flex items-center space-x-2 group">
                                 <span className="bg-emerald-600 text-white p-2 sm:p-2.5 rounded-xl shadow-md shadow-emerald-600/20 group-hover:bg-emerald-700 transition-colors">
                                     <i className="fa-solid fa-house-chimney text-lg sm:text-xl"></i>
@@ -152,6 +152,8 @@ export default function App() {
                                 </div>
                             </div>
                         </div>
+
+
                     </div>
                 </header>
 

@@ -10,18 +10,6 @@
     font-weight: normal;
     font-style: normal;
 }
-@font-face {
-    font-family: 'NanumBaReunHiPi';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/NanumBaReunHiPi.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'NanumUriDdalSonGeulCsi';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/NanumUriDdalSonGeulCsi.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
 @import "tailwindcss";
 
 body {

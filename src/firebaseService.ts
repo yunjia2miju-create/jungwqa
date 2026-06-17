@@ -83,7 +83,18 @@ export async function getPostsService(): Promise<Post[]> {
   const mergedList = Array.from(mergedMap.values());
   // Sort by createdAt descending (newest first)
   mergedList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return mergedList;
+
+  // Clean all &nbsp; characters on fetch to ensure no visual defects
+  const cleanNbsp = (str?: string) => str ? str.replace(/&nbsp;/gi, ' ') : '';
+  const cleanedList = mergedList.map(p => ({
+    ...p,
+    title: cleanNbsp(p.title),
+    intro: p.intro ? cleanNbsp(p.intro) : undefined,
+    body: p.body ? cleanNbsp(p.body) : undefined,
+    remarks: p.remarks ? cleanNbsp(p.remarks) : undefined
+  }));
+
+  return cleanedList;
 }
 
 /**
@@ -93,10 +104,20 @@ export async function savePostService(post: Post): Promise<void> {
   const docPath = `posts/${post.id}`;
   let firestoreError: any = null;
   
+  // Clean all &nbsp; characters on save to ensure clean database storage
+  const cleanNbsp = (str?: string) => str ? str.replace(/&nbsp;/gi, ' ') : '';
+  const cleanedPost: Post = {
+    ...post,
+    title: cleanNbsp(post.title),
+    intro: post.intro ? cleanNbsp(post.intro) : undefined,
+    body: post.body ? cleanNbsp(post.body) : undefined,
+    remarks: post.remarks ? cleanNbsp(post.remarks) : undefined
+  };
+
   // 1. Write to Firestore
   try {
     const docRef = doc(db, 'posts', post.id);
-    await setDoc(docRef, post);
+    await setDoc(docRef, cleanedPost);
     console.log("Post successfully saved to Firestore:", post.id);
   } catch (err) {
     console.warn("Post saving to Firestore bypassed (will save to local server file):", err);
@@ -109,7 +130,7 @@ export async function savePostService(post: Post): Promise<void> {
     const res = await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(post)
+      body: JSON.stringify(cleanedPost)
     });
     if (res.ok) {
       expressSuccess = true;

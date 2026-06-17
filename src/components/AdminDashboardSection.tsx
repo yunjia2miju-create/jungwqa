@@ -400,10 +400,10 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{p.category}</span>
-                                                <span className="bg-slate-200 text-slate-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">{p.dong}</span>
-                                                {p.isRecommended && <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded">추천★</span>}
-                                                <span className="bg-slate-100 text-slate-500 text-[8px] font-semibold px-1 py-0.5 rounded">ID: {p.id.replace('default-', '')}</span>
+                                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10.5px] font-extrabold px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.category}</span>
+                                                <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[10.5px] font-extrabold px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.dong}</span>
+                                                {p.isRecommended && <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[10.5px] font-black px-2.5 py-1 rounded-lg shadow-sm leading-none">추천★</span>}
+                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-lg leading-none font-mono">ID: {p.id.replace('default-', '')}</span>
                                             </div>
                                             <h4 className="text-sm font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-xs text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
                                             <p className="text-[11px] text-slate-400 font-semibold">{p.title || '등록된 타이틀 내용 없음'}</p>

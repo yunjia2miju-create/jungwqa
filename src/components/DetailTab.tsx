@@ -5,6 +5,11 @@ import { useAppStore } from '../store';
 
 import PannellumViewer from './PannellumViewer';
 
+const cleanNbsp = (text: string | null | undefined): string => {
+    if (!text) return '';
+    return String(text).replace(/&nbsp;/gi, ' ');
+};
+
 export const DetailTab = ({ 
     openPhoneSelectModal,
     showToast
@@ -196,28 +201,28 @@ export const DetailTab = ({
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center space-x-2 mb-4">
-                            <span className={`px-2.5 py-1 rounded text-[10px] font-black border ${
+                        <div className="flex flex-wrap items-center gap-3.5 mb-5">
+                            <span className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black border tracking-wide shadow-sm ${
                                 p.transactionType === '매매' ? 'bg-indigo-600 text-white border-indigo-700' :
                                 p.transactionType === '전세' ? 'bg-amber-500 text-white border-amber-600' :
                                 'bg-emerald-600 text-white border-emerald-700'
                             }`}>
                                 {p.transactionType || '월세'}
                             </span>
-                            <span className="bg-slate-900 text-white text-xs font-black px-2.5 py-1 rounded">{p.category}</span>
-                            <span className="bg-emerald-50 text-emerald-600 text-xs font-black px-2.5 py-1 rounded border border-emerald-100">
-                                {p.floor && p.totalFloor ? `${p.floor}/${p.totalFloor}층` : (p.floor ? `${p.floor}층` : (p.room ? `${p.room}호` : '지상층'))}
+                            <span className="bg-slate-900 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl tracking-wide shadow-sm">{p.category}</span>
+                            <span className="bg-emerald-50 text-emerald-600 text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-emerald-100/80 tracking-wide shadow-sm">
+                                {p.floor && p.totalFloor ? `${p.floor}/${p.totalFloor}층` : (p.floor ? `${p.floor}층` : (isAdminLoggedIn && p.room ? `${p.room}호` : '지상층'))}
                             </span>
-                            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">{p.dong || '구미시'}</span>
+                            <span className="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-slate-200 tracking-wide shadow-sm">{p.dong || '구미시'}</span>
                         </div>
 
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 border-b border-slate-150 pb-6 mb-6 w-full">
                     {/* 왼쪽: 건축물 정보, 동, 가격 */}
                     <div className="flex-1 min-w-0">
                         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight mb-3 flex items-center gap-2 flex-wrap">
-                            <span>{p.building} {p.room ? `${p.room}호` : ''}</span>
+                            <span>{p.building} {isAdminLoggedIn && p.room ? `${p.room}호` : ''}</span>
                             {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
-                                <span className="shrink-0 bg-emerald-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg shadow-emerald-900/20 animate-pulse">
+                                <span className="shrink-0 bg-emerald-600 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-900/20 animate-pulse">
                                     <i className="fa-solid fa-vr-cardboard"></i>
                                     <span>VR 투어 가능</span>
                                 </span>
@@ -279,17 +284,17 @@ export const DetailTab = ({
                     <div className="space-y-1 w-full max-w-full overflow-hidden">
                         <span className="text-xs font-bold text-slate-400">책임중개 소장 한마디 및 블로그 원고</span>
                         {p.title && /<[a-z][\s\S]*>/i.test(String(p.title)) ? (
-                            <div className="text-sm font-black text-slate-800 break-words prose prose-slate max-w-none text-left" dangerouslySetInnerHTML={{ __html: String(p.title) }} />
+                            <div className="text-sm font-black text-slate-800 break-words prose prose-slate max-w-none text-left" dangerouslySetInnerHTML={{ __html: cleanNbsp(p.title) }} />
                         ) : (
-                            <p className="text-sm font-black text-slate-800">"{p.title || ''}"</p>
+                            <p className="text-sm font-black text-slate-800">"{cleanNbsp(p.title)}"</p>
                         )}
                     </div>
                     {isAdminLoggedIn ? (
                         <button 
                             onClick={() => {
-                                const titleText = p.title || "";
-                                const introText = p.intro || "";
-                                const bodyText = p.body || "";
+                                const titleText = cleanNbsp(p.title);
+                                const introText = cleanNbsp(p.intro);
+                                const bodyText = cleanNbsp(p.body);
                                 
                                 const formatToDoubleSpacing = (text: string) => {
                                     if (!text) return "";
@@ -455,14 +460,14 @@ export const DetailTab = ({
                 <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-6">
                     <div className="p-6 bg-emerald-50/50 border-l-4 border-emerald-500 rounded-r-2xl">
                         {p.intro && /<[a-z][\s\S]*>/i.test(String(p.intro)) ? (
-                            <div className="text-sm font-semibold text-emerald-950/90 italic style-rich-intro break-words" dangerouslySetInnerHTML={{ __html: String(p.intro) }} />
+                            <div className="text-sm font-semibold text-emerald-950/90 italic style-rich-intro break-words" dangerouslySetInnerHTML={{ __html: cleanNbsp(p.intro) }} />
                         ) : (
-                            <p className="text-sm font-semibold text-emerald-900 italic">"{p.intro || ''}"</p>
+                            <p className="text-sm font-semibold text-emerald-900 italic">"{cleanNbsp(p.intro)}"</p>
                         )}
                     </div>
                     <div className="text-sm sm:text-base text-slate-600 markdown-content leading-relaxed space-y-4">
                         {p.body ? (() => {
-                            let cleared = String(p.body).replace(/\\n/g, '\n');
+                            let cleared = cleanNbsp(String(p.body).replace(/\\n/g, '\n'));
                             const isHtml = /<[a-z][\s\S]*>/i.test(cleared);
 
                             if (isHtml) {
@@ -697,21 +702,21 @@ export const DetailTab = ({
                                 <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 watermark-container">
                                     <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     <div className="absolute top-3 left-3 flex gap-1">
-                                        <span className={`text-white text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-sm border ${
+                                        <span className={`text-white text-[11.5px] font-black px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-sm border ${
                                             rec.transactionType === '매매' ? 'bg-indigo-600/90 border-indigo-500' :
                                             rec.transactionType === '전세' ? 'bg-amber-600/90 border-amber-500' :
                                             'bg-emerald-600/90 border-emerald-500'
                                         }`}>
                                             {rec.transactionType || '월세'}
                                         </span>
-                                        <span className="bg-slate-900/90 text-white text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-sm">
+                                        <span className="bg-slate-900/90 text-white text-[11.5px] font-black px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-sm">
                                             {rec.category}
                                         </span>
-                                        <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md">
+                                        <span className="bg-emerald-600 text-white text-[11.5px] font-black px-2.5 py-1 rounded-lg shadow-sm">
                                             {rec.dong || '구미시'}
                                         </span>
                                         {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
-                                            <span className="bg-white/90 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm border border-emerald-100 flex items-center gap-1 animate-pulse">
+                                            <span className="bg-white/90 text-emerald-700 text-[11.5px] font-black px-2.5 py-1 rounded-lg shadow-sm border border-emerald-100 flex items-center gap-1 animate-pulse">
                                                 <i className="fa-solid fa-vr-cardboard text-[8px]"></i>
                                                 <span>360°</span>
                                             </span>
@@ -733,7 +738,7 @@ export const DetailTab = ({
                                             )}
                                         </h4>
                                         <p className="text-slate-500 text-[11px] line-clamp-1">
-                                            {rec.title}
+                                            {cleanNbsp(rec.title)}
                                         </p>
                                     </div>
                                     <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60">
@@ -809,7 +814,7 @@ export const DetailTab = ({
                                     <i className="fa-solid fa-image"></i>
                                     <span>실사 현장 사진</span>
                                 </div>
-                                <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs">{p.title}</span>
+                                <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs">{cleanNbsp(p.title)}</span>
                             </div>
                             <button 
                                 onClick={() => setActiveZoomUrl(null)}

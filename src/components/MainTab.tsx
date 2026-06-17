@@ -77,6 +77,7 @@ export const MainTab = ({
         if (!htmlText) return '';
         return String(htmlText)
             .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
             .replace(/\s+/g, ' ')
             .trim();
     };
@@ -331,7 +332,7 @@ export const MainTab = ({
                             const floorVal = p.floor ? String(p.floor) : '';
                             const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
                             const roomVal = p.room ? String(p.room) : '';
-                            const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
+                            const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (isAdminLoggedIn && roomVal ? `${roomVal}호` : '지상층');
                             const dongVal = String(p.dong || '');
                             const addrVal = String(p.address || '');
                             const remarksVal = String(p.remarks || '');
@@ -340,7 +341,7 @@ export const MainTab = ({
                                     <div className="w-4 sm:w-6 shrink-0 flex items-center justify-center">
                                         {isRec && <span className="text-amber-500 animate-sparkle text-[11px] sm:text-sm drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]"><i className="fa-solid fa-star"></i></span>}
                                     </div>
-                                    <span className={`shrink-0 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black border tracking-tight ${
+                                    <span className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] sm:text-[12.5px] font-extrabold border tracking-wide shadow-sm leading-none ${
                                         p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
                                         p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
                                         'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -360,7 +361,7 @@ export const MainTab = ({
                                     <div className="text-xs sm:text-[13.5px] font-black text-red-500 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
                                         {formatDisplayPrice(p.price, p.manageFee)}
                                     </div>
-                                    <div className="text-[10px] sm:text-[11.5px] font-black text-slate-700 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded-md whitespace-nowrap sm:w-[70px] text-center shrink-0">
+                                    <div className="text-[11px] sm:text-[12.5px] font-extrabold text-slate-750 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl whitespace-nowrap sm:w-[85px] text-center shrink-0 shadow-sm leading-none">
                                         {p.category}
                                     </div>
                                     <div className="text-[10px] sm:text-[12px] font-semibold text-slate-600 truncate hidden sm:block ml-0 flex-1 border-l border-slate-200 pl-3">
@@ -537,32 +538,36 @@ export const MainTab = ({
                                             </td>
                                             <td className="p-4 text-slate-600 text-center whitespace-nowrap">{p.floor || '-'}/{p.totalFloor || '-'}층</td>
                                             <td className="p-4 text-center whitespace-nowrap">
-                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${
-                                                    p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' :
-                                                    p.transactionType === '전세' ? 'bg-amber-50 border-amber-100 text-amber-600' :
-                                                    'bg-emerald-50 border-emerald-100 text-emerald-600'
+                                                <span className={`inline-block px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold border shadow-sm tracking-wide ${
+                                                    p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                                                    p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                                                    'bg-emerald-50 border-emerald-200 text-emerald-700'
                                                 }`}>
                                                     {p.transactionType || '월세'}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-slate-600 font-bold text-center whitespace-nowrap">{p.category}</td>
+                                            <td className="p-4 text-center whitespace-nowrap">
+                                                <span className="inline-block bg-slate-150 border border-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold tracking-wide shadow-sm min-w-[75px]">
+                                                    {p.category}
+                                                </span>
+                                            </td>
                                             <td className="p-4 text-red-500 font-black text-center whitespace-nowrap">{formatDisplayPrice(p.price, p.manageFee)}</td>
                                             <td className="p-4 text-slate-600 text-center"><span className="block truncate max-w-[140px] lg:max-w-none">{formatDisplayAddress(p.address)}</span></td>
                                             <td className="p-4 text-slate-500 text-xs text-left max-w-xs break-all">{stripHtml(p.remarks)}</td>
                                             <td className="p-4 text-center whitespace-nowrap">
-                                                 <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-black">
+                                                 <div className="flex items-center justify-center gap-2 font-black">
                                                      {hasVR ? (
-                                                         <div className="flex items-center bg-emerald-500 text-white px-2 py-1 rounded-md shadow-sm animate-pulse scale-105">
-                                                             <i className="fa-solid fa-vr-cardboard mr-1"></i>
-                                                             <span className="text-[10px]">360° 투어</span>
+                                                         <div className="inline-flex items-center bg-emerald-500 text-white border border-emerald-600 px-3.5 py-1.5 rounded-xl shadow-md animate-pulse text-xs sm:text-[13px] font-extrabold tracking-wide">
+                                                             <span className="mr-1.5">🥽</span>
+                                                             <span>360° 투어</span>
                                                          </div>
                                                      ) : (thumbnailVal || imagesVal) ? (
-                                                         <div className="flex items-center text-slate-400">
-                                                             <i className="fa-solid fa-camera mr-1"></i>
-                                                             <span className="text-[10px]">일반사진</span>
+                                                         <div className="inline-flex items-center bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-xl shadow-sm text-xs sm:text-[13px] font-extrabold tracking-wide">
+                                                             <span className="mr-1.5">📷</span>
+                                                             <span>일반사진</span>
                                                          </div>
                                                      ) : (
-                                                         <span className="text-slate-300">-</span>
+                                                         <span className="text-slate-300 text-sm font-bold">-</span>
                                                      )}
                                                  </div>
                                             </td>
@@ -601,7 +606,7 @@ export const MainTab = ({
                                 const floorVal = p.floor ? String(p.floor) : '';
                                 const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
                                 const roomVal = p.room ? String(p.room) : '';
-                                const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (roomVal ? `${roomVal}호` : '지상층');
+                                const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (isAdminLoggedIn && roomVal ? `${roomVal}호` : '지상층');
                                 return (
                                     <div key={p.id} onClick={() => setSelectedPostId(p.id)} className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex items-center justify-between gap-4 cursor-pointer text-left w-full">
                                         <div className="flex-grow min-w-0 flex flex-col gap-1.5">
@@ -612,10 +617,10 @@ export const MainTab = ({
                                                         <i className="fa-solid fa-star"></i>
                                                     </div>
                                                 )}
-                                                <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-black border ${
-                                                    p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' :
-                                                    p.transactionType === '전세' ? 'bg-amber-50 border-amber-100 text-amber-600' :
-                                                    'bg-emerald-50 border-emerald-100 text-emerald-600'
+                                                <span className={`shrink-0 px-2.5 py-1 rounded-xl text-[10.5px] font-extrabold border shadow-sm leading-none ${
+                                                    p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                                                    p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                                                    'bg-emerald-50 border-emerald-200 text-emerald-700'
                                                 }`}>
                                                     {p.transactionType || '월세'}
                                                 </span>
@@ -641,7 +646,7 @@ export const MainTab = ({
 
                                             {/* Row 3: Metadata Row - Category & Address Details */}
                                             <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 min-w-0 flex-wrap">
-                                                <span className="text-slate-700 font-bold bg-slate-100/80 border border-slate-200/50 px-1.5 py-0.5 rounded text-[9.5px] leading-none shrink-0">
+                                                <span className="inline-flex items-center justify-center bg-slate-100 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg text-[11px] font-extrabold leading-none shrink-0 shadow-sm">
                                                     {p.category}
                                                 </span>
                                                 <span className="text-slate-300 leading-none shrink-0">|</span>

@@ -361,7 +361,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             floor: formData.floor || '',
             totalFloor: formData.totalFloor || '',
             price: formData.price || '',
-            manageFee: formData.manageFee || '',
+            manageFee: (formData.manageFee && /^\d+$/.test(formData.manageFee.trim())) ? formData.manageFee.trim() + '만' : (formData.manageFee || ''),
             phone: formData.phone || '',
             ownerPhone: formData.ownerPhone || '',
             title: formData.title || '',
@@ -603,9 +603,9 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             />
                         </div>
 
-                        {/* (8) 보증금 / 매매가격 (문자가능) */}
+                        {/* (8) 보증금 / 월세 / 매매가격 (문자가능) */}
                         <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">보증금 / 매매가격 (문자가능)</label>
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">보증금 / 월세 / 매매가격 (문자가능)</label>
                             <input 
                                 type="text" 
                                 id="post-price" 
@@ -617,15 +617,29 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             />
                         </div>
 
-                        {/* (9) 월세 / 관리비 정보 (문자가능) */}
+                        {/* (9) 관리비 정보 (문자가능) */}
                         <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">월세 / 관리비 정보 (문자가능)</label>
+                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">관리비 정보 (문자가능)</label>
                             <input 
                                 type="text" 
                                 id="post-manageFee" 
                                 value={formData.manageFee} 
                                 onChange={handleFormChange}
-                                placeholder="예: 월세 25만 / 관리비 5만" 
+                                onBlur={(e) => {
+                                    const val = e.target.value.trim();
+                                    if (val && /^\d+$/.test(val)) {
+                                        setFormData(prev => ({ ...prev, manageFee: val + '만' }));
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        const val = (e.target as HTMLInputElement).value.trim();
+                                        if (val && /^\d+$/.test(val)) {
+                                            setFormData(prev => ({ ...prev, manageFee: val + '만' }));
+                                        }
+                                    }
+                                }}
+                                placeholder="예: 7만 또는 10만" 
                                 className={getInputClass(formData.manageFee)}
                             />
                         </div>
@@ -743,12 +757,12 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                                 </div>
                             ) : (
                                 <div 
-                                    className="w-full h-[220px] flex flex-col items-center justify-center bg-slate-50/80 border border-slate-250 rounded-2xl text-slate-450 hover:bg-slate-100 hover:text-emerald-600 cursor-pointer transition-all mb-4"
+                                    className="w-full h-[320px] sm:h-[420px] flex flex-col items-center justify-center bg-slate-105 rounded-2xl border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-emerald-700 duration-200 cursor-pointer mb-4 shadow-inner transition-all text-center px-4"
                                     onClick={() => imagesInputRef.current?.click()}
                                 >
-                                    <i className="fa-solid fa-folder-plus text-4xl mb-2 text-slate-300"></i>
+                                    <i className="fa-solid fa-folder-plus text-5xl mb-3 text-slate-300 animate-pulse"></i>
                                     <span className="text-sm font-bold">등록된 추가 전경 사진 파일이 없습니다</span>
-                                    <p className="text-[11px] text-slate-450 mt-1">이곳을 터치하거나 클릭하여 부엌, 베란다, 거실 섀시 등의 장비 컷을 대량 첨부하세요.</p>
+                                    <p className="text-[11px] text-slate-450 mt-1 max-w-xl leading-relaxed">이곳을 터치하거나 클릭하여 부엌, 베란다, 거실 섀시 등의 장비 컷을 대량 첨부하세요.</p>
                                 </div>
                             )}
 
@@ -770,15 +784,14 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                                 <span className="text-[11px] font-black text-slate-750">360° 파노라마 실내 VR 가상 투어 공간 등록</span>
                             </div>
                             <input type="file" ref={panoInputRef} onChange={e => handleFileChange(e, 'pano')} multiple accept="image/*" className="hidden" />
-                            <div className="flex gap-2">
-                                <button type="button" onClick={() => panoInputRef.current?.click()} className="bg-amber-50 text-amber-700 hover:bg-amber-100 py-1.5 px-3.5 rounded-xl text-[10px] font-extrabold transition-all border border-amber-200/60 leading-none">파노라마 고해상 원본 사진 등록</button>
-                                {formData.panoramas && (
+                            {formData.panoramas && (
+                                <div className="flex gap-2">
                                     <button type="button" onClick={() => {
                                         setFormData(prev => ({ ...prev, panoramas: '' }));
                                         setActiveVRIndex(0);
                                     }} className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-1.5 px-3.5 rounded-xl text-[10px] font-extrabold transition-all border border-rose-100 leading-none">VR 전체 비우기</button>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </div>
 
                         {formData.panoramas ? (
@@ -923,11 +936,30 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                                 })()}
                             </div>
                         ) : (
-                            <div className="p-10 text-center bg-slate-100 rounded-2xl border-2 border-dashed border-slate-200">
-                                <i className="fa-solid fa-earth-asia text-3xl text-slate-300 animate-spin pb-1.5 block"></i>
-                                <p className="text-slate-405 text-xs font-semibold">동서남북 회전이 가능한 360° 파노라마 사진을 업로드하시면, 현장감 넘치는 VR 가상 주택 실내가 매물 상세 페이지에 즉각 반영되어 가동됩니다.</p>
+                            <div 
+                                className="w-full h-[320px] sm:h-[420px] flex flex-col items-center justify-center bg-slate-105 rounded-2xl border-2 border-dashed border-slate-300 hover:border-amber-500 hover:text-amber-700 duration-200 cursor-pointer mb-4 shadow-inner transition-all text-center px-4"
+                                onClick={() => panoInputRef.current?.click()}
+                            >
+                                <i className="fa-solid fa-earth-asia text-5xl text-slate-300 animate-spin mb-3 pb-1.5 block"></i>
+                                <span className="text-sm font-bold text-slate-705 mb-1">등록된 360° 파노라마 VR 가상 투어 공간 사진이 없습니다</span>
+                                <p className="text-[11px] text-slate-450 mt-1 max-w-xl leading-relaxed">
+                                    이곳을 터치하거나 클릭하여 동서남북 회전이 가능한 360° 파노라마 사진을 업로드하시면, 현장감 넘치는 VR 가상 주택 실내가 매물 상세 페이지에 즉각 반영되어 가동됩니다.
+                                </p>
                             </div>
                         )}
+
+                        {/* 1. 이동 및 디자인/스타일 강화된 파노라마 고해상 원본 사진 등록 버튼 */}
+                        <div className="flex justify-center pt-4 pb-2">
+                            <button 
+                                type="button" 
+                                onClick={() => panoInputRef.current?.click()} 
+                                className="w-full max-w-sm sm:max-w-md bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-black py-4 px-8 rounded-2xl text-[14px] sm:text-base border-2 border-amber-600 transition-all duration-350 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 mx-auto cursor-pointer"
+                                style={{ margin: '0 auto' }}
+                            >
+                                <i className="fa-solid fa-cloud-arrow-up text-base sm:text-lg"></i>
+                                <span>파노라마 고해상 원본 사진 등록</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

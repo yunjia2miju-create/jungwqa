@@ -424,26 +424,58 @@ export const MainTab = ({
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full font-medium mt-1">
-                    <label className="flex items-center justify-center space-x-2 cursor-pointer bg-white border border-slate-200 rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm hover:bg-slate-50 transition-all select-none whitespace-nowrap w-full sm:w-auto">
-                        <input type="checkbox" checked={showOnlyRecommended} onChange={(e) => { setShowOnlyRecommended(e.target.checked); setCurrentPage(1); }} className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" />
-                        <span className="font-extrabold text-slate-700 flex items-center gap-1">
-                            <i className="fa-solid fa-star text-amber-500 animate-sparkle"></i>
-                            <span>추천 매물만 보기</span>
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6 w-full font-medium mt-4 sm:mt-6 mb-4">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 w-full lg:w-auto">
+                        <label 
+                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
+                                showOnlyRecommended 
+                                    ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-black scale-[1.03] ring-4 ring-amber-500/10 shadow-[0_6px_20px_rgba(245,158,11,0.25)]' 
+                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
+                            }`}
+                        >
+                            <input 
+                                type="checkbox" 
+                                checked={showOnlyRecommended} 
+                                onChange={(e) => { setShowOnlyRecommended(e.target.checked); setCurrentPage(1); }} 
+                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-amber-500 border-2 border-slate-300 rounded-lg focus:ring-amber-500 cursor-pointer accent-amber-500 transition-all shrink-0" 
+                            />
+                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
+                                <i className="fa-solid fa-star text-amber-500 text-lg sm:text-2xl animate-sparkle shrink-0"></i>
+                                <span>추천 매물만 보기</span>
+                            </span>
+                        </label>
+
+                        <label 
+                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
+                                showOnlyVR 
+                                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-950 font-black scale-[1.03] ring-4 ring-emerald-500/10 shadow-[0_6px_20px_rgba(16,185,129,0.25)]' 
+                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
+                            }`}
+                        >
+                            <input 
+                                type="checkbox" 
+                                checked={showOnlyVR} 
+                                onChange={(e) => { setShowOnlyVR(e.target.checked); setCurrentPage(1); }} 
+                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-emerald-600 border-2 border-slate-300 rounded-lg focus:ring-emerald-500 cursor-pointer accent-emerald-600 transition-all shrink-0" 
+                            />
+                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
+                                <i className="fa-solid fa-vr-cardboard text-emerald-500 text-lg sm:text-2xl shrink-0"></i>
+                                <span>360° VR 매물만 보기</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div className="relative w-full lg:w-96 lg:ml-auto">
+                        <span className="absolute inset-y-0 left-0 pl-4.5 flex items-center text-emerald-600 z-10 pointer-events-none">
+                            <i className="fa-solid fa-magnifying-glass text-sm sm:text-base"></i>
                         </span>
-                    </label>
-                    <label className="flex items-center justify-center space-x-2 cursor-pointer bg-white border border-slate-200 rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm hover:bg-slate-50 transition-all select-none whitespace-nowrap w-full sm:w-auto">
-                        <input type="checkbox" checked={showOnlyVR} onChange={(e) => { setShowOnlyVR(e.target.checked); setCurrentPage(1); }} className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" />
-                        <span className="font-extrabold text-slate-700 flex items-center gap-1">
-                            <i className="fa-solid fa-vr-cardboard text-emerald-500"></i>
-                            <span>360° VR 매물만 보기</span>
-                        </span>
-                    </label>
-                    <div className="relative w-full sm:w-80 ml-auto">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-600 z-10">
-                            <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm"></i>
-                        </span>
-                        <input type="text" value={searchVal} onChange={handleSearch} placeholder="건물명 또는 주소 검색..." className="w-full bg-emerald-50/80 border border-emerald-300 text-emerald-900 font-bold rounded-xl pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 sm:focus:ring-4 focus:ring-emerald-500/15 transition-all placeholder-emerald-700/60 shadow-inner" />
+                        <input 
+                            type="text" 
+                            value={searchVal} 
+                            onChange={handleSearch} 
+                            placeholder="건물명 또는 주소 검색..." 
+                            className="w-full bg-emerald-50/80 border-2 border-emerald-300/80 text-emerald-950 font-extrabold rounded-2xl pl-11 sm:pl-12 pr-4 sm:pr-5 py-4 sm:py-4.5 text-sm focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15 transition-all placeholder-emerald-700/60 shadow-inner" 
+                        />
                     </div>
                 </div>
             </div>

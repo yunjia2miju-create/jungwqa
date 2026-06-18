@@ -702,4 +702,5 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
     );
 };
 
+export { PannellumViewer };
 export default PannellumViewer;

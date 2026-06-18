@@ -9,7 +9,7 @@ interface RichTextEditorProps {
     uploadedImages?: { name: string; url: string }[];
 }
 
-export default function RichTextEditor({
+export function RichTextEditor({
     value,
     onChange,
     placeholder = '여기에 내용을 입력하세요...',
@@ -1111,3 +1111,6 @@ export default function RichTextEditor({
         </div>
     );
 }
+
+export default RichTextEditor;
+

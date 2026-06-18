@@ -63,7 +63,8 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         const blob = dataURLtoBlob(base64Data);
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
-        const cleanName = originalName.replace(/[^a-zA-Z0-9.]/g, '_');
+        // Preserve Hangul, alphanumeric characters, dot, hyphen, and underscore
+        const cleanName = originalName.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_.-]/g, '_');
         const safeName = `${timestamp}_${randomStr}_${cleanName}`;
         
         const storageRef = ref(storage, `${prefix}/${safeName}`);

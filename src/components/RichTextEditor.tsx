@@ -1,5 +1,40 @@
 import React, { useRef, useEffect, useState } from 'react';
 
+// Helper to extract clean original file name from firebase storage URLs or general URLs
+const getOriginalFileNameFromUrl = (url: string, fallbackName: string): string => {
+    try {
+        if (!url) return fallbackName;
+        if (url.includes('firebasestorage.googleapis.com')) {
+            const parts = url.split('/o/');
+            if (parts.length > 1) {
+                const pathWithToken = parts[1];
+                const cleanPath = pathWithToken.split('?')[0];
+                const decodedPath = decodeURIComponent(cleanPath);
+                const fileName = decodedPath.split('/').pop() || decodedPath;
+                
+                // Strip the "${timestamp}_${randomStr}_" prefix if it exists
+                const match = fileName.match(/^\d+_[^_]+_(.+)$/);
+                if (match && match[1]) {
+                    return match[1];
+                }
+                return fileName;
+            }
+        }
+        const decodedUrl = decodeURIComponent(url);
+        const fileName = decodedUrl.substring(decodedUrl.lastIndexOf('/') + 1).split('?')[0];
+        if (fileName) {
+            const match = fileName.match(/^\d+_[^_]+_(.+)$/);
+            if (match && match[1]) {
+                return match[1];
+            }
+            return fileName;
+        }
+        return fallbackName;
+    } catch (e) {
+        return fallbackName;
+    }
+};
+
 interface RichTextEditorProps {
     value: string;
     onChange: (val: string) => void;
@@ -960,32 +995,56 @@ export function RichTextEditor({
                                 <i className="fa-solid fa-caret-left"></i> 이전으로
                             </button>
                             <div className="grid grid-cols-1 gap-3 max-h-[440px] overflow-y-auto pr-1">
-                                {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, photoIndex) => (
-                                    <button
-                                        key={photoIndex + '-' + photo.name}
-                                        type="button"
-                                        onClick={() => {
-                                            const photoHtml = `
-                                                <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
-                                                    <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
-                                                    <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 실사 촬영 이미지 - ${photo.name}</p>
+                                {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, photoIndex) => {
+                                    const isUploaded = uploadedImages.length > 0;
+                                    const displayName = isUploaded 
+                                        ? getOriginalFileNameFromUrl(photo.url, photo.name)
+                                        : photo.name;
+                                    
+                                    const displayTitle = isUploaded
+                                        ? `[사진 ${photoIndex + 1}]`
+                                        : `[예시 ${photoIndex + 1}]`;
+
+                                    return (
+                                        <button
+                                            key={photoIndex + '-' + photo.name}
+                                            type="button"
+                                            onClick={() => {
+                                                const captionText = isUploaded ? `실사 촬영 이미지 [사진 ${photoIndex + 1}] ${displayName}` : displayName;
+                                                const photoHtml = `
+                                                    <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
+                                                        <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+                                                        <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 ${captionText}</p>
+                                                    </div>
+                                                    <p contenteditable="true"><br></p>
+                                                `;
+                                                insertHtml(photoHtml);
+                                                setShowQuickAddMenu(false);
+                                            }}
+                                            className="bg-slate-50 hover:bg-emerald-50 text-left p-2.5 sm:p-3 rounded-xl border border-slate-200/60 flex items-center gap-3 sm:gap-4 transition-all cursor-pointer shadow-sm hover:border-emerald-300 group"
+                                        >
+                                            <div className="w-24 h-16 sm:w-28 sm:h-20 md:w-32 md:h-22 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 bg-slate-100">
+                                                <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                                            </div>
+                                            <div className="flex flex-col min-w-0 flex-1 py-1 text-left">
+                                                <div className="flex items-center gap-1.5 flex-wrap w-full">
+                                                    <div className="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center flex-wrap leading-tight">
+                                                        <span className="text-emerald-600 font-black flex-shrink-0">
+                                                            {displayTitle}
+                                                        </span>
+                                                        <span className="text-slate-400 font-bold flex-shrink-0 ml-1 mr-1">
+                                                            파일명 :
+                                                        </span>
+                                                        <span className="text-slate-900 font-extrabold truncate max-w-[140px] sm:max-w-[200px] group-hover:text-emerald-700 transition-colors" title={displayName}>
+                                                            {displayName}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <p contenteditable="true"><br></p>
-                                            `;
-                                            insertHtml(photoHtml);
-                                            setShowQuickAddMenu(false);
-                                        }}
-                                        className="bg-slate-50 hover:bg-emerald-50 text-left p-2.5 sm:p-3 rounded-xl border border-slate-200/60 flex items-center gap-3 sm:gap-4 transition-all cursor-pointer shadow-sm hover:border-emerald-300 group"
-                                    >
-                                        <div className="w-24 h-16 sm:w-28 sm:h-20 md:w-32 md:h-22 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 bg-slate-100">
-                                            <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
-                                        </div>
-                                        <div className="flex flex-col min-w-0 flex-1 py-1">
-                                            <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate group-hover:text-emerald-700 transition-colors">{photo.name}</span>
-                                            <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1 leading-snug">클릭 시 본문에 선명한 고품질 사진 삽입</span>
-                                        </div>
-                                    </button>
-                                ))}
+                                                <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1 leading-snug">클릭 시 본문에 선명한 고품질 사진 삽입</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

@@ -774,7 +774,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                         </div>
 
                 {/* Contact Information */}
-                <div>
+                <div className="w-full text-left">
                     <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">상담/홍보 담당자 연결 전용 연락처</label>
                     <input 
                         type="text" 
@@ -784,6 +784,25 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                         onChange={handleFormChange}
                         className={getInputClass(formData.phone)}
                     />
+                </div>
+
+                {/* (11) 유튜브 동영상 브리핑 등록 */}
+                <div className="w-full text-left animate-fadeIn">
+                    <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5 flex items-center gap-1.5">
+                        <i className="fa-brands fa-youtube text-rose-600 text-xl animate-pulse"></i>
+                        <span>소장 고화질 동영상 브리핑 유튜브 주소</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="post-video" 
+                        value={formData.video || ''} 
+                        onChange={handleFormChange}
+                        placeholder="예: https://www.youtube.com/watch?v=dQw4w9WgXcQ 또는 https://youtu.be/dQw4w9WgXcQ" 
+                        className={getInputClass(formData.video)}
+                    />
+                    <p className="text-[11px] text-slate-500 font-bold mt-1.5 leading-relaxed">
+                        ※ 유튜브 공유 링크나 브라우저 주소창의 동영상 주소를 그대로 붙여넣으시면 상세 페이지에서 고화질 동영상 브리핑 재생 플레이어가 제공됩니다.
+                    </p>
                 </div>
 
                 {/* Image upload section (Drag & Drop or Manual selection) - EXTREMELY ENLARGED FOR WIDESCREEN SUPPORT */}

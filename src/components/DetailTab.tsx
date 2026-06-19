@@ -216,50 +216,50 @@ export const DetailTab = ({
                             <span className="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-slate-200 tracking-wide shadow-sm">{p.dong || '구미시'}</span>
                         </div>
 
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 border-b border-slate-150 pb-6 mb-6 w-full">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start lg:grid lg:grid-cols-2 gap-6 lg:gap-12 lg:items-center border-b border-slate-150 pb-6 mb-6 w-full">
                     {/* 왼쪽: 건축물 정보, 동, 가격 */}
-                    <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight mb-3 flex items-center gap-2 flex-wrap">
+                    <div className="flex-1 min-w-0 w-full">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-slate-900 leading-tight tracking-tight mb-3 lg:mb-4 flex items-center gap-2 flex-wrap">
                             <span>{p.building} {isAdminLoggedIn && p.room ? `${p.room}호` : ''}</span>
                             {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
-                                <span className="shrink-0 bg-emerald-600 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-900/20 animate-pulse">
+                                <span className="shrink-0 bg-emerald-600 text-white text-xs sm:text-sm lg:text-base font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-900/20 animate-pulse">
                                     <i className="fa-solid fa-vr-cardboard"></i>
                                     <span>VR 투어 가능</span>
                                 </span>
                             )}
                         </h1>
-                        <p className="text-2xl sm:text-3xl font-extrabold text-red-500 tracking-tight">{formatDisplayPrice(p.price, p.transactionType || '월세')}</p>
+                        <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-red-500 tracking-tight lg:mt-3">{formatDisplayPrice(p.price, p.transactionType || '월세')}</p>
                     </div>
 
                     {/* 오른쪽: 매물 핵심 요약 제원표 (허전한 우측 여백을 최적화하여 꽉 채움) */}
-                    <div className="w-full md:w-[340px] bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 flex flex-col gap-3 shadow-inner text-xs shrink-0">
+                    <div className="w-full md:w-[340px] lg:w-full lg:max-w-none bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 lg:p-6.5 flex flex-col gap-3 lg:gap-4.5 shadow-inner text-xs lg:text-sm shrink-0">
                         <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                            <span className="font-black text-slate-800 flex items-center gap-1.5">
-                                <i className="fa-solid fa-building-circle-check text-emerald-600 text-sm"></i>
+                            <span className="font-black text-slate-800 flex items-center gap-1.5 lg:text-base">
+                                <i className="fa-solid fa-building-circle-check text-emerald-600 text-sm lg:text-base"></i>
                                 <span>매물 요약 정보 (Fact Sheet)</span>
                             </span>
-                            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] lg:text-xs font-mono font-bold text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
                                 #{p.id.substring(0, 8)}
                             </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-slate-600 py-0.5">
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] font-bold text-slate-400">거래 구분</span>
-                                <span className="font-extrabold text-slate-800">{p.transactionType || '월세'} / {p.category}</span>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 lg:gap-y-4.5 text-slate-600 py-0.5">
+                            <div className="flex flex-col gap-0.5 lg:gap-1.5">
+                                <span className="text-[10px] lg:text-xs font-bold text-slate-400">거래 구분</span>
+                                <span className="font-extrabold text-slate-800 lg:text-base">{p.transactionType || '월세'} / {p.category}</span>
                             </div>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] font-bold text-slate-400">기본 관리비</span>
-                                <span className="font-extrabold text-[#0d9488]">{p.manageFee && p.manageFee !== '없음' ? `${p.manageFee}` : '없음 (상세문의)'}</span>
+                            <div className="flex flex-col gap-0.5 lg:gap-1.5">
+                                <span className="text-[10px] lg:text-xs font-bold text-slate-400">기본 관리비</span>
+                                <span className="font-extrabold text-[#0d9488] lg:text-base">{p.manageFee && p.manageFee !== '없음' ? `${p.manageFee}` : '없음 (상세문의)'}</span>
                             </div>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] font-bold text-slate-400">해당/전체 층수</span>
-                                <span className="font-extrabold text-slate-800">
+                            <div className="flex flex-col gap-0.5 lg:gap-1.5">
+                                <span className="text-[10px] lg:text-xs font-bold text-slate-400">해당/전체 층수</span>
+                                <span className="font-extrabold text-slate-800 lg:text-base">
                                     {p.floor && p.totalFloor ? `${p.floor}층 / 전체 ${p.totalFloor}층` : (p.floor ? `${p.floor}층` : '지상층')}
                                 </span>
                             </div>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] font-bold text-slate-400">매물 핵심 지번</span>
-                                <span className="font-extrabold text-slate-800 truncate" title={p.address}>{p.address || p.dong || '구미시'}</span>
+                            <div className="flex flex-col gap-0.5 lg:gap-1.5">
+                                <span className="text-[10px] lg:text-xs font-bold text-slate-400">매물 핵심 지번</span>
+                                <span className="font-extrabold text-slate-800 truncate lg:text-base" title={p.address}>{p.address || p.dong || '구미시'}</span>
                             </div>
                         </div>
 
@@ -272,7 +272,7 @@ export const DetailTab = ({
                                     openPhoneSelectModal(e, p.phone || '010-7590-0111', p.ownerPhone); 
                                 }
                             }}
-                            className="mt-1 w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-950/10 transition-all text-center select-none cursor-pointer text-xs"
+                            className="mt-1 lg:mt-2 w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-2.5 lg:py-4 rounded-xl flex items-center justify-center gap-2 lg:gap-3 shadow-md shadow-emerald-950/10 transition-all text-center select-none cursor-pointer text-xs lg:text-base"
                         >
                             <i className="fa-solid fa-phone animate-bounce"></i>
                             <span>태왕 공인중개사 직통 빠른 전화</span>

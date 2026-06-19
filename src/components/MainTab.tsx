@@ -738,7 +738,7 @@ export const MainTab = ({
                                             )}
                                         </div>
                                         {/* Action Buttons Section */}
-                                        <div className="order-3 flex lg:flex-col items-center justify-center gap-3 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 self-center lg:self-stretch">
+                                        <div className="order-3 flex lg:flex-col items-center justify-center gap-3 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 w-full sm:w-auto self-stretch sm:self-center lg:self-stretch mt-1.5 sm:mt-0">
                                             <div className="hidden">
                                                 {hasVR ? (
                                                     <div className="bg-emerald-500 text-white w-full h-full rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-900/30 animate-pulse-slow">
@@ -762,9 +762,10 @@ export const MainTab = ({
                                                         window.location.href = `tel:${p.phone || '010-7590-0111'}`;
                                                     }
                                                 }} 
-                                                className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-500 hover:shadow-lg rounded-xl transition-all shrink-0 shadow-sm relative group">
+                                                className="w-full sm:w-11 h-12 sm:h-11 flex items-center justify-center gap-2.5 text-white bg-emerald-600 hover:bg-emerald-500 hover:shadow-lg rounded-full sm:rounded-xl transition-all shrink-0 shadow-md sm:shadow-sm relative group px-5 sm:px-0">
                                                 <i className="fa-solid fa-phone text-sm sm:text-base"></i>
-                                                {isAdminLoggedIn && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-amber-500 border border-white rounded-full"></span>}
+                                                <span className="sm:hidden font-extrabold text-[14px] tracking-wide">소장 직통 연결</span>
+                                                {isAdminLoggedIn && <span className="absolute top-1 right-4 sm:top-0 sm:right-0 w-2.5 h-2.5 bg-amber-500 border border-white rounded-full shadow-sm animate-pulse"></span>}
                                             </button>
                                         </div>
                                     </div>

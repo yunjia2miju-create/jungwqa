@@ -197,16 +197,9 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 const baseHfov = 105; // Starting average hfov
                 const computedHfov = Math.min(110, Math.max(100, baseHfov + (containerAspectRatio - 1.5) * 15));
 
-                // Align horizontal/vertical bounds with aspect ratio of the image file
+                // 욕실/방 바닥 마감 상태 등을 샅샅이 확인할 수 있도록 360도 구형(Sphere) 공간 전범위 확보 및 마우스 드래그 걸림 방지
                 let haov = 360;
                 let vaov = 180;
-                if (imageAspectRatio >= 2.0) {
-                    haov = 360;
-                    vaov = 360 / imageAspectRatio;
-                } else {
-                    vaov = 180;
-                    haov = 180 * imageAspectRatio;
-                }
 
                 container_ready.innerHTML = '';
                 v_fullscreen = window.pannellum.viewer(container_ready, {
@@ -218,7 +211,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     hfov: computedHfov,
                     minHfov: 60,
                     maxHfov: 115,
-                    minPitch: -90,
+                    minPitch: -85,
                     maxPitch: 90,
                     haov: haov,
                     vaov: vaov,
@@ -532,16 +525,9 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 const baseHfov = 105; // Starting average hfov
                 const computedHfov = Math.min(110, Math.max(100, baseHfov + (containerAspectRatio - 1.5) * 15));
 
-                // Align horizontal/vertical bounds with aspect ratio of the image file
+                // 욕실/방 바닥 마감 상태 등을 샅샅이 확인할 수 있도록 360도 구형(Sphere) 공간 전범위 확보 및 마우스 드래그 걸림 방지
                 let haov = 360;
                 let vaov = 180;
-                if (imageAspectRatio >= 2.0) {
-                    haov = 360;
-                    vaov = 360 / imageAspectRatio;
-                } else {
-                    vaov = 180;
-                    haov = 180 * imageAspectRatio;
-                }
 
                 // Clean the existing elements completely to prevent context collisions and memory leaks
                 container.innerHTML = '';
@@ -559,7 +545,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     hfov: computedHfov,
                     minHfov: 60,
                     maxHfov: 115,
-                    minPitch: -90,
+                    minPitch: -85,
                     maxPitch: 90,
                     haov: haov,
                     vaov: vaov,

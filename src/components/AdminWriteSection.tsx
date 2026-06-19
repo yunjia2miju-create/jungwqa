@@ -171,50 +171,162 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         }
     };
 
+    const processFile = (file: File, isPano = false): Promise<string> => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    const maxDim = isPano ? 4096 : 1920; 
+                    
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Apply watermarking to the center and bottom-right of standard images (non-pano VR)
+                        if (!isPano) {
+                            const centerX = width / 2;
+                            const centerY = height / 2;
+                            
+                            // Scale calculations for proportional styling
+                            const scaleUnit = Math.min(width, height) / 1000;
+                            const iconSize = Math.max(54, 90 * scaleUnit);
+                            const opacity = 0.18; // Opacity 15% ~ 20%
+                            
+                            // 1. Draw Centered House Icon
+                            ctx.save();
+                            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                            ctx.beginPath();
+                            // House outer shape
+                            ctx.moveTo(centerX, centerY - iconSize * 0.45); // Roof peak
+                            ctx.lineTo(centerX + iconSize * 0.5, centerY - iconSize * 0.05); // Right eaves
+                            ctx.lineTo(centerX + iconSize * 0.35, centerY - iconSize * 0.05); // Right inner wall top
+                            ctx.lineTo(centerX + iconSize * 0.35, centerY + iconSize * 0.45); // Right wall bottom
+                            ctx.lineTo(centerX - iconSize * 0.35, centerY + iconSize * 0.45); // Left wall bottom
+                            ctx.lineTo(centerX - iconSize * 0.35, centerY - iconSize * 0.05); // Left inner wall top
+                            ctx.lineTo(centerX - iconSize * 0.5, centerY - iconSize * 0.05); // Left eaves
+                            ctx.closePath();
+                            
+                            // Door cutout
+                            ctx.rect(centerX - iconSize * 0.1, centerY + iconSize * 0.15, iconSize * 0.2, iconSize * 0.3);
+                            
+                            // Fill utilizing evenodd rule to leave the door transparent without cutting the background image
+                            ctx.fill('evenodd');
+                            ctx.restore();
+
+                            // 2. Draw Bottom-Right House Shield and Text (Dual composition)
+                            ctx.save();
+                            const rightMargin = Math.max(16, 24 * scaleUnit);
+                            const bottomMargin = Math.max(16, 24 * scaleUnit);
+                            const textFontSize = Math.max(13, 20 * scaleUnit);
+                            
+                            ctx.font = `900 ${textFontSize}px "NanumSquare", "Nanum Gothic", "Noto Sans KR", sans-serif`;
+                            ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 1.15})`; // Slightly enhanced visibility limit
+                            ctx.textAlign = 'right';
+                            ctx.textBaseline = 'bottom';
+                            
+                            // Drop shadow to ensure readability in any complex background scenes
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+                            ctx.shadowBlur = Math.max(3, 5 * scaleUnit);
+                            ctx.shadowOffsetX = Math.max(1.5, 2.5 * scaleUnit);
+                            ctx.shadowOffsetY = Math.max(1.5, 2.5 * scaleUnit);
+                            
+                            const textX = width - rightMargin;
+                            const textY = height - bottomMargin;
+                            const watermarkText = "태왕공인중개사";
+                            
+                            const textWidth = ctx.measureText(watermarkText).width;
+                            const shieldSize = textFontSize * 1.05;
+                            const shieldX = textX - textWidth - shieldSize - Math.max(4, 6 * scaleUnit);
+                            const shieldY = textY - shieldSize + (shieldSize * 0.05);
+                            
+                            // Outer Shield Line Path
+                            ctx.beginPath();
+                            ctx.moveTo(shieldX + shieldSize * 0.5, shieldY);
+                            ctx.lineTo(shieldX + shieldSize, shieldY + shieldSize * 0.25);
+                            ctx.lineTo(shieldX + shieldSize, shieldY + shieldSize * 0.75);
+                            ctx.quadraticCurveTo(shieldX + shieldSize, shieldY + shieldSize, shieldX + shieldSize * 0.5, shieldY + shieldSize);
+                            ctx.quadraticCurveTo(shieldX, shieldY + shieldSize, shieldX, shieldY + shieldSize * 0.75);
+                            ctx.lineTo(shieldX, shieldY + shieldSize * 0.25);
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            // Subtract/carve the inner tiny house silhouette gracefully using destination-out layout
+                            ctx.save();
+                            ctx.globalCompositeOperation = 'destination-out';
+                            ctx.beginPath();
+                            const innerW = shieldSize * 0.5;
+                            const innerH = shieldSize * 0.5;
+                            const innerX = shieldX + shieldSize * 0.25;
+                            const innerY = shieldY + shieldSize * 0.3;
+                            
+                            ctx.moveTo(innerX + innerW * 0.5, innerY); // Roof
+                            ctx.lineTo(innerX + innerW, innerY + innerH * 0.4);
+                            ctx.lineTo(innerX + innerW * 0.8, innerY + innerH * 0.4);
+                            ctx.lineTo(innerX + innerW * 0.8, innerY + innerH * 0.9);
+                            ctx.lineTo(innerX + innerW * 0.2, innerY + innerH * 0.9);
+                            ctx.lineTo(innerX + innerW * 0.2, innerY + innerH * 0.4);
+                            ctx.lineTo(innerX, innerY + innerH * 0.4);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
+                            
+                            // Final text output rendering
+                            ctx.fillText(watermarkText, textX, textY);
+                            ctx.restore();
+                        }
+                        
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    } else {
+                        resolve(reader.result as string);
+                    }
+                };
+                img.src = reader.result as string;
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleRichTextImageUpload = async (file: File): Promise<string> => {
+        setIsUploading(true);
+        setUploadProgress('본문 사진에 정밀 워터마크 합성 및 서버(파이어베이스) 저장 중...');
+        try {
+            const base64 = await processFile(file, false);
+            const downloadURL = await uploadResizedBlobToStorage(base64, file.name, 'gallery');
+            showToast("본문 전용 사진이 합성되어 스토리지 업로드에 성공하였습니다.", "success");
+            return downloadURL;
+        } catch (error: any) {
+            console.error("Rich text editor upload error:", error);
+            showToast("본문용 사진 업로드에 실패했습니다.", "error");
+            throw error;
+        } finally {
+            setIsUploading(false);
+            setUploadProgress('');
+        }
+    };
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'thumbnail' | 'images' | 'pano') => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
         setIsUploading(true);
         setUploadProgress('이미지 최적화 처리 중...');
-
-        const processFile = (file: File, isPano = false): Promise<string> => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        const maxDim = isPano ? 4096 : 1920; 
-                        
-                        if (width > maxDim || height > maxDim) {
-                            if (width > height) {
-                                height = Math.round((height * maxDim) / width);
-                                width = maxDim;
-                            } else {
-                                width = Math.round((width * maxDim) / height);
-                                height = maxDim;
-                            }
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        if (ctx) {
-                            ctx.drawImage(img, 0, 0, width, height);
-                            resolve(canvas.toDataURL('image/jpeg', 0.8));
-                        } else {
-                            resolve(reader.result as string);
-                        }
-                    };
-                    img.src = reader.result as string;
-                };
-                reader.readAsDataURL(file);
-            });
-        };
 
         try {
             if (type === 'thumbnail') {
@@ -976,6 +1088,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             value={formData.title || ''} 
                             onChange={(val) => setFormData(prev => ({ ...prev, title: val }))} 
                             placeholder="예: [풀옵션 송정동 신축급] 깔끔하고 햇볕 잘 드는 남향 리모델링 원룸"
+                            onImageUpload={handleRichTextImageUpload}
                             uploadedImages={[
                                 ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
                                 ...(formData.images 
@@ -999,6 +1112,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             value={formData.remarks || ''} 
                             onChange={(val) => setFormData(prev => ({ ...prev, remarks: val }))} 
                             placeholder="예: 즉시 입주 가능 / 반려동물 협의 가능 / 깔끔 내부"
+                            onImageUpload={handleRichTextImageUpload}
                             uploadedImages={[
                                 ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
                                 ...(formData.images 
@@ -1022,6 +1136,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             value={formData.intro || ''} 
                             onChange={(val) => setFormData(prev => ({ ...prev, intro: val }))} 
                             placeholder="예: - 2026년 리모델링을 완전 마친 최상의 에어컨 탑재 신축급 컨디션&#10;- 송정동 먹자골목 및 관공서 도보 5분 천혜의 주거 인프라&#10;- 보증금 조절 적극 지원 및 인근 대비 넓은 서비스 전용 면적"
+                            onImageUpload={handleRichTextImageUpload}
                             uploadedImages={[
                                 ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
                                 ...(formData.images 
@@ -1045,6 +1160,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             value={formData.body || ''} 
                             onChange={(val) => setFormData(prev => ({ ...prev, body: val }))} 
                             placeholder="이 매물을 직접 실사하시고 느낀 장점이나 주변 도보 환경을 친절하게 기술해주세요."
+                            onImageUpload={handleRichTextImageUpload}
                             uploadedImages={[
                                 ...(formData.thumbnail ? [{ name: '대표 썸네일', url: formData.thumbnail }] : []),
                                 ...(formData.images 

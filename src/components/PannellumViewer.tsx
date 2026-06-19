@@ -28,13 +28,17 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
     images, 
     activeIndex, 
     onSceneChange, 
-    height = "aspect-[16/9] md:aspect-[1920/800] min-h-[500px] md:h-[600px] lg:h-[800px]" 
+    height = "h-[450px] md:h-[580px] lg:h-[680px] xl:h-[760px] aspect-auto w-full" 
 }) => {
     const viewerRef = React.useRef<HTMLDivElement>(null);
     const viewerInstanceRef = React.useRef<any>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [viewerError, setViewerError] = React.useState<string | null>(null);
     const imagesKey = images.join('|');
+
+    const [isFullscreen, setIsFullscreen] = React.useState(false);
+    const fullscreenViewerRef = React.useRef<HTMLDivElement>(null);
+    const fullscreenViewerInstanceRef = React.useRef<any>(null);
 
     // 투어 시스템 진단 상태 복구
     const [diagnosticsOpen, setDiagnosticsOpen] = React.useState(false);
@@ -96,6 +100,172 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
         }
         return imgUrl;
     }, []);
+
+    // Full screen / Theater mode initialization effect
+    React.useEffect(() => {
+        if (!isFullscreen) return;
+        let v_fullscreen: any = null;
+        let isModalMounted = true;
+        
+        const container = fullscreenViewerRef.current;
+        if (!container) return;
+
+        const initFullscreenViewer = async () => {
+            try {
+                // Wait briefly for modal transition to finish so ref attaches
+                await new Promise((resolve) => setTimeout(resolve, 310));
+                if (!isModalMounted) return;
+                const container_ready = fullscreenViewerRef.current;
+                if (!container_ready) return;
+
+                if (!window.pannellum) return;
+
+                // Setup hotspots
+                const hotSpots: any[] = [];
+                if (images.length > 1) {
+                    hotSpots.push({
+                        pitch: -15,
+                        yaw: 40,
+                        type: 'info',
+                        cssClass: 'pnlm-hotspot-nav next',
+                        text: activeIndex < images.length - 1 
+                            ? `다음 공간 (공간 ${activeIndex + 2})으로 이동` 
+                            : `처음 공간 (공간 1)으로 이동`,
+                        clickHandlerFunc: () => {
+                            if (onSceneChangeRef.current) {
+                                onSceneChangeRef.current(activeIndex < images.length - 1 ? activeIndex + 1 : 0);
+                            }
+                        }
+                    });
+                    
+                    hotSpots.push({
+                        pitch: -15,
+                        yaw: -40,
+                        type: 'info',
+                        cssClass: 'pnlm-hotspot-nav prev',
+                        text: activeIndex > 0 
+                            ? `이전 공간 (공간 ${activeIndex})으로 이동` 
+                            : `마지막 공간 (공간 ${images.length})으로 이동`,
+                        clickHandlerFunc: () => {
+                            if (onSceneChangeRef.current) {
+                                onSceneChangeRef.current(activeIndex > 0 ? activeIndex - 1 : images.length - 1);
+                            }
+                        }
+                    });
+                }
+
+                const rawUrl = images[activeIndex] || images[0] || '';
+                const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
+                const currentSrc = getDirectSrc(cleanUrl);
+
+                // Get the image aspect ratio dynamically to avoid vertical stretch/squeeze
+                let imageAspectRatio = 2.0;
+                if (currentSrc) {
+                    try {
+                        imageAspectRatio = await Promise.race([
+                            new Promise<number>((resolve) => {
+                                const img = new Image();
+                                img.crossOrigin = "anonymous";
+                                img.onload = () => {
+                                    if (img.naturalWidth && img.naturalHeight) {
+                                        resolve(img.naturalWidth / img.naturalHeight);
+                                    } else {
+                                        resolve(2.0);
+                                    }
+                                };
+                                img.onerror = () => {
+                                    resolve(2.0);
+                                };
+                                img.src = currentSrc;
+                                if (img.complete && img.naturalWidth) {
+                                    resolve(img.naturalWidth / img.naturalHeight);
+                                }
+                            }),
+                            new Promise<number>((resolve) => setTimeout(() => resolve(2.0), 500))
+                        ]);
+                    } catch (e) {
+                        console.warn("Failed to load image metadata for ratio check:", e);
+                    }
+                }
+
+                // Dynamic hfov based on container aspect ratio to prevent severe stretching on wide screens
+                const rect = container_ready.getBoundingClientRect();
+                const containerWidth = rect.width || window.innerWidth;
+                const containerHeight = rect.height || window.innerHeight || 1;
+                const containerAspectRatio = containerWidth / containerHeight;
+
+                const baseHfov = 105; // Starting average hfov
+                const computedHfov = Math.min(110, Math.max(100, baseHfov + (containerAspectRatio - 1.5) * 15));
+
+                // Align horizontal/vertical bounds with aspect ratio of the image file
+                let haov = 360;
+                let vaov = 180;
+                if (imageAspectRatio >= 2.0) {
+                    haov = 360;
+                    vaov = 360 / imageAspectRatio;
+                } else {
+                    vaov = 180;
+                    haov = 180 * imageAspectRatio;
+                }
+
+                container_ready.innerHTML = '';
+                v_fullscreen = window.pannellum.viewer(container_ready, {
+                    type: 'equirectangular',
+                    panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
+                    autoLoad: true,
+                    showControls: true,
+                    compass: true,
+                    hfov: computedHfov,
+                    minHfov: 60,
+                    maxHfov: 115,
+                    minPitch: -90,
+                    maxPitch: 90,
+                    haov: haov,
+                    vaov: vaov,
+                    vOffset: 0,
+                    pitch: 0,
+                    yaw: 0,
+                    crossOrigin: 'anonymous',
+                    hotSpots: hotSpots,
+                    strings: {
+                        loadingLabel: "대극장 고해상도 공간을 로딩하고 있습니다...",
+                        loadButtonLabel: "360° 대극장 투어 입장",
+                        noWebGLError: "이 브라우저는 WebGL 가속을 지원하지 않습니다.",
+                        bylineLabel: "태왕공인중개사사무소"
+                    }
+                });
+
+                fullscreenViewerInstanceRef.current = v_fullscreen;
+
+                // Monitor viewport changes for synchronized aspect ratio rendering
+                let resizeObserver: ResizeObserver | null = null;
+                if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
+                    resizeObserver = new ResizeObserver(() => {
+                        if (v_fullscreen) {
+                            try { v_fullscreen.resize(); } catch (e) {}
+                        }
+                    });
+                    resizeObserver.observe(container_ready);
+                }
+                (v_fullscreen as any)._resizeObserver = resizeObserver;
+            } catch (err: any) {
+                console.warn("[Fullscreen Pannellum Init failure]", err);
+            }
+        };
+
+        initFullscreenViewer();
+
+        return () => {
+            isModalMounted = false;
+            if (v_fullscreen) {
+                if ((v_fullscreen as any)._resizeObserver) {
+                    try { (v_fullscreen as any)._resizeObserver.disconnect(); } catch (e) {}
+                }
+                try { v_fullscreen.destroy(); } catch (e) {}
+            }
+            fullscreenViewerInstanceRef.current = null;
+        };
+    }, [isFullscreen, activeIndex, imagesKey]);
 
     // Utility to get clean name from lengthy URLs (retaining 16~36 chars without ugly query params like token)
     const getCleanName = (url: string) => {
@@ -324,6 +494,55 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     });
                 }
 
+                // Get the image aspect ratio dynamically to avoid vertical stretch/squeeze
+                let imageAspectRatio = 2.0;
+                if (currentSrc) {
+                    try {
+                        imageAspectRatio = await Promise.race([
+                            new Promise<number>((resolve) => {
+                                const img = new Image();
+                                img.crossOrigin = "anonymous";
+                                img.onload = () => {
+                                    if (img.naturalWidth && img.naturalHeight) {
+                                        resolve(img.naturalWidth / img.naturalHeight);
+                                    } else {
+                                        resolve(2.0);
+                                    }
+                                };
+                                img.onerror = () => {
+                                    resolve(2.0);
+                                };
+                                img.src = currentSrc;
+                                if (img.complete && img.naturalWidth) {
+                                    resolve(img.naturalWidth / img.naturalHeight);
+                                }
+                            }),
+                            new Promise<number>((resolve) => setTimeout(() => resolve(2.0), 500))
+                        ]);
+                    } catch (e) {
+                        console.warn("Failed to load image metadata for ratio check:", e);
+                    }
+                }
+
+                // Dynamic hfov based on container aspect ratio to prevent severe stretching on wide screens
+                const containerWidth = rect.width;
+                const containerHeight = rect.height || 1;
+                const containerAspectRatio = containerWidth / containerHeight;
+
+                const baseHfov = 105; // Starting average hfov
+                const computedHfov = Math.min(110, Math.max(100, baseHfov + (containerAspectRatio - 1.5) * 15));
+
+                // Align horizontal/vertical bounds with aspect ratio of the image file
+                let haov = 360;
+                let vaov = 180;
+                if (imageAspectRatio >= 2.0) {
+                    haov = 360;
+                    vaov = 360 / imageAspectRatio;
+                } else {
+                    vaov = 180;
+                    haov = 180 * imageAspectRatio;
+                }
+
                 // Clean the existing elements completely to prevent context collisions and memory leaks
                 container.innerHTML = '';
 
@@ -337,7 +556,14 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     autoLoad: true,
                     showControls: true,
                     compass: true,
-                    hfov: 110,
+                    hfov: computedHfov,
+                    minHfov: 60,
+                    maxHfov: 115,
+                    minPitch: -90,
+                    maxPitch: 90,
+                    haov: haov,
+                    vaov: vaov,
+                    vOffset: 0,
                     pitch: 0,
                     yaw: 0,
                     crossOrigin: crossOriginAttr,
@@ -373,6 +599,18 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
 
                 viewerInstanceRef.current = v;
 
+                // Monitor viewport changes for synchronized aspect ratio rendering
+                let resizeObserver: ResizeObserver | null = null;
+                if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
+                    resizeObserver = new ResizeObserver(() => {
+                        if (v) {
+                            try { v.resize(); } catch (e) {}
+                        }
+                    });
+                    resizeObserver.observe(container);
+                }
+                (v as any)._resizeObserver = resizeObserver;
+
             } catch (err: any) {
                 console.warn("[Pannellum Async Init failure]", err.message);
                 if (isComponentMounted) {
@@ -387,6 +625,9 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
         return () => {
             isComponentMounted = false;
             if (v) {
+                if ((v as any)._resizeObserver) {
+                    try { (v as any)._resizeObserver.disconnect(); } catch (e) {}
+                }
                 try {
                     v.destroy();
                 } catch (e) {
@@ -398,8 +639,33 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
     }, [imagesKey, activeIndex]);
 
     return (
-        <div className="relative group">
+        <div className={`relative group w-full ${isStyleHeight ? "" : "pannellum-responsive-container"}`}>
             <style dangerouslySetInnerHTML={{ __html: `
+                .pannellum-responsive-container {
+                    width: 100% !important;
+                    height: 350px !important;
+                    min-height: 350px !important;
+                    display: block;
+                    position: relative;
+                }
+                @media (min-width: 768px) {
+                    .pannellum-responsive-container {
+                        height: 580px !important;
+                        min-height: 550px !important;
+                    }
+                }
+                @media (min-width: 1024px) {
+                    .pannellum-responsive-container {
+                        height: 680px !important;
+                        min-height: 650px !important;
+                    }
+                }
+                @media (min-width: 1280px) {
+                    .pannellum-responsive-container {
+                        height: 760px !important;
+                        min-height: 700px !important;
+                    }
+                }
                 .pnlm-hotspot-nav {
                     background-color: #10b981 !important;
                     border: 4px solid white !important;
@@ -453,7 +719,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
             <div 
                 ref={viewerRef} 
                 id="panorama"
-                className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 ${heightClass} ${mode === 'webgl' ? 'block' : 'hidden'}`}
+                className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 ${isStyleHeight ? "" : "pannellum-responsive-container"} ${mode === 'webgl' ? 'block' : 'hidden'}`}
                 style={heightStyle}
             ></div>
 
@@ -468,7 +734,7 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleMouseUpOrLeave}
-                    className={`w-full bg-slate-900 rounded-2xl overflow-x-auto overflow-y-hidden scrollbar-none shadow-lg border border-slate-200 relative flex items-center select-none ${heightClass}`}
+                    className={`w-full bg-slate-900 rounded-2xl overflow-x-auto overflow-y-hidden scrollbar-none shadow-lg border border-slate-200 relative flex items-center select-none ${isStyleHeight ? "" : "pannellum-responsive-container"}`}
                     style={{ ...heightStyle, cursor: isDragging ? 'grabbing' : 'grab' }}
                 >
                     <div className="absolute inset-0 bg-black/15 pointer-events-none z-10 rounded-2xl"></div>
@@ -557,8 +823,18 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                 )}
             </div>
 
-            {/* Manual diagnostics trigger button on the top-right */}
+            {/* Manual diagnostics and theater mode triggers on the top-right */}
             <div className="absolute top-4 right-4 flex gap-2 z-30 pointer-events-auto">
+                <button 
+                    onClick={() => {
+                        setIsFullscreen(true);
+                    }}
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold px-3 py-1.5 rounded-full text-[10px] sm:text-xs border border-emerald-500/40 flex items-center gap-1.5 cursor-pointer shadow-lg transition-all hover:scale-105 select-none"
+                    title="대화면 극장 모드로 감상"
+                >
+                    <i className="fa-solid fa-expand text-xs animate-pulse"></i>
+                    <span>대극장 모드</span>
+                </button>
                 <button 
                     onClick={() => {
                         runDiagnostics();
@@ -695,6 +971,115 @@ const PannellumViewer: React.FC<PannellumViewerProps> = ({
                                 </button>
                             </div>
                         </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* 360° Immersive Theater Mode View Modal */}
+            <AnimatePresence>
+                {isFullscreen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.35 }}
+                        className="fixed inset-0 z-[9990] bg-slate-950/98 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-6 md:p-8 text-white select-none pointer-events-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header columns */}
+                        <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4 max-w-7xl w-full mx-auto">
+                            <div className="flex items-center gap-3">
+                                <span className="bg-emerald-600 text-white p-2.5 sm:p-3 rounded-2xl shadow-xl shadow-emerald-500/10">
+                                    <i className="fa-solid fa-vr-cardboard text-lg sm:text-2xl animate-vr-icon"></i>
+                                </span>
+                                <div className="flex flex-col text-left">
+                                    <h3 className="text-sm sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                                        <span className="animate-vr-glow">구미태왕 360° 실감형 대극장 VR 투어</span>
+                                        <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0">HEAVY THEATER</span>
+                                    </h3>
+                                    <p className="text-[10px] sm:text-xs text-slate-400 leading-none mt-1 sm:mt-1.5 font-bold">집 안에 직접 서 있는 듯한 시원시원한 대화면 공간 체험을 만끽해 보세요.</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsFullscreen(false)}
+                                className="flex items-center justify-center bg-white/10 hover:bg-white/20 hover:scale-105 hover:rotate-90 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/15 shadow-2xl cursor-pointer transition-all duration-300"
+                                title="대극장 투어 닫기"
+                            >
+                                <i className="fa-solid fa-xmark text-lg sm:text-xl"></i>
+                            </button>
+                        </div>
+
+                        {/* Immersive View Port */}
+                        <div className="relative flex-grow w-full max-w-7xl mx-auto bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
+                            {mode === 'webgl' ? (
+                                <div 
+                                    ref={fullscreenViewerRef} 
+                                    id="panorama-fullscreen"
+                                    className="w-full h-full min-h-[450px]"
+                                ></div>
+                            ) : (
+                                <div className="relative w-full h-full overflow-auto flex items-center justify-center select-none cursor-grab">
+                                    <img 
+                                        src={(() => {
+                                            const rawUrl = images[activeIndex] || images[0] || '';
+                                            const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
+                                            return getDirectSrc(cleanUrl);
+                                        })()} 
+                                        className="max-w-none h-full min-w-[200%] object-cover pointer-events-none select-none" 
+                                        alt="대극장 평면 파노라마" 
+                                    />
+                                </div>
+                            )}
+
+                            {/* Center copyright logo */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10 w-full h-full">
+                                <span className="font-sans font-black tracking-[0.25em] text-sm sm:text-base md:text-lg lg:text-xl text-white/5 uppercase">
+                                    태왕공인중개사
+                                </span>
+                            </div>
+
+                            {/* Help tips overlay */}
+                            <div className="absolute bottom-4 left-4 flex flex-col gap-2 pointer-events-none z-30 select-none">
+                                <div className="bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-full flex items-center gap-1.5 shadow-lg border border-white/5">
+                                    <i className="fa-solid fa-arrows-spin animate-spin-slow text-emerald-400"></i>
+                                    <span>화면을 상하좌우로 드래그(피치/요)하여 실감나게 둘러보세요</span>
+                                </div>
+                            </div>
+
+                            {/* Watermark badge */}
+                            <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md text-white px-3.5 py-1.5 rounded-xl text-[10px] sm:text-xs font-black shadow-xl border border-white/5 flex items-center gap-1.5 select-none opacity-85">
+                                <i className="fa-solid fa-house-shield text-emerald-400"></i>
+                                <span>구미 태왕 360° 독점 실사기록</span>
+                            </div>
+                        </div>
+
+                        {/* Space Switch thumbnails list */}
+                        {images.length > 1 && (
+                            <div className="flex flex-wrap gap-2 justify-center py-3 bg-slate-900/50 rounded-2xl border border-white/5 max-w-5xl w-full mx-auto px-4 shadow-2xl mt-4 shrink-0 overflow-x-auto scrollbar-none">
+                                {images.map((img, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => {
+                                            if (onSceneChangeRef.current) {
+                                                onSceneChangeRef.current(idx);
+                                            }
+                                        }}
+                                        className={`relative aspect-video w-20 sm:w-28 rounded-xl overflow-hidden border-2 transition-all leading-none shrink-0 ${activeIndex === idx ? 'border-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'border-white/10 opacity-60 hover:opacity-100'}`}
+                                    >
+                                        <img src={img.includes('|') ? img.split('|')[0] : img} className="w-full h-full object-cover pointer-events-none" alt="" />
+                                        <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
+                                            <span className="text-[9px] font-black text-white bg-black/60 px-2 py-0.5 rounded-md">공간 {idx + 1}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Bottom close guide banner */}
+                        <div className="text-center text-[10px] sm:text-xs text-slate-400 font-extrabold flex items-center gap-1.5 justify-center mt-3 pt-2 lg:pt-3 border-t border-white/5 max-w-7xl w-full mx-auto shrink-0">
+                            <i className="fa-solid fa-circle-info text-emerald-400"></i>
+                            <span>우측 상단 닫기 X 아이콘을 누르거나 빈 곳을 탭하면 원래 상세페이지로 복귀합니다.</span>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -164,7 +164,7 @@ export const DetailTab = ({
     matchingRecs = matchingRecs.slice(0, 18);
 
     return (
-        <section id="detail-section" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 transition-opacity duration-300 w-full">
+        <section id="detail-section" className="max-w-4xl md:max-w-5xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 transition-opacity duration-300 w-full">
             <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-emerald-950/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
                 {"<<<< 앞 바로가기 <<<<"}
             </button>
@@ -701,34 +701,36 @@ export const DetailTab = ({
                             <div key={rec.id} onClick={() => setSelectedPostId(rec.id)} className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group">
                                 <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 watermark-container">
                                     <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                    <div className="absolute top-3 left-3 flex gap-1">
-                                        <span className={`text-white text-[11.5px] font-black px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-sm border ${
-                                            rec.transactionType === '매매' ? 'bg-indigo-600/90 border-indigo-500' :
-                                            rec.transactionType === '전세' ? 'bg-amber-600/90 border-amber-500' :
-                                            'bg-emerald-600/90 border-emerald-500'
-                                        }`}>
-                                            {rec.transactionType || '월세'}
-                                        </span>
-                                        <span className="bg-slate-900/90 text-white text-[11.5px] font-black px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-sm">
-                                            {rec.category}
-                                        </span>
-                                        <span className="bg-emerald-600 text-white text-[11.5px] font-black px-2.5 py-1 rounded-lg shadow-sm">
-                                            {rec.dong || '구미시'}
-                                        </span>
-                                        {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
-                                            <span className="bg-white/90 text-emerald-700 text-[11.5px] font-black px-2.5 py-1 rounded-lg shadow-sm border border-emerald-100 flex items-center gap-1 animate-pulse">
-                                                <i className="fa-solid fa-vr-cardboard text-[8px]"></i>
-                                                <span>360°</span>
-                                            </span>
-                                        )}
-                                    </div>
                                     <div className="watermark-overlay">
                                         <i className="fa-solid fa-house-shield text-[10px]"></i>
                                         <span>태왕공인중개사</span>
                                     </div>
                                 </div>
                                 <div className="p-4 flex-grow flex flex-col justify-between">
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
+                                        {/* 태그 영역 - 사진 바로 아래이자 매물 대타이틀 바로 위 */}
+                                        <div className="flex flex-wrap gap-1.5 items-center">
+                                            <span className={`text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md border ${
+                                                rec.transactionType === '매매' ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60' :
+                                                rec.transactionType === '전세' ? 'bg-amber-50 text-amber-700 border-amber-200/85' :
+                                                'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                                            }`}>
+                                                {rec.transactionType || '월세'}
+                                            </span>
+                                            <span className="bg-slate-100 text-slate-705 border border-slate-200/60 text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md">
+                                                {rec.category}
+                                            </span>
+                                            <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md">
+                                                {rec.dong || '구미시'}
+                                            </span>
+                                            {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
+                                                <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5 animate-pulse shrink-0">
+                                                    <i className="fa-solid fa-vr-cardboard text-[8px]"></i>
+                                                    <span>360°</span>
+                                                </span>
+                                            )}
+                                        </div>
+
                                         <h4 className="text-sm font-black text-slate-900 group-hover:text-emerald-600 transition-colors flex items-center gap-1.5 flex-wrap">
                                             <span className="truncate">{rec.building}</span>
                                             {(rec.floor || rec.totalFloor) && (

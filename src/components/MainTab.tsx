@@ -522,7 +522,7 @@ export const MainTab = ({
             )}
 
             {/* Desktop Table View */}
-            {!isMobile && (totalItems > 0 || isFetching) && (
+            {false && (totalItems > 0 || isFetching) && (
                 <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm w-full hidden lg:block">
                     <table className="w-full text-center text-xs sm:text-sm border-collapse min-w-[1000px]">
                         <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
@@ -612,19 +612,26 @@ export const MainTab = ({
                 </div>
             )}
 
-            {/* Mobile List View */}
-            {isMobile && (totalItems > 0 || isFetching) && (
+            {/* Properties List View (Responsive Cards) */}
+            {(totalItems > 0 || isFetching) && (
                 <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
                     <div className="flex flex-col">
                         {isFetching ? (
                             Array.from({length: 5}).map((_, i) => (
-                                <div key={i} className="p-4 border-b border-slate-100 transition-all flex items-center justify-between gap-4 w-full animate-pulse">
-                                    <div className="flex-grow space-y-2">
-                                        <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-                                        <div className="h-3 bg-slate-200 rounded w-5/6"></div>
-                                        <div className="h-2 bg-slate-200 rounded w-1/2"></div>
+                                <div key={i} className="p-4.5 sm:p-5 border-b border-slate-100 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 w-full animate-pulse">
+                                    {/* Thumbnail Skeleton */}
+                                    <div className="order-1 shrink-0 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video rounded-xl bg-slate-200 self-center lg:self-stretch"></div>
+                                    {/* Info Skeleton */}
+                                    <div className="order-2 flex-grow space-y-2.5 min-w-0">
+                                        <div className="h-4.5 bg-slate-200 rounded-md w-1/3"></div>
+                                        <div className="h-6 bg-slate-200 rounded-md w-1/2"></div>
+                                        <div className="h-4 bg-slate-200 rounded-md w-1/4"></div>
+                                        <div className="h-8 bg-slate-200 rounded-xl w-full"></div>
                                     </div>
-                                    <div className="w-9 h-9 bg-slate-200 rounded-xl shrink-0"></div>
+                                    {/* Phone Button Skeleton */}
+                                    <div className="order-3 flex lg:flex-col items-center justify-center shrink-0 w-10 h-10 lg:pl-6 self-center lg:self-stretch">
+                                        <div className="w-10 h-10 bg-slate-200 rounded-xl"></div>
+                                    </div>
                                 </div>
                             ))
                         ) : (
@@ -633,15 +640,44 @@ export const MainTab = ({
                                 const pPanoramas = String(p.panoramas || '');
                                 const pPanoImage = String(p.panoImage || '');
                                 const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
-                                const thumbnailVal = String(p.thumbnail || '');
-                                const imagesVal = String(p.images || '');
+                                const thumbnailVal = p.thumbnail ? String(p.thumbnail).trim() : '';
+                                const imagesVal = p.images ? String(p.images).split('|')[0].trim() : '';
+                                const thumbnailImg = thumbnailVal || imagesVal;
                                 const floorVal = p.floor ? String(p.floor) : '';
                                 const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
                                 const roomVal = p.room ? String(p.room) : '';
                                 const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (isAdminLoggedIn && roomVal ? `${roomVal}호` : '지상층');
                                 return (
-                                    <div key={p.id} onClick={() => setSelectedPostId(p.id)} className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex items-center justify-between gap-4 cursor-pointer text-left w-full">
-                                        <div className="flex-grow min-w-0 flex flex-col gap-1.5">
+                                    <div 
+                                        key={p.id} 
+                                        onClick={() => setSelectedPostId(p.id)} 
+                                        className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 cursor-pointer text-left w-full overflow-hidden"
+                                    >
+                                        {/* Thumbnail Section */}
+                                        <div className="order-1 relative shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100 transition-all duration-300 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video xl:w-[320px] xl:h-[180px] self-center lg:self-stretch">
+                                            {thumbnailImg ? (
+                                                <img 
+                                                    src={thumbnailImg} 
+                                                    alt={p.building} 
+                                                    referrerPolicy="no-referrer"
+                                                    className="w-full h-full object-cover rounded-xl transition-transform duration-500 hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
+                                                    <i className="fa-solid fa-house text-2xl"></i>
+                                                    <span className="text-[10px] font-bold">이미지 준비중</span>
+                                                </div>
+                                            )}
+                                            {hasVR && (
+                                                <span className="absolute top-2 left-2 shrink-0 bg-emerald-500/95 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border border-emerald-400/30 shadow-md animate-pulse">
+                                                    <i className="fa-solid fa-vr-cardboard mr-1"></i>
+                                                    VR 360°
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Info Section */}
+                                        <div className="order-2 flex-grow min-w-0 flex flex-col justify-between gap-2.5 pl-0 lg:pl-2">
                                             {/* Row 1: Badges & Building Name - Styled to prevent overlap and truncate beautifully */}
                                             <div className="text-[14px] font-black text-slate-900 flex items-center gap-1.5 min-w-0 w-full flex-wrap xs:flex-nowrap">
                                                 {isRec && (
@@ -656,29 +692,25 @@ export const MainTab = ({
                                                 }`}>
                                                     {p.transactionType || '월세'}
                                                 </span>
-                                                <span className="font-extrabold text-slate-900 text-[14.5px] truncate flex-grow min-w-0 mr-1 leading-snug">
+                                                <span className="font-black text-slate-900 text-[16px] sm:text-[18px] lg:text-xl xl:text-2xl truncate flex-grow min-w-0 mr-1 leading-snug">
                                                     {p.building}
                                                 </span>
-                                                {hasVR && (
-                                                    <span className="shrink-0 bg-emerald-100 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-emerald-200 animate-pulse-slow">
-                                                        VR
-                                                    </span>
-                                                )}
+
                                             </div>
 
                                             {/* Row 2: Price & Floor Label moved side by side in a clean layout to guarantee spacing */}
                                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                <span className="text-[14.5px] text-red-500 font-extrabold font-mono tracking-tight leading-none shrink-0">
+                                                <span className="text-[16px] sm:text-lg lg:text-[22px] xl:text-2xl text-red-500 font-extrabold font-mono tracking-tight leading-none shrink-0">
                                                     {formatDisplayPrice(p.price, p.manageFee)}
                                                 </span>
-                                                <span className="text-slate-500 font-bold text-[10px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60 leading-none shrink-0">
+                                                <span className="text-slate-500 font-bold text-[10.5px] sm:text-xs bg-slate-100 px-2.5 py-1 rounded border border-slate-200/60 leading-none shrink-0">
                                                     {floorLabel}
                                                 </span>
                                             </div>
 
                                             {/* Row 3: Metadata Row - Category & Address Details */}
                                             <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 min-w-0 flex-wrap">
-                                                <span className="inline-flex items-center justify-center bg-slate-100 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg text-[11px] font-extrabold leading-none shrink-0 shadow-sm">
+                                                <span className="inline-flex items-center justify-center bg-slate-150 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-extrabold leading-none shrink-0 shadow-sm">
                                                     {p.category}
                                                 </span>
                                                 <span className="text-slate-300 leading-none shrink-0">|</span>
@@ -699,14 +731,15 @@ export const MainTab = ({
                                             {p.remarks && stripHtml(p.remarks) && (
                                                 <div className="text-[11.5px] font-black text-emerald-950 bg-emerald-50/60 border border-emerald-200/40 rounded-xl px-2.5 py-1.5 mt-1.5 flex items-start gap-1.5 w-full max-w-full">
                                                     <span className="text-emerald-500 shrink-0 text-xs mt-0.5">✨</span>
-                                                    <span className="font-bold text-slate-700 break-all leading-relaxed flex-grow min-w-0">
+                                                    <span className="font-bold text-slate-700 break-all leading-relaxed flex-grow min-w-0 line-clamp-2 lg:line-clamp-none">
                                                         {stripHtml(p.remarks)}
                                                     </span>
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2.5 shrink-0 pl-1">
-                                            <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                                        {/* Action Buttons Section */}
+                                        <div className="order-3 flex lg:flex-col items-center justify-center gap-3 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 self-center lg:self-stretch">
+                                            <div className="hidden">
                                                 {hasVR ? (
                                                     <div className="bg-emerald-500 text-white w-full h-full rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-900/30 animate-pulse-slow">
                                                         <i className="fa-solid fa-vr-cardboard text-[14px]"></i>
@@ -729,8 +762,8 @@ export const MainTab = ({
                                                         window.location.href = `tel:${p.phone || '010-7590-0111'}`;
                                                     }
                                                 }} 
-                                                className="w-9 h-9 flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shrink-0 shadow-sm relative">
-                                                <i className="fa-solid fa-phone text-sm"></i>
+                                                className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-500 hover:shadow-lg rounded-xl transition-all shrink-0 shadow-sm relative group">
+                                                <i className="fa-solid fa-phone text-sm sm:text-base"></i>
                                                 {isAdminLoggedIn && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-amber-500 border border-white rounded-full"></span>}
                                             </button>
                                         </div>

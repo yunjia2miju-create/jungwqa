@@ -23,7 +23,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  const port = 3000;
 
   const projectRoot = _dirname.endsWith('dist') || _dirname.endsWith('dist/')
     ? path.resolve(_dirname, '..')

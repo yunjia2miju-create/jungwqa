@@ -42,6 +42,7 @@ interface RichTextEditorProps {
     minHeight?: string;
     id: string;
     uploadedImages?: { name: string; url: string }[];
+    onImageUpload?: (file: File) => Promise<string>;
 }
 
 export function RichTextEditor({
@@ -50,11 +51,87 @@ export function RichTextEditor({
     placeholder = '여기에 내용을 입력하세요...',
     minHeight = '250px',
     id,
-    uploadedImages = []
+    uploadedImages = [],
+    onImageUpload
 }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isMounted, setIsMounted] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+    const handleLocalImageUpload = async (file: File) => {
+        if (!file || !file.type.startsWith('image/')) return;
+        setIsUploadingImage(true);
+        try {
+            let finalUrl = '';
+            if (onImageUpload) {
+                // Execute parent level crop with center house and bottom-right shield logo
+                finalUrl = await onImageUpload(file);
+            } else {
+                // Offline fallback - Base64 rendering
+                finalUrl = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const imgHtml = `
+                <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
+                    <img src="${finalUrl}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+                    <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 본문 삽입 사진 : ${file.name}</p>
+                </div>
+                <p contenteditable="true"><br></p>
+            `;
+            insertHtml(imgHtml);
+        } catch (error) {
+            console.error("Local editor paste or drag image upload error:", error);
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+    const handleLocalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            handleLocalImageUpload(files[0]);
+        }
+        e.target.value = '';
+    };
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                const file = items[i].getAsFile();
+                if (file) {
+                    e.preventDefault(); // Stop raw base64 pasted into contenteditable
+                    handleLocalImageUpload(file);
+                    break;
+                }
+            }
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                e.preventDefault(); // Stop opening raw image in browser
+                handleLocalImageUpload(file);
+            }
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        const hasFiles = e.dataTransfer?.types.includes('Files');
+        if (hasFiles) {
+            e.preventDefault();
+        }
+    };
 
     // Selection Formatting Tooltip States (Image 1)
     const [showSelectionToolbar, setShowSelectionToolbar] = useState(false);
@@ -64,7 +141,7 @@ export function RichTextEditor({
 
     // Naver Blog Quick Add Menu States (Image 2)
     const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
-    const [quickAddCoords, setQuickAddCoords] = useState<{ top: number; left: number } | null>(null);
+    const [quickAddCoords, setQuickAddCoords] = useState<{ top: number; left: number; isDropup?: boolean } | null>(null);
     const [quickAddMenuSub, setQuickAddMenuSub] = useState<'main' | 'sticker' | 'photo' | 'divider' | 'quote'>('main');
 
     // Circular Floating Plus Button States
@@ -346,7 +423,8 @@ export function RichTextEditor({
             if (container) {
                 const containerRect = container.getBoundingClientRect();
                 const leftOffset = rect.left - containerRect.left + (rect.width / 2);
-                const topOffset = rect.top - containerRect.top - 78;
+                // Subtracting 93px (instead of 78px) yields an extra 15px of upper margin so the toolbar never obscures the highlighted text
+                const topOffset = rect.top - containerRect.top - 93;
 
                 const halfWidth = 290; // Adjusted for 1.5x enlargement (~580px total width) to ensure it stays fully inside the editor bounds
                 let safeLeft = leftOffset;
@@ -357,7 +435,8 @@ export function RichTextEditor({
                 }
 
                 setSelectionCoords({
-                    top: Math.max(10, topOffset),
+                    // Clamping to -50px instead of 10px allows the formatting toolbar to hover elegantly above the top line when selected
+                    top: Math.max(-50, topOffset),
                     left: safeLeft
                 });
                 setShowSelectionToolbar(true);
@@ -692,7 +771,8 @@ export function RichTextEditor({
                         const containerRect = containerRef.current?.getBoundingClientRect();
                         setQuickAddCoords({
                             top: 50,
-                            left: (containerRect?.width || 300) - 200
+                            left: (containerRect?.width || 300) - 200,
+                            isDropup: false
                         });
                         setQuickAddMenuSub('main');
                         setShowQuickAddMenu(!showQuickAddMenu);
@@ -702,6 +782,27 @@ export function RichTextEditor({
                 >
                     <i className="fa-solid fa-wand-magic-sparkles"></i>
                     <span className="hidden sm:inline">초고속 편집</span>
+                </button>
+
+                {/* Local Computer Photo Upload Shortcut */}
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="h-8 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 text-emerald-600 font-extrabold text-[11px] sm:text-xs flex items-center gap-1 cursor-pointer shadow-xs active:scale-95 border border-emerald-250 transition-all ml-1.5"
+                    title="내 컴퓨터에 있는 이미지 파일 본문 중간에 합성 삽입"
+                >
+                    {isUploadingImage ? (
+                        <>
+                            <i className="fa-solid fa-circle-notch fa-spin text-emerald-500 animate-spin"></i>
+                            <span>업로드 중...</span>
+                        </>
+                    ) : (
+                        <>
+                            <i className="fa-solid fa-images text-emerald-500"></i>
+                            <span>본문사진 추가</span>
+                        </>
+                    )}
                 </button>
 
                 {/* Divide Bar */}
@@ -734,10 +835,11 @@ export function RichTextEditor({
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation();
-                        // Open quick-add menu right next to the plus button
+                        // Open quick-add menu right next to the plus button relative to current caret line Y-axis
                         setQuickAddCoords({
-                            top: plusButtonY - 10,
-                            left: 36 // positioned nicely next to left margin helper
+                            top: plusButtonY,
+                            left: 36, // positioned nicely next to left margin helper
+                            isDropup: true
                         });
                         setQuickAddMenuSub('main');
                         setShowQuickAddMenu(!showQuickAddMenu);
@@ -914,243 +1016,253 @@ export function RichTextEditor({
             {showQuickAddMenu && quickAddCoords && (
                 <div 
                     style={{ 
+                        position: 'absolute',
                         top: `${quickAddCoords.top}px`, 
-                        left: `${quickAddCoords.left}px` 
+                        left: `${quickAddCoords.left}px`,
+                        transform: quickAddCoords.isDropup ? 'translateY(-100%) translateY(-8px)' : undefined,
+                        zIndex: 50
                     }}
-                    className="absolute z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl w-80 sm:w-[380px] md:w-[410px] overflow-hidden animate-fadeIn border-t-4 border-t-emerald-500"
                 >
-                    {/* Header with Title and Close 'X' button */}
-                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200/70 flex items-center justify-between">
-                        <span className="text-xs sm:text-sm font-extrabold text-slate-700 uppercase tracking-wide flex items-center gap-2">
-                            <i className="fa-solid fa-cube text-emerald-500 animate-pulse text-[14px]"></i>
-                            블로그 소스 추가
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setShowQuickAddMenu(false)}
-                            className="w-7 h-7 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-650 transition-all cursor-pointer"
-                        >
-                            <i className="fa-solid fa-times text-[12px]"></i>
-                        </button>
-                    </div>
-
-                    {/* Sub-menu rendering */}
-                    {quickAddMenuSub === 'main' && (
-                        <div className="p-3.5 flex flex-col gap-2.5 bg-white">
+                    <div 
+                        className={`bg-white border border-slate-200/90 rounded-2xl shadow-2xl w-80 sm:w-[380px] md:w-[410px] overflow-hidden animate-fadeIn ${
+                            quickAddCoords.isDropup 
+                                ? 'border-b-4 border-b-emerald-500' 
+                                : 'border-t-4 border-t-emerald-500'
+                        }`}
+                    >
+                        {/* Header with Title and Close 'X' button */}
+                        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200/70 flex items-center justify-between">
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                                <i className="fa-solid fa-cube text-emerald-500 animate-pulse text-[14px]"></i>
+                                블로그 소스 추가
+                            </span>
                             <button
                                 type="button"
-                                onClick={() => setQuickAddMenuSub('photo')}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
+                                onClick={() => setShowQuickAddMenu(false)}
+                                className="w-7 h-7 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-650 transition-all cursor-pointer"
                             >
-                                <span className="flex items-center gap-3">
-                                    <i className="fa-solid fa-image text-blue-500 text-base w-5 text-center"></i>
-                                    사진 추가 (실사 위주)
-                                </span>
-                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('sticker')}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
-                            >
-                                <span className="flex items-center gap-3">
-                                    <i className="fa-solid fa-face-smile text-amber-500 text-base w-5 text-center"></i>
-                                    감성 스티커 삽입
-                                </span>
-                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('divider')}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
-                            >
-                                <span className="flex items-center gap-3">
-                                    <i className="fa-solid fa-minus text-emerald-500 text-base w-5 text-center"></i>
-                                    구분선 삽입 (경계 구분)
-                                </span>
-                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('quote')}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
-                            >
-                                <span className="flex items-center gap-3">
-                                    <i className="fa-solid fa-quote-left text-indigo-500 text-base w-5 text-center"></i>
-                                    인용구 삽입 (강조 문구)
-                                </span>
-                                <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
+                                <i className="fa-solid fa-times text-[12px]"></i>
                             </button>
                         </div>
-                    )}
 
-                    {/* Photo selection submenu */}
-                    {quickAddMenuSub === 'photo' && (
-                        <div className="p-3.5 sm:p-4 space-y-3 bg-white">
-                            <button 
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('main')}
-                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
-                            >
-                                <i className="fa-solid fa-caret-left"></i> 이전으로
-                            </button>
-                            <div className="grid grid-cols-1 gap-3 max-h-[440px] overflow-y-auto pr-1">
-                                {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, photoIndex) => {
-                                    const isUploaded = uploadedImages.length > 0;
-                                    const displayName = isUploaded 
-                                        ? getOriginalFileNameFromUrl(photo.url, photo.name)
-                                        : photo.name;
-                                    
-                                    const displayTitle = isUploaded
-                                        ? `[사진 ${photoIndex + 1}]`
-                                        : `[예시 ${photoIndex + 1}]`;
+                        {/* Sub-menu rendering */}
+                        {quickAddMenuSub === 'main' && (
+                            <div className="p-3.5 flex flex-col gap-2.5 bg-white">
+                                <button
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('photo')}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <i className="fa-solid fa-image text-blue-500 text-base w-5 text-center"></i>
+                                        사진 추가 (실사 위주)
+                                    </span>
+                                    <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('sticker')}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <i className="fa-solid fa-face-smile text-amber-500 text-base w-5 text-center"></i>
+                                        감성 스티커 삽입
+                                    </span>
+                                    <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('divider')}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <i className="fa-solid fa-minus text-emerald-500 text-base w-5 text-center"></i>
+                                        구분선 삽입 (경계 구분)
+                                    </span>
+                                    <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('quote')}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-between cursor-pointer border border-transparent transition-all shadow-sm bg-slate-50/50 text-slate-700"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <i className="fa-solid fa-quote-left text-indigo-500 text-base w-5 text-center"></i>
+                                        인용구 삽입 (강조 문구)
+                                    </span>
+                                    <i className="fa-solid fa-angle-right text-[12px] text-slate-400"></i>
+                                </button>
+                            </div>
+                        )}
 
-                                    return (
+                        {/* Photo selection submenu */}
+                        {quickAddMenuSub === 'photo' && (
+                            <div className="p-3.5 sm:p-4 space-y-3 bg-white">
+                                <button 
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('main')}
+                                    className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-caret-left"></i> 이전으로
+                                </button>
+                                <div className="grid grid-cols-1 gap-3 max-h-[440px] overflow-y-auto pr-1">
+                                    {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, photoIndex) => {
+                                        const isUploaded = uploadedImages.length > 0;
+                                        const displayName = isUploaded 
+                                            ? getOriginalFileNameFromUrl(photo.url, photo.name)
+                                            : photo.name;
+                                        
+                                        const displayTitle = isUploaded
+                                            ? `[사진 ${photoIndex + 1}]`
+                                            : `[예시 ${photoIndex + 1}]`;
+
+                                        return (
+                                            <button
+                                                key={photoIndex + '-' + photo.name}
+                                                type="button"
+                                                onClick={() => {
+                                                    const captionText = isUploaded ? `실사 촬영 이미지 [사진 ${photoIndex + 1}] ${displayName}` : displayName;
+                                                    const photoHtml = `
+                                                        <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
+                                                            <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+                                                            <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 ${captionText}</p>
+                                                        </div>
+                                                        <p contenteditable="true"><br></p>
+                                                    `;
+                                                    insertHtml(photoHtml);
+                                                    setShowQuickAddMenu(false);
+                                                }}
+                                                className="bg-slate-50 hover:bg-emerald-50 text-left p-2.5 sm:p-3 rounded-xl border border-slate-200/60 flex items-center gap-3 sm:gap-4 transition-all cursor-pointer shadow-sm hover:border-emerald-300 group"
+                                            >
+                                                <div className="w-24 h-16 sm:w-28 sm:h-20 md:w-32 md:h-22 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 bg-slate-100">
+                                                    <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                                                </div>
+                                                <div className="flex flex-col min-w-0 flex-1 py-1 text-left">
+                                                    <div className="flex items-center gap-1.5 flex-wrap w-full">
+                                                        <div className="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center flex-wrap leading-tight">
+                                                            <span className="text-emerald-600 font-black flex-shrink-0">
+                                                                {displayTitle}
+                                                            </span>
+                                                            <span className="text-slate-400 font-bold flex-shrink-0 ml-1 mr-1">
+                                                                파일명 :
+                                                            </span>
+                                                            <span className="text-slate-900 font-extrabold truncate max-w-[140px] sm:max-w-[200px] group-hover:text-emerald-700 transition-colors" title={displayName}>
+                                                                {displayName}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-[10px] sm:text-xs text-slate-440 font-medium mt-1 leading-snug">클릭 시 본문에 선명한 고품질 사진 삽입</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Sticker selection submenu */}
+                        {quickAddMenuSub === 'sticker' && (
+                            <div className="p-3.5 sm:p-4 space-y-3 bg-white">
+                                <button 
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('main')}
+                                    className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-caret-left"></i> 이전으로
+                                </button>
+                                <div className="grid grid-cols-3 gap-2.5 max-h-[400px] overflow-y-auto pr-1">
+                                    {stickerTemplates.map((sticker) => (
                                         <button
-                                            key={photoIndex + '-' + photo.name}
+                                            key={sticker.label}
                                             type="button"
                                             onClick={() => {
-                                                const captionText = isUploaded ? `실사 촬영 이미지 [사진 ${photoIndex + 1}] ${displayName}` : displayName;
-                                                const photoHtml = `
-                                                    <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
-                                                        <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
-                                                        <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 ${captionText}</p>
-                                                    </div>
-                                                    <p contenteditable="true"><br></p>
+                                                const stickerHtml = `
+                                                    <span contenteditable="false" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; background-color: ${sticker.color}; color: ${sticker.text}; border: 1px solid ${sticker.border}; font-weight: bold; font-size: 11px; margin: 2px; vertical-align: middle; user-select: none;">
+                                                        <span>${sticker.icon}</span>
+                                                        <span>${sticker.label}</span>
+                                                    </span>&nbsp;
                                                 `;
-                                                insertHtml(photoHtml);
+                                                insertHtml(stickerHtml);
                                                 setShowQuickAddMenu(false);
                                             }}
-                                            className="bg-slate-50 hover:bg-emerald-50 text-left p-2.5 sm:p-3 rounded-xl border border-slate-200/60 flex items-center gap-3 sm:gap-4 transition-all cursor-pointer shadow-sm hover:border-emerald-300 group"
+                                            className="text-center p-2.5 bg-slate-50/50 hover:bg-emerald-50 rounded-xl border border-slate-200/60 hover:border-emerald-300 flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm group"
                                         >
-                                            <div className="w-24 h-16 sm:w-28 sm:h-20 md:w-32 md:h-22 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 bg-slate-100">
-                                                <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
-                                            </div>
-                                            <div className="flex flex-col min-w-0 flex-1 py-1 text-left">
-                                                <div className="flex items-center gap-1.5 flex-wrap w-full">
-                                                    <div className="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center flex-wrap leading-tight">
-                                                        <span className="text-emerald-600 font-black flex-shrink-0">
-                                                            {displayTitle}
-                                                        </span>
-                                                        <span className="text-slate-400 font-bold flex-shrink-0 ml-1 mr-1">
-                                                            파일명 :
-                                                        </span>
-                                                        <span className="text-slate-900 font-extrabold truncate max-w-[140px] sm:max-w-[200px] group-hover:text-emerald-700 transition-colors" title={displayName}>
-                                                            {displayName}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <span className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1 leading-snug">클릭 시 본문에 선명한 고품질 사진 삽입</span>
-                                            </div>
+                                            <span className="text-xl group-hover:scale-110 transition-transform">{sticker.icon}</span>
+                                            <span className="text-[10px] sm:text-xs font-bold text-slate-600 truncate mt-1.5 group-hover:text-emerald-700">{sticker.label}</span>
                                         </button>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Sticker selection submenu */}
-                    {quickAddMenuSub === 'sticker' && (
-                        <div className="p-3.5 sm:p-4 space-y-3 bg-white">
-                            <button 
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('main')}
-                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
-                            >
-                                <i className="fa-solid fa-caret-left"></i> 이전으로
-                            </button>
-                            <div className="grid grid-cols-3 gap-2.5 max-h-[400px] overflow-y-auto pr-1">
-                                {stickerTemplates.map((sticker) => (
-                                    <button
-                                        key={sticker.label}
-                                        type="button"
-                                        onClick={() => {
-                                            const stickerHtml = `
-                                                <span contenteditable="false" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; background-color: ${sticker.color}; color: ${sticker.text}; border: 1px solid ${sticker.border}; font-weight: bold; font-size: 11px; margin: 2px; vertical-align: middle; user-select: none;">
-                                                    <span>${sticker.icon}</span>
-                                                    <span>${sticker.label}</span>
-                                                </span>&nbsp;
-                                            `;
-                                            insertHtml(stickerHtml);
-                                            setShowQuickAddMenu(false);
-                                        }}
-                                        className="text-center p-2.5 bg-slate-50/50 hover:bg-emerald-50 rounded-xl border border-slate-200/60 hover:border-emerald-300 flex flex-col items-center justify-center transition-all cursor-pointer shadow-sm group"
-                                    >
-                                        <span className="text-xl group-hover:scale-110 transition-transform">{sticker.icon}</span>
-                                        <span className="text-[10px] sm:text-xs font-bold text-slate-600 truncate mt-1.5 group-hover:text-emerald-700">{sticker.label}</span>
-                                    </button>
-                                ))}
+                        {/* Divider selection submenu */}
+                        {quickAddMenuSub === 'divider' && (
+                            <div className="p-3.5 sm:p-4 bg-white flex flex-col gap-2 bg-white">
+                                <button 
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('main')}
+                                    className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-caret-left"></i> 이전으로
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { insertDivider('dashed'); setShowQuickAddMenu(false); }}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
+                                >
+                                    <span className="text-emerald-500">---</span> 점선 구분선
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { insertDivider('solid'); setShowQuickAddMenu(false); }}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
+                                >
+                                    <span className="text-emerald-500">───</span> 실선 구분선
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { insertDivider('double'); setShowQuickAddMenu(false); }}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
+                                >
+                                    <span className="text-emerald-500">═══</span> 이중 구분선
+                                </button>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Divider selection submenu */}
-                    {quickAddMenuSub === 'divider' && (
-                        <div className="p-3.5 sm:p-4 bg-white flex flex-col gap-2 bg-white">
-                            <button 
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('main')}
-                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
-                            >
-                                <i className="fa-solid fa-caret-left"></i> 이전으로
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { insertDivider('dashed'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
-                            >
-                                <span className="text-emerald-500">---</span> 점선 구분선
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { insertDivider('solid'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
-                            >
-                                <span className="text-emerald-500">───</span> 실선 구분선
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { insertDivider('double'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-2"
-                            >
-                                <span className="text-emerald-500">═══</span> 이중 구분선
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Quote selection submenu */}
-                    {quickAddMenuSub === 'quote' && (
-                        <div className="p-3.5 sm:p-4 bg-white flex flex-col gap-2 bg-white">
-                            <button 
-                                type="button"
-                                onClick={() => setQuickAddMenuSub('main')}
-                                className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
-                            >
-                                <i className="fa-solid fa-caret-left"></i> 이전으로
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { insertQuote('border'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
-                            >
-                                <span className="text-indigo-500 font-bold text-base">▍</span> 왼쪽 실선형 인용구
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { insertQuote('box'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
-                            >
-                                <span className="text-indigo-500 text-base">🗳️</span> 박스 강조형 인용구
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { insertQuote('bubble'); setShowQuickAddMenu(false); }}
-                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
-                            >
-                                <span className="text-indigo-500 text-base">💡</span> 말풍선 추천형 인용구
-                            </button>
-                        </div>
-                    )}
+                        {/* Quote selection submenu */}
+                        {quickAddMenuSub === 'quote' && (
+                            <div className="p-3.5 sm:p-4 bg-white flex flex-col gap-2 bg-white">
+                                <button 
+                                    type="button"
+                                    onClick={() => setQuickAddMenuSub('main')}
+                                    className="text-xs font-bold text-slate-450 hover:text-emerald-600 flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-caret-left"></i> 이전으로
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { insertQuote('border'); setShowQuickAddMenu(false); }}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
+                                >
+                                    <span className="text-indigo-500 font-bold text-base">▍</span> 왼쪽 실선형 인용구
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { insertQuote('box'); setShowQuickAddMenu(false); }}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
+                                >
+                                    <span className="text-indigo-500 text-base">🗳️</span> 박스 강조형 인용구
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { insertQuote('bubble'); setShowQuickAddMenu(false); }}
+                                    className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 hover:border-emerald-250 rounded-xl text-xs sm:text-sm font-extrabold text-slate-700 border border-transparent transition-all shadow-sm bg-slate-50/50 cursor-pointer flex items-center gap-3"
+                                >
+                                    <span className="text-indigo-500 text-base">💡</span> 말풍선 추천형 인용구
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -1160,12 +1272,24 @@ export function RichTextEditor({
                 ref={editorRef}
                 contentEditable
                 onInput={handleInput}
+                onPaste={handlePaste}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
                 className="pt-4 pb-4 pr-4 pl-12 sm:pt-5 sm:pb-5 sm:pr-5 sm:pl-14 text-slate-800 text-sm sm:text-base outline-none min-h-[300px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all rounded-b-xl"
                 style={{ 
                     minHeight, 
                     fontFamily: fontFamilies[currentFont as keyof typeof fontFamilies] || '"NanumSquare", "Inter", sans-serif'
                 }}
                 data-placeholder={placeholder}
+            />
+
+            {/* Hidden Input for Local Computer Image Selection */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleLocalFileChange} 
+                accept="image/*" 
+                className="hidden" 
             />
         </div>
     );

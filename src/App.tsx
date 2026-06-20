@@ -119,6 +119,8 @@ export default function App() {
                     <i className="fa-solid fa-bullhorn mr-1"></i> 정직한 발걸음과 생생한 관찰 기록, 구미태왕공인중개사가 전문적인 중개를 약속합니다.
                 </div>
 
+
+
                 <header className="sticky top-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 z-40 w-full transition-all">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
                         <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>

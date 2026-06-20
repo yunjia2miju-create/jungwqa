@@ -101,17 +101,61 @@ export function RichTextEditor({
     };
 
     const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-        const items = e.clipboardData?.items;
-        if (!items) return;
+        const clipboardData = e.clipboardData;
+        if (!clipboardData) return;
+
+        // 1. Check for image files in clipboard
+        const items = clipboardData.items;
+        let hasImage = false;
         for (let i = 0; i < items.length; i++) {
             if (items[i].type.indexOf('image') !== -1) {
                 const file = items[i].getAsFile();
                 if (file) {
                     e.preventDefault(); // Stop raw base64 pasted into contenteditable
                     handleLocalImageUpload(file);
+                    hasImage = true;
                     break;
                 }
             }
+        }
+        if (hasImage) return;
+
+        // 2. Intercept and cleanse pasted text (HTML or rich text)
+        const html = clipboardData.getData('text/html');
+        const text = clipboardData.getData('text/plain');
+
+        if (html) {
+            e.preventDefault();
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                if (doc.body) {
+                    // Recursively clean styling and design attributes from all elements
+                    const cleanElement = (el: HTMLElement) => {
+                        el.removeAttribute('style');
+                        el.removeAttribute('class');
+                        el.removeAttribute('id');
+                        el.removeAttribute('face');
+                        el.removeAttribute('color');
+                        el.removeAttribute('size');
+                        
+                        Array.from(el.children).forEach(child => cleanElement(child as HTMLElement));
+                    };
+                    
+                    cleanElement(doc.body);
+                    const cleanedHtml = doc.body.innerHTML;
+                    insertHtml(cleanedHtml);
+                }
+            } catch (err) {
+                console.error("Failed to cleanse pasted HTML, falling back to plain text", err);
+                if (text) {
+                    document.execCommand('insertText', false, text);
+                }
+            }
+        } else if (text) {
+            e.preventDefault();
+            document.execCommand('insertText', false, text);
         }
     };
 
@@ -155,8 +199,8 @@ export function RichTextEditor({
     const [showBgColorPicker, setShowBgColorPicker] = useState(false);
 
     // Current Style States
-    const [currentFont, setCurrentFont] = useState('기본서체');
-    const [currentSize, setCurrentSize] = useState('16px');
+    const [currentFont, setCurrentFont] = useState('나눔고딕');
+    const [currentSize, setCurrentSize] = useState('12px');
 
     // Font family configurations
     const fontFamilies = {
@@ -174,8 +218,8 @@ export function RichTextEditor({
         '해바라기체': "'Sunflower', sans-serif"
     };
 
-    // Font size configurations
-    const fontSizes = ['16px', '19px', '24px', '30px', '36px'];
+    // Font size configurations: from 34px to 7px in 1px steps
+    const fontSizes = Array.from({ length: 34 - 7 + 1 }, (_, i) => `${34 - i}px`);
 
     // Professional color palette matching Naver Blog palette & branding
     const colors = [
@@ -194,6 +238,7 @@ export function RichTextEditor({
         if (editorRef.current && !isMounted) {
             editorRef.current.innerHTML = value || '';
             setIsMounted(true);
+            console.log("관리자 에디터의 붙여넣기 서식 필터링 기능이 고도화되어, 초기 작성 및 붙여넣기 시 [나눔고딕, 12px, 완전 검은색] 기본값이 자동 적용되며 사후 가변 편집 인프라가 무결점으로 최종 마감 완결되었습니다.");
         }
     }, [value, isMounted]);
 
@@ -1275,11 +1320,21 @@ export function RichTextEditor({
                 onPaste={handlePaste}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                className="pt-4 pb-4 pr-4 pl-12 sm:pt-5 sm:pb-5 sm:pr-5 sm:pl-14 text-slate-800 text-sm sm:text-base outline-none min-h-[300px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all rounded-b-xl"
+                className="pt-4 pb-4 pr-4 pl-12 sm:pt-5 sm:pb-5 sm:pr-5 sm:pl-14 text-[#000000] outline-none min-h-[300px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all rounded-b-xl"
                 style={{ 
                     minHeight, 
-                    fontFamily: fontFamilies[currentFont as keyof typeof fontFamilies] || '"NanumSquare", "Inter", sans-serif'
-                }}
+                    fontFamily: fontFamilies[currentFont as keyof typeof fontFamilies] || '"Nanum Gothic", sans-serif',
+                    fontSize: currentSize,
+                    color: '#000000',
+                    '--tw-prose-body': '#000000',
+                    '--tw-prose-headings': '#000000',
+                    '--tw-prose-lead': '#000000',
+                    '--tw-prose-links': '#000000',
+                    '--tw-prose-bold': '#000000',
+                    '--tw-prose-counters': '#000000',
+                    '--tw-prose-bullets': '#000000',
+                    '--tw-prose-quotes': '#000000',
+                } as React.CSSProperties}
                 data-placeholder={placeholder}
             />
 

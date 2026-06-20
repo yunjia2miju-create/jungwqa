@@ -3,7 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAppStore } from '../store';
 
-import { VrViewer } from './VrViewer';
+import PannellumViewer from './PannellumViewer';
+import { Naver360Icon } from './Naver360Icon';
 
 const cleanNbsp = (text: string | null | undefined): string => {
     if (!text) return '';
@@ -98,10 +99,40 @@ export const DetailTab = ({
             : (safePanoImg ? [safePanoImg] : []);
     }, [p.panoramas, p.panoImage]);
 
+    // Fast-loading Preloader: Calculate next and previous listings to prefetch their panoramas and thumbnails (0-second load tech)
+    const adjacentPanoUrls = React.useMemo(() => {
+        const currentIndex = posts.findIndex(post => post.id === selectedPostId);
+        if (currentIndex === -1) return [];
+        const nextPost = posts[(currentIndex + 1) % posts.length];
+        const prevPost = posts[(currentIndex - 1 + posts.length) % posts.length];
+        const urls: string[] = [];
+        const processPost = (post: typeof nextPost) => {
+            if (!post) return;
+            const safePanos = String(post.panoramas || '');
+            const safePanoImg = String(post.panoImage || '');
+            if (safePanos) {
+                safePanos.split('|').forEach(u => {
+                    const trimmed = u.trim();
+                    if (trimmed) urls.push(trimmed);
+                });
+            } else if (safePanoImg) {
+                const trimmed = safePanoImg.trim();
+                if (trimmed) urls.push(trimmed);
+            }
+            if (post.thumbnail) {
+                urls.push(post.thumbnail.trim());
+            }
+        };
+        processPost(nextPost);
+        processPost(prevPost);
+        return urls;
+    }, [posts, selectedPostId]);
+
     // Fast-loading Preloader: Proactively fetch all panoramic images in the background
     React.useEffect(() => {
-        if (panoUrls.length > 0) {
-            panoUrls.forEach((url, idx) => {
+        const allUrlsToPrefetch = [...panoUrls, ...adjacentPanoUrls];
+        if (allUrlsToPrefetch.length > 0) {
+            allUrlsToPrefetch.forEach((url, idx) => {
                 if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
                     // Prevent double-proxying same-origin or already proxied URLs
                     let proxiedUrl = url;
@@ -130,7 +161,7 @@ export const DetailTab = ({
                 }
             });
         }
-    }, [panoUrls]);
+    }, [panoUrls, adjacentPanoUrls]);
 
     const [activePanoIndex, setActivePanoIndex] = React.useState(0);
 
@@ -169,7 +200,7 @@ export const DetailTab = ({
                 {"<<<< 앞 바로가기 <<<<"}
             </button>
 
-            <article className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xl overflow-hidden p-5 sm:p-10 w-full">
+            <article className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xl overflow-visible sm:overflow-hidden p-5 sm:p-10 w-full">
                 {isFetchingDetail ? (
                     <div className="animate-pulse space-y-6">
                         <div className="flex space-x-2 mb-4">
@@ -184,7 +215,7 @@ export const DetailTab = ({
                             <div className="h-4 w-3/4 bg-slate-200 rounded"></div>
                         </div>
 
-                        <div className="aspect-[16/9] w-full bg-slate-200 rounded-2xl mb-8"></div>
+                        <div className="aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 w-[calc(100%+4.5rem)] sm:w-full -mx-9 sm:mx-0 bg-slate-200 rounded-none sm:rounded-2xl mb-6 sm:mb-8 animate-pulse"></div>
                         
                         <div className="space-y-6">
                             <div className="p-6 bg-slate-50 border-l-4 border-slate-300 rounded-r-2xl space-y-2">
@@ -223,7 +254,7 @@ export const DetailTab = ({
                             <span>{p.building} {isAdminLoggedIn && p.room ? `${p.room}호` : ''}</span>
                             {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
                                 <span className="shrink-0 bg-emerald-600 text-white text-xs sm:text-sm lg:text-base font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-900/20 animate-pulse">
-                                    <i className="fa-solid fa-vr-cardboard"></i>
+                                    <Naver360Icon size={18} className="text-white" />
                                     <span>VR 투어 가능</span>
                                 </span>
                             )}
@@ -377,11 +408,16 @@ export const DetailTab = ({
                 </div>
 
                 <div 
-                    className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-150 shadow-sm mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
+                    className="aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full"
                     onClick={() => {
                         setActiveZoomUrl(p.thumbnail || defaultImg);
                     }}
                 >
+                    {/* Unique [녹색 라운드 사각 뱃지] for 대표사진 */}
+                    <div id="representative-badge" className="absolute top-4 left-4 sm:top-5 sm:left-5 bg-emerald-600 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-emerald-500 shadow-md z-30 flex items-center gap-1.5 select-none hover:scale-[1.03] transition-all">
+                        <span>✨ 대표사진</span>
+                    </div>
+
                     <img 
                         src={p.thumbnail} 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
@@ -405,26 +441,86 @@ export const DetailTab = ({
                         <span>태왕공인중개사</span>
                     </div>
                     {/* Hover status tip */}
-                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-20">
                         <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
                         <span>크게 보기 (클릭)</span>
                     </div>
                 </div>
 
+                {imgUrls.length > 0 && (
+                    <div className="mb-8">
+                        <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
+                            <i className="fa-solid fa-camera text-emerald-600"></i>
+                            <span>실사 추가 사진첩</span>
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {imgUrls.map((url, i) => (
+                                <div 
+                                    key={i} 
+                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-slate-50 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
+                                    onClick={() => {
+                                        setActiveZoomUrl(url.trim());
+                                    }}
+                                >
+                                    <img 
+                                        src={url.trim()} 
+                                        onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} 
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                        alt={`실사 추가 사진 ${i+1}`}
+                                    />
+                                    {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                                        <span 
+                                            className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-[10px] sm:text-xs md:text-sm"
+                                            style={{ 
+                                                color: '#FFFFFF',
+                                                opacity: 0.15,
+                                                textShadow: 'none'
+                                            }}
+                                        >
+                                            태왕공인중개사
+                                        </span>
+                                    </div>
+                                    <div className="watermark-overlay">
+                                        <i className="fa-solid fa-house-shield text-[10px]"></i>
+                                        <span>태왕공인중개사</span>
+                                    </div>
+                                    {/* Hover status tip */}
+                                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                        <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
+                                        <span>크게 보기 (클릭)</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {panoUrls.length > 0 && (
                     <div className="mb-8">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 border-b border-dashed border-emerald-500/10 pb-3">
-                            <h4 className="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2 sm:gap-2.5">
-                                <i className="fa-solid fa-vr-cardboard text-emerald-600 text-xl sm:text-3xl animate-vr-icon"></i>
-                                <span className="animate-vr-glow text-emerald-600 sm:text-emerald-700">공간 실감 360° 현장 VR 투어</span>
+                        <div className="flex flex-col items-start gap-4 mb-5 border-b border-dashed border-emerald-500/10 pb-4 w-full">
+                            <h4 className="text-[22px] sm:text-[38px] md:text-[42px] lg:text-[44px] font-black text-slate-900 flex items-center gap-3.5 sm:gap-5 max-w-full">
+                                <Naver360Icon size={144} className="h-[57px] sm:h-[90px] w-auto shrink-0 select-none animate-vr-glow filter drop-shadow-[0_4px_12px_rgba(18,208,103,0.35)]" />
+                                <span 
+                                    className="animate-vr-glow select-none break-keep"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #012b1e 0%, #046a47 60%, #0a3528 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
+                                        color: 'transparent'
+                                    }}
+                                >
+                                    공간 실감 360° 현장 VR 투어
+                                </span>
                             </h4>
                             {panoUrls.length > 1 && (
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="flex flex-wrap gap-2 overflow-x-auto sm:overflow-x-visible scrollbar-none max-w-full pb-1 shrink-0 select-none items-center scroll-smooth">
                                     {panoUrls.map((_, idx) => (
                                         <button 
                                             key={idx}
                                             onClick={() => setActivePanoIndex(idx)}
-                                            className={`px-3 py-1 rounded-full text-[10px] font-black transition-all ${activePanoIndex === idx ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${activePanoIndex === idx ? 'bg-emerald-600 text-white shadow-md border border-emerald-400 scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
                                         >
                                             공간 {idx + 1}
                                         </button>
@@ -432,95 +528,29 @@ export const DetailTab = ({
                                 </div>
                             )}
                         </div>
-                        <VrViewer 
+                        <PannellumViewer 
                             key={`${p.id}-${panoUrls.length}`}
                             images={panoUrls} 
                             activeIndex={activePanoIndex} 
                             onSceneChange={(idx) => setActivePanoIndex(idx)} 
+                            title={p.building || p.title}
+                            address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
+                            thumbnail={p.thumbnail}
                         />
-                        {panoUrls.length > 0 && (
-                            <div className="mt-5 space-y-4">
-                                <div className="text-xs font-black text-slate-400 flex items-center gap-1.5 mb-1 bg-slate-50 px-3 py-1.5 rounded-lg w-fit border border-slate-100">
-                                    <i className="fa-solid fa-hotel text-emerald-600"></i>
-                                    <span>대기업 분양관 스타일 공간 썸네일 내비게이션 (Thumbnail Card Navigation)</span>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
-                                    {panoUrls.map((pano, idx) => {
-                                        // 무결점 Firebase 이미지 복원: tiled: 데이터 접두사가 붙어있을 경우 실주소만 정밀 정제 매핑
-                                        const cleanImgUrl = (() => {
-                                            if (!pano) return 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80';
-                                            const cleanUrl = pano.includes('|') ? pano.split('|')[0] : pano;
-                                            if (cleanUrl.startsWith('tiled:')) {
-                                                const parts = cleanUrl.substring(6).split(';');
-                                                return parts[0];
-                                            }
-                                            return cleanUrl;
-                                        })();
-
-                                        const getKoreaRoomLabel = (i: number): string => {
-                                            const labels = ["거실", "주방", "안방 1", "현관", "욕실", "베란다", "안방 2", "침실 3"];
-                                            return labels[i % labels.length];
-                                        };
-
-                                        return (
-                                            <button 
-                                                key={idx}
-                                                onClick={() => setActivePanoIndex(idx)}
-                                                className={`group relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all duration-350 outline-none w-full text-left shadow-sm cursor-pointer ${
-                                                    activePanoIndex === idx 
-                                                    ? 'border-emerald-600 scale-[1.03] shadow-md ring-2 ring-emerald-500/20' 
-                                                    : 'border-slate-100/80 hover:border-emerald-500/50'
-                                                }`}
-                                            >
-                                                {/* Background Image Container with Hover Scale */}
-                                                <div className="w-full h-full overflow-hidden bg-slate-950">
-                                                    <img 
-                                                        src={cleanImgUrl} 
-                                                        onError={(e) => {
-                                                            e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80';
-                                                        }}
-                                                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110" 
-                                                        alt={getKoreaRoomLabel(idx)} 
-                                                    />
-                                                </div>
-
-                                                {/* Premium Semi-transparent Gradient Filter overlay */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:from-black/90"></div>
-
-                                                {/* Space Name Label aligned bottom-left in White Gothic Sans-serif */}
-                                                <div className="absolute bottom-2.5 left-3 right-3 flex flex-col justify-end pointer-events-none font-sans">
-                                                    <span className="text-[9px] text-emerald-400 font-black uppercase tracking-widest opacity-85 group-hover:opacity-100 transition-opacity">
-                                                        SPACE {String(idx + 1).padStart(2, '0')}
-                                                    </span>
-                                                    <span className="text-[13px] font-black text-white tracking-tight leading-tight mt-0.5 shadow-sm">
-                                                        {getKoreaRoomLabel(idx)}
-                                                    </span>
-                                                </div>
-
-                                                {/* Active Glowing Border indicator */}
-                                                {activePanoIndex === idx && (
-                                                    <div className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-400 ring-4 ring-emerald-400/30 animate-pulse"></div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* 3순위 대기업 스타일 개조 완료 무결점 인증 배너 */}
-                                <div id="pano-refactoring-success-banner" className="p-4 sm:p-5 bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-slate-50 border border-emerald-500/25 rounded-2xl shadow-sm flex items-center gap-3.5 text-left transition-all hover:bg-emerald-50/90 hover:border-emerald-500/40 mt-4">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-400/30 flex items-center justify-center shrink-0">
-                                        <i className="fa-solid fa-square-check text-emerald-600 text-lg"></i>
-                                    </div>
-                                    <div className="flex-grow space-y-0.5 leading-relaxed">
-                                        <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span>REAL ESTATE VIEW RECONSTRUCTION CERTIFICATE</span>
-                                        </h5>
-                                        <p className="text-[11.5px] sm:text-xs text-slate-700 font-extrabold leading-normal select-none">
-                                            3순위 대기업 스타일 고품격 썸네일 카드 및 하단 CSS 레이아웃 개조가 오류 없이 무결점으로 완료되었습니다. 모든 공간이 세련된 디자인 가이드라인에 맞춰 완벽하게 정착했습니다.
-                                        </p>
-                                    </div>
-                                </div>
+                        {panoUrls.length > 1 && (
+                            <div className="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                {panoUrls.map((pano, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => setActivePanoIndex(idx)}
+                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-emerald-600 scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                    >
+                                        <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} />
+                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                            <span className="text-[8px] font-black text-white bg-black/40 px-1.5 py-0.5 rounded">Sc-{idx + 1}</span>
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -637,55 +667,6 @@ export const DetailTab = ({
                     </div>
                 </div>
 
-                {imgUrls.length > 0 && (
-                    <div className="mt-8">
-                        <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
-                            <i className="fa-solid fa-camera text-emerald-600"></i>
-                            <span>실사 추가 사진첩</span>
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {imgUrls.map((url, i) => (
-                                <div 
-                                    key={i} 
-                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-slate-50 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
-                                    onClick={() => {
-                                        setActiveZoomUrl(url.trim());
-                                    }}
-                                >
-                                    <img 
-                                        src={url.trim()} 
-                                        onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} 
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                                        alt={`실사 추가 사진 ${i+1}`}
-                                    />
-                                    {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
-                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                                        <span 
-                                            className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-[10px] sm:text-xs md:text-sm"
-                                            style={{ 
-                                                color: '#FFFFFF',
-                                                opacity: 0.15,
-                                                textShadow: 'none'
-                                            }}
-                                        >
-                                            태왕공인중개사
-                                        </span>
-                                    </div>
-                                    <div className="watermark-overlay">
-                                        <i className="fa-solid fa-house-shield text-[10px]"></i>
-                                        <span>태왕공인중개사</span>
-                                    </div>
-                                    {/* Hover status tip */}
-                                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                        <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
-                                        <span>크게 보기 (클릭)</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
                 {p.video && (
                     <div className="mt-8">
                         <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
@@ -793,8 +774,8 @@ export const DetailTab = ({
                                                 {rec.dong || '구미시'}
                                             </span>
                                             {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
-                                                <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5 animate-pulse shrink-0">
-                                                    <i className="fa-solid fa-vr-cardboard text-[8px]"></i>
+                                                <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 animate-pulse shrink-0">
+                                                    <Naver360Icon size={12} className="text-emerald-700" />
                                                     <span>360°</span>
                                                 </span>
                                             )}

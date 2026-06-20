@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { Post, gumiDongs } from '../data';
-import { VrViewer, sliceAndUploadPano, FloorHotspot } from './VrViewer';
+import PannellumViewer from './PannellumViewer';
 import RichTextEditor from './RichTextEditor';
 import { savePostService, getPostsService } from '../firebaseService';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -34,7 +34,6 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     });
 
     const currentEditPost = editingPostId ? posts.find(p => p.id === editingPostId) : null;
-    const stablePostId = useRef<string>(editingPostId || `local-${Date.now()}`);
 
     // Form Initial State
     const [formData, setFormData] = useState<Partial<Post>>({
@@ -47,120 +46,6 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [uploadProgress, setUploadProgress] = useState<string>('');
-
-    // VR Floor Spot Coordinates Registration Interface States
-    const [panoHotspots, setPanoHotspots] = useState<{ [sceneIdx: number]: FloorHotspot[] }>({});
-    const [hotspotModalOpen, setHotspotModalOpen] = useState(false);
-    const [selectedPitch, setSelectedPitch] = useState<number>(-50);
-    const [selectedYaw, setSelectedYaw] = useState<number>(0);
-    const [targetSpaceIdx, setTargetSpaceIdx] = useState<number>(0);
-    const [roomNameInput, setRoomNameInput] = useState<string>('');
-    const [descriptionInput, setDescriptionInput] = useState<string>('');
-
-    // Parse individual panorama urls from pipe-separated string
-    const panoUrls = React.useMemo(() => {
-        return formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
-    }, [formData.panoramas]);
-
-    // Automatically load existing hotspots from Firebase Storage manifests
-    useEffect(() => {
-        if (panoUrls.length === 0) {
-            setPanoHotspots({});
-            return;
-        }
-
-        const fetchAllManifests = async () => {
-            const loadedHotspots: { [sceneIdx: number]: FloorHotspot[] } = {};
-            for (let i = 0; i < panoUrls.length; i++) {
-                const item = panoUrls[i];
-                if (item.startsWith('tiled:')) {
-                    const parts = item.substring(6).split(';');
-                    const manifestUrl = parts[1];
-                    if (manifestUrl) {
-                        try {
-                            const res = await fetch(manifestUrl);
-                            const manifestData = await res.json();
-                            if (manifestData && Array.isArray(manifestData.hotspots)) {
-                                loadedHotspots[i] = manifestData.hotspots;
-                            }
-                        } catch (e) {
-                            console.warn(`Failed to prefetch hotspots for pano #${i}:`, e);
-                        }
-                    }
-                }
-            }
-            setPanoHotspots(prev => {
-                return { ...prev, ...loadedHotspots };
-            });
-        };
-
-        fetchAllManifests();
-    }, [panoUrls]);
-
-    const saveHotspotsToManifest = async (sceneIdx: number, hotspotsList: FloorHotspot[]) => {
-        if (sceneIdx >= panoUrls.length) return;
-        
-        const item = panoUrls[sceneIdx];
-        if (item.startsWith('tiled:')) {
-            const parts = item.substring(6).split(';');
-            const previewUrl = parts[0];
-            const manifestUrl = parts[1];
-            
-            setIsUploading(true);
-            setUploadProgress(`VR 채널 #${sceneIdx + 1} 바닥 좌표 데이터 manifest.json 갱신 및 업로드 중...`);
-            try {
-                let currentManifest: any = {};
-                if (manifestUrl) {
-                    try {
-                        const res = await fetch(manifestUrl);
-                        currentManifest = await res.json();
-                    } catch (e) {
-                        currentManifest = {};
-                    }
-                }
-                
-                // Process and map with strict Cartesian (X, Y, Z) geometry fields
-                const hotspotsWithCoordinates = hotspotsList.map(h => {
-                    const pitchRad = (h.pitch * Math.PI) / 180;
-                    const yawRad = (h.yaw * Math.PI) / 180;
-                    const x = parseFloat((Math.cos(pitchRad) * Math.sin(yawRad)).toFixed(4));
-                    const y = parseFloat(Math.sin(pitchRad).toFixed(4));
-                    const z = parseFloat((Math.cos(pitchRad) * Math.cos(yawRad)).toFixed(4));
-                    return {
-                        ...h,
-                        x,
-                        y,
-                        z
-                    };
-                });
-                
-                currentManifest.hotspots = hotspotsWithCoordinates;
-                
-                // Upload modified manifest blob to the original reference location
-                const manifestBlob = new Blob([JSON.stringify(currentManifest)], { type: 'application/json' });
-                const manifestRef = ref(storage, `vr-tiles/${stablePostId.current}/pano_${sceneIdx}_manifest.json`);
-                await uploadBytes(manifestRef, manifestBlob, { contentType: 'application/json' });
-                const newManifestUrl = await getDownloadURL(manifestRef);
-                
-                // Keep the active panoramas chain updated
-                const updatedPanoList = [...panoUrls];
-                updatedPanoList[sceneIdx] = `tiled:${previewUrl};${newManifestUrl}`;
-                
-                setFormData(prev => ({ ...prev, panoramas: updatedPanoList.join('|') }));
-                setPanoHotspots(prev => ({ ...prev, [sceneIdx]: hotspotsWithCoordinates }));
-                
-                showToast(`VR 채널 #${sceneIdx + 1} 바닥 기하학 좌표 데이터가 성공적으로 영구 저장되었습니다.`, "success");
-            } catch (e: any) {
-                console.error("Failed to upload updated manifest:", e);
-                showToast("바닥 좌표 갱신 업로드에 실패했습니다.", "error");
-            } finally {
-                setIsUploading(false);
-                setUploadProgress('');
-            }
-        } else {
-            showToast("타일 형태의 VR 채널에만 좌표를 저장할 수 있습니다.", "error");
-        }
-    };
 
     const dataURLtoBlob = (dataurl: string): Blob => {
         const arr = dataurl.split(',');
@@ -452,31 +337,25 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 showToast("대표 대표 사진이 파이어베이스 스토리지에 성공적으로 업로드되었습니다.", "success");
             } else if (type === 'pano') {
                 const total = files.length;
-                const urls: string[] = [];
+                setUploadProgress(`파노라마 VR 총 ${total}장 초고속 병렬 업로드 가동 중...`);
+                const urls = await Promise.all(
+                    Array.from(files).map(async (file) => {
+                        const base64 = await processFile(file, true);
+                        return uploadResizedBlobToStorage(base64, file.name, 'panoramas');
+                    })
+                );
                 const currentPanos = formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
-                
-                for (let i = 0; i < total; i++) {
-                    const panoIndex = currentPanos.length + i;
-                    setUploadProgress(`파노라마 VR 초고속 멀티레졸루션 타일 조각 가공 및 업로드 중 (${i + 1} / ${total})...`);
-                    const tiledDescriptor = await sliceAndUploadPano(
-                        files[i],
-                        stablePostId.current,
-                        panoIndex,
-                        (status) => setUploadProgress(`[VR ${i + 1}/${total}] ${status}`)
-                    );
-                    urls.push(tiledDescriptor);
-                }
                 setFormData(prev => ({ ...prev, panoramas: [...currentPanos, ...urls].join('|') }));
-                showToast(`${total}장의 파노라마 이미지에 대한 초고속 멀티레졸루션 격리 타일링 가공 및 연동이 에러 없이 무결점으로 완료되었습니다.`, "success");
+                showToast(`${total}장의 360° 파노라마 VR 사진이 파이어베이스 스토리지에 최속 병렬로 완벽하게 업로드되었습니다.`, "success");
             } else {
                 const total = files.length;
-                const urls: string[] = [];
-                for (let i = 0; i < total; i++) {
-                    setUploadProgress(`전경 사진 업로드 중 (${i + 1} / ${total})...`);
-                    const base64 = await processFile(files[i]);
-                    const downloadURL = await uploadResizedBlobToStorage(base64, files[i].name, 'gallery');
-                    urls.push(downloadURL);
-                }
+                setUploadProgress(`전경 사진 총 ${total}장 초고속 병렬 업로드 가동 중...`);
+                const urls = await Promise.all(
+                    Array.from(files).map(async (file) => {
+                        const base64 = await processFile(file);
+                        return uploadResizedBlobToStorage(base64, file.name, 'gallery');
+                    })
+                );
                 const currentImages = formData.images ? formData.images.split('|').filter(i => i) : [];
                 setFormData(prev => ({ ...prev, images: [...currentImages, ...urls].join('|') }));
                 showToast(`${total}장의 상세 전경 사진이 파이어베이스 스토리지에 업로드 완료되었습니다.`, "success");
@@ -585,7 +464,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         setIsSubmitting(true);
         const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
         const newPost: Post = {
-            id: editingPostId || stablePostId.current,
+            id: editingPostId || ('local-' + Date.now()),
             createdAt: editingPostId && currentEditPost ? currentEditPost.createdAt : Date.now(),
             category: formData.category || '원룸',
             transactionType: formData.transactionType || '월세',
@@ -1072,7 +951,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                                             </div>
                                             
                                             {panoList.length > 0 && (
-                                                <VrViewer 
+                                                <PannellumViewer 
                                                     key={`admin-vr-${safeVRIndex}-${panoList.length}`}
                                                     images={panoList} 
                                                     activeIndex={safeVRIndex} 
@@ -1086,347 +965,6 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                                         </div>
                                     );
                                 })()}
-
-                                {/* 2-2단계 관리자용 VR 좌표 등록 리모컨 인터페이스 (Visual Hotspot Editor) */}
-                                {(() => {
-                                    const panoList = formData.panoramas.split('|').filter(i => i);
-                                    const safeVRIndex = Math.min(activeVRIndex, Math.max(0, panoList.length - 1));
-                                    if (panoList.length === 0) return null;
-                                    
-                                    const activePanoUrl = panoList[safeVRIndex] || '';
-                                    const activePanoPreview = activePanoUrl.startsWith('tiled:') 
-                                        ? activePanoUrl.substring(6).split(';')[0] 
-                                        : activePanoUrl;
-                                        
-                                    return (
-                                        <div className="bg-white rounded-3xl border-2 border-emerald-500 shadow-xl p-6 space-y-6 text-left">
-                                            {/* Prominent notice banner containing required exact success message */}
-                                            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5 flex items-start gap-3 shadow-inner">
-                                                <div className="bg-emerald-600 text-white rounded-full p-2 shrink-0 animate-bounce">
-                                                    <i className="fa-solid fa-gamepad text-base"></i>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <h4 className="text-emerald-900 font-extrabold text-sm sm:text-base">리모컨 인터페이스 가동 상태 알림</h4>
-                                                    <p className="text-emerald-850 text-xs sm:text-sm font-black leading-relaxed">
-                                                        2-2단계 관리자용 VR 좌표 등록 리모컨 인터페이스 구축이 오류 없이 무결점으로 완료되었습니다. 이제 관리자 페이지에서 바닥 좌표를 직접 찍을 수 있습니다.
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                                                {/* Left column: Flat image mapping click area */}
-                                                <div className="lg:col-span-8 space-y-3">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-sm font-black text-slate-800 flex items-center gap-1.5">
-                                                            <i className="fa-solid fa-crosshairs text-rose-500 animate-pulse"></i>
-                                                            <span>[1단계] 바닥 기하학 좌표 선택 (평면 파노라마 클릭)</span>
-                                                        </span>
-                                                        <span className="text-[10px] text-slate-500 font-bold">※ 아래 마우스로 콕 클릭하면 생성 팝업이 활성화됩니다</span>
-                                                    </div>
-                                                    
-                                                    <div className="relative w-full rounded-2xl overflow-hidden border-2 border-slate-350 shadow-inner group bg-slate-950">
-                                                        <img 
-                                                            src={activePanoPreview} 
-                                                            alt="Flat Mapping Panorama View" 
-                                                            className="w-full aspect-[2/1] object-cover cursor-crosshair opacity-85 hover:opacity-100 transition-opacity"
-                                                            onClick={(e) => {
-                                                                const rect = e.currentTarget.getBoundingClientRect();
-                                                                const xVal = e.clientX - rect.left;
-                                                                const yVal = e.clientY - rect.top;
-                                                                
-                                                                const pctX = xVal / rect.width;
-                                                                const pctY = yVal / rect.height;
-                                                                
-                                                                // Map percentage to spherical degrees
-                                                                const yaw = parseFloat(((pctX * 360) - 180).toFixed(1));
-                                                                const pitch = parseFloat((90 - (pctY * 180)).toFixed(1));
-                                                                
-                                                                setSelectedPitch(pitch);
-                                                                setSelectedYaw(yaw);
-                                                                setRoomNameInput('');
-                                                                setDescriptionInput('');
-                                                                const defaultTarget = panoList.length > 1 
-                                                                    ? (safeVRIndex + 1 === panoList.length ? 0 : safeVRIndex + 1) 
-                                                                    : 0;
-                                                                setTargetSpaceIdx(defaultTarget);
-                                                                setHotspotModalOpen(true);
-                                                            }}
-                                                        />
-                                                        {/* Absolute rendering of dynamic glowing markers for stored hotspots */}
-                                                        {Array.isArray(panoHotspots[safeVRIndex]) && panoHotspots[safeVRIndex].map((hotspot, hIdx) => {
-                                                            const pctX = (hotspot.yaw + 180) / 360;
-                                                            const pctY = (90 - hotspot.pitch) / 180;
-                                                            
-                                                            return (
-                                                                <div 
-                                                                    key={hIdx}
-                                                                    className="absolute -translate-x-1/2 -translate-y-1/2 group/marker z-10 cursor-pointer"
-                                                                    style={{ left: `${pctX * 100}%`, top: `${pctY * 100}%` }}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (window.confirm(`선택한 바닥 좌표 핫스팟 [${hotspot.roomName}: ${hotspot.description}]을 스토리지에서 즉각 삭제 처리할까요?`)) {
-                                                                            const currentList = panoHotspots[safeVRIndex] || [];
-                                                                            const filtered = currentList.filter((_, idx) => idx !== hIdx);
-                                                                            saveHotspotsToManifest(safeVRIndex, filtered);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <div className="relative flex items-center justify-center">
-                                                                        <span className="animate-ping absolute inline-flex h-9 w-9 rounded-full bg-emerald-400 opacity-80"></span>
-                                                                        <div className="relative h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 border-[2.5px] border-white flex items-center justify-center text-[11px] font-black text-white shadow-xl hover:scale-115 transition-transform duration-250">
-                                                                            {hIdx + 1}
-                                                                        </div>
-                                                                        <div className="absolute bottom-full mb-2 bg-slate-950/95 backdrop-blur-xs text-white text-[11px] px-3 py-2 rounded-xl border border-slate-700 shadow-2xl opacity-0 group-hover/marker:opacity-100 transition-all pointer-events-none scale-95 group-hover/marker:scale-100 duration-200 whitespace-nowrap z-20 font-black text-left">
-                                                                            <p className="text-emerald-400 font-extrabold">#{hIdx + 1} {hotspot.roomName}</p>
-                                                                            <p className="text-[10px] text-slate-300 font-bold">{hotspot.description}</p>
-                                                                            <p className="text-[9px] text-slate-450 font-mono mt-0.5">Pitch: {hotspot.pitch}° / Yaw: {hotspot.yaw}°</p>
-                                                                            <p className="text-[8px] text-amber-305 font-mono">X:{hotspot.x || 0} / Y:{hotspot.y || 0} / Z:{hotspot.z || 0}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-
-                                                {/* Right column: Hotspots List & Diagnostic Info */}
-                                                <div className="lg:col-span-4 space-y-4">
-                                                    <div className="text-left">
-                                                        <span className="text-sm font-black text-slate-800 flex items-center gap-1.5">
-                                                            <i className="fa-solid fa-list-ol text-emerald-600"></i>
-                                                            <span>기하학 명세표 (Active Hotspots)</span>
-                                                        </span>
-                                                        <p className="text-[10.5px] text-slate-500 mt-1">현재 VR 채널 #{safeVRIndex + 1}에 활성화 명기된 원형 링 노드 리스트</p>
-                                                    </div>
-
-                                                    <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-3 max-h-[300px] overflow-y-auto scrollbar-thin">
-                                                        {!panoHotspots[safeVRIndex] || panoHotspots[safeVRIndex].length === 0 ? (
-                                                            <div className="py-8 text-center text-slate-400">
-                                                                <i className="fa-solid fa-arrows-to-eye text-2xl mb-2 text-slate-300 block"></i>
-                                                                <span className="text-xs font-bold font-mono">등록된 바닥 좌표가 없습니다.</span>
-                                                                <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">왼쪽의 파노라마 이미지를 터치하거나<br/>클릭하여 새 원형 이동 고리를 생성하세요.</p>
-                                                            </div>
-                                                        ) : (
-                                                            panoHotspots[safeVRIndex].map((hotspot, idx) => (
-                                                                <div key={idx} className="bg-white p-3 rounded-xl border border-slate-185 hover:border-slate-300 shadow-xs flex justify-between items-center gap-3 transition-colors">
-                                                                    <div className="space-y-1 text-left min-w-0">
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <span className="bg-emerald-100 text-emerald-800 text-[9.5px] font-black px-1.5 py-0.5 rounded-md">#{idx + 1} Node</span>
-                                                                            <span className="text-[12px] font-black text-slate-850 truncate">{hotspot.roomName}</span>
-                                                                        </div>
-                                                                        <p className="text-[10px] text-slate-500 font-bold truncate leading-none">{hotspot.description}</p>
-                                                                        <div className="flex items-center gap-1.5 text-[8.5px] font-mono text-slate-400 font-bold leading-none">
-                                                                            <span>P:{hotspot.pitch}° / Y:{hotspot.yaw}°</span>
-                                                                            <span className="text-[7.5px] text-amber-500 bg-amber-50 px-1 rounded">X:{hotspot.x || 0}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            if (window.confirm(`선택한 바닥 좌표 핫스팟 [${hotspot.roomName}]을 즉각 삭제 처리할까요?`)) {
-                                                                                const currentList = panoHotspots[safeVRIndex] || [];
-                                                                                const filtered = currentList.filter((_, i) => i !== idx);
-                                                                                saveHotspotsToManifest(safeVRIndex, filtered);
-                                                                            }
-                                                                        }}
-                                                                        className="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-100 hover:border-rose-600 p-2 rounded-lg transition-all shrink-0 cursor-pointer"
-                                                                        title="삭제"
-                                                                    >
-                                                                        <i className="fa-solid fa-trash-can text-xs"></i>
-                                                                    </button>
-                                                                </div>
-                                                            ))
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-
-                                {/* Hotspot Registration Popup Modal */}
-                                {hotspotModalOpen && (
-                                    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn" onClick={(e) => {
-                                        if (e.target === e.currentTarget) setHotspotModalOpen(false);
-                                    }}>
-                                        <div className="bg-white rounded-3xl border-[3px] border-emerald-500 shadow-2xl max-w-lg w-full overflow-hidden text-left animate-scaleIn">
-                                            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 border-b border-slate-100 flex justify-between items-center text-white">
-                                                <div>
-                                                    <span className="bg-emerald-950 text-emerald-300 font-black text-[10px] uppercase px-2 py-0.5 rounded-md">VR Coordinate Mapper</span>
-                                                    <h3 className="text-lg font-black mt-1">새로운 바닥 이동 좌표(핫스팟) 생성</h3>
-                                                </div>
-                                                <button type="button" onClick={() => setHotspotModalOpen(false)} className="text-white/80 hover:text-white hover:scale-110 cursor-pointer transition-transform bg-transparent border-0 text-xl font-black">✕</button>
-                                            </div>
-                                            
-                                            <div className="p-6 space-y-4">
-                                                {/* Sphere polar coordinates feedback to the user */}
-                                                <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                                                    <div>
-                                                        <span className="text-[10px] text-slate-400 font-bold block">선택 구면 각도 (Spherical)</span>
-                                                        <span className="text-xs sm:text-sm font-black text-slate-850">Pitch: {selectedPitch}° / Yaw: {selectedYaw}°</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-[10px] text-slate-400 font-bold block">3차원 기하학 좌표 (Cartesian)</span>
-                                                        <span className="text-[10.5px] font-mono font-bold text-slate-600 block truncate">
-                                                            {(() => {
-                                                                const pRad = (selectedPitch * Math.PI) / 185;
-                                                                const yRad = (selectedYaw * Math.PI) / 180;
-                                                                const cx = (Math.cos(pRad) * Math.sin(yRad)).toFixed(4);
-                                                                const cy = Math.sin(pRad).toFixed(4);
-                                                                const cz = (Math.cos(pRad) * Math.cos(yRad)).toFixed(4);
-                                                                return `X:${cx} / Y:${cy} / Z:${cz}`;
-                                                            })()}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Form fields */}
-                                                <div className="space-y-3">
-                                                    <div>
-                                                        <label className="block text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1">
-                                                            <i className="fa-solid fa-link text-emerald-600"></i>
-                                                            <span>연결할 대상 공간 채널</span>
-                                                        </label>
-                                                        <select 
-                                                            value={targetSpaceIdx}
-                                                            onChange={(e) => setTargetSpaceIdx(parseInt(e.target.value))}
-                                                            className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 max-h-40 overflow-y-auto"
-                                                        >
-                                                            {panoUrls.map((_, pIdx) => {
-                                                                const isCurrent = pIdx === activeVRIndex;
-                                                                return (
-                                                                    <option key={pIdx} value={pIdx} disabled={isCurrent}>
-                                                                        VR 채널 #{pIdx + 1} {isCurrent ? '(현재 활성화된 공간 - 선택불가)' : '로 이동 연결'}
-                                                                    </option>
-                                                                );
-                                                            })}
-                                                        </select>
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="block text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1">
-                                                            <i className="fa-solid fa-signature text-emerald-600"></i>
-                                                            <span>안내 네임 배지 표기</span>
-                                                        </label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={roomNameInput}
-                                                            onChange={(e) => setRoomNameInput(e.target.value)}
-                                                            placeholder="예: 안방, 주방, 거실, 욕실"
-                                                            className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500"
-                                                        />
-                                                        {/* Instant Preset Pills for extremely comfortable input */}
-                                                        <div className="flex flex-wrap gap-1.5 mt-2">
-                                                            {["거실", "주방", "안방", "욕실", "베란다", "현관", "침실 2", "침실 3"].map((roomPreset) => (
-                                                                <button
-                                                                    key={roomPreset}
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        setRoomNameInput(roomPreset);
-                                                                        // Auto-generate elegant corresponding description based on presets
-                                                                        const descPresets: { [k: string]: string } = {
-                                                                            "거실": "넓고 채광이 돋보이는 채광 보장형 거실 공간",
-                                                                            "주방": "최신 트렌드 인덕션 하이라이트 탑재 주방 구역",
-                                                                            "안방": "바람길 설계로 쾌적한 안락 침실 공간",
-                                                                            "욕실": "타일 보수공사 완료 쾌적한 전용 화장실",
-                                                                            "베란다": "세탁 및 보일러 완벽 안전 보완 공간",
-                                                                            "현관": "디지털 사물인터넷 스마트 도어 개폐 현관문",
-                                                                            "침실 2": "다목적 룸 및 자녀방 서재 활용성 최고 룸",
-                                                                            "침실 3": "화이트 실크 도배 완비 침실"
-                                                                        };
-                                                                        setDescriptionInput(descPresets[roomPreset] || `${roomPreset} 이동`);
-                                                                    }}
-                                                                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-black px-2.5 py-1 rounded-full cursor-pointer transition-colors"
-                                                                >
-                                                                    {roomPreset}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="block text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1">
-                                                            <i className="fa-solid fa-align-left text-emerald-600"></i>
-                                                            <span>공간 상세 설명 메시지</span>
-                                                        </label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={descriptionInput}
-                                                            onChange={(e) => setDescriptionInput(e.target.value)}
-                                                            placeholder="예: 안방 구역으로 진입합니다"
-                                                            className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500"
-                                                        />
-                                                    </div>
-                                                    
-                                                    {/* Manual coordinates fine-tuning sliders for precise alignment */}
-                                                    <div className="grid grid-cols-2 gap-3 pt-2">
-                                                        <div>
-                                                            <label className="block text-[10px] font-bold text-slate-500 mb-1">상하 각도 (Pitch: -85 ~ 90)</label>
-                                                            <input 
-                                                                type="range" 
-                                                                min="-85" 
-                                                                max="90" 
-                                                                step="1"
-                                                                value={selectedPitch} 
-                                                                onChange={(e) => setSelectedPitch(parseInt(e.target.value))}
-                                                                className="w-full accent-emerald-600 cursor-pointer"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[10px] font-bold text-slate-500 mb-1">좌우 각도 (Yaw: -180 ~ 180)</label>
-                                                            <input 
-                                                                type="range" 
-                                                                min="-180" 
-                                                                max="180" 
-                                                                step="1"
-                                                                value={selectedYaw} 
-                                                                onChange={(e) => setSelectedYaw(parseInt(e.target.value))}
-                                                                className="w-full accent-emerald-600 cursor-pointer"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end gap-2.5">
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => setHotspotModalOpen(false)}
-                                                    className="bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all"
-                                                >
-                                                    취소
-                                                </button>
-                                                <button 
-                                                    type="button" 
-                                                    onClick={async () => {
-                                                        if (!roomNameInput.trim()) {
-                                                            showToast("배지 명칭을 입력해 주세요.", "error");
-                                                            return;
-                                                        }
-                                                        
-                                                        const newHotspot: FloorHotspot = {
-                                                            pitch: selectedPitch,
-                                                            yaw: selectedYaw,
-                                                            targetIndex: targetSpaceIdx,
-                                                            roomName: roomNameInput.trim(),
-                                                            description: descriptionInput.trim() || `${roomNameInput.trim()} 구역 이동`
-                                                        };
-                                                        
-                                                        const currentList = panoHotspots[activeVRIndex] || [];
-                                                        const updatedList = [...currentList, newHotspot];
-                                                        
-                                                        setHotspotModalOpen(false);
-                                                        await saveHotspotsToManifest(activeVRIndex, updatedList);
-                                                    }}
-                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black py-2.5 px-4 rounded-xl cursor-pointer shadow-md shadow-emerald-600/10 transition-all flex items-center gap-1.5"
-                                                >
-                                                    <i className="fa-solid fa-circle-check"></i>
-                                                    <span>기하학 리포트 및 스토리지 동기화 저장</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* Small thumbnail/preview list to choose & rearrange below the big viewer */}
                                 {(() => {

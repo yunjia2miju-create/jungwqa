@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { gumiDongs } from '../data';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { submitInquiryService, getInquiriesService } from '../firebaseService';
+import { Naver360Icon } from './Naver360Icon';
 
 export const MainTab = ({ 
     openPhoneSelectModal, 
@@ -188,9 +189,9 @@ export const MainTab = ({
                                 className="flex flex-col items-center cursor-pointer hover:scale-[1.03] active:scale-95 transition-all select-none bg-emerald-500/10 border border-emerald-500/30 px-6 sm:px-10 py-4 sm:py-5 rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/20 shrink-0 max-w-full box-border"
                                 title="클릭하여 360° VR 매물 모아보기"
                             >
-                                <div className="flex items-center gap-2 sm:gap-3 flex-nowrap">
-                                    <i className="fa-solid fa-vr-cardboard text-emerald-400 text-2xl sm:text-3xl lg:text-3xl animate-vr-icon shrink-0"></i>
-                                    <span className="text-emerald-400 font-black text-xl sm:text-2xl md:text-3xl lg:text-3xl tracking-tight shrink-0 drop-shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-vr-glow">
+                                <div className="flex items-center gap-3 sm:gap-5 flex-nowrap">
+                                    <Naver360Icon size={52} className="h-[26px] sm:h-[32px] md:h-[38px] lg:h-[46px] w-auto shrink-0 select-none animate-pulse" />
+                                    <span className="text-emerald-400 font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tight shrink-0 drop-shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-vr-glow select-none">
                                         공간 실감 360° 현장 VR 투어
                                     </span>
                                 </div>
@@ -254,9 +255,9 @@ export const MainTab = ({
                             className="bg-emerald-500/15 border border-emerald-500/30 rounded-xl p-4 my-2.5 shadow-[inset_0_1px_15px_rgba(16,185,129,0.25)] cursor-pointer hover:bg-emerald-500/25 active:scale-[0.98] transition-all"
                             title="터치하여 360° VR 매물 모아보기"
                         >
-                            <div className="text-emerald-400 font-black text-lg sm:text-xl tracking-tight text-left flex items-center gap-2">
-                                <i className="fa-solid fa-vr-cardboard text-xl sm:text-2xl animate-vr-icon"></i>
-                                <span className="animate-vr-glow">공간 실감 360° 현장 VR 투어</span>
+                            <div className="text-emerald-400 font-black text-lg sm:text-xl tracking-tight text-left flex items-center gap-3">
+                                <Naver360Icon size={44} className="h-[23px] sm:h-[26px] w-auto shrink-0 select-none animate-pulse" />
+                                <span className="animate-vr-glow select-none">공간 실감 360° 현장 VR 투어</span>
                             </div>
                             <p className="text-slate-300 text-[10px] leading-relaxed text-left font-semibold italic mt-1.5 flex items-center justify-between">
                                 <span>"구미 전 지역 공실을 360° 가상 투어로 생생하게"</span>
@@ -351,8 +352,8 @@ export const MainTab = ({
                                     <div className="text-xs sm:text-[13.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 truncate min-w-[70px] sm:w-[170px] sm:min-w-0 flex items-center gap-1.5 transition-colors">
                                         <span className="shrink-0 font-black">{p.building}</span>
                                         {hasVR && (
-                                            <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-0.5 animate-pulse border border-emerald-200">
-                                                <i className="fa-solid fa-vr-cardboard"></i>
+                                            <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-1.5 animate-pulse border border-emerald-200">
+                                                <Naver360Icon size={12} className="text-emerald-700" />
                                                 <span>360°</span>
                                             </span>
                                         )}
@@ -459,7 +460,7 @@ export const MainTab = ({
                                 className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-emerald-600 border-2 border-slate-300 rounded-lg focus:ring-emerald-500 cursor-pointer accent-emerald-600 transition-all shrink-0" 
                             />
                             <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
-                                <i className="fa-solid fa-vr-cardboard text-emerald-500 text-lg sm:text-2xl shrink-0"></i>
+                                <Naver360Icon size={24} className="text-emerald-600 animate-pulse shrink-0" />
                                 <span>360° VR 매물만 보기</span>
                             </span>
                         </label>
@@ -669,8 +670,8 @@ export const MainTab = ({
                                                 </div>
                                             )}
                                             {hasVR && (
-                                                <span className="absolute top-2 left-2 shrink-0 bg-emerald-500/95 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border border-emerald-400/30 shadow-md animate-pulse">
-                                                    <i className="fa-solid fa-vr-cardboard mr-1"></i>
+                                                <span className="absolute top-2 left-2 shrink-0 bg-emerald-500/95 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border border-emerald-400/30 shadow-md animate-pulse flex items-center gap-1">
+                                                    <Naver360Icon size={14} className="text-white" />
                                                     VR 360°
                                                 </span>
                                             )}
@@ -742,7 +743,7 @@ export const MainTab = ({
                                             <div className="hidden">
                                                 {hasVR ? (
                                                     <div className="bg-emerald-500 text-white w-full h-full rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-900/30 animate-pulse-slow">
-                                                        <i className="fa-solid fa-vr-cardboard text-[14px]"></i>
+                                                        <Naver360Icon size={16} className="text-white" />
                                                         <span className="text-[7px] font-black uppercase tracking-tighter">VR</span>
                                                     </div>
                                                 ) : (thumbnailVal || imagesVal) ? (

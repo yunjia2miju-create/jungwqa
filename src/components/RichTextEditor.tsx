@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { STICKER_ASSETS, StickerAsset, StickerCard } from './EditorStickerModal';
 
-interface RichTextEditorProps {
+export interface RichTextEditorProps {
     id: string;
     value: string;
-    onChange: (val: string) => void;
+    onChange: (value: string) => void;
     placeholder?: string;
     onImageUpload?: (file: File) => Promise<string>;
     uploadedImages?: Array<{ name: string; url: string }>;
@@ -12,69 +12,67 @@ interface RichTextEditorProps {
 }
 
 const fontFamilies = {
-    '나눔고딕': '"Nanum Gothic", sans-serif',
-    '나눔명조': '"Nanum Myeongjo", serif',
-    '나눔바른고딕': '"Nanum Barun Gothic", sans-serif',
-    '맑은고딕': '"Malgun Gothic", sans-serif',
-    '돋움': 'Dotum, sans-serif',
-    '굴림': 'Gulim, sans-serif'
+    '나눔고딕': 'Nanum Gothic, sans-serif',
+    '바탕체': 'Batang, serif',
+    '돋움체': 'Dotum, sans-serif',
+    '굴림체': 'Gulim, sans-serif',
+    '궁서체': 'Gungsuh, serif',
+    'Inter': 'Inter, sans-serif',
+    'Fira Code': 'Fira Code, monospace'
 };
 
-const fontSizes = ['10px', '11px', '12px', '13px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+const fontSizes = ['11px', '12px', '13px', '14px', '16px', '18px', '20px', '24px', '32px'];
 
 const colors = [
-    '#000000', '#2d3436', '#636e72', '#b2bec3', '#dfe6e9', '#ffffff',
-    '#ee5253', '#ff9f43', '#feca57', '#1dd1a1', '#10b981', '#54a0ff',
-    '#00d2d3', '#5f27cd', '#0984e3', '#d63031', '#e84118', '#8c7ae6'
+    '#000000', '#f87171', '#fb923c', '#facc15', '#4ade80', '#2dd4bf', 
+    '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b', '#ffffff'
 ];
 
 const highlights = [
-    'transparent', '#ffeaa7', '#fab1a0', '#ff7675', '#fd79a8', '#a29bfe',
-    '#74b9ff', '#81ecec', '#55efc4', '#ffe57f', '#b9f6ca', '#ffe0b2'
+    'transparent', '#fef08a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#fed7aa'
 ];
 
 export function RichTextEditor({
     id,
     value,
     onChange,
-    placeholder = '이곳에 본문 원고를 우아하게 작성하십시오...',
+    placeholder = '원하시는 고급 원고을 작성해 보십시오.',
     onImageUpload,
     uploadedImages = [],
     minHeight = '350px'
 }: RichTextEditorProps) {
-    const editorRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const editorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const sidebarScrollRef = useRef<HTMLDivElement>(null);
-    
+
     const [isMounted, setIsMounted] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-    // Naver SmartEditor ONE Cursor Tracking Empty Line Plus Button states
+    // Cursor tracking plus button & menus
     const [plusButtonVisible, setPlusButtonVisible] = useState(false);
     const [plusButtonCoords, setPlusButtonCoords] = useState<{ top: number; left: number } | null>(null);
     const [showInlineMenu, setShowInlineMenu] = useState(false);
 
-    // Sidebar drawers single-panel active hub state (photos, stickers, quotes, dividers)
+    // Sidebar drawers
     const [isSourcePanelOpen, setIsSourcePanelOpen] = useState(false);
     const [activeSidebarTab, setActiveSidebarTab] = useState<'photos' | 'stickers' | 'quotes' | 'dividers'>('photos');
-    const [showFutureSlots, setShowFutureSlots] = useState(false);
-    const [openedStickerCat, setOpenedStickerCat] = useState<string | null>('강아지');
+    const [openedStickerCat, setOpenedStickerCat] = useState<string>('강아지');
 
-    // Selection Formatting Popover States (z-index: 10000)
+    // Floating selection formatting popover
     const [showSelectionToolbar, setShowSelectionToolbar] = useState(false);
     const [selectionCoords, setSelectionCoords] = useState<{ top: number; left: number } | null>(null);
     const [showTooltipFontDropdown, setShowTooltipFontDropdown] = useState(false);
     const [showTooltipSizeDropdown, setShowTooltipSizeDropdown] = useState(false);
     const [showTooltipColorPicker, setShowTooltipColorPicker] = useState(false);
 
-    // Dropdowns in Main Toolbar
+    // Dropdowns in Main Top Bar
     const [showFontDropdown, setShowFontDropdown] = useState(false);
     const [showSizeDropdown, setShowSizeDropdown] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [showBgColorPicker, setShowBgColorPicker] = useState(false);
 
-    // Dialog Overlays
+    // Link/Place modals
     const [showLinkDialog, setShowLinkDialog] = useState(false);
     const [linkUrl, setLinkUrl] = useState('');
     const [linkText, setLinkText] = useState('');
@@ -82,11 +80,13 @@ export function RichTextEditor({
     const [showPlaceDialog, setShowPlaceDialog] = useState(false);
     const [placeName, setPlaceName] = useState('');
 
-    // Highlight Style Memory for Consecutive Selection Editing
+    // Style lock states for selection maintenance
     const lastSelectionRangeRef = useRef<Range | null>(null);
+    const isStylingRef = useRef<boolean>(false);
     const [currentFont, setCurrentFont] = useState('나눔고딕');
     const [currentSize, setCurrentSize] = useState('12px');
 
+    // Stickers favorite registry state
     const [favorites, setFavorites] = useState<StickerAsset[]>(() => {
         try {
             const saved = localStorage.getItem('taewang_user_favorite_stickers');
@@ -101,7 +101,7 @@ export function RichTextEditor({
         console.log("소장님이 지정하신 [모든 마케팅 자산 좌측 순수 제어실 공간 통합 및 네이버 스마트에디터 ONE 1:1 화면 분할] 4대 영역 완전 이식 대공사가 최종 무결점으로 완벽히 마감 완결되었습니다.");
     }, []);
 
-    // Sync localStorage favorites on key change
+    // LocalStorage favorites manager
     const toggleFavorite = (sticker: StickerAsset) => {
         setFavorites(prev => {
             const exists = prev.some(item => item.name === sticker.name);
@@ -123,7 +123,7 @@ export function RichTextEditor({
 
     const handleSelectSticker = (downloadUrl: string, category: string) => {
         const maxWidth = category === '가격' ? '140px' : '130px';
-        const stickerHtml = `<img src="${downloadUrl}" class="blog-custom-sticker animate-scaleUp" style="max-width:${maxWidth}; display:inline-block; vertical-align:middle; border:none; margin: 4px;" />`;
+        const stickerHtml = `<img src="${downloadUrl}" class="blog-custom-sticker animate-scaleUp" style="max-width:${maxWidth}; display:inline-block; vertical-align:middle; border:none; margin: 4px;" referrerPolicy="no-referrer" />`;
         insertHtml(stickerHtml);
         postInsertCleanUp();
     };
@@ -134,6 +134,12 @@ export function RichTextEditor({
         } else {
             setIsSourcePanelOpen(true);
             setActiveSidebarTab(section);
+            if (section === 'photos') {
+                // Instantly launch computed file dialog when photo panel is invoked
+                setTimeout(() => {
+                    fileInputRef.current?.click();
+                }, 50);
+            }
         }
     };
 
@@ -199,50 +205,13 @@ export function RichTextEditor({
                 }
             }
         }
-        if (hasImage) return;
-
-        const html = clipboardData.getData('text/html');
-        const text = clipboardData.getData('text/plain');
-
-        if (html) {
-            e.preventDefault();
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                if (doc.body) {
-                    const cleanElement = (el: HTMLElement) => {
-                        el.removeAttribute('style');
-                        el.removeAttribute('class');
-                        el.removeAttribute('id');
-                        el.removeAttribute('face');
-                        el.removeAttribute('color');
-                        el.removeAttribute('size');
-                        Array.from(el.children).forEach(child => cleanElement(child as HTMLElement));
-                    };
-                    cleanElement(doc.body);
-                    const cleanedHtml = doc.body.innerHTML;
-                    insertHtml(cleanedHtml);
-                }
-            } catch (err) {
-                console.error("Failed to parse pasted HTML, falling back to plain text", err);
-                if (text) {
-                    document.execCommand('insertText', false, text);
-                }
-            }
-        } else if (text) {
-            e.preventDefault();
-            document.execCommand('insertText', false, text);
-        }
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        const files = e.dataTransfer?.files;
+        e.preventDefault();
+        const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            const file = files[0];
-            if (file.type.startsWith('image/')) {
-                e.preventDefault();
-                handleLocalImageUpload(file);
-            }
+            handleLocalImageUpload(files[0]);
         }
     };
 
@@ -265,8 +234,8 @@ export function RichTextEditor({
         }
     };
 
-    // Command Style Executor with Range Restore Logic
     const execCommand = (command: string, valueStr: string = '') => {
+        isStylingRef.current = true;
         const selection = window.getSelection();
         let range: Range | null = null;
         if (selection && selection.rangeCount > 0) {
@@ -295,10 +264,15 @@ export function RichTextEditor({
                 newSel.addRange(lastSelectionRangeRef.current);
             }
         }
+
+        setTimeout(() => {
+            isStylingRef.current = false;
+            updatePlusButtonAndSelection();
+        }, 50);
     };
 
-    // Span Styles Wrapper with Selection Memory retention for consecutive styles
     const applyStyleToSelection = (styleName: string, styleValue: string) => {
+        isStylingRef.current = true;
         const selection = window.getSelection();
         let range: Range | null = null;
         if (selection && selection.rangeCount > 0) {
@@ -307,7 +281,10 @@ export function RichTextEditor({
             range = lastSelectionRangeRef.current;
         }
 
-        if (!range) return;
+        if (!range) {
+            isStylingRef.current = false;
+            return;
+        }
 
         if (selection) {
             selection.removeAllRanges();
@@ -321,44 +298,77 @@ export function RichTextEditor({
                 document.execCommand('backColor', false, styleValue);
             }
             if (editorRef.current) editorRef.current.focus();
+            isStylingRef.current = false;
             return;
         }
 
-        const span = document.createElement('span');
         if (styleName === 'fontSize') {
-            span.style.fontSize = styleValue;
+            document.execCommand('fontSize', false, '7');
+            const fontElements = editorRef.current?.querySelectorAll('font[size="7"]');
+            fontElements?.forEach(el => {
+                const span = document.createElement('span');
+                span.style.fontSize = styleValue;
+                span.innerHTML = el.innerHTML;
+                el.parentNode?.replaceChild(span, el);
+            });
             setCurrentSize(styleValue);
         } else if (styleName === 'fontFamily') {
-            span.style.fontFamily = styleValue;
+            document.execCommand('fontName', false, styleValue);
+            setCurrentFont(Object.keys(fontFamilies).find(k => fontFamilies[k as keyof typeof fontFamilies] === styleValue) || '나눔고딕');
         } else if (styleName === 'color') {
-            span.style.color = styleValue;
+            document.execCommand('foreColor', false, styleValue);
         } else if (styleName === 'backgroundColor') {
-            span.style.backgroundColor = styleValue;
+            document.execCommand('backColor', false, styleValue);
         }
 
-        try {
-            span.appendChild(range.extractContents());
-            range.insertNode(span);
-            
+        handleInput();
+
+        if (selection && lastSelectionRangeRef.current) {
+            selection.removeAllRanges();
+            selection.addRange(lastSelectionRangeRef.current);
+        }
+
+        setTimeout(() => {
+            isStylingRef.current = false;
+            updatePlusButtonAndSelection();
+        }, 50);
+    };
+
+    const insertHtml = (html: string) => {
+        const selection = window.getSelection();
+        let range: Range | null = null;
+        if (selection && selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+        } else if (lastSelectionRangeRef.current) {
+            range = lastSelectionRangeRef.current;
+        }
+
+        if (range) {
+            range.deleteContents();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const frag = document.createDocumentFragment();
+            let node;
+            while ((node = tempDiv.firstChild)) {
+                frag.appendChild(node);
+            }
+            range.insertNode(frag);
+
+            // Position selection after insert
             const newRange = document.createRange();
-            newRange.selectNodeContents(span);
-            
+            newRange.selectNodeContents(editorRef.current || tempDiv);
+            newRange.collapse(false);
             if (selection) {
                 selection.removeAllRanges();
                 selection.addRange(newRange);
             }
-            lastSelectionRangeRef.current = newRange.cloneRange();
-        } catch (e) {
-            console.warn("Direct range styling fallback applied", e);
+        } else if (editorRef.current) {
+            editorRef.current.innerHTML += html;
         }
 
         handleInput();
         if (editorRef.current) {
             editorRef.current.focus();
-            if (selection && lastSelectionRangeRef.current) {
-                selection.removeAllRanges();
-                selection.addRange(lastSelectionRangeRef.current);
-            }
         }
     };
 
@@ -366,7 +376,7 @@ export function RichTextEditor({
         const selection = window.getSelection();
         const selectedText = selection ? selection.toString() : '';
         const defaultText = selectedText || '원하시는 원고 문학 가이드를 이곳에 정밀 작성하십시오.';
-        
+
         let quoteHtml = '';
         if (type === 'quote') {
             quoteHtml = `
@@ -412,7 +422,6 @@ export function RichTextEditor({
                 <p><br></p>
             `;
         } else {
-            // frame
             quoteHtml = `
                 <div style="border: 2px solid #10b981; border-radius: 12px; padding: 22px; margin: 24px 0; text-align: center; position: relative; background-color: #ffffff; max-width: 100%;">
                     <span style="position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: white; padding: 0 12px; font-size: 11px; font-weight: 900; color: #10b981; text-transform: uppercase; letter-spacing: 1.5px;">FOCUS ESSENTIALS</span>
@@ -422,25 +431,8 @@ export function RichTextEditor({
             `;
         }
 
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = quoteHtml;
-            const frag = document.createDocumentFragment();
-            let node;
-            while ((node = tempDiv.firstChild)) {
-                frag.appendChild(node);
-            }
-            range.insertNode(frag);
-        } else if (editorRef.current) {
-            editorRef.current.innerHTML += quoteHtml;
-        }
-        
-        handleInput();
-        if (editorRef.current) {
-            editorRef.current.focus();
-        }
+        insertHtml(quoteHtml);
+        postInsertCleanUp();
     };
 
     const insertDivider = (type: 'dashed' | 'solid' | 'thick' | 'dots' | 'emerald-dot' | 'double' | 'star' | 'diamond') => {
@@ -463,26 +455,8 @@ export function RichTextEditor({
             dividerHtml = `<div style="padding: 16px 0; text-align: center; color: #94a3b8; letter-spacing: 10px; font-size: 14px; font-weight: 900; line-height: 1;" contenteditable="false">◆ ◆ ◆</div><p><br></p>`;
         }
 
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = dividerHtml;
-            const frag = document.createDocumentFragment();
-            let node;
-            while ((node = tempDiv.firstChild)) {
-                frag.appendChild(node);
-            }
-            range.insertNode(frag);
-        } else if (editorRef.current) {
-            editorRef.current.innerHTML += dividerHtml;
-        }
-        
-        handleInput();
-        if (editorRef.current) {
-            editorRef.current.focus();
-        }
+        insertHtml(dividerHtml);
+        postInsertCleanUp();
     };
 
     const photoPresets = [
@@ -493,124 +467,127 @@ export function RichTextEditor({
         { name: '감성 발코니', url: 'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=800&q=80' }
     ];
 
-    const insertHtml = (html: string) => {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            const frag = document.createDocumentFragment();
-            let node;
-            while ((node = tempDiv.firstChild)) {
-                frag.appendChild(node);
-            }
-            range.insertNode(frag);
-            
-            selection.removeAllRanges();
-            const newRange = document.createRange();
-            if (frag.lastChild) {
-                newRange.selectNodeContents(frag.lastChild);
-                newRange.collapse(false);
-            } else {
-                newRange.selectNodeContents(editorRef.current || tempDiv);
-                newRange.collapse(false);
-            }
-            selection.addRange(newRange);
-        } else if (editorRef.current) {
-            editorRef.current.innerHTML += html;
-        }
-        handleInput();
-        if (editorRef.current) {
-            editorRef.current.focus();
-        }
+    const insertLinkPostCard = (url: string, text: string) => {
+        const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+        const titleText = text.trim() || '소장님 성실 확인 완료 공식 매물 주소';
+        const cardHtml = `
+            <div contenteditable="false" style="margin: 24px auto; max-width: 100%; text-align: center;">
+                <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none; width: 100%; max-width: 580px; text-align: left; background-color: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                    <div style="padding: 18px 24px;">
+                        <span style="display: inline-block; padding: 2px 8px; background-color: #e6f7ed; color: #10b981; font-size: 10px; font-weight: 900; border-radius: 6px; text-transform: uppercase; margin-bottom: 8px;">VR 투어 링크 채널</span>
+                        <h4 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 800; color: #1e293b; line-height: 1.4;">${titleText}</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 11px; text-decoration: underline; color: #10b981; word-break: break-all; font-weight: 700;">${cleanUrl}</p>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b; font-weight: 700;">
+                            <span style="font-size: 12px;">🏡</span>
+                            <span>태왕공인중개사 소장 검증 완료 공식 매물채널</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <p contenteditable="true"><br></p>
+        `;
+        insertHtml(cardHtml);
+        setShowLinkDialog(false);
+        setLinkUrl('');
+        setLinkText('');
     };
 
-    // Magnetic caretaker coordinate and Drag selection tracker
+    const insertPlaceCard = (name: string) => {
+        const titleText = name.trim() || '구미시 공인 공식 매물 답사 처소';
+        const cardHtml = `
+            <div contenteditable="false" style="margin: 24px auto; max-width: 100%; text-align: center;">
+                <div style="display: inline-block; width: 100%; max-width: 580px; text-align: left; background-color: #fafbfc; border: 2.5px solid #10b981; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.04);">
+                    <div style="background-color: #10b981; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="color: #ffffff; font-size: 12px; font-weight: 900; display: flex; align-items: center; gap: 6px;">
+                            <span>📍</span>
+                            <span>국토부 공시 성실 확인 좌표지</span>
+                        </span>
+                        <span style="background-color: rgba(255,255,255,0.2); color: #ffffff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">태왕 보증</span>
+                    </div>
+                    <div style="padding: 18px 20px;">
+                        <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 900; color: #011627;">${titleText}</h4>
+                        <div style="font-size: 11px; color: #506f85; line-height: 1.5; font-weight: 700; margin-bottom: 12px;">
+                            <span>도로명 주소 및 구미시 필지 연동 성실 표표기 완료. 본 매물의 세부 지번 및 교통 인프라 확인은 대표 전화 상담 시 정밀 연동 지원됩니다.</span>
+                        </div>
+                        <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                            <a href="https://map.naver.com" target="_blank" rel="noopener noreferrer" style="color: #ffffff; background-color: #10b981; text-decoration: none; font-size: 11px; font-weight: 900; padding: 7px 14px; border-radius: 8px; border: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <span>네이버 지도 즉시 확인</span>
+                                <span>➔</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p contenteditable="true"><br></p>
+        `;
+        insertHtml(cardHtml);
+        setShowPlaceDialog(false);
+        setPlaceName('');
+    };
+
     const updatePlusButtonAndSelection = () => {
+        if (isStylingRef.current) {
+            return; // Maintain status lock during active format editing
+        }
+
         const sel = window.getSelection();
         if (!sel || sel.rangeCount === 0 || !editorRef.current || !containerRef.current) {
-            setShowSelectionToolbar(false);
             setPlusButtonVisible(false);
+            setShowSelectionToolbar(false);
             return;
         }
 
         const range = sel.getRangeAt(0);
         if (!editorRef.current.contains(range.commonAncestorContainer)) {
-            setShowSelectionToolbar(false);
             setPlusButtonVisible(false);
+            setShowSelectionToolbar(false);
             return;
         }
 
-        // 1. If user drags text highlighted -> Show floating toolbar high in the sky (never masking selected words)
-        if (!sel.isCollapsed && sel.toString().trim().length > 0) {
-            lastSelectionRangeRef.current = range.cloneRange();
-            const rect = range.getBoundingClientRect();
-            const container = containerRef.current;
-            if (container) {
-                const containerRect = container.getBoundingClientRect();
-                const leftOffset = rect.left - containerRect.left + (rect.width / 2);
-                
-                // Safe offset high above selection to protect the word view
-                const toolbarHeight = 44; 
-                const safetyOffset = 25; 
-                const topOffset = rect.top - containerRect.top - toolbarHeight - safetyOffset;
+        const isCollapsed = sel.isCollapsed;
 
-                const halfWidth = 330; 
-                let safeLeft = leftOffset;
-                if (containerRect.width >= halfWidth * 2) {
-                    safeLeft = Math.max(halfWidth, Math.min(containerRect.width - halfWidth, leftOffset));
-                } else {
-                    safeLeft = containerRect.width / 2;
-                }
-
-                setSelectionCoords({
-                    top: Math.max(-100, topOffset),
-                    left: safeLeft
-                });
-                setShowSelectionToolbar(true);
-                setPlusButtonVisible(false); 
-                setShowInlineMenu(false);
-            }
-        } 
-        // 2. Continuous tracking: follow Y coordinate (caret line tracking)
-        else {
+        if (isCollapsed) {
             setShowSelectionToolbar(false);
-            let rect: DOMRect | null = null;
-            try {
-                rect = range.getBoundingClientRect();
-                if (!rect || (rect.top === 0 && rect.bottom === 0)) {
-                    let node = sel.focusNode;
-                    if (node) {
-                        let curr: Node | null = node;
-                        while (curr && curr !== editorRef.current) {
-                            if (curr.nodeType === Node.ELEMENT_NODE) {
-                                rect = (curr as HTMLElement).getBoundingClientRect();
-                                break;
-                            }
-                            curr = curr.parentNode;
-                        }
-                    }
-                }
-            } catch (e) {
-                // ignore
-            }
-
+            const rect = range.getBoundingClientRect();
             const containerRect = containerRef.current.getBoundingClientRect();
 
             if (rect && rect.top > 0) {
-                const buttonHeight = 28; 
+                const buttonHeight = 28;
+                // Magnet cursor tracking: calculates absolute coordinates
                 const topOffset = rect.top - containerRect.top + (rect.height / 2) - (buttonHeight / 2);
-                const leftOffset = 14; 
-
+                
+                // Set [+] button beautifully in the stable left margin area (300px)
                 setPlusButtonCoords({
                     top: topOffset,
-                    left: leftOffset
+                    left: 300
                 });
                 setPlusButtonVisible(true);
             } else {
                 setPlusButtonVisible(false);
                 setShowInlineMenu(false);
+            }
+        } else {
+            setPlusButtonVisible(false);
+            setShowInlineMenu(false);
+
+            const rects = range.getClientRects();
+            if (rects.length > 0) {
+                const rect = rects[0];
+                const containerRect = containerRef.current.getBoundingClientRect();
+                
+                // Shift popover high above selection with comfortable Y-offset margin
+                const toolbarHeight = 44;
+                const safetyOffset = 30; // 30px offset high above the text bounding box
+                const topOffset = rect.top - containerRect.top - toolbarHeight - safetyOffset;
+                const leftOffset = rect.left - containerRect.left + (rect.width / 2);
+
+                setSelectionCoords({
+                    top: topOffset,
+                    left: leftOffset
+                });
+                setShowSelectionToolbar(true);
+            } else {
+                setShowSelectionToolbar(false);
             }
         }
     };
@@ -647,21 +624,21 @@ export function RichTextEditor({
     return (
         <div 
             ref={containerRef}
-            className="relative w-full bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all rich-text-editor-relative-wrapper overflow-hidden"
+            className="relative w-full bg-white border-2 border-slate-300 rounded-2xl shadow-sm flex flex-col focus-within:border-emerald-600 transition-all rich-text-editor-relative-wrapper overflow-hidden select-none"
         >
-            {/* Top Level Main Navigation Bar Links */}
-            <div className="bg-white border-b border-slate-100 px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 select-none">
-                <div className="flex flex-wrap items-center gap-1.5 font-sans">
+            {/* === [3번 영역] 최상단 와이드 LTR 메뉴바 (Insertion Options & Formatting Controls combined in one unit) === */}
+            <div className={`bg-slate-50 border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 select-none toolbar-dropdown-${id}`}>
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-sans">
                     {/* [사진] */}
                     <button
                         type="button"
                         onClick={() => toggleSidebarCategory('photos')}
-                        className={`py-1.5 px-3 rounded-lg border flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                        className={`py-1.5 px-3 rounded-lg border-[1.5px] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer ${
                             isSourcePanelOpen && activeSidebarTab === 'photos'
-                            ? 'bg-blue-50 border-blue-400 text-blue-700'
-                            : 'border-slate-200 hover:border-blue-450 hover:bg-blue-50/20 text-slate-700'
+                            ? 'bg-blue-105 border-blue-500 text-blue-800'
+                            : 'border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50/20 text-slate-700'
                         }`}
-                        title="본문 사진 추가 허브 개방"
+                        title="사진 및 PC 파일 즉시 선택 탐색기 구동"
                     >
                         <i className="fa-regular fa-image text-blue-500 text-sm"></i>
                         <span>사진</span>
@@ -671,14 +648,13 @@ export function RichTextEditor({
                     <button
                         type="button"
                         onClick={() => toggleSidebarCategory('stickers')}
-                        className={`py-1.5 px-3 rounded-lg border flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                        className={`py-1.5 px-3 rounded-lg border-[1.5px] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer ${
                             isSourcePanelOpen && activeSidebarTab === 'stickers'
-                            ? 'bg-amber-50 border-amber-400 text-amber-700'
-                            : 'border-slate-200 hover:border-amber-450 hover:bg-amber-50/15 text-slate-700'
+                            ? 'bg-amber-100 border-amber-500 text-amber-800'
+                            : 'border-slate-300 bg-white hover:border-amber-400 hover:bg-amber-50/15 text-slate-700'
                         }`}
-                        title="감성 스티커 추천 목록 개방"
                     >
-                        <i className="fa-regular fa-face-smile text-amber-500 text-sm"></i>
+                        <i className="fa-regular fa-face-smile text-amber-550 text-sm"></i>
                         <span>스티커</span>
                     </button>
 
@@ -686,14 +662,13 @@ export function RichTextEditor({
                     <button
                         type="button"
                         onClick={() => toggleSidebarCategory('quotes')}
-                        className={`py-1.5 px-3 rounded-lg border flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                        className={`py-1.5 px-3 rounded-lg border-[1.5px] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer ${
                             isSourcePanelOpen && activeSidebarTab === 'quotes'
-                            ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
-                            : 'border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/20 text-slate-700'
+                            ? 'bg-emerald-100 border-emerald-500 text-emerald-800'
+                            : 'border-slate-300 bg-white hover:border-emerald-400 hover:bg-emerald-50/20 text-slate-700'
                         }`}
-                        title="소장님 마크 명품 인용구 서식"
                     >
-                        <i className="fa-solid fa-quote-left text-emerald-600 text-xs"></i>
+                        <i className="fa-solid fa-quote-left text-emerald-600 text-[10px]"></i>
                         <span>인용구</span>
                     </button>
 
@@ -701,19 +676,15 @@ export function RichTextEditor({
                     <button
                         type="button"
                         onClick={() => toggleSidebarCategory('dividers')}
-                        className={`py-1.5 px-3 rounded-lg border flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                        className={`py-1.5 px-3 rounded-lg border-[1.5px] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer ${
                             isSourcePanelOpen && activeSidebarTab === 'dividers'
-                            ? 'bg-slate-100 border-slate-400 text-slate-800'
-                            : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-slate-700'
+                            ? 'bg-slate-200 border-slate-500 text-slate-900'
+                            : 'border-slate-300 bg-white hover:border-slate-550 hover:bg-slate-50 text-slate-700'
                         }`}
-                        title="구분 데코선 서식"
                     >
-                        <i className="fa-solid fa-grip-lines text-slate-500 text-xs"></i>
+                        <i className="fa-solid fa-grip-lines text-slate-500 text-[10px]"></i>
                         <span>구분선</span>
                     </button>
-
-                    {/* Divide Bar */}
-                    <div className="h-5 w-px bg-slate-200 mx-1"></div>
 
                     {/* [링크] */}
                     <button
@@ -723,8 +694,7 @@ export function RichTextEditor({
                             setShowPlaceDialog(false);
                             setIsSourcePanelOpen(false);
                         }}
-                        className="py-1.5 px-3 rounded-lg border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/15 flex items-center gap-1 text-xs font-black text-slate-700 transition-all cursor-pointer"
-                        title="네이버 대표 링크 포스트 카드 생성"
+                        className="py-1.5 px-3 rounded-lg border-[1.5px] border-slate-300 bg-white hover:border-indigo-400 hover:bg-indigo-50/15 flex items-center gap-1.5 text-xs font-black text-slate-700 transition-all cursor-pointer"
                     >
                         <i className="fa-solid fa-link text-indigo-500 text-xs"></i>
                         <span>링크</span>
@@ -738,221 +708,730 @@ export function RichTextEditor({
                             setShowLinkDialog(false);
                             setIsSourcePanelOpen(false);
                         }}
-                        className="py-1.5 px-3 rounded-lg border border-slate-200 hover:border-rose-450 hover:bg-rose-50/15 flex items-center gap-1 text-xs font-black text-slate-700 transition-all cursor-pointer"
-                        title="구미 메인 지도 위치 정보 카드 생성"
+                        className="py-1.5 px-3 rounded-lg border-[1.5px] border-slate-300 bg-white hover:border-rose-450 hover:bg-rose-50/15 flex items-center gap-1.5 text-xs font-black text-slate-700 transition-all cursor-pointer"
                     >
                         <i className="fa-solid fa-map-location-dot text-rose-500 text-xs"></i>
                         <span>장소</span>
                     </button>
+
+                    <div className="h-6 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+
+                    {/* Standard Font formatting */}
+                    <div className="relative">
+                        <button 
+                            type="button" 
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => { setShowFontDropdown(!showFontDropdown); setShowSizeDropdown(false); }}
+                            className="h-8 px-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-black flex items-center justify-between gap-1 w-24 text-slate-800 transition-all cursor-pointer"
+                            title="서체 종류"
+                        >
+                            <span className="truncate">{currentFont}</span>
+                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        {showFontDropdown && (
+                            <div className="absolute top-9 left-0 z-50 bg-white border border-slate-300 rounded-xl shadow-lg w-36 py-1 text-slate-705 max-h-56 overflow-y-auto animate-fadeIn select-none">
+                                {Object.entries(fontFamilies).map(([fontName, valueStr]) => (
+                                    <button
+                                        key={fontName}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                            applyStyleToSelection('fontFamily', valueStr);
+                                            setCurrentFont(fontName);
+                                            setShowFontDropdown(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs font-bold truncate ${currentFont === fontName ? 'text-emerald-600 bg-emerald-50/40 font-black' : ''}`}
+                                        style={{ fontFamily: valueStr }}
+                                    >
+                                        {fontName}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Standard Sizing */}
+                    <div className="relative">
+                        <button 
+                            type="button" 
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => { setShowSizeDropdown(!showSizeDropdown); setShowFontDropdown(false); }}
+                            className="h-8 px-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-black flex items-center justify-between gap-1 w-16 text-slate-800 transition-all cursor-pointer"
+                            title="글자 크기"
+                        >
+                            <span>{currentSize}</span>
+                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        {showSizeDropdown && (
+                            <div className="absolute top-9 left-0 z-50 bg-white border border-slate-300 rounded-xl shadow-lg w-24 py-1 text-slate-705 max-h-48 overflow-y-auto animate-fadeIn select-none">
+                                {fontSizes.map((size) => (
+                                    <button
+                                        key={size}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                            applyStyleToSelection('fontSize', size);
+                                            setShowSizeDropdown(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs font-bold ${currentSize === size ? 'text-emerald-600 bg-emerald-50/40 font-black' : ''}`}
+                                    >
+                                        {size}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="h-5 w-px bg-slate-305 mx-1"></div>
+
+                    {/* Formatting control icons */}
+                    <div className="flex gap-0.5">
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('bold')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-850"
+                            title="진하게 굵게"
+                        >
+                            <i className="fa-solid fa-bold text-xs"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('italic')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-850"
+                            title="기울이기"
+                        >
+                            <i className="fa-solid fa-italic text-xs"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('underline')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-850"
+                            title="밑줄 연동"
+                        >
+                            <i className="fa-solid fa-underline text-xs"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('strikeThrough')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-850"
+                            title="취소선 처리"
+                        >
+                            <i className="fa-solid fa-strikethrough text-xs"></i>
+                        </button>
+                    </div>
+
+                    <div className="h-5 w-px bg-slate-305 mx-1"></div>
+
+                    {/* Colors highlights */}
+                    <div className="flex gap-1 relative">
+                        {/* Text Color */}
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => { setShowColorPicker(!showColorPicker); setShowBgColorPicker(false); }}
+                                className="w-8 h-8 rounded hover:bg-slate-205 flex flex-col items-center justify-center relative cursor-pointer text-slate-700"
+                                title="문자 글자색 색 변경"
+                            >
+                                <i className="fa-solid fa-font text-xs"></i>
+                                <div className="h-1 w-4 bg-red-500 rounded-full mt-0.5" style={{ minHeight: '3px' }}></div>
+                            </button>
+                            {showColorPicker && (
+                                <div className="absolute top-9 left-1/2 -translate-x-1/2 z-55 bg-white border border-slate-300 rounded-xl shadow-xl p-2 w-44 grid grid-cols-6 gap-1 animate-fadeIn select-none">
+                                    {colors.map(color => (
+                                        <button 
+                                            key={color}
+                                            type="button"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => {
+                                                applyStyleToSelection('color', color);
+                                                setShowColorPicker(false);
+                                            }}
+                                            className="w-5 h-5 rounded hover:scale-110 border border-slate-250 transition-all cursor-pointer"
+                                            style={{ backgroundColor: color }}
+                                            title={color}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Background Marker */}
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => { setShowBgColorPicker(!showBgColorPicker); setShowColorPicker(false); }}
+                                className="w-8 h-8 rounded hover:bg-slate-250 flex flex-col items-center justify-center relative cursor-pointer text-slate-700"
+                                title="형광펜 배경 하이라이터"
+                            >
+                                <i className="fa-solid fa-highlighter text-xs"></i>
+                                <div className="h-1 w-4 bg-yellow-300 rounded-full mt-0.5" style={{ minHeight: '3px' }}></div>
+                            </button>
+                            {showBgColorPicker && (
+                                <div className="absolute top-9 left-1/2 -translate-x-1/2 z-55 bg-white border border-slate-300 rounded-xl shadow-xl p-2 w-44 grid grid-cols-6 gap-1 animate-fadeIn select-none">
+                                    {highlights.map(color => (
+                                        <button 
+                                            key={color}
+                                            type="button"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => {
+                                                applyStyleToSelection('backgroundColor', color);
+                                                setShowBgColorPicker(false);
+                                            }}
+                                            className="w-5 h-5 rounded hover:scale-110 border border-slate-200 transition-all "
+                                            style={{ backgroundColor: color === 'transparent' ? '#ffffff' : color }}
+                                            title={color === 'transparent' ? '형광펜 제거' : color}
+                                        >
+                                            {color === 'transparent' && <i className="fa-solid fa-slash text-[8px] text-red-500"></i>}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="h-5 w-px bg-slate-305 mx-1"></div>
+
+                    {/* Alignment options */}
+                    <div className="flex gap-0.5">
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('justifyLeft')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-800"
+                            title="좌측 정렬"
+                        >
+                            <i className="fa-solid fa-align-left text-xs"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('justifyCenter')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-800"
+                            title="중앙 정렬"
+                        >
+                            <i className="fa-solid fa-align-center text-xs"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => execCommand('justifyRight')}
+                            className="w-8 h-8 rounded hover:bg-slate-205 flex items-center justify-center transition-all cursor-pointer text-slate-800"
+                            title="우측 정렬"
+                        >
+                            <i className="fa-solid fa-align-right text-xs"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-black flex items-center gap-1">
-                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                <div className="text-[10px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md font-black flex items-center gap-1.5 border border-emerald-110 uppercase select-none">
+                    <i className="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
                     <span>SmartEditor ONE</span>
                 </div>
             </div>
 
-            {/* Split Screen Side-by-side Layout and Pure Editor Drawing Canvas */}
-            <div className="flex flex-col md:flex-row items-stretch w-full min-h-[400px]">
-                {/* 1. Left Side Control Panel Hub */}
-                {isSourcePanelOpen && (
-                    <div 
-                        id="blog-source-hub-panel" 
-                        className="w-full md:w-[320px] bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0 overflow-hidden relative z-40 animate-fadeIn"
-                        style={{ height: 'auto', minHeight: '400px' }}
-                    >
-                        {/* Tab header controller */}
-                        <div className="flex justify-between items-center px-3.5 py-2.5 bg-white border-b border-slate-200 shrink-0">
-                            <span className="text-[11px] font-black text-slate-800 flex items-center gap-1.5 leading-none">
-                                <i className="fa-solid fa-folder-tree text-emerald-600"></i>
-                                <span>좌측 마케팅 순수 제어실</span>
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setIsSourcePanelOpen(false)}
-                                className="w-5.5 h-5.5 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                                title="패널 닫기"
-                            >
-                                <i className="fa-solid fa-times text-xs"></i>
-                            </button>
-                        </div>
-
-                        {/* Scrolling Content Panel container */}
-                        <div 
-                            ref={sidebarScrollRef}
-                            className="flex-1 overflow-y-auto p-3.5 space-y-4 scrollbar-thin bg-slate-50/50"
-                            style={{ maxHeight: 'calc(100vh - 120px)' }}
+            {/* === Workspace Parent hosting Space 1 (left) and Space 2 (right) === */}
+            <div className="flex flex-col lg:flex-row items-stretch w-full min-h-[400px] relative bg-white overflow-hidden">
+                
+                {/* === [1번 영역] 좌측 마케팅 전용 제어실 스크롤 방 === */}
+                <div 
+                    id="blog-source-hub-panel" 
+                    className={`absolute left-0 top-0 bottom-0 w-[320px] bg-slate-50 border-r border-slate-200 flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-40 ${
+                        isSourcePanelOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'
+                    }`}
+                >
+                    <div className="flex justify-between items-center px-4 py-3 bg-white border-b border-slate-200 shrink-0">
+                        <span className="text-xs font-black text-slate-800 flex items-center gap-2 leading-none uppercase tracking-wide">
+                            <i className="fa-solid fa-folder-tree text-emerald-600"></i>
+                            <span>좌측 마크 제어실</span>
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setIsSourcePanelOpen(false)}
+                            className="w-6 h-6 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-450 hover:text-slate-700 transition-all cursor-pointer"
+                            title="마블 제어 패널 닫기"
                         >
-                            {/* PHOTO PANE */}
-                            {activeSidebarTab === 'photos' && (
-                                <div className="space-y-3.5 animate-fadeIn">
-                                    <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-3xs space-y-3 text-left">
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black py-2.5 px-3 rounded-lg shadow-3xs transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:scale-[1.01]"
-                                        >
-                                            <i className="fa-solid fa-cloud-arrow-up text-xs"></i>
-                                            <span>내 컴퓨터 PC 파일 선택 📸</span>
-                                        </button>
-                                        
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, pIdx) => {
-                                                const isUploaded = uploadedImages.length > 0;
-                                                const displayName = photo.name;
-                                                const displayTitle = isUploaded ? `실사 #${pIdx + 1}` : `예시 #${pIdx + 1}`;
-                                                return (
-                                                    <button
-                                                        key={`src-photo-${pIdx}`}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const captionText = isUploaded ? `실사 촬영 이미지 [사진 ${pIdx + 1}] ${displayName}` : displayName;
-                                                            const photoHtml = `
-                                                                <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
-                                                                    <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
-                                                                    <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 ${captionText}</p>
-                                                                </div>
-                                                                <p contenteditable="true"><br></p>
-                                                            `;
-                                                            insertHtml(photoHtml);
-                                                            postInsertCleanUp();
-                                                        }}
-                                                        className="bg-white hover:bg-emerald-50/20 p-1.5 rounded-lg border border-slate-200 text-left transition-all hover:border-emerald-400 group flex flex-col gap-1 shadow-3xs"
-                                                    >
-                                                        <div className="aspect-[16/10] rounded overflow-hidden bg-slate-100 relative">
-                                                            <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                                            <span className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-3xs text-white text-[7px] font-black px-1 rounded">
-                                                                {displayTitle}
-                                                            </span>
-                                                        </div>
-                                                        <span className="text-[7.5px] font-extrabold text-slate-800 truncate block px-0.5 animate-fadeIn" title={displayName}>
-                                                            {displayName}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                            <i className="fa-solid fa-times text-xs"></i>
+                        </button>
+                    </div>
 
-                            {/* STICKER PANE */}
-                            {activeSidebarTab === 'stickers' && (
-                                <div className="space-y-3.5 animate-fadeIn">
-                                    {/* ⭐ [소장님 최애 즐겨찾기] Fixed top area */}
-                                    <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-3xs space-y-2 animate-fadeIn">
-                                        <div className="flex justify-between items-center px-0.5">
-                                            <span className="text-[10px] font-black text-amber-600 flex items-center gap-1 leading-none">
-                                                <i className="fa-solid fa-star animate-pulse"></i>
-                                                <span>⭐ 소장님 최애 즐겨찾기</span>
-                                            </span>
-                                            <span className="text-[8px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-black leading-none">
-                                                {favorites.length}개 등록
-                                            </span>
-                                        </div>
-                                        {favorites.length > 0 ? (
-                                            <div className="grid grid-cols-3 gap-1.5">
-                                                {favorites.map((sticker, idx) => {
-                                                    const stCat = getCategoryFromPath(sticker.path);
-                                                    return (
-                                                        <StickerCard
-                                                            key={`sidebar-fav-${sticker.name}-${idx}`}
-                                                            sticker={sticker}
-                                                            activeCategory={stCat}
-                                                            onClick={(downloadUrl) => handleSelectSticker(downloadUrl, stCat)}
-                                                            isStarred={true}
-                                                            onToggleStar={() => toggleFavorite(sticker)}
-                                                            compact={true}
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="py-3 text-center rounded-xl bg-slate-50 border border-dashed border-slate-200">
-                                                <p className="text-[8.5px] text-slate-400 font-extrabold leading-normal">
-                                                    자주 쓰는 스티커 별(⭐) 터치 시<br />
-                                                    여기에 즉시 보관 출력됩니다.
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
+                    {/* Vertical Scrolling Asset lists */}
+                    <div 
+                        ref={sidebarScrollRef}
+                        className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/60"
+                        style={{ maxHeight: 'calc(100vh - 120px)' }}
+                    >
+                        {/* PHOTOS HUB */}
+                        {activeSidebarTab === 'photos' && (
+                            <div className="space-y-3.5 animate-fadeIn text-left">
+                                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-3xs space-y-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black py-3 px-4 rounded-xl shadow-xs transition-transform flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                    >
+                                        <i className="fa-solid fa-cloud-arrow-up text-sm"></i>
+                                        <span>PC 파일에서 사진 선택 📸</span>
+                                    </button>
 
-                                    {/* Dog, Mouse, Pricing, Doll Horizontal Categorical Tabs */}
-                                    <div className="grid grid-cols-4 gap-1 p-1 bg-slate-200/60 rounded-xl">
-                                        {['강아지', '생줘', '가격', '파스인형'].map((category) => {
-                                            const isActive = openedStickerCat === category;
-                                            const getTabIcon = (cat: string) => {
-                                                switch (cat) {
-                                                    case '강아지': return '🐶';
-                                                    case '생줘': return '🐭';
-                                                    case '가격': return '🏷️';
-                                                    case '파스인형': return '🧸';
-                                                    default: return '📁';
-                                                }
-                                            };
+                                    <p className="text-[10px] text-slate-400 font-bold leading-normal text-center border-t border-slate-100 pt-2.5">
+                                        아래 대표 명세 가이드를 터치 주입하시거나 컴퓨터의 고화질 원기 사진을 다중 발행해 보세요.
+                                    </p>
+                                    
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {(uploadedImages.length > 0 ? uploadedImages : photoPresets).map((photo, pIdx) => {
+                                            const isUploaded = uploadedImages.length > 0;
+                                            const displayName = photo.name;
+                                            const displayTitle = isUploaded ? `실사 #${pIdx + 1}` : `정밀 예시`;
                                             return (
                                                 <button
-                                                    key={category}
+                                                    key={`src-photo-${pIdx}`}
                                                     type="button"
-                                                    onClick={() => setOpenedStickerCat(category)}
-                                                    className={`py-1.5 rounded-lg text-[9px] font-black transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer border ${
-                                                        isActive 
-                                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-3xs' 
-                                                        : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
-                                                    }`}
+                                                    onClick={() => {
+                                                        const captionText = isUploaded ? `실사 현장 전경 [사진 ${pIdx + 1}]` : displayName;
+                                                        const photoHtml = `
+                                                            <div contenteditable="false" style="margin: 20px auto; text-align: center; max-width: 100%;">
+                                                                <img src="${photo.url}" referrerPolicy="no-referrer" style="border-radius:12px; max-width:100%; height:auto; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+                                                                <p style="font-size: 11px; color:#64748b; font-weight:700; margin-top: 6px; text-align: center;">📸 ${captionText}</p>
+                                                            </div>
+                                                            <p contenteditable="true"><br></p>
+                                                        `;
+                                                        insertHtml(photoHtml);
+                                                        postInsertCleanUp();
+                                                    }}
+                                                    className="bg-white hover:bg-slate-50 p-2 rounded-xl border border-slate-200 text-left transition-all hover:border-emerald-500 group flex flex-col gap-1.5 shadow-3xs"
                                                 >
-                                                    <span className="text-xs leading-none">{getTabIcon(category)}</span>
-                                                    <span className="text-[8px] tracking-tight">{category}</span>
+                                                    <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 relative">
+                                                        <img src={photo.url} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                        <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[8px] font-black px-1.5 py-0.2 rounded-md">
+                                                            {displayTitle}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[9px] font-extrabold text-slate-700 truncate block px-0.5" title={displayName}>
+                                                        {displayName}
+                                                    </span>
                                                 </button>
                                             );
                                         })}
                                     </div>
+                                </div>
+                            </div>
+                        )}
 
-                                    {/* Stickers 3-Column Grid vertical-scroll within left panel only with custom bounds */}
-                                    {openedStickerCat && (
-                                        <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-3xs space-y-2 text-left animate-fadeIn">
-                                            <div className="text-[8.5px] font-black text-slate-400 pl-0.5 flex justify-between uppercase tracking-wider">
-                                                <span>📁 {openedStickerCat} 스티커 대장</span>
-                                                <span>{STICKER_ASSETS.filter(s => getCategoryFromPath(s.path) === openedStickerCat).length}종</span>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-1.5 max-h-[290px] overflow-y-auto overflow-x-hidden scrollbar-thin p-1 rounded-lg">
-                                                {STICKER_ASSETS.filter(s => getCategoryFromPath(s.path) === openedStickerCat).map((sticker, idx) => {
-                                                    const isStarred = favorites.some(item => item.name === sticker.name);
-                                                    return (
-                                                        <StickerCard
-                                                            key={`sidebar-cat-grid-${sticker.name}-${idx}`}
-                                                            sticker={sticker}
-                                                            activeCategory={openedStickerCat}
-                                                            onClick={(downloadUrl) => handleSelectSticker(downloadUrl, openedStickerCat || '강아지')}
-                                                            isStarred={isStarred}
-                                                            onToggleStar={() => toggleFavorite(sticker)}
-                                                            compact={true}
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
+                        {/* STICKERS HUB ([강아지/생줘/가격/파스인형] sub-tabs + 3-col Grid) */}
+                        {activeSidebarTab === 'stickers' && (
+                            <div className="space-y-3.5 animate-fadeIn text-left">
+                                {/* Favorites Area */}
+                                <div className="bg-white rounded-xl border border-slate-205 p-3 shadow-3xs space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-black text-amber-550 flex items-center gap-1.5 leading-none">
+                                            <i className="fa-solid fa-star animate-pulse text-amber-500 text-xs"></i>
+                                            <span>⭐ 최애 즐겨찾기 목록</span>
+                                        </span>
+                                        <span className="text-[9px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-black">
+                                            {favorites.length}
+                                        </span>
+                                    </div>
+                                    {favorites.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            {favorites.map((sticker, idx) => {
+                                                const stCat = getCategoryFromPath(sticker.path);
+                                                return (
+                                                    <StickerCard
+                                                        key={`sidebar-fav-${sticker.name}-${idx}`}
+                                                        sticker={sticker}
+                                                        activeCategory={stCat}
+                                                        onClick={(downloadUrl) => handleSelectSticker(downloadUrl, stCat)}
+                                                        isStarred={true}
+                                                        onToggleStar={() => toggleFavorite(sticker)}
+                                                        compact={true}
+                                                    />
+                                                );
+                                            })}
                                         </div>
+                                    ) : (
+                                        <p className="text-[9px] text-slate-400 font-extrabold text-center py-2.5 leading-normal bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                                            자주 주입하는 스티커의 별(⭐)표를<br />
+                                            눌러주시면 여기에 상시 보관됩니다.
+                                        </p>
                                     )}
+                                </div>
 
-                                    {/* 51 empty placeholders */}
-                                    <div className="border border-slate-200 border-dashed rounded-xl bg-white overflow-hidden">
+                                {/* Custom Categories Header Tabs */}
+                                <div className="grid grid-cols-4 gap-1 p-1 bg-slate-200/50 rounded-xl">
+                                    {['강아지', '생줘', '가격', '파스인형'].map((category) => {
+                                        const isActive = openedStickerCat === category;
+                                        const getEmoji = (cat: string) => {
+                                            if (cat === '강아지') return '🐶';
+                                            if (cat === '생줘') return '🐭';
+                                            if (cat === '가격') return '🏷️';
+                                            return '🧸';
+                                        };
+                                        return (
+                                            <button
+                                                key={category}
+                                                type="button"
+                                                onClick={() => setOpenedStickerCat(category)}
+                                                className={`py-1.5 rounded-lg text-[9.5px] font-black transition-all flex flex-col items-center gap-0.5 cursor-pointer border ${
+                                                    isActive 
+                                                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-3xs' 
+                                                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-250'
+                                                }`}
+                                            >
+                                                <span>{getEmoji(category)}</span>
+                                                <span>{category}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Stickers Content Grid */}
+                                <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-3xs">
+                                    <div className="grid grid-cols-3 gap-1.5 max-h-96 overflow-y-auto">
+                                        {STICKER_ASSETS.filter(sticker => getCategoryFromPath(sticker.path) === openedStickerCat).map((sticker, idx) => {
+                                            const isStarred = favorites.some(fav => fav.name === sticker.name);
+                                            return (
+                                                <StickerCard
+                                                    key={`sidebar-stick-${sticker.name}-${idx}`}
+                                                    sticker={sticker}
+                                                    activeCategory={openedStickerCat}
+                                                    onClick={(downloadUrl) => handleSelectSticker(downloadUrl, openedStickerCat)}
+                                                    isStarred={isStarred}
+                                                    onToggleStar={() => toggleFavorite(sticker)}
+                                                    compact={true}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* DIVIDERS HUB */}
+                        {activeSidebarTab === 'dividers' && (
+                            <div className="space-y-3.5 animate-fadeIn text-left">
+                                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-3xs space-y-3">
+                                    <p className="text-[10px] text-slate-400 font-extrabold leading-tight text-center">
+                                        네이버 표준 규격의 7대 명품 구분선 데코선입니다.<br />
+                                        원클릭 시 본문에 깔끔 주입됩니다.
+                                    </p>
+
+                                    <div className="space-y-3">
+                                        {[
+                                            { type: 'solid', label: '심플 실선' },
+                                            { type: 'dashed', label: '단정 점선' },
+                                            { type: 'double', label: '클래식 이중선' },
+                                            { type: 'thick', label: '볼드 굵은선' },
+                                            { type: 'dots', label: '동글 에메랄드 세점' },
+                                            { type: 'star', label: '노란 황금별 삼중' },
+                                            { type: 'diamond', label: '고급 그레이 사각' }
+                                        ].map((divItem) => {
+                                            const getPreview = (type: string) => {
+                                                if (type === 'solid') return <div className="border-t border-slate-300 w-full"></div>;
+                                                if (type === 'dashed') return <div className="border-t border-dashed border-slate-300 w-full"></div>;
+                                                if (type === 'double') return <div className="border-t-4 border-double border-slate-300 w-full"></div>;
+                                                if (type === 'thick') return <div className="border-t-4 border-slate-500 w-full"></div>;
+                                                if (type === 'dots') return <div className="text-center font-bold text-emerald-500 tracking-widest text-xs">•••</div>;
+                                                if (type === 'star') return <div className="text-center font-bold text-amber-550 tracking-widest text-xs">★★★</div>;
+                                                return <div className="text-center font-bold text-slate-400 tracking-widest text-xs">◆ ◆ ◆</div>;
+                                            };
+                                            return (
+                                                <button
+                                                    key={divItem.type}
+                                                    type="button"
+                                                    onClick={() => insertDivider(divItem.type as any)}
+                                                    className="w-full text-left bg-white hover:bg-emerald-50/20 px-3 py-3 border border-slate-200 hover:border-emerald-500 rounded-xl transition-all shadow-3xs flex flex-col gap-1.5 cursor-pointer"
+                                                >
+                                                    <span className="text-[10px] font-black text-slate-800">{divItem.label}</span>
+                                                    <div className="w-full h-8 bg-slate-50/50 rounded-lg flex items-center justify-center p-2.5">
+                                                        {getPreview(divItem.type)}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* QUOTES HUB */}
+                        {activeSidebarTab === 'quotes' && (
+                            <div className="space-y-3.5 animate-fadeIn text-left">
+                                <div className="bg-white rounded-xl border border-slate-205 p-3 shadow-3xs space-y-3">
+                                    <p className="text-[10px] text-slate-400 font-extrabold leading-tight text-center">
+                                        네이버 오리지널 6대 명품 인용구 템플릿입니다.
+                                    </p>
+
+                                    <div className="space-y-3">
+                                        {[
+                                            { type: 'quote', label: '오리지널 쌍따옴표 템플릿' },
+                                            { type: 'border', label: '수려한 그린 좌측 보더형' },
+                                            { type: 'bubble', label: '동글 라운드 수첩 한마디' },
+                                            { type: 'line-quote', label: '상하 클래식 가로 보더' },
+                                            { type: 'postit', label: '황금빛 포스트잇 수첩' },
+                                            { type: 'frame', label: '고급 그린 보더 엠블럼 프레임' }
+                                        ].map((qItem) => {
+                                            const getIconClass = (type: string) => {
+                                                if (type === 'quote' || type === 'line-quote') return 'fa-solid fa-quote-left text-indigo-500';
+                                                if (type === 'border') return 'fa-solid fa-grip-vertical text-emerald-600';
+                                                if (type === 'bubble') return 'fa-regular fa-lightbulb text-amber-500';
+                                                if (type === 'postit') return 'fa-solid fa-thumbtack text-rose-500';
+                                                return 'fa-solid fa-border-all text-slate-500';
+                                            };
+                                            return (
+                                                <button
+                                                    key={qItem.type}
+                                                    type="button"
+                                                    onClick={() => insertQuote(qItem.type as any)}
+                                                    className="w-full text-left bg-white hover:bg-emerald-50/20 px-3 py-3 border border-slate-205 hover:border-emerald-550 rounded-xl transition-all shadow-3xs flex items-center gap-3.5 cursor-pointer"
+                                                >
+                                                    <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                                                        <i className={getIconClass(qItem.type)}></i>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[11px] font-black text-slate-800 block">{qItem.label}</span>
+                                                        <span className="text-[9px] text-slate-400 font-bold block mt-0.5">본문 텍스트가 예쁘게 감싸집니다</span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-3 bg-white border-t border-slate-200 text-center shrink-0">
+                        <span className="text-[10px] font-black text-emerald-600">
+                            💡 자산을 선택하시면 즉시 주입 후 자동 은폐됩니다.
+                        </span>
+                    </div>
+                </div>
+
+                {/* === [2번 영역] 우측 순수 글쓰기 본문 대형 도화지 === */}
+                <div className="flex-1 flex flex-col min-w-0 bg-white relative">
+                    {/* Writing Panel Centered Layout container, padded left to avoid layout shifting on toggle */}
+                    <div className="flex-1 w-full bg-white transition-all pl-4 lg:pl-[340px] pr-4 py-8 overflow-x-auto">
+                        <div 
+                            style={{ width: '700px', minWidth: '700px', maxWidth: '700px' }}
+                            className="relative bg-white"
+                        >
+                            {/* Magnet Cursor Tracking [➕] Trigger Button */}
+                            {plusButtonVisible && plusButtonCoords && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsSourcePanelOpen(true);
+                                        setShowInlineMenu(!showInlineMenu);
+                                    }}
+                                    className="absolute w-7 h-7 rounded-lg bg-emerald-50 border-[2px] border-emerald-600 hover:bg-emerald-600 hover:text-white text-emerald-700 flex items-center justify-center transition-all shadow-md z-40 animate-scaleUp cursor-pointer hover:rotate-90 duration-300"
+                                    style={{
+                                        top: `${plusButtonCoords.top}px`,
+                                        left: `${plusButtonCoords.left - 10}px` // positioned in left margin aligned next to line
+                                    }}
+                                    title="마케팅 자산 퀵 전개"
+                                >
+                                    <i className={`fa-solid ${showInlineMenu ? 'fa-xmark text-xs' : 'fa-plus text-xs'}`}></i>
+                                </button>
+                            )}
+
+                            {/* Inline menu from [+] click */}
+                            {showInlineMenu && plusButtonCoords && (
+                                <div 
+                                    className="absolute bg-white rounded-xl border border-slate-200 shadow-xl py-1.5 px-1 flex flex-row items-center gap-1 z-50 animate-scaleUp text-[11px] select-none"
+                                    style={{
+                                        top: `${plusButtonCoords.top}px`,
+                                        left: `${plusButtonCoords.left + 24}px`, // flows right to button
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSourcePanelOpen(true);
+                                            setActiveSidebarTab('photos');
+                                            setShowInlineMenu(false);
+                                            setTimeout(() => {
+                                                fileInputRef.current?.click();
+                                            }, 80);
+                                        }}
+                                        className="px-2.5 py-1 hover:bg-slate-50 text-slate-700 font-extrabold flex items-center gap-1 rounded cursor-pointer"
+                                    >
+                                        <i className="fa-regular fa-image text-blue-500"></i>
+                                        <span>사진</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSourcePanelOpen(true);
+                                            setActiveSidebarTab('stickers');
+                                            setShowInlineMenu(false);
+                                        }}
+                                        className="px-2.5 py-1 hover:bg-slate-50 text-slate-700 font-extrabold flex items-center gap-1 rounded cursor-pointer"
+                                    >
+                                        <i className="fa-regular fa-face-smile text-amber-500"></i>
+                                        <span>스티커</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSourcePanelOpen(true);
+                                            setActiveSidebarTab('quotes');
+                                            setShowInlineMenu(false);
+                                        }}
+                                        className="px-2.5 py-1 hover:bg-slate-50 text-slate-700 font-extrabold flex items-center gap-1 rounded cursor-pointer"
+                                    >
+                                        <i className="fa-solid fa-quote-left text-emerald-600"></i>
+                                        <span>인용구</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSourcePanelOpen(true);
+                                            setActiveSidebarTab('dividers');
+                                            setShowInlineMenu(false);
+                                        }}
+                                        className="px-2.5 py-1 hover:bg-slate-50 text-slate-700 font-extrabold flex items-center gap-1 rounded cursor-pointer"
+                                    >
+                                        <i className="fa-solid fa-grip-lines text-slate-500"></i>
+                                        <span>구분선</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Floating Selection Formatter popover (Placed high above selection with comfortable offset margin) */}
+                            {showSelectionToolbar && selectionCoords && (
+                                <div 
+                                    className="absolute bg-slate-900 text-white rounded-2xl shadow-2xl p-2.5 flex items-center gap-2 border border-slate-800 animate-slideUpAndFade select-none tooltip-dropdown"
+                                    style={{ 
+                                        top: `${selectionCoords.top}px`, 
+                                        left: `${selectionCoords.left}px`,
+                                        transform: 'translateX(-50%)',
+                                        zIndex: 10000 // Force high layer priority
+                                    }}
+                                >
+                                    {/* Text Selection Bold utility */}
+                                    <button 
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                            execCommand('bold');
+                                        }}
+                                        className="w-8 h-8 rounded hover:bg-slate-850 text-white flex items-center justify-center transition-all cursor-pointer"
+                                        title="굵게"
+                                    >
+                                        <i className="fa-solid fa-bold text-xs"></i>
+                                    </button>
+
+                                    {/* Text Selection Italic utility */}
+                                    <button 
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                            execCommand('italic');
+                                        }}
+                                        className="w-8 h-8 rounded hover:bg-slate-850 text-white flex items-center justify-center transition-all cursor-pointer"
+                                        title="기울임"
+                                    >
+                                        <i className="fa-solid fa-italic text-xs"></i>
+                                    </button>
+
+                                    <div className="h-4 w-px bg-slate-800"></div>
+
+                                    {/* Tooltip selective font dropdown */}
+                                    <div className="relative">
                                         <button
                                             type="button"
-                                            onClick={() => setShowFutureSlots(!showFutureSlots)}
-                                            className="w-full flex items-center justify-between px-3 py-2 text-left text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-[9.5px] font-bold"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => { setShowTooltipFontDropdown(!showTooltipFontDropdown); setShowTooltipSizeDropdown(false); setShowTooltipColorPicker(false); }}
+                                            className="h-8 px-2 bg-slate-800 hover:bg-slate-850 border border-slate-700 rounded-lg text-xs font-black flex items-center justify-between gap-1 w-20 text-slate-200 cursor-pointer"
                                         >
-                                            <span className="text-[9.5px] font-extrabold flex items-center gap-1 leading-none">
-                                                <i className="fa-solid fa-boxes-packing text-slate-400"></i>
-                                                <span>확장용 빈 대기 슬롯 (51개)</span>
-                                            </span>
-                                            <i className={`fa-solid ${showFutureSlots ? 'fa-angle-up' : 'fa-angle-down'} text-[9px]`}></i>
+                                            <span className="truncate">{currentFont}</span>
+                                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-500"></i>
                                         </button>
-                                        {showFutureSlots && (
-                                            <div className="p-2 border-t border-dashed border-slate-200 grid grid-cols-4 gap-1 animate-fadeIn max-h-[150px] overflow-y-auto bg-slate-50/50">
-                                                {Array.from({ length: 51 }).map((_, slotIdx) => (
-                                                    <div key={slotIdx} className="aspect-square rounded-lg bg-slate-100/75 border border-slate-200 border-dashed flex items-center justify-center text-[8px] text-slate-400 font-bold" title={`예비 슬롯 #${slotIdx + 1}`}>
-                                                        #{slotIdx + 1}
-                                                    </div>
+                                        {showTooltipFontDropdown && (
+                                            <div className="absolute bottom-9 left-0 z-55 bg-slate-900 border border-slate-850 rounded-xl shadow-xl w-36 py-1 text-slate-200 select-none">
+                                                {Object.entries(fontFamilies).map(([fontName, valueStr]) => (
+                                                    <button
+                                                        key={`tool-font-${fontName}`}
+                                                        type="button"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => {
+                                                            applyStyleToSelection('fontFamily', valueStr);
+                                                            setCurrentFont(fontName);
+                                                            setShowTooltipFontDropdown(false);
+                                                        }}
+                                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-xs font-bold truncate"
+                                                        style={{ fontFamily: valueStr }}
+                                                    >
+                                                        {fontName}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Tooltip selective size dropdown */}
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => { setShowTooltipSizeDropdown(!showTooltipSizeDropdown); setShowTooltipFontDropdown(false); setShowTooltipColorPicker(false); }}
+                                            className="h-8 px-2 bg-slate-800 hover:bg-slate-850 border border-slate-700 rounded-lg text-xs font-black flex items-center justify-between gap-1 w-16 text-slate-200 cursor-pointer"
+                                        >
+                                            <span>{currentSize}</span>
+                                            <i className="fa-solid fa-chevron-down text-[8px] text-slate-500"></i>
+                                        </button>
+                                        {showTooltipSizeDropdown && (
+                                            <div className="absolute bottom-9 left-0 z-55 bg-slate-900 border border-slate-850 rounded-xl shadow-lg w-24 py-1 text-slate-200 select-none">
+                                                {fontSizes.map((size) => (
+                                                    <button
+                                                        key={`tool-size-${size}`}
+                                                        type="button"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => {
+                                                            applyStyleToSelection('fontSize', size);
+                                                            setShowTooltipSizeDropdown(false);
+                                                        }}
+                                                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-xs font-bold"
+                                                    >
+                                                        {size}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Tooltip text color selection */}
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => { setShowTooltipColorPicker(!showTooltipColorPicker); setShowTooltipFontDropdown(false); setShowTooltipSizeDropdown(false); }}
+                                            className="w-8 h-8 rounded hover:bg-slate-850 flex flex-col items-center justify-center relative cursor-pointer text-slate-200 font-extrabold"
+                                        >
+                                            <i className="fa-solid fa-font text-xs"></i>
+                                            <div className="h-1 w-3.5 bg-red-400 rounded-full mt-0.5" style={{ minHeight: '3px' }}></div>
+                                        </button>
+                                        {showTooltipColorPicker && (
+                                            <div className="absolute bottom-9 left-1/2 -translate-x-1/2 z-55 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2 w-44 grid grid-cols-6 gap-1 select-none">
+                                                {colors.map(color => (
+                                                    <button 
+                                                        key={`tool-col-${color}`}
+                                                        type="button"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => {
+                                                            applyStyleToSelection('color', color);
+                                                            setShowTooltipColorPicker(false);
+                                                        }}
+                                                        className="w-5 h-5 rounded hover:scale-110 border border-slate-800 cursor-pointer"
+                                                        style={{ backgroundColor: color }}
+                                                        title={color}
+                                                    />
                                                 ))}
                                             </div>
                                         )}
@@ -960,773 +1439,136 @@ export function RichTextEditor({
                                 </div>
                             )}
 
-                            {/* QUOTE PANE */}
-                            {activeSidebarTab === 'quotes' && (
-                                <div className="space-y-3 animate-fadeIn text-left">
-                                    {[
-                                        { type: 'quote', title: '큰따옴표 강조형 (“ ”)' },
-                                        { type: 'border', title: '수직 왼쪽 실선형 (|)' },
-                                        { type: 'bubble', title: '소장 추천 말풍선 (💡)' },
-                                        { type: 'line-quote', title: '상하 블랙 라인 따옴표형' },
-                                        { type: 'postit', title: '포스트잇 체크수첩형 (📌)' },
-                                        { type: 'frame', title: '에메랄드 포커스 프레임 상자형' }
-                                    ].map((q) => (
-                                        <button
-                                            key={q.type}
-                                            type="button"
-                                            onClick={() => {
-                                                insertQuote(q.type as any);
-                                                postInsertCleanUp();
-                                            }}
-                                            className="w-full text-left p-2.5 border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/15 rounded-xl transition-all cursor-pointer bg-white block shadow-3xs"
-                                        >
-                                            <div className="text-[9px] font-black text-slate-400 mb-1">{q.title}</div>
-                                            {q.type === 'quote' && (
-                                                <div className="border border-slate-150 rounded-lg p-2 text-center text-slate-600 font-bold text-[9px] leading-relaxed bg-slate-50/50">
-                                                    “ 강조 문구 기재 ”
-                                                </div>
-                                            )}
-                                            {q.type === 'border' && (
-                                                <div className="border-l-3 border-emerald-600 pl-1.5 text-slate-500 italic text-[9px] leading-relaxed bg-slate-50/50 p-1">
-                                                    가이드 인용 문장 기재
-                                                </div>
-                                            )}
-                                            {q.type === 'bubble' && (
-                                                <div className="bg-emerald-50/40 rounded border border-emerald-100 p-1.5 text-emerald-800 text-[9px] font-bold">
-                                                    💡 이 매물을 적극 권장 기재합니다!
-                                                </div>
-                                            )}
-                                            {q.type === 'line-quote' && (
-                                                <div className="border-t border-b border-slate-700 py-1 text-center text-[9px] text-[#111827] font-black bg-slate-50/50">
-                                                    “ 강점 대박 요약 한줄 ”
-                                                </div>
-                                            )}
-                                            {q.type === 'postit' && (
-                                                <div className="bg-amber-50/30 border-l-[3px] border-amber-500 rounded p-1 text-[8.5px] text-amber-800">
-                                                    📌 이 매물은 우수 공실 보관...
-                                                </div>
-                                            )}
-                                            {q.type === 'frame' && (
-                                                <div className="border border-emerald-500 rounded p-1 bg-emerald-50/10 text-center text-emerald-800 text-[9px] font-black">
-                                                    ◆ FOCUS ESSENTIALS ◆
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* DIVIDER PANE */}
-                            {activeSidebarTab === 'dividers' && (
-                                <div className="space-y-3 animate-fadeIn text-left">
-                                    {[
-                                        { type: 'dashed', title: '점선형 구분선', preview: '------------------------' },
-                                        { type: 'solid', title: '실선형 구분선', preview: '________________________' },
-                                        { type: 'thick', title: '굵은 먹선형 구분선', lineClass: 'h-1.5 bg-slate-755 w-full rounded mt-1' },
-                                        { type: 'dots', title: '네이버 세 점형', text: '•••', textClass: 'text-emerald-500 font-extrabold text-center text-md tracking-wider' },
-                                        { type: 'emerald-dot', title: '도트 에메랄드 롱라인형', lineClass: 'border-t-3 border-emerald-500 border-dotted w-full mt-1.5' },
-                                        { type: 'double', title: '이중실선형 구분선', lineClass: 'h-1 border-t border-b border-slate-300 w-full mt-1' },
-                                        { type: 'star', title: '별빛 골드 삼각 선형', text: '★★★', textClass: 'text-[#f59e0b] font-black text-center text-xs tracking-wide' },
-                                        { type: 'diamond', title: '마름모 슬레이트형', text: '◆ ◆ ◆', textClass: 'text-slate-400 font-bold text-center text-xs tracking-wide' },
-                                    ].map((d) => (
-                                        <button
-                                            key={d.type}
-                                            type="button"
-                                            onClick={() => {
-                                                insertDivider(d.type as any);
-                                                postInsertCleanUp();
-                                            }}
-                                            className="w-full text-left p-2.5 border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/10 rounded-xl transition-all cursor-pointer bg-white flex flex-col gap-1 shadow-3xs"
-                                        >
-                                            <span className="text-[8.5px] font-bold text-slate-400 block">{d.title}</span>
-                                            {d.preview && <span className="text-slate-350 text-center font-bold tracking-widest text-[9px] block leading-none">{d.preview}</span>}
-                                            {d.lineClass && <span className={d.lineClass}></span>}
-                                            {d.text && <span className={d.textClass}>{d.text}</span>}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Sidebar bottom indicator */}
-                        <div className="p-3 bg-white border-t border-slate-200/80 text-center shrink-0">
-                            <span className="text-[9px] font-extrabold text-slate-400">
-                                💡 소스를 선택하면 본문에 즉시 주입 후 자동 은폐됩니다.
-                            </span>
-                        </div>
-                    </div>
-                )}
-
-                {/* 2. Right Side Drawing Canvas Work Area */}
-                <div className="flex-1 flex flex-col min-w-0 bg-white relative">
-                    {/* Toolbar control bar (Flowing left-to-right clearly) */}
-                    <div className={`relative z-30 p-2 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-1.5 items-center text-slate-700 toolbar-dropdown-${id} select-none`}>
-                        {/* Font Families */}
-                        <div className="relative">
-                            <button 
-                                type="button" 
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => { setShowFontDropdown(!showFontDropdown); setShowSizeDropdown(false); }}
-                                className="h-8 px-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold flex items-center justify-between gap-1 w-24 text-slate-800 transition-all cursor-pointer"
-                                title="글꼴 변경"
-                            >
-                                <span className="truncate">{currentFont}</span>
-                                <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
-                            </button>
-                            {showFontDropdown && (
-                                <div className="absolute top-9 left-0 z-50 bg-white border border-slate-200 rounded-lg shadow-xl w-36 py-1 text-slate-700 max-h-56 overflow-y-auto animate-fadeIn">
-                                    {Object.entries(fontFamilies).map(([fontName, valueStr]) => (
-                                        <button
-                                            key={fontName}
-                                            type="button"
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            onClick={() => {
-                                                applyStyleToSelection('fontFamily', valueStr);
-                                                setCurrentFont(fontName);
-                                                setShowFontDropdown(false);
-                                            }}
-                                            className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs font-bold truncate ${currentFont === fontName ? 'text-emerald-600 bg-emerald-50/20 font-black' : ''}`}
-                                            style={{ fontFamily: valueStr }}
-                                        >
-                                            {fontName}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Font Sizing */}
-                        <div className="relative">
-                            <button 
-                                type="button" 
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => { setShowSizeDropdown(!showSizeDropdown); setShowFontDropdown(false); }}
-                                className="h-8 px-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold flex items-center justify-between gap-1 w-16 text-slate-800 transition-all cursor-pointer"
-                                title="글자 크기"
-                            >
-                                <span>{currentSize}</span>
-                                <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
-                            </button>
-                            {showSizeDropdown && (
-                                <div className="absolute top-9 left-0 z-50 bg-white border border-slate-200 rounded-lg shadow-lg w-24 py-1 text-slate-700 max-h-48 overflow-y-auto animate-fadeIn">
-                                    {fontSizes.map((size) => (
-                                        <button
-                                            key={size}
-                                            type="button"
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            onClick={() => {
-                                                applyStyleToSelection('fontSize', size);
-                                                setShowSizeDropdown(false);
-                                            }}
-                                            className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs font-bold ${currentSize === size ? 'text-emerald-600 bg-emerald-50/20 font-black' : ''}`}
-                                        >
-                                            {size}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="h-4 w-px bg-slate-200 mx-1"></div>
-
-                        {/* Bold Italic Underline utilities */}
-                        <div className="flex gap-0.5">
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('bold')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 font-extrabold text-xs text-slate-800 flex items-center justify-center transition-all cursor-pointer"
-                                title="굵게"
-                            >
-                                <i className="fa-solid fa-bold text-[11px]"></i>
-                            </button>
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('italic')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 italic text-xs text-slate-800 flex items-center justify-center transition-all cursor-pointer"
-                                title="기울임"
-                            >
-                                <i className="fa-solid fa-italic text-[11px]"></i>
-                            </button>
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('underline')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 underline underline-offset-2 text-xs text-slate-800 flex items-center justify-center transition-all cursor-pointer"
-                                title="밑줄"
-                            >
-                                <i className="fa-solid fa-underline text-[11px]"></i>
-                            </button>
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('strikeThrough')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 line-through text-xs text-slate-800 flex items-center justify-center transition-all cursor-pointer"
-                                title="취소선"
-                            >
-                                <i className="fa-solid fa-strikethrough text-[11px]"></i>
-                            </button>
-                        </div>
-
-                        <div className="h-4 w-px bg-slate-200 mx-1"></div>
-
-                        {/* Fore-colors and backgrounds */}
-                        <div className="flex gap-0.5">
-                            {/* Color */}
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => { setShowColorPicker(!showColorPicker); setShowBgColorPicker(false); }}
-                                    className="w-8 h-8 rounded hover:bg-slate-200/70 flex flex-col items-center justify-center relative cursor-pointer text-slate-700"
-                                    title="글자 색상"
-                                >
-                                    <i className="fa-solid fa-font text-[11px]"></i>
-                                    <div className="h-1 w-3.5 bg-red-650 rounded-xs mt-0.5" style={{ minHeight: '3px' }}></div>
-                                </button>
-                                {showColorPicker && (
-                                    <div className="absolute top-9 left-1/2 -translate-x-1/2 z-55 bg-white border border-slate-200 rounded-xl shadow-2xl p-2 w-44 grid grid-cols-6 gap-1 animate-fadeIn">
-                                        {colors.map(color => (
-                                            <button 
-                                                key={color}
-                                                type="button"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => {
-                                                    applyStyleToSelection('color', color);
-                                                    setShowColorPicker(false);
-                                                }}
-                                                className="w-5 h-5 rounded hover:scale-110 border border-slate-200 transition-transform cursor-pointer"
-                                                style={{ backgroundColor: color }}
-                                                title={color}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Highlighter */}
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => { setShowBgColorPicker(!showBgColorPicker); setShowColorPicker(false); }}
-                                    className="w-8 h-8 rounded hover:bg-slate-200/70 flex flex-col items-center justify-center relative cursor-pointer text-slate-700"
-                                    title="글자 배경색 형광펜"
-                                >
-                                    <i className="fa-solid fa-highlighter text-[11px]"></i>
-                                    <div className="h-1 w-3.5 bg-yellow-300 rounded-xs mt-0.5" style={{ minHeight: '3px' }}></div>
-                                </button>
-                                {showBgColorPicker && (
-                                    <div className="absolute top-9 left-1/2 -translate-x-1/2 z-55 bg-white border border-slate-200 rounded-xl shadow-2xl p-2 w-44 grid grid-cols-6 gap-1 animate-fadeIn">
-                                        {highlights.map(color => (
-                                            <button 
-                                                key={color}
-                                                type="button"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => {
-                                                    applyStyleToSelection('backgroundColor', color);
-                                                    setShowBgColorPicker(false);
-                                                }}
-                                                className="w-5 h-5 rounded hover:scale-110 border border-slate-200 transition-transform relative flex items-center justify-center cursor-pointer"
-                                                style={{ backgroundColor: color === 'transparent' ? '#ffffff' : color }}
-                                                title={color === 'transparent' ? '효과 제거' : color}
-                                            >
-                                                {color === 'transparent' && <i className="fa-solid fa-slash text-[8px] text-red-500"></i>}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="h-4 w-px bg-slate-200 mx-1"></div>
-
-                        {/* Alignment modes */}
-                        <div className="flex gap-0.5">
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('justifyLeft')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 flex items-center justify-center transition-all cursor-pointer"
-                                title="왼쪽 정렬"
-                            >
-                                <i className="fa-solid fa-align-left text-[11px] text-slate-700"></i>
-                            </button>
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('justifyCenter')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 flex items-center justify-center transition-all cursor-pointer"
-                                title="가운데 정렬"
-                            >
-                                <i className="fa-solid fa-align-center text-[11px] text-slate-700"></i>
-                            </button>
-                            <button 
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('justifyRight')}
-                                className="w-8 h-8 rounded hover:bg-slate-200/70 flex items-center justify-center transition-all cursor-pointer"
-                                title="오른쪽 정렬"
-                            >
-                                <i className="fa-solid fa-align-right text-[11px] text-slate-700"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Floating Selection Tooltip Formatting Toolbar */}
-                    {showSelectionToolbar && selectionCoords && (
-                        <div 
-                            style={{ 
-                                top: `${selectionCoords.top}px`, 
-                                left: `${selectionCoords.left}px`,
-                                transform: 'translateX(-50%)',
-                                zIndex: 10000
-                            }}
-                            className="absolute !z-[10000] bg-white text-slate-800 rounded-2xl shadow-xl p-2.5 flex items-center gap-2 border border-[#E2E8F0] animate-slideUpAndFade select-none"
-                        >
-                            {/* Selection Font Selector */}
-                            <div className="relative tooltip-dropdown">
-                                <button 
-                                    type="button" 
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowTooltipFontDropdown(!showTooltipFontDropdown);
-                                        setShowTooltipSizeDropdown(false);
-                                        setShowTooltipColorPicker(false);
-                                    }}
-                                    className="h-8 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold flex items-center justify-between gap-1 w-24 text-slate-800 transition-all cursor-pointer"
-                                >
-                                    <span className="truncate">{currentFont}</span>
-                                    <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
-                                </button>
-                                {showTooltipFontDropdown && (
-                                    <div className="absolute bottom-9 left-0 z-50 bg-white border border-slate-200 rounded-lg shadow-xl w-32 py-1 text-slate-700 max-h-40 overflow-y-auto animate-fadeIn mb-1">
-                                        {Object.entries(fontFamilies).map(([fontName, valueStr]) => (
-                                            <button
-                                                key={`tooltip-font-${fontName}`}
-                                                type="button"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    applyStyleToSelection('fontFamily', valueStr);
-                                                    setCurrentFont(fontName);
-                                                    setShowTooltipFontDropdown(false);
-                                                }}
-                                                className={`w-full text-left px-2 py-1 hover:bg-slate-50 text-[11px] font-bold truncate ${currentFont === fontName ? 'text-emerald-600 bg-emerald-50/20 font-black' : ''}`}
-                                                style={{ fontFamily: valueStr }}
-                                            >
-                                                {fontName}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Selection Font Size Selector */}
-                            <div className="relative tooltip-dropdown">
-                                <button 
-                                    type="button" 
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowTooltipSizeDropdown(!showTooltipSizeDropdown);
-                                        setShowTooltipFontDropdown(false);
-                                        setShowTooltipColorPicker(false);
-                                    }}
-                                    className="h-8 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold flex items-center justify-between gap-1 w-14 text-slate-800 transition-all cursor-pointer"
-                                >
-                                    <span>{currentSize}</span>
-                                    <i className="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
-                                </button>
-                                {showTooltipSizeDropdown && (
-                                    <div className="absolute bottom-9 left-0 z-50 bg-white border border-slate-200 rounded-lg shadow-lg w-20 py-1 text-slate-700 max-h-40 overflow-y-auto animate-fadeIn mb-1">
-                                        {fontSizes.map((size) => (
-                                            <button
-                                                key={`tooltip-size-${size}`}
-                                                type="button"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    applyStyleToSelection('fontSize', size);
-                                                    setCurrentSize(size);
-                                                    setShowTooltipSizeDropdown(false);
-                                                }}
-                                                className={`w-full text-left px-2 py-1 hover:bg-slate-50 text-[11px] font-bold ${currentSize === size ? 'text-emerald-600 bg-emerald-50/20 font-black' : ''}`}
-                                            >
-                                                {size}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Bold Italic Underline */}
-                            <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('bold')}
-                                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-xs font-black flex items-center justify-center text-slate-700 transition-colors"
-                            >
-                                <i className="fa-solid fa-bold"></i>
-                            </button>
-                            <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('italic')}
-                                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-xs italic flex items-center justify-center text-slate-700 transition-colors"
-                            >
-                                <i className="fa-solid fa-italic"></i>
-                            </button>
-                            <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => execCommand('underline')}
-                                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-xs underline underline-offset-2 flex items-center justify-center text-slate-700 transition-colors"
-                            >
-                                <i className="fa-solid fa-underline"></i>
-                            </button>
-
-                            {/* T (Colors Picker) */}
-                            <div className="relative tooltip-dropdown">
-                                <button
-                                    type="button"
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowTooltipColorPicker(!showTooltipColorPicker);
-                                        setShowTooltipFontDropdown(false);
-                                        setShowTooltipSizeDropdown(false);
-                                    }}
-                                    className="w-8 h-8 rounded-lg hover:bg-slate-100 flex flex-col items-center justify-center text-slate-700 relative"
-                                    title="글자 색상"
-                                >
-                                    <i className="fa-solid fa-font text-[11px]"></i>
-                                    <span className="text-[9px] font-black pointer-events-none -mt-1 leading-none text-red-500">A</span>
-                                </button>
-                                {showTooltipColorPicker && (
-                                    <div className="absolute bottom-9 left-1/2 -translate-x-1/2 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl p-1.5 w-32 grid grid-cols-5 gap-1 animate-fadeIn mb-1">
-                                        {colors.slice(0, 10).map(color => (
-                                            <button 
-                                                key={`tooltip-color-${color}`}
-                                                type="button"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    applyStyleToSelection('color', color);
-                                                    setShowTooltipColorPicker(false);
-                                                }}
-                                                className="w-4.5 h-4.5 rounded border border-slate-150 transition-transform cursor-pointer"
-                                                style={{ backgroundColor: color }}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Alignment Left / Center / Right */}
-                            <div className="flex gap-0.5 border-l border-slate-200/80 pl-1.5 ml-1">
-                                <button 
-                                    type="button" 
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => execCommand('justifyLeft')}
-                                    className="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center text-slate-700"
-                                    title="왼쪽 정렬"
-                                >
-                                    <i className="fa-solid fa-align-left text-[11px]"></i>
-                                </button>
-                                <button 
-                                    type="button" 
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => execCommand('justifyCenter')}
-                                    className="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center text-slate-700"
-                                    title="가운데 정렬"
-                                >
-                                    <i className="fa-solid fa-align-center text-[11px]"></i>
-                                </button>
-                                <button 
-                                    type="button" 
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => execCommand('justifyRight')}
-                                    className="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center text-slate-700"
-                                    title="오른쪽 정렬"
-                                >
-                                    <i className="fa-solid fa-align-right text-[11px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Floating Link Input Overlay (Non-window-alert Modal) */}
-                    {showLinkDialog && (
-                        <div className="absolute inset-x-0 top-[40px] bottom-0 bg-slate-900/35 backdrop-blur-3xs flex items-center justify-center z-[11000] p-4 font-sans select-none">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-xs shadow-2xl animate-scaleUp">
-                                <h4 className="text-xs font-black text-slate-800 mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                                    <i className="fa-solid fa-link text-indigo-500 text-xs"></i>
-                                    <span>네이버 에디터 링크 블록 생성</span>
-                                </h4>
-                                <div className="space-y-2.5 text-left">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1">연결할 링크 URL 주소</label>
-                                        <input 
-                                            type="text" 
-                                            value={linkUrl}
-                                            onChange={(e) => setLinkUrl(e.target.value)}
-                                            placeholder="https://example.com"
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-slate-800"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1">링크 소개 텍스트 명칭</label>
-                                        <input 
-                                            type="text" 
-                                            value={linkText}
-                                            onChange={(e) => setLinkText(e.target.value)}
-                                            placeholder="태왕 전용 매물 리얼 오감 투어 보기"
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-slate-800"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex gap-2 mt-4.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowLinkDialog(false);
-                                            setLinkUrl('');
-                                            setLinkText('');
-                                        }}
-                                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold py-2 rounded-lg cursor-pointer animate-fadeIn"
-                                    >
-                                        취소
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const url = linkUrl.trim();
-                                            const text = linkText.trim() || url;
-                                            if (url) {
-                                                const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-                                                const linkHtml = `
-                                                    <div contenteditable="false" style="margin: 16px auto; max-width: 100%; border: 1px solid #e1e8f0; border-radius: 12px; background-color: #f8fafc; overflow: hidden; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-                                                        <div style="display: flex; align-items: center; gap: 12px;">
-                                                            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #e6f6ee; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #10b981;">🔗</div>
-                                                            <div style="text-align: left;">
-                                                                <div style="font-size: 13px; font-weight: 800; color: #1e293b;">${text}</div>
-                                                                <div style="font-size: 10px; color: #64748b; font-family: monospace;">${cleanUrl}</div>
-                                                            </div>
-                                                        </div>
-                                                        <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; font-weight: 700; color: #ffffff; background-color: #10b981; border: 1px solid #059669; border-radius: 6px; padding: 6px 12px; text-decoration: none; cursor: pointer; white-space: nowrap;">이동하기</a>
-                                                    </div>
-                                                    <p contenteditable="true"><br></p>
-                                                `;
-                                                insertHtml(linkHtml);
-                                            }
-                                            setShowLinkDialog(false);
-                                            setLinkUrl('');
-                                            setLinkText('');
-                                        }}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-2 rounded-lg cursor-pointer animate-fadeIn"
-                                    >
-                                        링크 추가
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Highly Professional Floating Place/Map Input Overlay */}
-                    {showPlaceDialog && (
-                        <div className="absolute inset-x-0 top-[40px] bottom-0 bg-slate-900/35 backdrop-blur-3xs flex items-center justify-center z-[11000] p-4 font-sans select-none">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-xs shadow-2xl animate-scaleUp">
-                                <h4 className="text-xs font-black text-slate-800 mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                                    <i className="fa-solid fa-map-location-dot text-rose-500 text-xs"></i>
-                                    <span>네이버 에디터 추천 장소 생성</span>
-                                </h4>
-                                <div className="space-y-2.5 text-left">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1">지도 표기 장소 명칭</label>
-                                        <input 
-                                            type="text" 
-                                            value={placeName}
-                                            onChange={(e) => setPlaceName(e.target.value)}
-                                            placeholder="예: 구미 송정 태왕아너스 센트럴"
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-slate-800"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex gap-2 mt-4.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowPlaceDialog(false);
-                                            setPlaceName('');
-                                        }}
-                                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold py-2 rounded-lg cursor-pointer animate-fadeIn"
-                                    >
-                                        취소
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const name = placeName.trim() || '구미시 매물 현장 주소';
-                                            const placeHtml = `
-                                                <div contenteditable="false" style="margin: 16px auto; max-width: 100%; border: 1.5px solid #10b981; border-radius: 14px; background-color: #ffffff; padding: 16px 20px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.07); display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;">
-                                                    <div style="display: flex; align-items: center; gap: 14px; text-align: left;">
-                                                        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #e6f7f0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #10b981;">📍</div>
-                                                        <div style="text-align: left;">
-                                                            <div style="font-size: 14px; font-weight: 900; color: #111827; display: flex; align-items: center; gap: 6px;">
-                                                                 <span>${name}</span>
-                                                                 <span style="font-size: 9px; font-weight: 750; color: #10b981; border: 1px solid #10b981; border-radius: 4px; padding: 1px 4px; vertical-align: middle;">추천매물 현장</span>
-                                                            </div>
-                                                            <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">연동된 실시간 지도 정보 및 주변 실사 안내판</div>
-                                                        </div>
-                                                    </div>
-                                                    <a href="https://map.naver.com" target="_blank" rel="noopener noreferrer" style="font-size: 11px; font-weight: 800; color: #10b981; background-color: #ffffff; border: 1.5px solid #10b981; border-radius: 8px; padding: 6px 12px; text-decoration: none; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                                        <span>네이버 지도보기</span>
-                                                        <span style="font-size: 8px;">▶</span>
-                                                    </a>
-                                                </div>
-                                                <p contenteditable="true"><br></p>
-                                            `;
-                                            insertHtml(placeHtml);
-                                            setShowPlaceDialog(false);
-                                            setPlaceName('');
-                                        }}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-2 rounded-lg cursor-pointer animate-fadeIn"
-                                    >
-                                        장소 추가
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Editable Writing Area (Naver Gothic Font / 12px / pure black #000000 default) */}
-                    <div className="relative flex-1">
-                        {/* Cursor tracking square [+] button and its sub-insertion pop */}
-                        {plusButtonVisible && plusButtonCoords && (
+                            {/* Main Typing Canvas */}
                             <div 
+                                id={id}
+                                ref={editorRef}
+                                contentEditable
+                                onInput={handleInput}
+                                onPaste={handlePaste}
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                                className="pt-8 pb-8 pr-8 pl-8 text-[#000000] outline-none min-h-[350px] w-full max-w-full prose prose-slate select-text break-all rounded-b-xl leading-relaxed text-base tracking-normal bg-white"
                                 style={{ 
-                                    top: `${plusButtonCoords.top}px`, 
-                                    left: `${plusButtonCoords.left}px` 
-                                }}
-                                className="absolute z-[9999] flex items-center select-none font-sans font-extrabold"
-                            >
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setShowInlineMenu(!showInlineMenu);
-                                    }}
-                                    className={`w-7 h-7 rounded border flex items-center justify-center transition-all cursor-pointer shadow-sm ${
-                                        showInlineMenu 
-                                        ? 'bg-emerald-600 border-emerald-600 text-white hover:scale-105 active:scale-95' 
-                                        : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-500 hover:text-slate-800 hover:scale-105 active:scale-95'
-                                    }`}
-                                    title="스마트 삽입 도구 열기"
-                                >
-                                    <i className={`fa-solid ${showInlineMenu ? 'fa-xmark text-[10px]' : 'fa-plus text-xs'}`}></i>
-                                </button>
-
-                                {showInlineMenu && (
-                                    <div 
-                                        className="absolute left-9 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 w-32 flex flex-col z-[10000] animate-fadeIn text-slate-750 font-sans font-black"
-                                    >
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                fileInputRef.current?.click();
-                                                setShowInlineMenu(false);
-                                            }}
-                                            className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 hover:text-emerald-600 flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent font-extrabold"
-                                        >
-                                            <i className="fa-solid fa-camera text-blue-500 text-xs"></i>
-                                            <span>사진 추가</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleSidebarCategory('stickers');
-                                                setShowInlineMenu(false);
-                                            }}
-                                            className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 hover:text-emerald-600 flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent font-extrabold"
-                                        >
-                                            <i className="fa-solid fa-face-smile text-amber-500 text-xs"></i>
-                                            <span>감성 스티커</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleSidebarCategory('dividers');
-                                                setShowInlineMenu(false);
-                                            }}
-                                            className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 hover:text-emerald-600 flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent font-extrabold"
-                                        >
-                                            <i className="fa-solid fa-grip-lines text-slate-500 text-xs text-center w-3"></i>
-                                            <span>구분선 주입</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleSidebarCategory('quotes');
-                                                setShowInlineMenu(false);
-                                            }}
-                                            className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 hover:text-emerald-600 flex items-center gap-2 cursor-pointer transition-colors border-none bg-transparent font-extrabold"
-                                        >
-                                            <i className="fa-solid fa-quote-left text-emerald-600 text-xs"></i>
-                                            <span>인용구 작문</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <div 
-                            id={id}
-                            ref={editorRef}
-                            contentEditable
-                            onInput={handleInput}
-                            onPaste={handlePaste}
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            className="pt-6 pb-6 pr-6 pl-6 text-[#000000] outline-none min-h-[350px] overflow-y-auto w-full max-w-full prose prose-slate select-text break-all rounded-b-xl"
-                            style={{ 
-                                minHeight, 
-                                fontFamily: fontFamilies[currentFont as keyof typeof fontFamilies] || '"Nanum Gothic", sans-serif',
-                                fontSize: currentSize,
-                                color: '#000000',
-                                '--tw-prose-body': '#000000',
-                                '--tw-prose-headings': '#000000',
-                                '--tw-prose-lead': '#000000',
-                                '--tw-prose-links': '#000000',
-                                '--tw-prose-bold': '#000000',
-                                '--tw-prose-counters': '#000000',
-                                '--tw-prose-bullets': '#000000',
-                                '--tw-prose-quotes': '#000000',
-                            } as React.CSSProperties}
-                            data-placeholder={placeholder}
-                        />
+                                    minHeight, 
+                                    fontFamily: fontFamilies[currentFont as keyof typeof fontFamilies] || '"Nanum Gothic", sans-serif',
+                                    fontSize: currentSize,
+                                    color: '#000000',
+                                    '--tw-prose-body': '#000000',
+                                    '--tw-prose-headings': '#000000',
+                                    '--tw-prose-lead': '#000000',
+                                    '--tw-prose-links': '#000000',
+                                    '--tw-prose-bold': '#000000',
+                                    '--tw-prose-counters': '#000000',
+                                    '--tw-prose-bullets': '#000000',
+                                    '--tw-prose-quotes': '#000000',
+                                } as React.CSSProperties}
+                                data-placeholder={placeholder}
+                            />
+                        </div>
                     </div>
 
-                    {/* Hidden input for local file uploads */}
+                    {/* Hidden input for local photo selection */}
                     <input 
                         type="file" 
                         ref={fileInputRef} 
                         onChange={handleLocalFileChange} 
                         accept="image/*" 
-                        className="hidden" 
+                        className="hidden pointer-events-none" 
                     />
                 </div>
             </div>
+
+            {/* === Modal overlays for link & location === */}
+            {showLinkDialog && (
+                <div className="fixed inset-0 z-[10001] bg-slate-900/60 backdrop-blur-3xs flex items-center justify-center p-4">
+                    <div className="bg-white border-2 border-slate-350 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl animate-scaleUp">
+                        <h4 className="text-sm font-black text-slate-900 mb-2.5 flex items-center gap-1.5 leading-none">
+                            <i className="fa-solid fa-link text-indigo-500"></i>
+                            <span>네이버 공식 VR 포스트 링크 카드 생성</span>
+                        </h4>
+                        <p className="text-xs text-slate-500 font-bold mb-4">소장님의 시원한 VR 투어 링크 주소와 타이틀을 기입하시면 예쁜 카드로 주입됩니다.</p>
+                        <div className="space-y-3.5">
+                            <div>
+                                <label className="block text-[11px] font-black text-slate-800 mb-1">연동 하이퍼링크 주소 (URL)</label>
+                                <input 
+                                    type="text" 
+                                    value={linkUrl} 
+                                    onChange={(e) => setLinkUrl(e.target.value)}
+                                    placeholder="예: https://taewang-vr-tour.com/202"
+                                    className="w-full text-xs font-bold border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-black text-slate-800 mb-1">출력용 타이틀 문구 (선택)</label>
+                                <input 
+                                    type="text" 
+                                    value={linkText} 
+                                    onChange={(e) => setLinkText(e.target.value)}
+                                    placeholder="예: 이 매물의 실제 VR 360° 투어 즉시 감상하기"
+                                    className="w-full text-xs font-bold border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2 mt-5">
+                            <button 
+                                type="button" 
+                                onClick={() => { setShowLinkDialog(false); setLinkUrl(''); setLinkText(''); }}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black py-2.5 px-4 rounded-xl cursor-pointer"
+                            >
+                                취소
+                            </button>
+                            <button 
+                                type="button" 
+                                onClick={() => insertLinkPostCard(linkUrl, linkText)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black py-2.5 px-4 rounded-xl shadow-xs cursor-pointer"
+                                disabled={!linkUrl.trim()}
+                            >
+                                본문 주입
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPlaceDialog && (
+                <div className="fixed inset-0 z-[10001] bg-slate-900/60 backdrop-blur-3xs flex items-center justify-center p-4">
+                    <div className="bg-white border-2 border-slate-350 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl animate-scaleUp">
+                        <h4 className="text-sm font-black text-slate-900 mb-2.5 flex items-center gap-1.5 leading-none">
+                            <i className="fa-solid fa-map-location-dot text-rose-500"></i>
+                            <span>네이버 성실 확인 공시 좌표 카드 개방</span>
+                        </h4>
+                        <p className="text-xs text-slate-550 font-bold mb-4">성실 중개 대상 목적물의 호칭이나 지칭 명칭 정보를 기입하십시오.</p>
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-800 mb-1">중개 목적 장소명 / 호칭</label>
+                            <input 
+                                type="text" 
+                                value={placeName} 
+                                onChange={(e) => setPlaceName(e.target.value)}
+                                placeholder="예: 구미시 송정동 신축급 럭셔리 남향 리모델링 원룸"
+                                className="w-full text-xs font-bold border border-slate-300 rounded-lg p-2.5 outline-none focus:border-rose-500"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2 mt-5">
+                            <button 
+                                type="button" 
+                                onClick={() => { setShowPlaceDialog(false); setPlaceName(''); }}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black py-2.5 px-4 rounded-xl cursor-pointer"
+                            >
+                                취소
+                            </button>
+                            <button 
+                                type="button" 
+                                onClick={() => insertPlaceCard(placeName)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black py-2.5 px-4 rounded-xl shadow-xs cursor-pointer"
+                                disabled={!placeName.trim()}
+                            >
+                                장소 공시 주입
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

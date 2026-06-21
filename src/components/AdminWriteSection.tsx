@@ -1100,7 +1100,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-signature text-emerald-600"></i>
-                            <span>책임 중개 소장 한마디 및 블로그 원고</span>
+                            <span>[책임 중개 소장 한마디]</span>
                         </label>
                         <RichTextEditor 
                             id="admin-write-title-editor"
@@ -1124,7 +1124,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-tag text-emerald-600"></i>
-                            <span>매물특징(홈페이지-1페이지-실시간 공실현황, 매물의 비고에 나옴)</span>
+                            <span>[매물특징 (홈페이지-1페이지-실시간 공실현황, 매물의 비고에 연동)]</span>
                         </label>
                         <RichTextEditor 
                             id="admin-write-remarks-editor"
@@ -1148,7 +1148,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-905 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-quote-left text-emerald-600"></i>
-                            <span>블로그 인용구</span>
+                            <span>[블로그 원고]</span>
                         </label>
                         <RichTextEditor 
                             id="admin-write-intro-editor"
@@ -1172,7 +1172,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     <div>
                         <label className="block text-left text-[14px] sm:text-base font-black text-slate-905 mb-2 flex items-center gap-1.5">
                             <i className="fa-solid fa-file-pen text-emerald-600"></i>
-                            <span>전문가 답사 가이드 기록 및 세부 옵션 안내 (Markdown 마크업 편집 지원)</span>
+                            <span>[전문가 답사 가이드 기록 및 세부 옵션 안내 (Markdown 마크업 편집 동시 지원)]</span>
                         </label>
                         <RichTextEditor 
                             id="admin-write-editor"

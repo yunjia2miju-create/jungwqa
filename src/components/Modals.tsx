@@ -16,7 +16,7 @@ export function Modals({
     if (!phoneModalOpen || !phoneModalData) return null;
 
     return (
-        <div id="phone-modal-popup" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 animate-fadeIn">
+        <div id="phone-modal-popup" className="fixed inset-0 !z-[9999] flex items-center justify-center bg-black/60 p-4 animate-fadeIn" style={{ zIndex: 9999 }}>
             <div className="bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 p-6 space-y-5 transform transition-all text-center">
                 <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                     <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">

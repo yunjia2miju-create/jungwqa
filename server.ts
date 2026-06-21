@@ -177,6 +177,77 @@ async function startServer() {
   
   app.use(express.json({ limit: '50mb' }));
 
+  // Assets-to-Giphy mapping redirect route to ensure 0 broken images when embedding local path stickers
+  const stickerRedirects: Record<string, string> = {
+    // 강아지 (동물)
+    'rabbit_cheer.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExczNmYjZ4OGI0ZXZ4MWh4Z3p5YW8yd2I3czF6bW02ZWl5cWF2ZWdpeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/L1VXD3bEoZBAUPcfVw/giphy.gif',
+    'puppy_welcome.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTNjOWVzMXhyeTkybml0djFud3gyY2UwdzEzbWVydXBzeHN0bm42byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/YmMLWYr9lM1shv8IZS/giphy.gif',
+    'cat_happy.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3U2cjRvdWwzdng5dngyam5na2Nzd3UxbW5hbzd0dW1sbDBubW9uZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/t3pXRb93P2fWjD2Vea/giphy.gif',
+    'hamster_dance.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3pnb210dWZpYW0xeXpxZWgyZXVobnY0YWVpaXBtZnd3N2s1cGgzeSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/Lp9b8D7pGIU7FmEgVv/giphy.gif',
+    'bear_greeting.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmZhdThhdnlybHhzZHJqNHA1cGU3djMxbmsxaXN3NGNidjR3MDR2OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/7k9MbeuPLaN7nka0n4/giphy.gif',
+    'tiger_roar.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm5nOWp0aDU2dms4MWxsNWJpdm1naXB0MHpqeTZ3aDMxZ3YycHJidCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/j5bTMy6H70Y7Z5L2Qe/giphy.gif',
+
+    // 생줘 (하트)
+    'heart_flutter.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWZ5dzVpcWNhdGF0OGptMDBzdmM2cWswcWhxYzN0eTZpNDJpcnF6ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/8g6G6O8pXNTheBwW71/giphy.gif',
+    'sparkle_love.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGoyOTFrNHh6NHo0NWMxbWF2cHh5dWl0MmoyOHYxbXFidTNmZHNvaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/xUPGcyi6Y8sK_78676/giphy.gif',
+    'star_twinkle.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjR6NG95NnU4NmIyamZncmswZWdzbmtnbmpzdDBpODN6OG0wanRxZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/eNhZ1gZf5Ym7mYgE4D/giphy.gif',
+    'glowing_heart.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdyZjY1bm9yZWZwd2gyN3UwbHR2ZXZiZW52dnA5djM0d2lrcml5cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/v8YmIsOfcZkLgRSpf2/giphy.gif',
+    'love_arrow.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmF0MXF3a2M5Mm55bm8wdWd4bjF3azg1dnd5NWwyczRnbXl6bnU3ciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/SDeO6gL98gAsPZ10fB/giphy.gif',
+    'sweet_candy.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWZsd3Zldm5iNHVvMXg5NHgyb3d4Zmg3dm1nbmF2Nnl3YTBzZWJvYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/LpsYVv9yS7jLpY2pG1/giphy.gif',
+
+    // 가격 (부동산)
+    'house_zoom.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWFqdmtoczhxdWFxMHBqZXpxYXM1YmV0Ymdod28ybncyMnY3NDVwdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/L37FfWog394W4oT2v7/giphy.gif',
+    'key_deal.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTV3bXNocmszcHk2ajZidWVzb3ZnaXNxOHlndmlhdzZpcHpwMTVubCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/TAnRscyvOf3W7fL62W/giphy.gif',
+    'moving_truck.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNVlqNnM1NnU0OG93djB1NGc3dngxeXU0cmEwbDZ4ZjN0ZGl3bTM1YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/XFm66N3oXw2yF9tS9g/giphy.gif',
+    'apartment_search.png': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=150&h=150&q=80',
+    'home_sweet_home.jpg': 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=150&h=150&q=80',
+    'office_building.jpg': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=150&h=150&q=80',
+
+    // 소장님일상
+    'thumbs_up.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNleWF2eTBvODQ3NDBzcmwxaXQ2dDN1ajdwdWNxYmxoMjdzMnZ3byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/R6gVNv59V9htKzSu4R/giphy.gif',
+    'coffee_steam.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDhneTJocTlncGtzMWpsNXpuZHJpYXJ6aGRiaDJiaXNuNW1sbnAwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/D1O1Tj39fS4y7yS6S9/giphy.gif',
+    'stamp_verified.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjU5bm1tNHhrdjMyYnl4bWNqMnlrczZsczByNGI2ZnNpNjJodjRxNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/bYv1840JclX666Vq1D/giphy.gif',
+    'congrats_star.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZjEyZDNndW55OGZ5bjNpZnpicnBnOGpjenoyZmZpOHpyZjU3dTh3MiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l0G18bMuxT9Je1fDG/giphy.gif',
+    'busy_typing.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDJwbmNpbm12NDlzd200czY1ejc0b3pxa2NleTNmaTdzM2owZzA5MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/du3J3USyVJvOkmSMFL/giphy.gif',
+    'success_star.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTVudTFzcmYxcnA2dDlxNjBia2EwbzRhb2E4aThjcnV1ZHZpeXN5MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/WfofOAg88MHeo/giphy.gif',
+
+    // 파스인형 (24종)
+    'pas01_heart_eyes.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXdyZjY1bm9yZWZwd2gyN3UwbHR2ZXZiZW52dnA5djM0d2lrcml5cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/v8YmIsOfcZkLgRSpf2/giphy.gif',
+    'pas02_angry_fire.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWZnaWx0OXN5NjZwdXpxMWVsbGswMXFwbzFmdmlxbzY2ODdzYThxeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/bMyWfIDYLQqC4/giphy.gif',
+    'pas03_double_thumbs.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNleWF2eTBvODQ3NDBzcmwxaXQ2dDN1ajdwdWNxYmxoMjdzMnZ3byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/R6gVNv59V9htKzSu4R/giphy.gif',
+    'pas04_dessert_mukbang.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmF0MXF3a2M5Mm55bm8wdWd4bjF3azg1dnd5NWwyczRnbXl6bnU3ciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/LpsYVv9yS7jLpY2pG1/giphy.gif',
+    'pas05_deep_sleep.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVtcXZ5Njg1N3g2NGE5OTNtbGRod29kNG93cTltODkzbHppZHZsMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/EZAX8gbyzVAnK/giphy.gif',
+    'pas06_fist_clenched.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExczNmYjZ4OGI0ZXZ4MWh4Z3p5YW8yd2I3czF6bW02ZWl5cWF2ZWdpeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/L1VXD3bEoZBAUPcfVw/giphy.gif',
+    'pas07_tears_pouring.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjBrdGowZWg4OXpybHoxZXExNnFlZHl2MThnd3ZnbHh0bWltNnIydyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/2Qs2h97WaoBiM/giphy.gif',
+    'pas08_startled_gasp.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnJ2dnFkMzdnNnd4Nm5vZXphMWZ3eG8wdHRjMndna3NvdWx1MHBnNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/mlvseq9yvZhba/giphy.gif',
+    'pas09_warm_hello.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTNjOWVzMXhyeTkybml0djFud3gyY2UwdzEzbWVydXBzeHN0bm42byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/YmMLWYr9lM1shv8IZS/giphy.gif',
+    'pas10_excited_dance.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3pnb210dWZpYW0xeXpxZWgyZXVobnY0YWVpaXBtZnd3N2s1cGgzeSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/Lp9b8D7pGIU7FmEgVv/giphy.gif',
+    'pas11_utterly_exhausted.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWZ5dzVpcWNhdGF0OGptMDBzdmM2cWswcWhxYzN0eTZpNDJpcnF6ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/8g6G6O8pXNTheBwW71/giphy.gif',
+    'pas12_fireworks_congrats.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZjEyZDNndW55OGZ5bjNpZnpicnBnOGpjenoyZmZpOHpyZjU3dTh3MiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l0G18bMuxT9Je1fDG/giphy.gif',
+    'pas13_belly_laugh.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3U2cjRvdWwzdng5dngyam5na2Nzd3UxbW5hbzd0dW1sbDBubW9uZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/t3pXRb93P2fWjD2Vea/giphy.gif',
+    'pas14_shy_blush.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzh0cHlzYjBzdDBoOWptbXlzM2Z1cWR3bmlkaTJ5Nnp1ZHFicmhveSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/H887b8X9Y7vSpT4qE7/giphy.gif',
+    'pas15_sweet_wink.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWM5eTNrMDFtd3NseWlraXp2cmU5dW9uMmh3NDAwMGx0ZjRlcm90dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/Q7YFxgjPv9L8P5wB9p/giphy.gif',
+    'pas16_deep_thinking.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTV2OWpqMG5nbzRhNDRxNjYxenBlcDZ3ZXJ4dHlnaG5pd2psaDZrYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7bu3XilJ5BOiSGic/giphy.gif',
+    'pas17_raining_gold.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm53bzdqYjM3dmhicmRsa3E2dDNpa3BrMXF4NDlzaWxlYnVwbmsxbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l0Ex6Ut3wAHcnGCkg/giphy.gif',
+    'pas18_loyal_salute.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjZqNnM0MXoxcmZ5M3Q3bnd4b3F4amkzbWN5bnlhNzR2Y3M0dzVubCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/j77bDXz3sh6Xv9Dqfc/giphy.gif',
+    'pas19_great_job.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjR6NG95NnU4NmIyamZncmswZWdzbmtnbmpzdDBpODN6OG0wanRxZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/eNhZ1gZf5Ym7mYgE4D/giphy.gif',
+    'pas20_hurried_run.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXlqNnM1NnU0OG93djB1NGc3dngxeXU0cmEwbDZ4ZjN0ZGl3bTM1YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/XFm66N3oXw2yF9tS9g/giphy.gif',
+    'pas21_cupid_arrow.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGoyOTFrNHh6NHo0NWMxbWF2cHh5dWl0MmoyOHYxbXFidTNmZHNvaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/xUPGcyi6Y8sK_78676/giphy.gif',
+    'pas22_go_fighting.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTVudTFzcmYxcnA2dDlxNjBia2EwbzRhb2E4aThjcnV1ZHZpeXN5MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/WfofOAg88MHeo/giphy.gif',
+    'pas23_coffee_break.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDhneTJocTlncGtzMWpsNXpuZHJpYXJ6aGRiaDJiaXNuNW1sbnAwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/D1O1Tj39fS4y7yS6S9/giphy.gif',
+    'pas24_desperate_prayer.gif': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDN6bTgydDR3M3FicXBwZ251Z3JqYnF5ZXAzdHF1cHhtNzAzbTNzNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/9SqtqOdxfUafE_S77x/giphy.gif'
+  };
+
+  app.get('/assets/stickers/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const targetUrl = stickerRedirects[filename];
+    if (targetUrl) {
+      res.redirect(302, targetUrl);
+    } else {
+      res.status(404).send('Sticker not found locally');
+    }
+  });
+
   // Request logger
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);

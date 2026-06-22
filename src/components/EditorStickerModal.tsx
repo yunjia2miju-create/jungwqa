@@ -563,7 +563,7 @@ export function StickerCard({ sticker, activeCategory, onClick, isStarred, onTog
             )}
 
             {/* High-quality responsive viewport wrapper */}
-            <div className={`w-full flex-1 flex items-center justify-center overflow-hidden p-0.5 ${compact ? 'min-h-[38px]' : 'min-h-[44px]'}`}>
+            <div className={`w-full flex-1 flex items-center justify-center overflow-hidden p-1.5 ${compact ? 'min-h-[75px]' : 'min-h-[105px]'}`}>
                 {downloadUrl ? (
                     <img 
                         src={downloadUrl} 
@@ -572,13 +572,13 @@ export function StickerCard({ sticker, activeCategory, onClick, isStarred, onTog
                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-200"
                     />
                 ) : (
-                    <div className="w-4 h-4 rounded-full border border-slate-200 border-t-slate-500 animate-spin" />
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-205 border-t-slate-500 animate-spin" />
                 )}
             </div>
             
             {/* 직하단 직관적 한글 명찰 뱃지 */}
-            <div className="mt-1 w-full text-center">
-                <span className="inline-block text-[9px] font-black text-slate-700 bg-slate-50 border border-slate-200 px-1 py-0.5 rounded-md shadow-3xs truncate max-w-full font-sans tracking-tight group-hover:text-emerald-700 group-hover:border-emerald-300 leading-none">
+            <div className="mt-1.5 w-full text-center">
+                <span className="inline-block text-[11px] font-black text-slate-700 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md shadow-3xs truncate max-w-full font-sans tracking-tight group-hover:text-emerald-700 group-hover:border-emerald-300 leading-none">
                     {sticker.displayName}
                 </span>
             </div>

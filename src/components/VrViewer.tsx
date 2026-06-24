@@ -88,7 +88,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
     }, [isStarterClicked]);
 
     React.useEffect(() => {
-        console.log("썸네일 클릭 후 투명 레이어의 포인터 간섭이 완벽히 제거되어 화면 좌우 화살표가 100% 정상 구동되며, 전 기기 반응형 무결점 시스템이 최종 완결되었습니다.");
+        // Pointer interactions complete
     }, []);
 
     // Premium physical compass tracking state & damping math

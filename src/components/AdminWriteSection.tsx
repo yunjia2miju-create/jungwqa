@@ -1,24 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { Post, gumiDongs } from '../data';
-import PannellumViewer from './PannellumViewer';
 import { savePostService, getPostsService } from '../firebaseService';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
-
-const ADMIN_CATEGORIES_PRESETS = [
-    { value: '원룸매매', label: '원룸매매', icon: 'fa-chart-line', textColor: 'text-fuchsia-600' },
-    { value: '원룸', label: '원룸', icon: 'fa-house-user', textColor: 'text-indigo-600' },
-    { value: '미투', label: '미투', icon: 'fa-door-closed', textColor: 'text-sky-600' },
-    { value: '투룸', label: '투룸', icon: 'fa-bed', textColor: 'text-cyan-600' },
-    { value: '쓰리룸', label: '쓰리룸', icon: 'fa-hotel', textColor: 'text-emerald-700' },
-    { value: '상가', label: '상가', icon: 'fa-store', textColor: 'text-purple-600' },
-    { value: '아파트', label: '아파트', icon: 'fa-city', textColor: 'text-rose-600' },
-    { value: '오피스텔', label: '오피스텔', icon: 'fa-building', textColor: 'text-amber-600' },
-    { value: '빌라', label: '빌라', icon: 'fa-warehouse', textColor: 'text-violet-600' },
-    { value: '땅', label: '땅', icon: 'fa-mountain', textColor: 'text-lime-700' },
-    { value: '기타', label: '기타', icon: 'fa-ellipsis-h', textColor: 'text-slate-600' }
-];
 
 interface AdminWriteSectionProps {
     showToast: (msg: string, type: 'success' | 'error') => void;
@@ -36,12 +21,10 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
 
     // Form Initial State
     const [formData, setFormData] = useState<Partial<Post>>({
-        category: '원룸', transactionType: '월세', dong: '광평동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
+        category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
         title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
     });
 
-    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-    const [activeVRIndex, setActiveVRIndex] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [uploadProgress, setUploadProgress] = useState<string>('');
@@ -62,7 +45,6 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         const blob = dataURLtoBlob(base64Data);
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
-        // Preserve Hangul, alphanumeric characters, dot, hyphen, and underscore
         const cleanName = originalName.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_.-]/g, '_');
         const safeName = `${timestamp}_${randomStr}_${cleanName}`;
         
@@ -71,111 +53,73 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         return await getDownloadURL(storageRef);
     };
 
-    const movePanorama = (fromIndex: number, toIndex: number) => {
-        const panos = formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
-        if (toIndex < 0 || toIndex >= panos.length) return;
-        if (fromIndex === toIndex) return;
-        
-        const newPanos = [...panos];
-        const [moved] = newPanos.splice(fromIndex, 1);
-        newPanos.splice(toIndex, 0, moved);
-        
-        setFormData(prev => ({ ...prev, panoramas: newPanos.join('|') }));
-        setActiveVRIndex(toIndex);
-    };
-
-    // Helpers to render highly prominent, thick-bordered inputs with active background color changes when filled.
-    const getInputClass = (value: any, isOwnerPhone = false) => {
-        const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
-        
-        // Base classes: Very thick borders, large readable fonts (text-sm sm:text-base), increased vertical/horizontal padding
-        const base = "w-full transition-all duration-300 rounded-2xl px-5 py-4 text-base font-bold shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-100/50 ";
-        
-        if (isOwnerPhone) {
-            if (hasValue) {
-                return base + "border-[3px] border-amber-600 bg-amber-50 text-amber-950 focus:border-amber-700";
-            } else {
-                return base + "border-[2.5px] border-slate-400 bg-white text-slate-900 focus:border-amber-500 placeholder-slate-400";
-            }
-        }
-        
-        if (hasValue) {
-            // Highly visible ACTIVE populated state: Eye-friendly soft mint green background, thick solid emerald-600 border and deep color text
-            return base + "border-[3.5px] border-emerald-600 bg-emerald-50/70 text-slate-950 focus:border-emerald-700 focus:bg-emerald-50 placeholder-slate-455";
-        } else {
-            // UNFILED blank state: Thick slate-400 border, crisp white background, clear and legible
-            return base + "border-[2.5px] border-slate-400 bg-white text-slate-900 focus:border-emerald-600 focus:bg-emerald-50/20 placeholder-slate-400/80";
-        }
-    };
-
-    const getSelectClass = (value: any) => {
-        const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
-        const base = "w-full transition-all duration-300 rounded-2xl px-5 py-4 text-base font-black shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-100/50 cursor-pointer ";
-        if (hasValue) {
-            return base + "border-[3px] border-emerald-600 bg-emerald-50/60 text-slate-950 focus:border-emerald-700";
-        } else {
-            return base + "border-[2.5px] border-slate-400 bg-white text-slate-900 focus:border-emerald-500";
-        }
-    };
-
-    const getTextareaClass = (value: any) => {
-        const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
-        const base = "w-full transition-all duration-300 rounded-2xl px-5 py-4 text-base font-bold shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-100/50 leading-relaxed ";
-        if (hasValue) {
-            return base + "border-[3.5px] border-emerald-600 bg-emerald-50/65 text-slate-950 focus:border-emerald-700 placeholder-slate-455";
-        } else {
-            return base + "border-[2.5px] border-slate-400 bg-white text-slate-900 focus:border-emerald-600 focus:bg-emerald-50/25 placeholder-slate-400/85";
-        }
-    };
-
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [iframeReady, setIframeReady] = useState<boolean>(false);
 
     useEffect(() => {
-        console.log("소장님! 소스코드 내부의 에디터 호출 경로가 파이어베이스 순정 마스터 주소로 최종 교체 및 고정 저장되었습니다. 이제 임시 명령어 입력 없이 홈페이지 매물 화면으로 바로 접속하신 뒤 [Ctrl + F5]를 누르시면 중첩 현상이 완전히 박멸된 깨끗한 스마트에디터 2.0 순정 도화지를 사용하실 수 있습니다.");
-    }, []);
-
-    useEffect(() => {
-        const handleMessage = (e: MessageEvent) => {
+        const handleMessage = async (e: MessageEvent) => {
             if (!e.data) return;
             if (e.data.type === 'EDITOR_READY') {
                 setIframeReady(true);
                 if (iframeRef.current && iframeRef.current.contentWindow) {
                     iframeRef.current.contentWindow.postMessage({
                         type: 'LOAD_DATA',
-                        payload: {
-                            title: formData.title || '',
-                            remarks: formData.remarks || '',
-                            intro: formData.intro || '',
-                            body: formData.body || ''
-                        }
+                        payload: formData
                     }, '*');
                 }
             } else if (e.data.type === 'SAVE_DATA') {
-                const { title, remarks, intro, body } = e.data.payload;
                 setFormData(prev => ({
                     ...prev,
-                    title: title || '',
-                    remarks: remarks || '',
-                    intro: intro || '',
-                    body: body || ''
+                    ...e.data.payload
                 }));
+            } else if (e.data.type === 'UPLOAD_FILE') {
+                const { fileData, fileName, uploadType } = e.data.payload;
+                try {
+                    setIsUploading(true);
+                    setUploadProgress(`${fileName} 사진 파이어베이스에 업로드 중...`);
+                    const prefix = uploadType === 'images' ? 'gallery' : 'panoramas';
+                    const downloadURL = await uploadResizedBlobToStorage(fileData, fileName, prefix);
+                    if (iframeRef.current && iframeRef.current.contentWindow) {
+                        iframeRef.current.contentWindow.postMessage({
+                            type: 'UPLOAD_SUCCESS',
+                            payload: {
+                                url: downloadURL,
+                                uploadType
+                            }
+                        }, '*');
+                    }
+                    showToast("스토리지에 성공적으로 업로드되었습니다.", "success");
+                } catch (err: any) {
+                    console.error("Iframe remote upload error:", err);
+                    if (iframeRef.current && iframeRef.current.contentWindow) {
+                        iframeRef.current.contentWindow.postMessage({
+                            type: 'UPLOAD_ERROR',
+                            payload: {
+                                message: err.message || '업로드 실패',
+                                uploadType
+                            }
+                        }, '*');
+                    }
+                    showToast("스토리지 저장에 실패했습니다.", "error");
+                } finally {
+                    setIsUploading(false);
+                    setUploadProgress('');
+                }
+            } else if (e.data.type === 'SUBMIT_POST') {
+                await handlePostSubmitDirect(e.data.payload);
+            } else if (e.data.type === 'CANCEL_POST') {
+                handleCancel();
             }
         };
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, []);
+    }, [formData, editingPostId, currentEditPost]);
 
     useEffect(() => {
         if (iframeReady && iframeRef.current && iframeRef.current.contentWindow) {
             iframeRef.current.contentWindow.postMessage({
                 type: 'LOAD_DATA',
-                payload: {
-                    title: formData.title || '',
-                    remarks: formData.remarks || '',
-                    intro: formData.intro || '',
-                    body: formData.body || ''
-                }
+                payload: formData
             }, '*');
         }
     }, [editingPostId, currentEditPost, iframeReady]);
@@ -185,360 +129,46 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             setFormData(currentEditPost);
         } else {
             setFormData({
-                category: '원룸', transactionType: '월세', dong: '광평동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
+                category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
                 title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
             });
         }
-        setSelectedImageIndex(null);
-        setActiveVRIndex(0);
     }, [editingPostId, currentEditPost]);
 
-    const textAreaRefs = useRef<{[key: string]: HTMLTextAreaElement | null}>({});
-    const thumbnailInputRef = useRef<HTMLInputElement>(null);
-    const imagesInputRef = useRef<HTMLInputElement>(null);
-    const panoInputRef = useRef<HTMLInputElement>(null);
-
-    const syncHeights = () => {
-        Object.values(textAreaRefs.current).forEach(val => {
-            const el = val as HTMLTextAreaElement | null;
-            if (el) {
-                el.style.height = 'auto';
-                el.style.height = (el.scrollHeight > 0 ? el.scrollHeight : el.offsetHeight) + 'px';
-            }
-        });
-    };
-
-    useEffect(() => {
-        setTimeout(syncHeights, 100);
-    }, [formData.intro, formData.body]);
-
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { id, value, type } = e.target;
-        const key = id.replace('post-', '');
-        if (type === 'checkbox') {
-            setFormData(prev => ({ ...prev, [key]: (e.target as HTMLInputElement).checked }));
-        } else {
-            setFormData(prev => ({ ...prev, [key]: value }));
-        }
-    };
-
-    const processFile = (file: File, isPano = false): Promise<string> => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    
-                    const maxDim = isPano ? 4096 : 1920; 
-                    
-                    if (width > maxDim || height > maxDim) {
-                        if (width > height) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) {
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Apply watermarking to the center and bottom-right of standard images (non-pano VR)
-                        if (!isPano) {
-                            const centerX = width / 2;
-                            const centerY = height / 2;
-                            
-                            // Scale calculations for proportional styling
-                            const scaleUnit = Math.min(width, height) / 1000;
-                            const iconSize = Math.max(54, 90 * scaleUnit);
-                            const opacity = 0.18; // Opacity 15% ~ 20%
-                            
-                            // 1. Draw Centered House Icon
-                            ctx.save();
-                            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-                            ctx.beginPath();
-                            // House outer shape
-                            ctx.moveTo(centerX, centerY - iconSize * 0.45); // Roof peak
-                            ctx.lineTo(centerX + iconSize * 0.5, centerY - iconSize * 0.05); // Right eaves
-                            ctx.lineTo(centerX + iconSize * 0.35, centerY - iconSize * 0.05); // Right inner wall top
-                            ctx.lineTo(centerX + iconSize * 0.35, centerY + iconSize * 0.45); // Right wall bottom
-                            ctx.lineTo(centerX - iconSize * 0.35, centerY + iconSize * 0.45); // Left wall bottom
-                            ctx.lineTo(centerX - iconSize * 0.35, centerY - iconSize * 0.05); // Left inner wall top
-                            ctx.lineTo(centerX - iconSize * 0.5, centerY - iconSize * 0.05); // Left eaves
-                            ctx.closePath();
-                            
-                            // Door cutout
-                            ctx.rect(centerX - iconSize * 0.1, centerY + iconSize * 0.15, iconSize * 0.2, iconSize * 0.3);
-                            
-                            // Fill utilizing evenodd rule to leave the door transparent without cutting the background image
-                            ctx.fill('evenodd');
-                            ctx.restore();
-
-                            // 2. Draw Bottom-Right House Shield and Text (Dual composition)
-                            ctx.save();
-                            const rightMargin = Math.max(16, 24 * scaleUnit);
-                            const bottomMargin = Math.max(16, 24 * scaleUnit);
-                            const textFontSize = Math.max(13, 20 * scaleUnit);
-                            
-                            ctx.font = `900 ${textFontSize}px "NanumSquare", "Nanum Gothic", "Noto Sans KR", sans-serif`;
-                            ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 1.15})`; // Slightly enhanced visibility limit
-                            ctx.textAlign = 'right';
-                            ctx.textBaseline = 'bottom';
-                            
-                            // Drop shadow to ensure readability in any complex background scenes
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-                            ctx.shadowBlur = Math.max(3, 5 * scaleUnit);
-                            ctx.shadowOffsetX = Math.max(1.5, 2.5 * scaleUnit);
-                            ctx.shadowOffsetY = Math.max(1.5, 2.5 * scaleUnit);
-                            
-                            const textX = width - rightMargin;
-                            const textY = height - bottomMargin;
-                            const watermarkText = "태왕공인중개사";
-                            
-                            const textWidth = ctx.measureText(watermarkText).width;
-                            const shieldSize = textFontSize * 1.05;
-                            const shieldX = textX - textWidth - shieldSize - Math.max(4, 6 * scaleUnit);
-                            const shieldY = textY - shieldSize + (shieldSize * 0.05);
-                            
-                            // Outer Shield Line Path
-                            ctx.beginPath();
-                            ctx.moveTo(shieldX + shieldSize * 0.5, shieldY);
-                            ctx.lineTo(shieldX + shieldSize, shieldY + shieldSize * 0.25);
-                            ctx.lineTo(shieldX + shieldSize, shieldY + shieldSize * 0.75);
-                            ctx.quadraticCurveTo(shieldX + shieldSize, shieldY + shieldSize, shieldX + shieldSize * 0.5, shieldY + shieldSize);
-                            ctx.quadraticCurveTo(shieldX, shieldY + shieldSize, shieldX, shieldY + shieldSize * 0.75);
-                            ctx.lineTo(shieldX, shieldY + shieldSize * 0.25);
-                            ctx.closePath();
-                            ctx.fill();
-                            
-                            // Subtract/carve the inner tiny house silhouette gracefully using destination-out layout
-                            ctx.save();
-                            ctx.globalCompositeOperation = 'destination-out';
-                            ctx.beginPath();
-                            const innerW = shieldSize * 0.5;
-                            const innerH = shieldSize * 0.5;
-                            const innerX = shieldX + shieldSize * 0.25;
-                            const innerY = shieldY + shieldSize * 0.3;
-                            
-                            ctx.moveTo(innerX + innerW * 0.5, innerY); // Roof
-                            ctx.lineTo(innerX + innerW, innerY + innerH * 0.4);
-                            ctx.lineTo(innerX + innerW * 0.8, innerY + innerH * 0.4);
-                            ctx.lineTo(innerX + innerW * 0.8, innerY + innerH * 0.9);
-                            ctx.lineTo(innerX + innerW * 0.2, innerY + innerH * 0.9);
-                            ctx.lineTo(innerX + innerW * 0.2, innerY + innerH * 0.4);
-                            ctx.lineTo(innerX, innerY + innerH * 0.4);
-                            ctx.closePath();
-                            ctx.fill();
-                            ctx.restore();
-                            
-                            // Final text output rendering
-                            ctx.fillText(watermarkText, textX, textY);
-                            ctx.restore();
-                        }
-                        
-                        resolve(canvas.toDataURL('image/jpeg', 0.8));
-                    } else {
-                        resolve(reader.result as string);
-                    }
-                };
-                img.src = reader.result as string;
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-
-    const handleRichTextImageUpload = async (file: File): Promise<string> => {
-        setIsUploading(true);
-        setUploadProgress('본문 사진에 정밀 워터마크 합성 및 서버(파이어베이스) 저장 중...');
-        try {
-            const base64 = await processFile(file, false);
-            const downloadURL = await uploadResizedBlobToStorage(base64, file.name, 'gallery');
-            showToast("본문 전용 사진이 합성되어 스토리지 업로드에 성공하였습니다.", "success");
-            return downloadURL;
-        } catch (error: any) {
-            console.error("Rich text editor upload error:", error);
-            showToast("본문용 사진 업로드에 실패했습니다.", "error");
-            throw error;
-        } finally {
-            setIsUploading(false);
-            setUploadProgress('');
-        }
-    };
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'thumbnail' | 'images' | 'pano') => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        setIsUploading(true);
-        setUploadProgress('이미지 최적화 처리 중...');
-
-        try {
-            if (type === 'thumbnail') {
-                setUploadProgress(`대표 사진 업로드 중 (1 / 1)...`);
-                const base64 = await processFile(files[0]);
-                const downloadURL = await uploadResizedBlobToStorage(base64, files[0].name, 'thumbnails');
-                setFormData(prev => ({ ...prev, thumbnail: downloadURL }));
-                showToast("대표 대표 사진이 파이어베이스 스토리지에 성공적으로 업로드되었습니다.", "success");
-            } else if (type === 'pano') {
-                const total = files.length;
-                setUploadProgress(`파노라마 VR 총 ${total}장 초고속 병렬 업로드 가동 중...`);
-                const urls = await Promise.all(
-                    Array.from(files).map(async (file) => {
-                        const base64 = await processFile(file, true);
-                        return uploadResizedBlobToStorage(base64, file.name, 'panoramas');
-                    })
-                );
-                const currentPanos = formData.panoramas ? formData.panoramas.split('|').filter(i => i) : [];
-                setFormData(prev => ({ ...prev, panoramas: [...currentPanos, ...urls].join('|') }));
-                showToast(`${total}장의 360° 파노라마 VR 사진이 파이어베이스 스토리지에 최속 병렬로 완벽하게 업로드되었습니다.`, "success");
-            } else {
-                const total = files.length;
-                setUploadProgress(`전경 사진 총 ${total}장 초고속 병렬 업로드 가동 중...`);
-                const urls = await Promise.all(
-                    Array.from(files).map(async (file) => {
-                        const base64 = await processFile(file);
-                        return uploadResizedBlobToStorage(base64, file.name, 'gallery');
-                    })
-                );
-                const currentImages = formData.images ? formData.images.split('|').filter(i => i) : [];
-                setFormData(prev => ({ ...prev, images: [...currentImages, ...urls].join('|') }));
-                showToast(`${total}장의 상세 전경 사진이 파이어베이스 스토리지에 업로드 완료되었습니다.`, "success");
-            }
-        } catch (error: any) {
-            console.error("Storage upload error:", error);
-            const errMsg = error?.message || String(error);
-            showToast(`사진 업로드 실패: ${errMsg.substring(0, 80)}`, "error");
-        } finally {
-            setIsUploading(false);
-            setUploadProgress('');
-            e.target.value = '';
-        }
-    };
-
-    const imageRefs = useRef<{[key: number]: HTMLDivElement | null}>({});
-
-    const moveImage = (fromIndex: number, toIndex: number) => {
-        const imgs = formData.images ? formData.images.split('|').filter(i => i) : [];
-        if (toIndex < 0) toIndex = 0;
-        if (toIndex >= imgs.length) toIndex = imgs.length - 1;
-        if (fromIndex === toIndex) return;
-        
-        const newImgs = [...imgs];
-        const [moved] = newImgs.splice(fromIndex, 1);
-        newImgs.splice(toIndex, 0, moved);
-        
-        setFormData(prev => ({ ...prev, images: newImgs.join('|') }));
-        setSelectedImageIndex(toIndex);
-    };
-
-    const handleImageKeyDown = (e: React.KeyboardEvent, index: number) => {
-        if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            moveImage(index, index - 1);
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            moveImage(index, index + 1);
-        } else if (e.key === 'Delete' || e.key === 'Backspace') {
-            e.preventDefault();
-            const imgs = formData.images?.split('|').filter(i => i) || [];
-            imgs.splice(index, 1);
-            setFormData(prev => ({ ...prev, images: imgs.join('|') }));
-            setSelectedImageIndex(null);
-        }
-    };
-
-    const normalizeAndSetData = (data: any) => {
-        if (!data || typeof data !== 'object') return;
-        
-        const cleanData: Partial<Post> = {};
-        const safeStr = (val: any): string => {
-            if (val === undefined || val === null) return '';
-            return String(val).trim();
-        };
-
-        const rawTx = safeStr(data.transactionType);
-        if (rawTx.includes('매매')) cleanData.transactionType = '매매';
-        else if (rawTx.includes('전세')) cleanData.transactionType = '전세';
-        else cleanData.transactionType = '월세';
-        
-        const rawCat = safeStr(data.category);
-        const validCategories = ["원룸매매", "원룸", "미투", "투룸", "쓰리룸", "상가", "아파트", "오피스텔", "빌라", "다세대", "주택", "땅", "기타"];
-        const found = validCategories.find(c => rawCat.includes(c) || c.includes(rawCat));
-        cleanData.category = found || '원룸';
-        
-        const rawDong = safeStr(data.dong).replace(/\s+/g, '');
-        if (rawDong) {
-            const foundDong = gumiDongs.find(gd => rawDong.includes(gd) || gd.includes(rawDong));
-            cleanData.dong = foundDong || '송정동';
-        } else {
-            cleanData.dong = '송정동';
-        }
-        
-        cleanData.floor = safeStr(data.floor).replace(/층/g, '');
-        cleanData.totalFloor = safeStr(data.totalFloor).replace(/층/g, '');
-        
-        cleanData.building = safeStr(data.building);
-        cleanData.room = safeStr(data.room);
-        cleanData.price = safeStr(data.price);
-        cleanData.manageFee = safeStr(data.manageFee);
-        cleanData.ownerPhone = safeStr(data.ownerPhone);
-        cleanData.title = safeStr(data.title);
-        cleanData.remarks = safeStr(data.remarks);
-        cleanData.intro = safeStr(data.intro);
-        cleanData.body = safeStr(data.body);
-        cleanData.address = safeStr(data.address);
-        cleanData.video = safeStr(data.video);
-        
-        if (data.isRecommended !== undefined) {
-            cleanData.isRecommended = data.isRecommended === true || String(data.isRecommended) === 'true';
-        }
-        
-        setFormData(prev => ({ ...prev, ...cleanData }));
-        setTimeout(syncHeights, 100);
-    };
-
-    const handlePostSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handlePostSubmitDirect = async (data: any) => {
         if (isSubmitting) return;
-        if (isUploading) {
-            showToast("현재 이미지를 클라우드 업로드하는 중입니다. 잠시만 기다려 주세요.", "error");
-            return;
-        }
-
         setIsSubmitting(true);
         const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
+        
+        // Pick dynamic thumbnail from the images array or default fallback image
+        const imgList = data.images ? data.images.split('|').filter(Boolean) : [];
+        const finalThumbnail = imgList.length > 0 ? imgList[0] : defaultImg;
+
         const newPost: Post = {
             id: editingPostId || ('local-' + Date.now()),
             createdAt: editingPostId && currentEditPost ? currentEditPost.createdAt : Date.now(),
-            category: formData.category || '원룸',
-            transactionType: formData.transactionType || '월세',
-            dong: formData.dong || '광평동',
-            building: formData.building || '',
-            room: formData.room || '',
-            floor: formData.floor || '',
-            totalFloor: formData.totalFloor || '',
-            price: formData.price || '',
-            manageFee: (formData.manageFee && /^\d+$/.test(formData.manageFee.trim())) ? formData.manageFee.trim() + '만' : (formData.manageFee || ''),
-            phone: formData.phone || '',
-            ownerPhone: formData.ownerPhone || '',
-            title: formData.title || '',
-            remarks: formData.remarks || '',
-            thumbnail: formData.thumbnail || defaultImg,
-            intro: formData.intro || '',
-            body: formData.body || '',
-            images: formData.images || '',
-            panoImage: formData.panoImage || '',
-            panoramas: formData.panoramas || '',
-            video: formData.video || '',
-            address: formData.address || '',
-            isRecommended: formData.isRecommended || false
+            category: data.category || '원룸',
+            transactionType: data.transactionType || '월세',
+            dong: data.dong || '송정동',
+            building: data.building || '',
+            room: data.room || '',
+            floor: data.floor || '',
+            totalFloor: data.totalFloor || '',
+            price: data.price || '',
+            manageFee: (data.manageFee && /^\d+$/.test(data.manageFee.trim())) ? data.manageFee.trim() + '만' : (data.manageFee || ''),
+            phone: data.phone || '',
+            ownerPhone: data.ownerPhone || '',
+            title: data.title || '',
+            remarks: data.remarks || '',
+            thumbnail: finalThumbnail,
+            intro: data.intro || '',
+            body: data.body || '',
+            images: data.images || '',
+            panoImage: '',
+            panoramas: data.panoramas || '',
+            video: data.video || '',
+            address: data.address || '',
+            isRecommended: data.isRecommended === true || String(data.isRecommended) === 'true'
         };
 
         try {
@@ -564,719 +194,26 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         setActiveSection('admin-dashboard');
     };
 
-    const handleDownloadMaster = async () => {
-        try {
-            const response = await fetch('/smarteditor-final.html');
-            if (!response.ok) throw new Error("File fetch failed");
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html'; // Saved as index.html as requested
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            showToast("스마트에디터 2.0 순정 마스터 파일(index.html)이 성공적으로 주조 및 다운로드되었습니다.", "success");
-        } catch (err) {
-            console.error(err);
-            showToast("마스터 파일 생성에 실패했습니다. 대체 URL을 기동합니다.", "error");
-            window.open('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/index.html?alt=media&token=afba310f-d80a-4083-8759-a7b10856c1c2', '_blank');
-        }
-    };
-
     return (
-        <div className="max-w-[1700px] w-full mx-auto px-4 sm:px-8 lg:px-10 py-8 animate-fadeIn">
-            {/* Upload Progress Loader Overlay */}
+        <div className="w-full h-[calc(100vh-4rem)] relative select-none animate-fadeIn overflow-hidden">
+            {/* Upload Overlay Loader */}
             {isUploading && (
-                <div id="upload-overlay" className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md text-white animate-fadeIn">
-                    <div className="relative flex flex-col items-center p-8 bg-slate-950 border-[3px] border-emerald-500 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center">
-                        <div className="relative w-20 h-20 mb-5">
-                            <div className="absolute inset-0 rounded-full border-[5px] border-slate-800 border-t-emerald-500 animate-spin"></div>
-                            <div className="absolute inset-3.5 rounded-full bg-emerald-500/20 animate-pulse flex items-center justify-center">
-                                <i className="fa-solid fa-cloud-arrow-up text-2xl text-emerald-400"></i>
-                            </div>
-                        </div>
-                        <h3 className="text-lg font-extrabold text-white mb-1">원격 스토리지 업로드 중</h3>
-                        <p className="text-xs font-bold text-slate-300 mb-4">수십장의 고화질 사진도 영구 보관용 스토리지에 무제한 안심 저장됩니다.</p>
-                        
-                        <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden mb-3">
-                            <div className="bg-emerald-500 h-full w-full rounded-full animate-pulse"></div>
-                        </div>
-                        
-                        <p className="text-xs font-black text-emerald-400 bg-emerald-950/60 px-4 py-2 rounded-xl border border-emerald-800/55 shadow-inner leading-relaxed">
-                            {uploadProgress}
-                        </p>
+                <div id="upload-overlay" className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-xs text-white">
+                    <div className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 text-center text-slate-800">
+                        <i className="fa-solid fa-spinner fa-spin text-3xl text-emerald-500 mb-4 animate-spin"></i>
+                        <h3 className="text-sm font-black mb-1">스토리지 업로드 중</h3>
+                        <p className="text-xs font-bold text-slate-500">{uploadProgress}</p>
                     </div>
                 </div>
             )}
 
-            {/* Form Title & Inline Navbar */}
-            <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-md p-6 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-3 text-left">
-                    <span className="bg-emerald-50 text-emerald-600 p-3 rounded-2xl border border-emerald-200">
-                        <i className="fa-solid fa-pen-fancy text-xl"></i>
-                    </span>
-                    <div>
-                        <h2 className="text-xl sm:text-2xl font-black text-slate-900">{editingPostId ? '매물 정보 세부 수정 발행' : '신규 실내 매물 등록 및 발자취 기록'}</h2>
-                        <p className="text-xs sm:text-sm text-slate-500 font-extrabold mt-1">소장님께서 직접 실사하시고 기록하는 고급 매물 레지스트리 양식</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <button 
-                        type="button" 
-                        onClick={handleCancel}
-                        disabled={isSubmitting}
-                        className={`text-sm font-black border-2 px-5 py-3 rounded-xl transition-all ${
-                            isSubmitting 
-                            ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' 
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-2 border-slate-300 cursor-pointer'
-                        }`}
-                    >
-                        작성 취소 (목록으로 복귀)
-                    </button>
-                </div>
-            </div>
-
-            {/* [소장님 안심 순정 파일 완공 센터] */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50/40 rounded-3xl border-2 border-amber-300 p-6 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-5 text-left">
-                <div className="flex items-start gap-4">
-                    <span className="bg-amber-100 text-amber-700 p-3.5 rounded-2xl border border-amber-300 flex items-center justify-center animate-pulse">
-                        <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
-                    </span>
-                    <div>
-                        <h3 className="text-base sm:text-lg font-black text-amber-950 flex items-center gap-1.5 leading-none">
-                            <span>네이버 스마트에디터 2.0 순정 마스터 다운로드 센터</span>
-                            <span className="bg-amber-100 border border-amber-300 text-amber-800 text-[10px] uppercase px-2 py-0.5 rounded font-black">독립 실행형 완공</span>
-                        </h3>
-                        <p className="text-xs sm:text-sm text-amber-800 font-bold mt-2 leading-relaxed">
-                            소장님의 사옥 PC나 개인 구글 파이어베이스 스토리지 박제용 전용 완성 소스코드입니다.<br />
-                            백엔드의 네이버 공식 지천지도 및 1번 메인열쇠 복수 연계가 하드코딩 완료되어 영구히 전천후 독립 작동합니다.
-                        </p>
-                    </div>
-                </div>
-                <button
-                    type="button"
-                    onClick={handleDownloadMaster}
-                    className="w-full md:w-auto bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs py-3.5 px-6 rounded-2xl shadow-lg border border-amber-400 hover:border-amber-500 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] cursor-pointer"
-                >
-                    <i className="fa-solid fa-download text-sm"></i>
-                    <span>스마트에디터 2.0 순정 마스터 단일파일 (index.html) 다운로드</span>
-                </button>
-            </div>
-
-            <form onSubmit={handlePostSubmit} className="space-y-6 w-full animate-fadeIn">
-                
-                {/* 1. Category Classification Card (Full Width Horizontal Checked Buttons) */}
-                <div className="bg-white rounded-3xl border-2 border-slate-300 p-6 sm:p-8 shadow-md">
-                    <div className="border-b border-slate-200 pb-3 mb-5 text-left">
-                        <label className="flex items-center gap-2 text-sm font-extrabold uppercase text-slate-900">
-                            <i className="fa-solid fa-folder-open text-emerald-600 text-xl"></i>
-                            <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900">매물 분류 카테고리</span>
-                        </label>
-                        <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1.5 leading-relaxed">
-                            원하시는 매물의 분류를 체크해 주세요. (중복 선택 불가)
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2.5">
-                        {ADMIN_CATEGORIES_PRESETS.map((cat) => {
-                            const isSelected = formData.category === cat.value;
-                            return (
-                                <button
-                                    key={cat.value}
-                                    type="button"
-                                    onClick={() => setFormData(p => ({ ...p, category: cat.value }))}
-                                    className={`flex items-center gap-2 px-5 py-3.5 rounded-2xl border-[3px] text-base font-black transition-all duration-300 hover:scale-[1.01] cursor-pointer ${
-                                        isSelected 
-                                            ? 'bg-emerald-600 border-emerald-700 text-white shadow-lg scale-[1.01]' 
-                                            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                                    }`}
-                                >
-                                    {isSelected ? (
-                                        <i className="fa-solid fa-square-check text-lg text-white"></i>
-                                    ) : (
-                                        <i className="fa-regular fa-square text-lg text-slate-400"></i>
-                                    )}
-                                    <span className="ml-1">{cat.label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="w-full space-y-8">
-                    
-                    {/* 2. Main Input Form Container (Horizontal-free Full Width Space Flow) */}
-                    <div className="w-full bg-white rounded-3xl border-2 border-slate-300 p-6 sm:p-8 shadow-md space-y-8">
-                        
-                        {/* (1) 거래 성격 (계약 방식) */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">거래 성격 (계약 방식)</label>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {['월세', '전세', '매매'].map((t) => {
-                                    const isSelected = formData.transactionType === t;
-                                    return (
-                                        <button
-                                            key={t}
-                                            type="button"
-                                            onClick={() => setFormData(p => ({ ...p, transactionType: t }))}
-                                            className={`py-4 px-5 rounded-2xl text-base font-black border-[3.5px] transition-all cursor-pointer ${
-                                                isSelected
-                                                    ? 'bg-emerald-600 border-emerald-700 text-white shadow-md scale-[1.01]'
-                                                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                                            }`}
-                                        >
-                                            {t === '월세' ? '임대차 (월세)' : t === '전세' ? '임대차 (전세)' : '매매'}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* (2) 소재지 관할 법정동 */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">소재지 관할 법정동</label>
-                            <select 
-                                id="post-dong"
-                                value={formData.dong}
-                                onChange={handleFormChange}
-                                className={getSelectClass(formData.dong)}
-                            >
-                                {gumiDongs.map(d => <option key={d} value={d}>{d}</option>)}
-                            </select>
-                        </div>
-
-                        {/* (3) 매물 상세 지번/도로명 주소 */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">매물 상세 지번/도로명 주소</label>
-                            <input 
-                                type="text" 
-                                id="post-address" 
-                                required
-                                value={formData.address} 
-                                onChange={handleFormChange}
-                                placeholder="예: 구미시 송정동 472-10 2층" 
-                                className={getInputClass(formData.address)}
-                            />
-                        </div>
-
-                        {/* (4) 건물명 (블록) 명칭 */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">건물명 (블록) 명칭</label>
-                            <input 
-                                type="text" 
-                                id="post-building" 
-                                required
-                                value={formData.building} 
-                                onChange={handleFormChange}
-                                placeholder="예: 태왕 빌리지" 
-                                className={getInputClass(formData.building)}
-                            />
-                        </div>
-
-                        {/* (5) 호수 또는 섹션 */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">호수 또는 섹션</label>
-                            <input 
-                                type="text" 
-                                id="post-room" 
-                                value={formData.room} 
-                                onChange={handleFormChange}
-                                placeholder="예: 301호" 
-                                className={getInputClass(formData.room)}
-                            />
-                        </div>
-
-                        {/* (6) 해당 매물 층수 */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">해당 매물 층수</label>
-                            <input 
-                                type="text" 
-                                id="post-floor" 
-                                value={formData.floor} 
-                                onChange={handleFormChange}
-                                placeholder="예: 3" 
-                                className={getInputClass(formData.floor)}
-                            />
-                        </div>
-
-                        {/* (7) 건물 최고 층수 */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">건물 최고 층수</label>
-                            <input 
-                                type="text" 
-                                id="post-totalFloor" 
-                                value={formData.totalFloor} 
-                                onChange={handleFormChange}
-                                placeholder="예: 4" 
-                                className={getInputClass(formData.totalFloor)}
-                            />
-                        </div>
-
-                        {/* (8) 보증금 / 월세 / 매매가격 (문자가능) */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">보증금 / 월세 / 매매가격 (문자가능)</label>
-                            <input 
-                                type="text" 
-                                id="post-price" 
-                                required
-                                value={formData.price} 
-                                onChange={handleFormChange}
-                                placeholder="예: 200 (월세) 또는 2억5천 (매매)" 
-                                className={getInputClass(formData.price)}
-                            />
-                        </div>
-
-                        {/* (9) 관리비 정보 (문자가능) */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5">관리비 정보 (문자가능)</label>
-                            <input 
-                                type="text" 
-                                id="post-manageFee" 
-                                value={formData.manageFee} 
-                                onChange={handleFormChange}
-                                onBlur={(e) => {
-                                    const val = e.target.value.trim();
-                                    if (val && /^\d+$/.test(val)) {
-                                        setFormData(prev => ({ ...prev, manageFee: val + '만' }));
-                                    }
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        const val = (e.target as HTMLInputElement).value.trim();
-                                        if (val && /^\d+$/.test(val)) {
-                                            setFormData(prev => ({ ...prev, manageFee: val + '만' }));
-                                        }
-                                    }
-                                }}
-                                placeholder="예: 7만 또는 10만" 
-                                className={getInputClass(formData.manageFee)}
-                            />
-                        </div>
-
-                        {/* (10) 임대인 관리자 수첩 (소장님 단독 비공개) */}
-                        <div className="w-full text-left">
-                            <label className="block text-left text-[14px] sm:text-base font-black text-slate-905 mb-2.5 flex items-center justify-between">
-                                <span>임대인 관리자 수첩 (소장님 단독 비공개)</span>
-                                <span className="text-[10px] text-amber-800 bg-amber-100 font-black px-2 py-0.5 rounded-lg">보안 기밀</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="post-ownerPhone" 
-                                value={formData.ownerPhone} 
-                                onChange={handleFormChange}
-                                placeholder="예: 임대인 010-1234-5678" 
-                                className={getInputClass(formData.ownerPhone, true)}
-                            />
-                        </div>
-
-                {/* Contact Information */}
-                <div className="w-full text-left">
-                    <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2">상담/홍보 담당자 연결 전용 연락처</label>
-                    <input 
-                        type="text" 
-                        id="post-phone" 
-                        required
-                        value={formData.phone} 
-                        onChange={handleFormChange}
-                        className={getInputClass(formData.phone)}
-                    />
-                </div>
-
-                {/* (11) 유튜브 동영상 브리핑 등록 */}
-                <div className="w-full text-left animate-fadeIn">
-                    <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 mb-2.5 flex items-center gap-1.5">
-                        <i className="fa-brands fa-youtube text-rose-600 text-xl animate-pulse"></i>
-                        <span>소장 고화질 동영상 브리핑 유튜브 주소</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="post-video" 
-                        value={formData.video || ''} 
-                        onChange={handleFormChange}
-                        placeholder="예: https://www.youtube.com/watch?v=dQw4w9WgXcQ 또는 https://youtu.be/dQw4w9WgXcQ" 
-                        className={getInputClass(formData.video)}
-                    />
-                    <p className="text-[11px] text-slate-500 font-bold mt-1.5 leading-relaxed">
-                        ※ 유튜브 공유 링크나 브라우저 주소창의 동영상 주소를 그대로 붙여넣으시면 상세 페이지에서 고화질 동영상 브리핑 재생 플레이어가 제공됩니다.
-                    </p>
-                </div>
-
-                {/* Image upload section (Drag & Drop or Manual selection) - EXTREMELY ENLARGED FOR WIDESCREEN SUPPORT */}
-                <div id="image-upload-library" className="border border-slate-200 rounded-3xl p-6 sm:p-7 bg-slate-50/65 font-medium space-y-6">
-                    <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                        <i className="fa-solid fa-cloud-arrow-up text-emerald-600 text-lg"></i>
-                        <span>대표 사진 및 실내 전경 수집 라이브러리 (대형 크기 지원)</span>
-                    </h4>
-
-                    <div className="grid grid-cols-1 gap-6">
-                        {/* A. Representative Single Thumbnail Image */}
-                        <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-500 transition-colors">
-                            <span className="text-xs font-black text-slate-450 mb-3 flex items-center gap-1.5">
-                                <i className="fa-solid fa-image text-emerald-600"></i>
-                                <span>1. 매물 대표 사진 (썸네일 - 와이드 대용량 미리보기)</span>
-                            </span>
-                            {formData.thumbnail ? (
-                                <div className="relative w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md mb-4 group">
-                                    <img src={formData.thumbnail} alt="Thumbnail preview" className="w-full h-full object-cover transition-transform duration-350 hover:scale-101 animate-fadeIn" />
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setFormData(p => ({ ...p, thumbnail: '' }))}
-                                        className="absolute top-3 right-3 bg-rose-600 hover:bg-rose-700 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-colors cursor-pointer z-10"
-                                    >
-                                        <i className="fa-solid fa-trash-can text-sm"></i>
-                                    </button>
-                                </div>
-                            ) : (
-                                <div 
-                                    className="w-full h-[320px] sm:h-[420px] flex flex-col items-center justify-center bg-slate-105 rounded-2xl text-slate-400 hover:bg-slate-100 hover:text-emerald-700 border border-slate-200 duration-200 cursor-pointer mb-4 shadow-inner" 
-                                    onClick={() => thumbnailInputRef.current?.click()}
-                                >
-                                    <i className="fa-solid fa-image text-5xl mb-3 text-slate-300 animate-pulse"></i>
-                                    <span className="text-sm font-bold">대표 사진(썸네일) 등록 및 파일 선택</span>
-                                    <p className="text-[11px] text-slate-450 mt-1 font-semibold">클릭하여 PC 또는 스마트폰 앨범에서 실내 메인 사진을 얹히세요</p>
-                                </div>
-                            )}
-                            <input type="file" ref={thumbnailInputRef} onChange={e => handleFileChange(e, 'thumbnail')} accept="image/*" className="hidden" />
-                            <button type="button" onClick={() => thumbnailInputRef.current?.click()} className="bg-slate-100 hover:bg-slate-200 text-slate-705 py-2.5 px-5 rounded-xl text-xs font-black transition-all border border-slate-250 cursor-pointer">기기 컴퓨터 파일 불러오기</button>
-                        </div>
-
-                        {/* B. Multiple Detail Images */}
-                        <div className="flex flex-col items-center p-6 bg-white rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-500 transition-colors">
-                            <span className="text-xs font-black text-slate-450 mb-3 flex items-center gap-1.5">
-                                <i className="fa-solid fa-images text-emerald-600"></i>
-                                <span>2. 상세 실내 전경 및 상세 부위 컷들 (한 화면에 크고 화끈하게 표시)</span>
-                            </span>
-                            
-                            {formData.images?.split('|').filter(i => i).length ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full mb-4">
-                                    {formData.images.split('|').filter(i => i).map((img, i) => (
-                                        <div 
-                                            key={i} 
-                                            ref={el => { imageRefs.current[i] = el; }}
-                                            tabIndex={0}
-                                            onKeyDown={e => handleImageKeyDown(e, i)}
-                                            onClick={() => setSelectedImageIndex(i)}
-                                            className={`relative aspect-[4/3] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer shadow-md ${selectedImageIndex === i ? 'ring-4 ring-emerald-500 scale-[0.98] border-emerald-650':'border-slate-200 hover:scale-[0.98] hover:border-emerald-400'}`}
-                                        >
-                                            <img src={img} alt="Detail view" className="w-full h-full object-cover" />
-                                            <button 
-                                                type="button" 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const list = formData.images?.split('|').filter(item => item) || [];
-                                                    list.splice(i, 1);
-                                                    setFormData(p => ({ ...p, images: list.join('|') }));
-                                                    setSelectedImageIndex(null);
-                                                }}
-                                                className="absolute top-2.5 right-2.5 bg-rose-600 hover:bg-rose-700 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-lg font-black text-xs cursor-pointer z-10"
-                                            >
-                                                &times;
-                                            </button>
-                                            <span className="absolute bottom-2.5 left-2.5 bg-black/75 backdrop-blur-sm text-white font-mono text-[10px] font-black px-2.5 py-1 rounded-lg leading-tight z-10">실내 전경 #{i+1}</span>
-                                        </div>
-                                    ))}
-                                    <div 
-                                        onClick={() => imagesInputRef.current?.click()} 
-                                        className="aspect-[4/3] flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-105 border-2 border-dashed border-slate-350 rounded-2xl text-slate-400 hover:text-emerald-600 cursor-pointer transition-all shadow-sm"
-                                    >
-                                        <i className="fa-solid fa-plus text-xl animate-bounce mb-1"></i>
-                                        <span className="text-xs font-black">실내 전경 컷 추가하기</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div 
-                                    className="w-full h-[320px] sm:h-[420px] flex flex-col items-center justify-center bg-slate-105 rounded-2xl border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-emerald-700 duration-200 cursor-pointer mb-4 shadow-inner transition-all text-center px-4"
-                                    onClick={() => imagesInputRef.current?.click()}
-                                >
-                                    <i className="fa-solid fa-folder-plus text-5xl mb-3 text-slate-300 animate-pulse"></i>
-                                    <span className="text-sm font-bold">등록된 추가 전경 사진 파일이 없습니다</span>
-                                    <p className="text-[11px] text-slate-450 mt-1 max-w-xl leading-relaxed">이곳을 터치하거나 클릭하여 부엌, 베란다, 거실 섀시 등의 장비 컷을 대량 첨부하세요.</p>
-                                </div>
-                            )}
-
-                            <input type="file" ref={imagesInputRef} onChange={e => handleFileChange(e, 'images')} multiple accept="image/*" className="hidden" />
-                            <div className="flex gap-2">
-                                <button type="button" onClick={() => imagesInputRef.current?.click()} className="bg-slate-100 hover:bg-slate-205 text-slate-705 py-2.5 px-5 rounded-xl text-xs font-black transition-all border border-slate-250 cursor-pointer">추가 사진 앨범에서 선택</button>
-                                {formData.images && (
-                                    <button type="button" onClick={() => setFormData(p => ({ ...p, images: '' }))} className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-2.5 px-5 rounded-xl text-xs font-black transition-all border border-rose-100 cursor-pointer">추가 전경 일괄 삭제</button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* C. VR 360 Panorama upload and preview */}
-                    <div className="mt-6 border-t border-slate-200 pt-5 space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                            <div className="text-left">
-                                <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md mr-1.5 uppercase">Premium VR Feature</span>
-                                <span className="text-[11px] font-black text-slate-750">360° 파노라마 실내 VR 가상 투어 공간 등록</span>
-                            </div>
-                            <input type="file" ref={panoInputRef} onChange={e => handleFileChange(e, 'pano')} multiple accept="image/*" className="hidden" />
-                            {formData.panoramas && (
-                                <div className="flex gap-2">
-                                    <button type="button" onClick={() => {
-                                        setFormData(prev => ({ ...prev, panoramas: '' }));
-                                        setActiveVRIndex(0);
-                                    }} className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-1.5 px-3.5 rounded-xl text-[10px] font-extrabold transition-all border border-rose-100 leading-none">VR 전체 비우기</button>
-                                </div>
-                            )}
-                        </div>
-
-                        {formData.panoramas ? (
-                            <div className="space-y-6">
-                                {/* Large Active interactive 360 viewer box */}
-                                {(() => {
-                                    const panoList = formData.panoramas.split('|').filter(i => i);
-                                    const safeVRIndex = Math.min(activeVRIndex, Math.max(0, panoList.length - 1));
-                                    return (
-                                        <div className="bg-slate-900 rounded-3xl p-5 border-[3px] border-amber-500 shadow-xl space-y-3 relative overflow-hidden text-left">
-                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-3 gap-2">
-                                                <div>
-                                                    <span className="bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider block w-fit mb-1.5 animate-pulse">
-                                                        <i className="fa-solid fa-expand mr-1"></i> 현재 활성 360° 대형 가상 체험관
-                                                    </span>
-                                                    <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-1.5">
-                                                        <span className="text-amber-400">VR 채널 #{safeVRIndex + 1}</span> {panoList.length === 1 ? '단독 공간' : '공간 실시간 연출'}
-                                                    </h3>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-black text-amber-300 bg-amber-950 px-3 py-1.5 rounded-xl border border-amber-800">
-                                                        등록 공간 총 {panoList.length}개
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            
-                                            {panoList.length > 0 && (
-                                                <PannellumViewer 
-                                                    key={`admin-vr-${safeVRIndex}-${panoList.length}`}
-                                                    images={panoList} 
-                                                    activeIndex={safeVRIndex} 
-                                                    onSceneChange={(idx) => setActiveVRIndex(idx)} 
-                                                    height="480px" 
-                                                />
-                                            )}
-                                            <p className="text-right text-[11px] sm:text-xs text-slate-405 font-bold">
-                                                ※ 큰사진 뷰어를 마우스로 드래그하면 동서남북 회전이 진행되며, 가상 VR 화면으로 공간 구석구석을 실시간으로 실사 검토할 수 있습니다.
-                                            </p>
-                                        </div>
-                                    );
-                                })()}
-
-                                {/* Small thumbnail/preview list to choose & rearrange below the big viewer */}
-                                {(() => {
-                                    const panoList = formData.panoramas.split('|').filter(i => i);
-                                    const safeVRIndex = Math.min(activeVRIndex, Math.max(0, panoList.length - 1));
-                                    return (
-                                        <div className="bg-slate-50 border-[2.5px] border-slate-350 rounded-2xl p-5 space-y-3">
-                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-2 gap-2 text-left">
-                                                <h4 className="text-sm font-black text-slate-800 flex items-center gap-1.5">
-                                                    <i className="fa-solid fa-images text-emerald-600"></i>
-                                                    <span>등록된 파노라마 채널 순서 정렬 및 세부 조정 (클릭시 위 대형 화면에 즉시 로드)</span>
-                                                </h4>
-                                                <span className="text-xs text-slate-500 font-bold">원하는 채널을 즉시 이동시키거나 지울 수 있습니다.</span>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 text-left">
-                                                {panoList.map((pano, idx) => {
-                                                    const isActive = idx === safeVRIndex;
-                                                    return (
-                                                        <div 
-                                                            key={idx} 
-                                                            onClick={() => setActiveVRIndex(idx)}
-                                                            className={`bg-white p-3 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
-                                                                isActive 
-                                                                    ? 'border-amber-500 bg-amber-50/20 ring-4 ring-amber-100/30 scale-[1.01]' 
-                                                                    : 'border-slate-200 hover:border-slate-350 hover:bg-slate-50/55'
-                                                            }`}
-                                                        >
-                                                            {/* 360 preview thumbnail as flat image */}
-                                                            <div className="space-y-2">
-                                                                <div className="flex justify-between items-center">
-                                                                    <span className={`text-xs font-black ${isActive ? 'text-amber-700' : 'text-slate-600'}`}>
-                                                                        {isActive ? '● ' : ''}공간 #{idx + 1} 채널
-                                                                    </span>
-                                                                    <button 
-                                                                        type="button" 
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            const list = [...panoList];
-                                                                            list.splice(idx, 1);
-                                                                            setFormData(prev => ({ ...prev, panoramas: list.join('|') }));
-                                                                            if (safeVRIndex >= list.length) {
-                                                                                setActiveVRIndex(Math.max(0, list.length - 1));
-                                                                            }
-                                                                        }}
-                                                                        className="text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 font-extrabold text-[10px] px-2 py-0.5 rounded-lg border border-rose-100 transition-colors cursor-pointer"
-                                                                    >
-                                                                        삭제
-                                                                    </button>
-                                                                </div>
-                                                                
-                                                                <div className="w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-150 border border-slate-200 relative">
-                                                                    <img src={pano} alt={`Panorama Thumbnail ${idx+1}`} className="w-full h-full object-cover" />
-                                                                    <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors flex items-center justify-center">
-                                                                        <span className="bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded">360° 광대역 원본</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Move/arrange buttons inside each card for easy sorting */}
-                                                            <div className="flex items-center justify-between gap-1 mt-3 pt-2.5 border-t border-slate-100">
-                                                                <button
-                                                                    type="button"
-                                                                    disabled={idx === 0}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        movePanorama(idx, idx - 1);
-                                                                    }}
-                                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center justify-center gap-0.5 cursor-pointer ${
-                                                                        idx === 0 
-                                                                            ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
-                                                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                                                                    }`}
-                                                                >
-                                                                    <i className="fa-solid fa-chevron-left text-[9px]"></i>
-                                                                    <span>앞쪽으로</span>
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    disabled={idx === panoList.length - 1}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        movePanorama(idx, idx + 1);
-                                                                    }}
-                                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center justify-center gap-0.5 cursor-pointer ${
-                                                                        idx === panoList.length - 1 
-                                                                            ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
-                                                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                                                                    }`}
-                                                                >
-                                                                    <span>뒤쪽으로</span>
-                                                                    <i className="fa-solid fa-chevron-right text-[9px]"></i>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        ) : (
-                            <div 
-                                className="w-full h-[320px] sm:h-[420px] flex flex-col items-center justify-center bg-slate-105 rounded-2xl border-2 border-dashed border-slate-300 hover:border-amber-500 hover:text-amber-700 duration-200 cursor-pointer mb-4 shadow-inner transition-all text-center px-4"
-                                onClick={() => panoInputRef.current?.click()}
-                            >
-                                <i className="fa-solid fa-earth-asia text-5xl text-slate-300 animate-spin mb-3 pb-1.5 block"></i>
-                                <span className="text-sm font-bold text-slate-705 mb-1">등록된 360° 파노라마 VR 가상 투어 공간 사진이 없습니다</span>
-                                <p className="text-[11px] text-slate-450 mt-1 max-w-xl leading-relaxed">
-                                    이곳을 터치하거나 클릭하여 동서남북 회전이 가능한 360° 파노라마 사진을 업로드하시면, 현장감 넘치는 VR 가상 주택 실내가 매물 상세 페이지에 즉각 반영되어 가동됩니다.
-                                </p>
-                            </div>
-                        )}
-
-                        {/* 1. 이동 및 디자인/스타일 강화된 파노라마 고해상 원본 사진 등록 버튼 */}
-                        <div className="flex justify-center pt-4 pb-2">
-                            <button 
-                                type="button" 
-                                onClick={() => panoInputRef.current?.click()} 
-                                className="w-full max-w-sm sm:max-w-md bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-black py-4 px-8 rounded-2xl text-[14px] sm:text-base border-2 border-amber-600 transition-all duration-350 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 mx-auto cursor-pointer"
-                                style={{ margin: '0 auto' }}
-                            >
-                                <i className="fa-solid fa-cloud-arrow-up text-base sm:text-lg"></i>
-                                <span>파노라마 고해상 원본 사진 등록</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Body Details: Integrated Standalone Pure Master Smart Editor Iframe */}
-                <div className="space-y-5 bg-white border-[2.5px] border-slate-300 rounded-3xl p-6 shadow-sm overflow-hidden">
-                    <label className="block text-left text-[14px] sm:text-base font-black text-slate-900 flex items-center gap-1.5 justify-between select-none">
-                        <span className="flex items-center gap-1.5 text-slate-900 font-extrabold">
-                            <i className="fa-solid fa-cubes text-emerald-600"></i>
-                            <span>[파이어베이스 스마트에디터 2.0 순정 마스터 원통형 이식기]</span>
-                        </span>
-                        <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>에디터 엔진 실시간 가동 중</span>
-                        </span>
-                    </label>
-                    <iframe
-                        ref={iframeRef}
-                        id="smart-editor-iframe"
-                        src="https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/index.html?alt=media&token=afba310f-d80a-4083-8759-a7b10856c1c2"
-                        className="w-full h-[850px] border border-slate-200 rounded-2xl shadow-inner bg-slate-50"
-                        style={{ border: '1.5px solid #e2e8f0' }}
-                        title="SmartEditor 2.0 Pure Master"
-                    />
-                </div>
-
-                {/* Recommended Post Feature Checkbox */}
-                <div className="flex items-center justify-between bg-emerald-50/50 p-6 rounded-2xl border-2 border-emerald-300 font-semibold shadow-sm overflow-hidden">
-                    <div className="text-left space-y-1">
-                        <span className="text-sm font-black text-emerald-900 flex items-center gap-1.5">
-                            <i className="fa-solid fa-star text-amber-500 animate-spin"></i>
-                            <span>태왕 추천 랜드마크 매물 등록</span>
-                        </span>
-                        <p className="text-slate-600 text-xs font-bold leading-relaxed">이 옵션을 선택해 주시면 메인 로비 홈화면 최고 상단에 엠블럼과 함께 고정 노출되어 노출량이 극대화됩니다.</p>
-                    </div>
-                    <label className="flex items-center space-x-3 cursor-pointer select-none">
-                        <input 
-                            type="checkbox" 
-                            id="post-isRecommended" 
-                            checked={formData.isRecommended || false} 
-                            onChange={handleFormChange}
-                            className="w-6 h-6 accent-emerald-600 cursor-pointer rounded-lg" 
-                        />
-                        <span className="text-base font-black text-slate-800">추천 매물 고정</span>
-                    </label>
-                </div>
-
-                {/* Submitting handles */}
-                <div className="flex space-x-4 pt-4">
-                    <button 
-                        type="button" 
-                        onClick={handleCancel}
-                        disabled={isSubmitting}
-                        className={`w-1/3 border-2 py-4 rounded-2xl text-sm font-black shadow-sm transition-all ${
-                            isSubmitting 
-                            ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' 
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-2 border-slate-300 cursor-pointer'
-                        }`}
-                    >
-                        작성 종료 / 목록 복귀
-                    </button>
-                    <button 
-                        type="submit" 
-                        disabled={isSubmitting}
-                        className={`w-2/3 border-2 py-4 rounded-2xl text-sm font-black shadow-lg transition-all flex items-center justify-center gap-2 ${
-                            isSubmitting 
-                            ? 'bg-emerald-700/80 border-emerald-800 text-white/80 cursor-not-allowed opacity-80' 
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-emerald-700 shadow-emerald-700/25 cursor-pointer'
-                        }`}
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <i className="fa-solid fa-circle-notch fa-spin text-base text-emerald-300 animate-spin"></i>
-                                <span>{editingPostId ? '정보 수정 및 동기화 중...' : '실시간 정보 저장 및 발행 중...'}</span>
-                            </>
-                        ) : (
-                            <>
-                                <i className="fa-solid fa-cloud-arrow-up text-base"></i>
-                                <span>{editingPostId ? '입력된 정보 동기화 및 수정 완료' : '실시간 정보 저장 및 발행 게시'}</span>
-                            </>
-                        )}
-                    </button>
-                </div>
-
-                </div> {/* Closes Main Input Form Container */}
-            </div> {/* Closes Full Width Wrapper */}
-        </form>
-    </div>
+            <iframe 
+                ref={iframeRef}
+                id="smart-editor-iframe"
+                src="/smarteditor-final.html" 
+                className="w-full h-full border-0"
+                title="SmartEditor 2.0 Pure Master"
+            />
+        </div>
     );
 }

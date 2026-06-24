@@ -152,30 +152,30 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+        <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn text-left">
             {/* Upper Dashboard Header (Inline Panel) */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-3">
-                    <span className="bg-emerald-50 text-emerald-600 p-3 rounded-2xl">
-                        <i className="fa-solid fa-chart-line text-xl"></i>
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8 mb-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex items-center gap-4">
+                    <span className="bg-emerald-50 text-emerald-600 p-4 rounded-3xl shrink-0">
+                        <i className="fa-solid fa-chart-line text-3xl"></i>
                     </span>
                     <div className="text-left">
-                        <h2 className="text-lg font-black text-slate-900">중개 종합 관리자 센터 (소장님 전용)</h2>
-                        <p className="text-xs text-slate-400 font-semibold">팝업창 없는 100% 쾌적한 전면 화면 제어판 가동 중</p>
+                        <h2 className="text-2xl font-black text-slate-900">중개 종합 관리자 센터 (소장님 전용)</h2>
+                        <p className="text-sm text-slate-400 font-bold">팝업창 없는 100% 쾌적한 전면 화면 제어판 가동 중</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end">
                     <button 
                         onClick={() => setIsChangingPassword(true)}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-4 py-2.5 rounded-xl transition-all"
+                        className="inline-flex items-center gap-2 text-base font-black text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-6 py-4 rounded-2xl transition-all cursor-pointer"
                     >
-                        <i className="fa-solid fa-key"></i>
+                        <i className="fa-solid fa-key text-lg"></i>
                         <span>비밀번호 수정</span>
                     </button>
                     <button 
                         onClick={() => setActiveSection('main')} 
-                        className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-xl transition-all"
+                        className="text-base font-black bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-4 rounded-2xl transition-all cursor-pointer"
                     >
                         대시보드 닫기
                     </button>
@@ -184,19 +184,19 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
 
             {/* Change Password Panel inline if active */}
             {isChangingPassword && (
-                <div className="bg-amber-50 rounded-2xl border border-amber-200/80 p-5 mb-6 text-left animate-fadeIn">
-                    <h3 className="text-xs font-extrabold text-amber-800 uppercase tracking-widest mb-1.5">
-                        <i className="fa-solid fa-shield-halved mr-1"></i>보안 비밀번호 변경
+                <div className="bg-amber-50 rounded-3xl border border-amber-200/80 p-8 mb-6 text-left animate-fadeIn">
+                    <h3 className="text-lg font-extrabold text-amber-800 uppercase tracking-widest mb-2">
+                        <i className="fa-solid fa-shield-halved mr-1.5"></i>보안 비밀번호 변경
                     </h3>
-                    <p className="text-amber-700 text-[11px] mb-4">안전한 중개 관리를 위해 소장님만의 6자리 숫자 비밀번호를 설정할 수 있습니다.</p>
-                    <form onSubmit={handlePasswordChangeSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <p className="text-amber-700 text-sm mb-5 font-bold">안전한 중개 관리를 위해 소장님만의 6자리 숫자 비밀번호를 설정할 수 있습니다.</p>
+                    <form onSubmit={handlePasswordChangeSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input 
                             type="password" 
                             required
                             value={currentPassInput}
                             onChange={e => setCurrentPassInput(e.target.value)}
                             placeholder="현재 비밀번호 (초기: 1234)" 
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500 font-semibold"
+                            className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-base focus:outline-none focus:border-emerald-500 font-black"
                         />
                         <input 
                             type="password" 
@@ -205,19 +205,19 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             value={newPassInput}
                             onChange={e => setNewPassInput(e.target.value.replace(/[^0-9]/g, ''))}
                             placeholder="새 비밀번호 (숫자 6자리)" 
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500 font-semibold font-mono"
+                            className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-base focus:outline-none focus:border-emerald-500 font-black font-mono"
                         />
                         <div className="flex gap-2">
                             <button 
                                 type="submit"
-                                className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-all"
+                                className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl text-base shadow-md transition-all cursor-pointer"
                             >
                                 수정 완료
                             </button>
                             <button 
                                 type="button" 
                                 onClick={() => setIsChangingPassword(false)}
-                                className="w-1/3 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-all"
+                                className="w-1/3 bg-slate-200 text-slate-700 font-black py-4 rounded-2xl text-base transition-all cursor-pointer"
                             >
                                 취소
                             </button>
@@ -227,18 +227,18 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             )}
 
             {/* Inline Sync Panel without any popups */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 mb-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                        <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl shrink-0">
-                            <i className="text-2xl fa-solid fa-cloud-arrow-up"></i>
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8 mb-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="flex items-start gap-4">
+                        <div className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl shrink-0">
+                            <i className="text-3xl fa-solid fa-cloud-arrow-up"></i>
                         </div>
-                        <div className="text-left space-y-0.5">
-                            <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                        <div className="text-left space-y-1">
+                            <h4 className="text-xl font-black text-slate-900 flex items-center gap-3">
                                 <span>실시간 구글 클라우드 동기화 가동 중</span>
-                                <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">클라우드 Live 완료</span>
+                                <span className="bg-emerald-100 text-emerald-700 text-xs font-black px-3.5 py-1 rounded-full">클라우드 Live 완료</span>
                             </h4>
-                            <p className="text-slate-500 text-xs leading-relaxed max-w-4xl font-sans">
+                            <p className="text-slate-500 text-base leading-relaxed max-w-4xl font-sans font-semibold">
                                 등록한 매물 및 고객 상담 기록은 구글 파이어베이스 클라우드 데이터베이스에 실시간 영구 연동되어 관리됩니다. 
                                 다른 PC나 스마트폰 브라우저에서 접속하더라도 동일한 최신 화면이 완벽히 동기화되어 나타납니다.
                             </p>
@@ -247,7 +247,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     <div className="shrink-0 flex items-center w-full lg:w-auto">
                         <button 
                             onClick={handleGoogleLogout}
-                            className="w-full lg:w-auto text-xs font-bold text-red-650 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 px-5 py-3 rounded-xl transition-all active:scale-95 cursor-pointer"
+                            className="w-full lg:w-auto text-base font-black text-red-650 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 px-6 py-4 rounded-2xl transition-all active:scale-95 cursor-pointer shadow-xs"
                         >
                             소장님 원격 세션 로그아웃
                         </button>
@@ -259,27 +259,27 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             <div className="flex border-b border-slate-200 w-full overflow-x-auto scrollbar-hide shrink-0 mb-6 font-semibold">
                 <button 
                     onClick={() => setAdminTab('inquiry')} 
-                    className={`py-3 px-6 text-xs sm:text-sm font-black transition-all whitespace-nowrap ${
+                    className={`py-4 px-8 text-base sm:text-[18px] font-black transition-all whitespace-nowrap cursor-pointer ${
                         adminTab === 'inquiry' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/10' : 'text-slate-400 hover:text-slate-600'
                     }`}
                 >
-                    <i className="fa-solid fa-envelope-open-text mr-1.5"></i>상담/중개 의뢰 목록
+                    <i className="fa-solid fa-envelope-open-text mr-2"></i>상담/중개 의뢰 목록
                 </button>
                 <button 
                     onClick={() => setAdminTab('posts')} 
-                    className={`py-3 px-6 text-xs sm:text-sm font-black transition-all whitespace-nowrap ${
+                    className={`py-4 px-8 text-base sm:text-[18px] font-black transition-all whitespace-nowrap cursor-pointer ${
                         adminTab === 'posts' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/10' : 'text-slate-400 hover:text-slate-600'
                     }`}
                 >
-                    <i className="fa-solid fa-folder-tree mr-1.5"></i>발행된 통합 매물 관리
+                    <i className="fa-solid fa-folder-tree mr-2"></i>발행된 통합 매물 관리
                 </button>
                 <button 
                     onClick={() => setAdminTab('members')} 
-                    className={`py-3 px-6 text-xs sm:text-sm font-black transition-all whitespace-nowrap ${
+                    className={`py-4 px-8 text-base sm:text-[18px] font-black transition-all whitespace-nowrap cursor-pointer ${
                         adminTab === 'members' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/10' : 'text-slate-400 hover:text-slate-600'
                     }`}
                 >
-                    <i className="fa-solid fa-users-gear mr-1.5"></i>가입 회원 승인 관리 ({registeredUsers.filter(u => !u.approved).length}건 대기)
+                    <i className="fa-solid fa-users-gear mr-2"></i>가입 회원 승인 관리 ({registeredUsers.filter(u => !u.approved).length}건 대기)
                 </button>
             </div>
 
@@ -289,42 +289,42 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     <div className="overflow-x-auto w-full">
                         <table className="w-full text-left font-medium border-collapse min-w-[700px]">
                             <thead>
-                                <tr className="bg-slate-50 text-slate-500 text-xs font-bold border-b border-slate-200">
-                                    <th className="p-4 pl-6">의뢰 접수 시간</th>
-                                    <th className="p-4">신청 항목 / 고객명</th>
-                                    <th className="p-4">고객 연락처</th>
-                                    <th className="p-4">상담 요청 및 매물 관련 메모</th>
-                                    <th className="p-4 text-center pr-6">처리 상황</th>
+                                <tr className="bg-slate-50 text-slate-500 text-sm font-black border-b border-slate-200">
+                                    <th className="p-6 pl-8">의뢰 접수 시간</th>
+                                    <th className="p-6">신청 항목 / 고객명</th>
+                                    <th className="p-6">고객 연락처</th>
+                                    <th className="p-6">상담 요청 및 매물 관련 메모</th>
+                                    <th className="p-6 text-center pr-8">처리 상황</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {inquiries.map(inq => (
                                     <tr key={inq.id} className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors">
-                                        <td className="p-4 pl-6 text-xs text-slate-400 font-mono font-bold">
+                                        <td className="p-6 pl-8 text-base text-slate-400 font-mono font-bold">
                                             {new Date(inq.createdAt).toLocaleDateString('ko-KR', {
                                                 year: 'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
                                             })}
                                         </td>
-                                        <td className="p-4 font-black text-slate-800 text-sm">
-                                            <span className="bg-emerald-50 text-emerald-700 text-[10px] px-2 py-0.5 rounded-md mr-2">접수</span>
+                                        <td className="p-6 font-black text-slate-850 text-[20px]">
+                                            <span className="bg-emerald-50 text-emerald-700 text-xs font-black px-3.5 py-1.5 rounded-lg mr-3">접수</span>
                                             {inq.name}님
                                         </td>
-                                        <td className="p-4 text-xs font-mono font-bold text-slate-600">
+                                        <td className="p-6 text-lg font-mono font-bold text-slate-600">
                                             <a href={`tel:${inq.phone}`} className="hover:text-emerald-600 hover:underline">{inq.phone}</a>
                                         </td>
-                                        <td className="p-4 text-xs text-slate-600 max-w-lg break-all whitespace-pre-wrap text-left leading-relaxed">
+                                        <td className="p-6 text-base text-slate-600 max-w-lg break-all whitespace-pre-wrap text-left leading-relaxed font-semibold">
                                             {inq.message}
                                         </td>
-                                        <td className="p-4 text-center pr-6">
+                                        <td className="p-6 text-center pr-8">
                                             <button 
                                                 onClick={() => toggleInquiryProcessed(inq.id)} 
-                                                className={`text-xs font-black px-4 py-2 rounded-full border transition-all ${
+                                                className={`text-base font-black px-6 py-4 rounded-full border transition-all cursor-pointer ${
                                                     inq.processed 
                                                         ? 'bg-emerald-50 border-emerald-250 text-emerald-600 shadow-sm'
                                                         : 'bg-amber-50 border-amber-250 text-amber-600 animate-pulse shadow-sm'
                                                 }`}
                                             >
-                                                {inq.processed ? <i className="fa-solid fa-circle-check mr-1 text-[10px]"></i> : <i className="fa-solid fa-spinner mr-1 animate-spin text-[10px]"></i>}
+                                                {inq.processed ? <i className="fa-solid fa-circle-check mr-2 text-sm"></i> : <i className="fa-solid fa-spinner mr-2 animate-spin text-sm"></i>}
                                                 <span>{inq.processed ? '처리 완료' : '상담 대기'}</span>
                                             </button>
                                         </td>
@@ -333,8 +333,8 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             </tbody>
                         </table>
                         {inquiries.length === 0 && (
-                            <div className="text-center py-16 text-slate-400 text-sm font-semibold">
-                                <i className="fa-solid fa-clipboard text-xl mb-2 text-slate-300 block"></i>
+                            <div className="text-center py-24 text-slate-400 text-lg font-bold">
+                                <i className="fa-solid fa-clipboard text-4xl mb-4 text-slate-300 block"></i>
                                 <span>접수 대기 중인 고객 전화 상담 또는 상담의뢰가 아직 없습니다.</span>
                             </div>
                         )}
@@ -343,12 +343,12 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             )}
 
             {adminTab === 'posts' && (
-                <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 animate-fadeIn">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                        <span className="text-xs font-extrabold text-slate-450 uppercase tracking-widest leading-none">
+                <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8 animate-fadeIn">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-6">
+                        <span className="text-base font-black text-slate-500 uppercase tracking-widest leading-none">
                             {adminSearchQuery.trim() ? (
                                 <span>
-                                    검색 매칭 <span className="text-emerald-600 font-extrabold">{filteredPosts.length}</span>건 / 전체 {posts.length}건
+                                    검색 매칭 <span className="text-emerald-600 font-black">{filteredPosts.length}</span>건 / 전체 {posts.length}건
                                 </span>
                             ) : (
                                 `전체 ${posts.length}건의 발행 매물`
@@ -360,29 +360,29 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                 localStorage.removeItem('taewang_editing_post_id');
                                 setActiveSection('admin-write');
                             }} 
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-1.5 shadow-md hover:shadow-emerald-100 transition-all font-sans"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-6 rounded-2xl text-base flex items-center gap-2 shadow-md hover:shadow-emerald-100 transition-all font-sans cursor-pointer animate-fadeIn"
                         >
-                            <i className="fa-solid fa-circle-plus"></i>
+                            <i className="fa-solid fa-circle-plus text-lg"></i>
                             <span>신규 매물 등록</span>
                         </button>
                     </div>
 
                     {/* 실시간 매물 검색창 */}
                     <div className="mb-6 relative font-sans">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <i className="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                        <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none">
+                            <i className="fa-solid fa-magnifying-glass text-slate-400 text-lg"></i>
                         </div>
                         <input
                             type="text"
                             value={adminSearchQuery}
                             onChange={(e) => setAdminSearchQuery(e.target.value)}
                             placeholder="검색어를 입력하세요 (매물 번호, 동이름/주소, 원룸/미투, 금액, 건물명 등)"
-                            className="w-full pl-10 pr-10 py-3.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 hover:border-slate-350 focus:border-emerald-500 focus:bg-white rounded-2xl focus:outline-none transition-all font-semibold text-slate-800 shadow-sm"
+                            className="w-full pl-12 pr-12 py-4.5 text-base sm:text-lg bg-slate-50 border border-slate-200 hover:border-slate-350 focus:border-emerald-500 focus:bg-white rounded-2xl focus:outline-none transition-all font-black text-slate-800 shadow-sm"
                         />
                         {adminSearchQuery && (
                             <button
                                 onClick={() => setAdminSearchQuery('')}
-                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-650 transition-colors cursor-pointer"
+                                className="absolute inset-y-0 right-0 pr-4.5 flex items-center text-slate-400 hover:text-slate-650 transition-colors cursor-pointer text-lg"
                                 title="검색어 초기화"
                             >
                                 <i className="fa-solid fa-circle-xmark"></i>
@@ -391,39 +391,39 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     </div>
 
                     {filteredPosts.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {filteredPosts.map(p => (
-                                <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-4 rounded-2xl flex items-center justify-between transition-all">
-                                    <div className="flex items-center space-x-3 text-left">
-                                        <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                                <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-6 rounded-3xl flex items-center justify-between transition-all">
+                                    <div className="flex items-center space-x-4 text-left">
+                                        <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200">
                                             <img src={p.thumbnail} alt={p.building} className="w-full h-full object-cover" />
                                         </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10.5px] font-extrabold px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.category}</span>
-                                                <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[10.5px] font-extrabold px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.dong}</span>
-                                                {p.isRecommended && <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[10.5px] font-black px-2.5 py-1 rounded-lg shadow-sm leading-none">추천★</span>}
-                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-lg leading-none font-mono">ID: {p.id.replace('default-', '')}</span>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.category}</span>
+                                                <span className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-black px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.dong}</span>
+                                                {p.isRecommended && <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm leading-none">추천★</span>}
+                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[11px] font-black px-2 py-0.5 rounded-lg leading-none font-mono">ID: {p.id.replace('default-', '')}</span>
                                             </div>
-                                            <h4 className="text-sm font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-xs text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
-                                            <p className="text-[11px] text-slate-400 font-semibold">{p.title || '등록된 타이틀 내용 없음'}</p>
+                                            <h4 className="text-base font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-sm text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
+                                            <p className="text-sm text-slate-400 font-bold leading-relaxed">{p.title || '등록된 타이틀 내용 없음'}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-1.5 shrink-0">
+                                    <div className="flex items-center space-x-2 shrink-0">
                                         <button 
                                             onClick={() => {
                                                 // Open write module specifying editing post
                                                 localStorage.setItem('taewang_editing_post_id', p.id);
                                                 setActiveSection('admin-write');
                                             }} 
-                                            className="text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 p-2.5 rounded-xl text-xs font-bold transition-all"
+                                            className="text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 p-4 rounded-2xl text-base font-black transition-all cursor-pointer shadow-xs"
                                             title="매물 상세 내용 및 답사 기록 수정"
                                         >
                                             <i className="fa-solid fa-pen-to-square"></i>
                                         </button>
                                         <button 
                                             onClick={() => handleDeletePost(p.id)} 
-                                            className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-2.5 rounded-xl text-xs font-bold transition-all"
+                                            className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-4 rounded-2xl text-base font-black transition-all cursor-pointer shadow-xs"
                                             title="데이터 영구 삭제"
                                         >
                                             <i className="fa-solid fa-trash-can"></i>
@@ -433,14 +433,14 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-20 text-slate-400 border border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-                            <i className="fa-solid fa-magnifying-glass text-3xl mb-3 text-slate-300 block"></i>
-                            <p className="text-sm font-black text-slate-700">검색 조건에 맞는 매물이 없습니다.</p>
-                            <p className="text-xs text-slate-450 font-semibold mt-1.5">입력하신 검색어 "{adminSearchQuery}"를 확인하시거나 다른 키워드로 검색해 보세요.</p>
-                            <p className="text-[11px] text-slate-400 font-medium mt-1">예: 동 이름 (송정동), 매물 형태 (원룸, 미투), 가격 (200, 23/2.5) 등</p>
+                        <div className="text-center py-24 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50 p-6">
+                            <i className="fa-solid fa-magnifying-glass text-4xl mb-4 text-slate-300 block"></i>
+                            <p className="text-base font-black text-slate-700">검색 조건에 맞는 매물이 없습니다.</p>
+                            <p className="text-sm text-slate-450 font-bold mt-2">입력하신 검색어 "{adminSearchQuery}"를 확인하시거나 다른 키워드로 검색해 보세요.</p>
+                            <p className="text-xs text-slate-400 font-semibold mt-1">예: 동 이름 (송정동), 매물 형태 (원룸, 미투), 가격 (200, 23/2.5) 등</p>
                             <button
                                 onClick={() => setAdminSearchQuery('')}
-                                className="mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 active:scale-95 rounded-xl text-xs font-extrabold transition-all"
+                                className="mt-6 px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 active:scale-95 rounded-2xl text-sm font-black transition-all cursor-pointer"
                             >
                                 검색 피드 초기화
                             </button>
@@ -454,39 +454,39 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     <div className="overflow-x-auto w-full animate-fadeIn">
                         <table className="w-full text-left font-medium border-collapse min-w-[700px]">
                             <thead>
-                                <tr className="bg-slate-50 text-slate-500 text-xs font-bold border-b border-slate-200">
-                                    <th className="p-4 pl-6">회원 가입 일시</th>
-                                    <th className="p-4">가입 신청 유저 (이름/이메일)</th>
-                                    <th className="p-4">등록 승인 방식</th>
-                                    <th className="p-4">활성화 상태</th>
-                                    <th className="p-4 text-center pr-6">가입 승인 통제</th>
+                                <tr className="bg-slate-50 text-slate-500 text-sm font-black border-b border-slate-200">
+                                    <th className="p-6 pl-8">회원 가입 일시</th>
+                                    <th className="p-6">가입 신청 유저 (이름/이메일)</th>
+                                    <th className="p-6">등록 승인 방식</th>
+                                    <th className="p-6">활성화 상태</th>
+                                    <th className="p-6 text-center pr-8">가입 승인 통제</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {registeredUsers.map(u => (
                                     <tr key={u.email} className="border-b border-slate-150 hover:bg-slate-50 transition-colors">
-                                        <td className="p-4 pl-6 text-xs text-slate-400 font-mono font-bold">
+                                        <td className="p-6 pl-8 text-base text-slate-400 font-mono font-bold">
                                             {u.createdAt ? new Date(u.createdAt).toLocaleDateString('ko-KR', {
                                                 year: 'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
                                             }) : '미공개'}
                                         </td>
-                                        <td className="p-4">
-                                            <div className="flex flex-col text-left">
-                                                <span className="text-sm font-extrabold text-slate-800">{u.name}</span>
-                                                <span className="text-[11px] text-slate-400 font-mono font-semibold">{u.email}</span>
+                                        <td className="p-6">
+                                            <div className="flex flex-col text-left space-y-1">
+                                                <span className="text-[18px] font-black text-slate-800">{u.name}</span>
+                                                <span className="text-xs text-slate-400 font-mono font-bold">{u.email}</span>
                                             </div>
                                         </td>
-                                        <td className="p-4 text-xs font-bold uppercase">
-                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 text-slate-800">
-                                                {u.provider === 'google' && <i className="fa-brands fa-google text-red-500 text-xs"></i>}
-                                                {u.provider === 'kakao' && <i className="fa-solid fa-comment text-amber-500 text-xs"></i>}
-                                                {u.provider === 'naver' && <span className="text-emerald-500 font-black text-xs mr-1">N</span>}
-                                                {u.provider === 'email' && <i className="fa-solid fa-envelope text-blue-500 text-xs"></i>}
+                                        <td className="p-6 text-sm font-bold uppercase">
+                                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-100 text-slate-800">
+                                                {u.provider === 'google' && <i className="fa-brands fa-google text-red-500 text-sm"></i>}
+                                                {u.provider === 'kakao' && <i className="fa-solid fa-comment text-amber-500 text-sm"></i>}
+                                                {u.provider === 'naver' && <span className="text-emerald-500 font-black text-sm mr-1.5">N</span>}
+                                                {u.provider === 'email' && <i className="fa-solid fa-envelope text-blue-500 text-sm"></i>}
                                                 <span>{u.provider || '일반이메일'}</span>
                                             </span>
                                         </td>
-                                        <td className="p-4">
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black tracking-tight ${
+                                        <td className="p-6">
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black tracking-tight ${
                                                 u.approved 
                                                     ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
                                                     : 'bg-rose-50 text-rose-550 border border-rose-100 animate-pulse'
@@ -495,29 +495,29 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                                 <span>{u.approved ? '승인 및 영속 활성 완료' : '미허가 (승인 대기 중)'}</span>
                                             </span>
                                         </td>
-                                        <td className="p-4 text-center pr-6">
-                                            <div className="flex items-center justify-center gap-1.5">
+                                        <td className="p-6 text-center pr-8">
+                                            <div className="flex items-center justify-center gap-2">
                                                 {u.approved ? (
                                                     <button
                                                         onClick={() => handleRevokeUser(u.email)}
-                                                        className="text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all cursor-pointer"
+                                                        className="text-sm font-black px-4 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all cursor-pointer"
                                                     >
                                                         승인 보류
                                                     </button>
                                                 ) : (
                                                     <button
                                                         onClick={() => handleApproveUser(u.email)}
-                                                        className="text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer"
+                                                        className="text-sm font-black px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer"
                                                     >
                                                         가입 승인
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => handleDeleteUser(u.email)}
-                                                    className="text-xs font-bold p-2.5 rounded-xl border border-red-200 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer animate-fadeIn"
+                                                    className="text-sm font-black p-3 rounded-xl border border-red-200 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer animate-fadeIn"
                                                     title="회원 삭제"
                                                 >
-                                                    <i className="fa-solid fa-trash"></i>
+                                                    <i className="fa-solid fa-trash text-sm"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -526,7 +526,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             </tbody>
                         </table>
                         {registeredUsers.length === 0 && (
-                            <div className="text-center py-16 text-slate-400 text-sm font-semibold animate-pulse">
+                            <div className="text-center py-20 text-slate-400 text-base font-bold animate-pulse">
                                 가입되어 승인 단계를 거치고 있는 회원이 단 1명도 존재하지 않습니다.
                             </div>
                         )}

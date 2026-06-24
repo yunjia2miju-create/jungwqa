@@ -49,8 +49,25 @@
     <!-- Pannellum for 360 viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" crossorigin="anonymous" />
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" crossorigin="anonymous"></script>
+    
+    <style type="text/css">
+      @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff');
+      
+      @font-face {
+        font-family: 'NaverWooriDdalSonGeulSsi';
+        src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: '우리딸손글씨';
+        src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
   </head>
-  <body class="text-slate-800 antialiased min-h-screen flex flex-col w-full overflow-x-hidden bg-[#F0F0F0]">
+  <body class="text-slate-800 antialiased min-h-screen flex flex-col w-full overflow-hidden bg-[#F0F0F0]" style="overflow: hidden;">
     <div id="root" class="w-full flex-grow flex flex-col"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

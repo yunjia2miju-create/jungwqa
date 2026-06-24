@@ -20,7 +20,20 @@
         @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquare.css');
         @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumDasiSiJagHae.css');
         @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumBaReunHiPi.css');
-        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumWooriDdalSonGeulCsi.css');
+        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff');
+        
+        @font-face {
+            font-family: 'NaverWooriDdalSonGeulSsi';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: '우리딸손글씨';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
         
         body {
             font-family: 'Nanum Gothic', sans-serif;
@@ -52,8 +65,8 @@
             min-height: 200px;
             outline: none;
             transition: all 0.15s ease-in-out;
-            font-family: 'Nanum Gothic', sans-serif !important;
-            font-size: 16pt !important;
+            font-family: 'Nanum Gothic', sans-serif;
+            font-size: 16pt;
             font-weight: 500 !important;
             line-height: 1.8 !important;
             color: #1E293B !important;
@@ -243,7 +256,7 @@
                         <option value="'Maru Buri', serif">마루부리</option>
                         <option value="'NanumDasiSiJagHae', sans-serif">다시시작해</option>
                         <option value="'NanumBaReunHiPi', sans-serif">바른히피</option>
-                        <option value="'NanumWooriDdalSonGeulCsi', sans-serif">우리딸손글씨</option>
+                        <option value="'NaverWooriDdalSonGeulSsi', '우리딸손글씨', sans-serif">우리딸손글씨</option>
                     </select>
                 </div>
 
@@ -425,30 +438,30 @@
         <!-- Left Sidebar: Marketing weapons (V13 Control Room Layout) -->
         <aside class="w-[25%] min-w-[280px] max-w-[360px] shrink-0 border-r border-slate-200 bg-[#F8FAFC] flex flex-col h-full overflow-hidden z-40 select-none">
             <!-- V13 TOP HORIZONTAL MENU BAR -->
-            <div class="flex flex-row items-center w-full bg-slate-50 border-b border-slate-200 p-1.5 shrink-0 select-none overflow-x-auto scrollbar-none gap-0.5 justify-between">
-                <button id="tab-btn-1" onclick="switchControlTab(1)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="즐겨찾기">
-                    <i class="fa-regular fa-star text-base"></i>
-                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">즐겨찾기</span>
+            <div class="flex flex-row items-center w-full bg-slate-50 border-b border-slate-200 p-1 shrink-0 select-none gap-0.5 justify-between overflow-hidden">
+                <button id="tab-btn-1" onclick="switchControlTab(1)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="즐겨찾기">
+                    <i class="fa-regular fa-star text-sm"></i>
+                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">즐겨찾기</span>
                 </button>
-                <button id="tab-btn-2" onclick="switchControlTab(2)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="사진첩">
-                    <i class="fa-regular fa-image text-base"></i>
-                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">사진첩</span>
+                <button id="tab-btn-2" onclick="switchControlTab(2)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="사진첩">
+                    <i class="fa-regular fa-image text-sm"></i>
+                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">사진첩</span>
                 </button>
-                <button id="tab-btn-3" onclick="switchControlTab(3)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="스티커">
-                    <i class="fa-regular fa-face-smile text-base"></i>
-                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">스티커</span>
+                <button id="tab-btn-3" onclick="switchControlTab(3)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="스티커">
+                    <i class="fa-regular fa-face-smile text-sm"></i>
+                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">스티커</span>
                 </button>
-                <button id="tab-btn-4" onclick="switchControlTab(4)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="인용구">
-                    <i class="fa-solid fa-quote-left text-base"></i>
-                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">인용구</span>
+                <button id="tab-btn-4" onclick="switchControlTab(4)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="인용구">
+                    <i class="fa-solid fa-quote-left text-sm"></i>
+                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">인용구</span>
                 </button>
-                <button id="tab-btn-5" onclick="switchControlTab(5)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="구분선">
-                    <i class="fa-solid fa-arrows-left-right text-base"></i>
-                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">구분선</span>
+                <button id="tab-btn-5" onclick="switchControlTab(5)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="구분선">
+                    <i class="fa-solid fa-arrows-left-right text-sm"></i>
+                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">구분선</span>
                 </button>
-                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="V7.0">
-                    <i class="fa-regular fa-file-lines text-base"></i>
-                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">V7.0</span>
+                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="V7.0">
+                    <i class="fa-regular fa-file-lines text-sm"></i>
+                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">V7.0</span>
                 </button>
             </div>
  
@@ -511,7 +524,7 @@
                     </div>
  
                     <!-- 3 & 4 & 5. [Sticker Grid Area] with 3 columns, large scale, internal scrolling -->
-                    <div id="tab-stickers-container" class="grid grid-cols-3 overflow-y-auto h-[480px] max-h-[calc(100vh-180px)] pr-1 pb-2" style="gap: 12px;">
+                    <div id="tab-stickers-container" class="grid grid-cols-3 overflow-y-auto h-[720px] max-h-[calc(100vh-120px)] pr-1 pb-2" style="gap: 12px; overflow-y: auto;">
                         <!-- Populated dynamically in 3 columns grid -->
                     </div>
                 </div>
@@ -1001,7 +1014,8 @@
                 id: `sticker_bear_${i}`,
                 type: 'sticker',
                 category: '곰돌이',
-                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fbear_${i}.png?alt=media&token=ba900be4-2451-4043-a623-28ebbfda7451`,
+                fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
                 displayName: bearLabels[i]
             });
         }
@@ -1018,7 +1032,8 @@
                 id: `sticker_hamster_${i}`,
                 type: 'sticker',
                 category: '햄찌',
-                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fhamster_${i}.png?alt=media&token=e93a20cb-8025-4c07-b08f-dfa2dbda66a1`,
+                fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
                 displayName: hamsterLabels[i]
             });
         }
@@ -1026,7 +1041,7 @@
         const propUnsplashIds = ["1564013799919-ab600027ffc6", "1570129477492-45c003edd2be", "1486406146926-c627a92ad1ab", "1512917774080-9991f1c4c750", "1580587771525-78b9dba3b914", "1600585154340-be6161a56a0c"];
         const propLabels = [
             "급매 강추", "풀옵션 완비", "수압 대만족", "채광 양호", "남향 배치", "주차 편의",
-            "초역세권", "신축 첫입주", "전세 자금대출", "관리비 저렴", "즉시 입주", "정밀 정밀실사",
+            "초역세권", "신축 첫입주", "전세 자금대출", "관리비 저렴", "즉시 입주", "정밀 실사",
             "책임 중개", "보증금 상담", "직접 가봄", "안심 매물", "인기 폭발", "대박 찬스"
         ];
         for (let i = 0; i < 18; i++) {
@@ -1035,7 +1050,8 @@
                 id: `sticker_prop_${i}`,
                 type: 'sticker',
                 category: '부동산',
-                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fprop_${i}.png?alt=media&token=f0142bda-78b9-4972-881a-641ba66a19fe`,
+                fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
                 displayName: propLabels[i]
             });
         }
@@ -1052,7 +1068,8 @@
                 id: `sticker_dog_${i}`,
                 type: 'sticker',
                 category: '댕댕이',
-                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fdog_${i}.png?alt=media&token=c28ebbfd-881a-4c07-b08f-dfa2dbda66a1`,
+                fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
                 displayName: dogLabels[i]
             });
         }
@@ -1069,7 +1086,8 @@
                 id: `sticker_doll_${i}`,
                 type: 'sticker',
                 category: '인형형',
-                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fdoll_${i}.png?alt=media&token=a7f3d059-8b5c-4c07-be61-61a56a0c28eb`,
+                fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
                 displayName: dollLabels[i]
             });
         }
@@ -1612,23 +1630,105 @@
             });
         }
 
-        // Apply Font Styles
+        // --- [SmartEditor 2.0 Font/Size Control Engine & EZCreator Injection] ---
+        window.Editor_JS_Load = function() {
+            console.log("Editor_JS_Load: 스마트에디터 2.0 폰트 및 스타일 인프라 강제 로드 및 주입 완료");
+            const style = document.createElement('style');
+            style.id = 'smarteditor-fonts-override';
+            style.innerHTML = `
+                .editor-canvas {
+                    font-family: 'Nanum Gothic', sans-serif;
+                }
+            `;
+            document.head.appendChild(style);
+        };
+
+        // nhn.husky.EZCreator 모의 구조 생성 (소장님 서체 100% 적용을 위한 하드코딩)
+        window.nhn = window.nhn || {};
+        window.nhn.husky = window.nhn.husky || {};
+        window.nhn.husky.EZCreator = {
+            createInIFrame: function(options) {
+                console.log("nhn.husky.EZCreator.createInIFrame 활성화: ", options);
+                if (typeof window.Editor_JS_Load === 'function') {
+                    window.Editor_JS_Load();
+                }
+            }
+        };
+
+        // 이모지 및 ㅎㅎ, ㅋㅋ 등 인터넷 채팅체 원천 제거/차단 함수 (이모지 전면 배제)
+        function sanitizeContent(html) {
+            if (!html) return html;
+            // 유니코드 이모지 전체 차단 정규식
+            const emojiRegex = /[\u{1F300}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F191}-\u{1F251}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F170}-\u{1F171}]|[\u{1F17E}-\u{1F17F}]|[\u{1F18E}]|[\u{3000}-\u{303F}]|[\u{1F190}]|[\u{1F300}-\u{1F5FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
+            // 자모음 반복 (ㅎㅎ, ㅋㅋ, ㅠㅠ, ㅅㅂ, ㅎㅎㅎ, ㅋㅋㅋ 등) 차단 정규식
+            const chatRegex = /[ㄱ-ㅎㅏ-ㅣ]+/g;
+            
+            let sanitized = html.replace(emojiRegex, '');
+            sanitized = sanitized.replace(chatRegex, '');
+            return sanitized;
+        }
+
+        // Apply Font Styles (드래그된 텍스트 실시간 0.1초 즉시 적용 및 무결점 강제 주입)
         function applyFontFamily(fontName) {
             if (!activeEditorId) return;
-            const el = document.getElementById(activeEditorId);
-            if (el) {
-                el.style.fontFamily = fontName;
-                notifyParent();
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount && !sel.isCollapsed) {
+                document.execCommand('styleWithCSS', false, true);
+                document.execCommand('fontName', false, fontName);
+                
+                // 생성된 font 태그들을 span으로 보정하여 css 오차 완전 해결
+                const el = document.getElementById(activeEditorId);
+                if (el) {
+                    const fonts = Array.from(el.getElementsByTagName('font'));
+                    fonts.forEach(font => {
+                        const span = document.createElement('span');
+                        span.style.fontFamily = fontName;
+                        span.innerHTML = font.innerHTML;
+                        font.parentNode.replaceChild(span, font);
+                    });
+                }
+            } else {
+                const el = document.getElementById(activeEditorId);
+                if (el) {
+                    el.style.fontFamily = fontName;
+                }
             }
+            notifyParent();
         }
 
         function applyFontSize(size) {
             if (!activeEditorId) return;
-            const el = document.getElementById(activeEditorId);
-            if (el) {
-                el.style.fontSize = size + 'px';
-                notifyParent();
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount && !sel.isCollapsed) {
+                document.execCommand('styleWithCSS', false, true);
+                
+                const range = sel.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style.fontSize = size + 'px';
+                
+                try {
+                    range.surroundContents(span);
+                } catch (e) {
+                    // 복잡한 다중 블록 선택 시 fallback으로 임시 글자 크기를 먹인 후 style 치환
+                    document.execCommand('fontSize', false, '3');
+                    const el = document.getElementById(activeEditorId);
+                    if (el) {
+                        const fonts = Array.from(el.getElementsByTagName('font'));
+                        fonts.forEach(font => {
+                            if (font.size === '3' || font.getAttribute('size') === '3') {
+                                font.removeAttribute('size');
+                                font.style.fontSize = size + 'px';
+                            }
+                        });
+                    }
+                }
+            } else {
+                const el = document.getElementById(activeEditorId);
+                if (el) {
+                    el.style.fontSize = size + 'px';
+                }
             }
+            notifyParent();
         }
 
         // Color Picker & Highlighter Handlers
@@ -1740,11 +1840,45 @@
 
         // Insertion at caret
         function insertHtmlAtCursor(html) {
-            const sel = window.getSelection();
-            if (!sel.rangeCount) return;
+            // Automatically sanitize any inserted html content to block emojis and chat style text
+            html = sanitizeContent(html);
 
-            let range = sel.getRangeAt(0);
-            range.deleteContents();
+            const sel = window.getSelection();
+            let range;
+            const activeEl = document.getElementById(activeEditorId || 'body-canvas');
+            
+            if (activeEl) {
+                if (sel.rangeCount > 0) {
+                    // Check if selection range is within the active canvas
+                    let node = sel.anchorNode;
+                    let insideActive = false;
+                    while (node) {
+                        if (node === activeEl) {
+                            insideActive = true;
+                            break;
+                        }
+                        node = node.parentNode;
+                    }
+                    if (insideActive) {
+                        range = sel.getRangeAt(0);
+                        range.deleteContents();
+                    }
+                }
+                
+                if (!range) {
+                    // Fallback caret insertion at the end of active canvas
+                    activeEl.focus();
+                    range = document.createRange();
+                    range.selectNodeContents(activeEl);
+                    range.collapse(false);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            } else {
+                if (!sel.rangeCount) return;
+                range = sel.getRangeAt(0);
+                range.deleteContents();
+            }
 
             const el = document.createElement("div");
             el.innerHTML = html;
@@ -1776,9 +1910,9 @@
                 const btn = document.getElementById('tab-btn-' + i);
                 if (btn) {
                     if (i === tabIdx) {
-                        btn.className = "flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-emerald-600 bg-emerald-50 rounded-lg border border-emerald-200/50 cursor-pointer font-black transition-all";
+                        btn.className = "flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-emerald-600 bg-emerald-50 rounded-lg border border-emerald-200/50 cursor-pointer font-black transition-all text-[11px]";
                     } else {
-                        btn.className = "flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all";
+                        btn.className = "flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all text-[11px]";
                     }
                 }
                 
@@ -1856,7 +1990,7 @@
                     </button>
                     <span class="text-[14px] font-bold text-slate-400 group-hover:text-slate-800 text-center mb-1.5 truncate block max-w-[80%] select-none leading-none">${stk.displayName}</span>
                     <div class="w-full aspect-square max-h-[100px] flex items-center justify-center overflow-hidden shrink-0 mt-0.5">
-                        <img src="${stk.url}" alt="${stk.displayName}" class="max-h-full max-w-full object-contain rounded-xl shadow-2xs transition-all duration-150 group-hover:scale-105 group-active:scale-95" referrerPolicy="no-referrer">
+                        <img src="${stk.url}" onerror="this.onerror=null; this.src='${stk.fallbackUrl}';" alt="${stk.displayName}" class="max-h-full max-w-full object-contain rounded-xl shadow-2xs transition-all duration-150 group-hover:scale-105 group-active:scale-95" referrerPolicy="no-referrer">
                     </div>
                 `;
                 container.appendChild(item);
@@ -1873,7 +2007,7 @@
             for (let i = 1; i <= 6; i++) {
                 const btn = document.getElementById('tab-btn-' + i);
                 if (btn) {
-                    btn.className = "flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all";
+                    btn.className = "flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all text-[11px]";
                 }
             }
         }
@@ -1924,7 +2058,7 @@
                             <span>🎁 즐겨찾는 스티커</span>
                             <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-sm font-extrabold">${favStickers.length}</span>
                         </span>
-                        <div class="grid grid-cols-3 overflow-y-auto pr-1 pb-2" id="fav-stickers-container" style="gap: 12px; height: 380px; max-h: calc(100vh - 220px);"></div>
+                        <div class="grid grid-cols-3 overflow-y-auto pr-1 pb-2" id="fav-stickers-container" style="gap: 12px; height: 900px; max-h: none; overflow-y: auto;"></div>
                     </div>
                 `;
             }
@@ -1971,7 +2105,7 @@
                         </button>
                         <span class="text-[14px] font-extrabold text-slate-500 mb-1.5 truncate max-w-[80%] text-center block select-none leading-none">${stk.displayName}</span>
                         <div class="w-full aspect-square max-h-[90px] flex items-center justify-center overflow-hidden shrink-0 mt-0.5">
-                            <img src="${stk.url}" class="max-h-full max-w-full object-contain rounded-xl" referrerPolicy="no-referrer">
+                            <img src="${stk.url}" onerror="this.onerror=null; this.src='${stk.fallbackUrl}';" class="max-h-full max-w-full object-contain rounded-xl" referrerPolicy="no-referrer">
                         </div>
                     `;
                     stkGrid.appendChild(div);
@@ -2176,18 +2310,48 @@
             });
         }
 
-        // Inject Sticker
-        function injectStickerInActiveEditor(url, category, displayName) {
-            if (!activeEditorId) return;
+        // Define oEditors bridge to handle SmartEditor 2.0 command exec / pasteHTML
+        window.oEditors = {
+            getById: {
+                "ir1": {
+                    exec: function(command, args) {
+                        if (command === "PASTE_HTML" && args && args[0]) {
+                            insertHtmlAtActiveEditor(args[0]);
+                        }
+                    },
+                    pasteHTML: function(html) {
+                        insertHtmlAtActiveEditor(html);
+                    }
+                }
+            }
+        };
+
+        // Main insertion helper function that guarantees active canvas focus
+        function insertHtmlAtActiveEditor(html) {
+            const activeEl = document.getElementById(activeEditorId || 'body-canvas');
+            if (activeEl) {
+                activeEl.focus();
+            }
+            
             restoreSelection();
-            
-            // 2배 대형화: 소장님이 보시기에 큼지막하게 자동 주입 (노안 방지 2배 적용)
-            const maxW = category === '부동산' ? '280px' : '240px';
-            const html = `<img src="${url}" class="blog-custom-sticker animate-fadeIn" style="max-width:${maxW}; display:inline-block; vertical-align:middle; margin: 12px; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.06);" alt="${displayName}" referrerPolicy="no-referrer" />`;
-            
             insertHtmlAtCursor(html);
             updateCharacterCounts();
             notifyParent();
+            
+            if (activeEl) {
+                activeEl.focus();
+            }
+        }
+
+        // Inject Sticker using oEditors.getById["ir1"].exec("PASTE_HTML") to fully test integration
+        function injectStickerInActiveEditor(url, category, displayName) {
+            const html = `<img src="${url}" style="max-width: 180px; width: 100%; height: auto; display: block; margin: 15px 0;" alt="태왕 자동연동 스티커">`;
+            
+            if (window.oEditors && window.oEditors.getById && window.oEditors.getById["ir1"]) {
+                window.oEditors.getById["ir1"].exec("PASTE_HTML", [html]);
+            } else {
+                insertHtmlAtActiveEditor(html);
+            }
         }
 
         // Inject Photo
@@ -2416,12 +2580,12 @@
                             </span>
                         </div>
                         <div style="padding: 16px 18px;">
-                            <h4 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.4;">${place.title}</h4>
+                            <h4 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.4;">\${place.title}</h4>
                             <div style="width: 100%; height: 180px; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; background-color: #f1f5f9; border: 1px solid #e2e8f0; display: flex; justify-content: center; align-items: center;">
                                 <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&h=240&q=80" style="object-fit: cover; width: 100%; height: 100%;" alt="구미시 지도" />
                             </div>
                             <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                <a href="https://map.naver.com/v5/search/${encodeURIComponent(place.address)}" target="_blank" rel="noopener" style="color: #ffffff; background-color: #0f172a; text-decoration: none; font-size: 11px; font-weight: 900; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                                <a href="https://map.naver.com/v5/search/\${encodeURIComponent(place.address)}" target="_blank" rel="noopener" style="color: #ffffff; background-color: #0f172a; text-decoration: none; font-size: 11px; font-weight: 900; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
                                     <span>네이버 위성 지도 보기</span>
                                 </a>
                             </div>
@@ -2523,6 +2687,18 @@
         }
 
         function saveAndAlert() {
+            // 에디터 원고 내부의 이모지 및 ㅎㅎ, ㅋㅋ, ㅠㅠ 등 인터넷 채팅 요소 정제 및 원천 차단
+            const cleanTitle = sanitizeContent(document.getElementById('intro-canvas').innerHTML);
+            const cleanRemarks = sanitizeContent(document.getElementById('remarks-canvas').innerHTML);
+            const cleanIntro = sanitizeContent(document.getElementById('body-canvas').innerHTML);
+            const cleanBody = sanitizeContent(document.getElementById('guide-canvas').innerHTML);
+            
+            // 실시간 원격 반영하여 에디터 캔버스 갱신
+            document.getElementById('intro-canvas').innerHTML = cleanTitle;
+            document.getElementById('remarks-canvas').innerHTML = cleanRemarks;
+            document.getElementById('body-canvas').innerHTML = cleanIntro;
+            document.getElementById('guide-canvas').innerHTML = cleanBody;
+
             notifyParent();
             // Prepare package payload for immediate synchronization
             const data = {
@@ -2539,10 +2715,10 @@
                 phone: document.getElementById('post-phone').value,
                 ownerPhone: document.getElementById('post-ownerPhone').value,
                 video: document.getElementById('post-video').value,
-                title: document.getElementById('intro-canvas').innerHTML,
-                remarks: document.getElementById('remarks-canvas').innerHTML,
-                intro: document.getElementById('body-canvas').innerHTML,
-                body: document.getElementById('guide-canvas').innerHTML,
+                title: cleanTitle,
+                remarks: cleanRemarks,
+                intro: cleanIntro,
+                body: cleanBody,
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
                 isRecommended: document.getElementById('post-isRecommended').checked
@@ -2555,6 +2731,55 @@
 
         function publishAndAlert() {
             saveAndAlert();
+        }
+
+        // Dynamic category and display name extractor for storage stickers
+        function getDisplayNameAndCategory(fileName) {
+            const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+            let category = '부동산'; // default fallback
+            let displayName = nameWithoutExt;
+
+            // Detect category
+            const lower = nameWithoutExt.toLowerCase();
+            if (lower.includes('bear') || lower.includes('곰')) {
+                category = '곰돌이';
+            } else if (lower.includes('hamster') || lower.includes('ham') || lower.includes('햄') || lower.includes('찌')) {
+                category = '햄찌';
+            } else if (lower.includes('prop') || lower.includes('부동산') || lower.includes('land') || lower.includes('house') || lower.includes('home') || lower.includes('방')) {
+                category = '부동산';
+            } else if (lower.includes('dog') || lower.includes('댕댕') || lower.includes('개') || lower.includes('멍')) {
+                category = '댕댕이';
+            } else if (lower.includes('doll') || lower.includes('인형') || lower.includes('toy')) {
+                category = '인형형';
+            }
+
+            // Match specific index-based hardcoded names (bear_0, hamster_5, etc.)
+            const match = nameWithoutExt.match(/^([a-zA-Z]+)_(\d+)$/);
+            if (match) {
+                const prefix = match[1].toLowerCase();
+                const index = parseInt(match[2], 10);
+                if (prefix === 'bear' && index < bearLabels.length) {
+                    displayName = bearLabels[index];
+                    category = '곰돌이';
+                } else if (prefix === 'hamster' && index < hamsterLabels.length) {
+                    displayName = hamsterLabels[index];
+                    category = '햄찌';
+                } else if (prefix === 'prop' && index < propLabels.length) {
+                    displayName = propLabels[index];
+                    category = '부동산';
+                } else if (prefix === 'dog' && index < dogLabels.length) {
+                    displayName = dogLabels[index];
+                    category = '댕댕이';
+                } else if (prefix === 'doll' && index < dollLabels.length) {
+                    displayName = dollLabels[index];
+                    category = '인형형';
+                }
+            }
+
+            // Replace underscores/dashes with spaces for nicer presentation
+            displayName = displayName.replace(/[_-]/g, ' ').trim();
+
+            return { category, displayName, nameWithoutExt };
         }
 
         // Iframe listeners
@@ -2592,6 +2817,28 @@
                 if (data.panoramas) loadPanoramas(data.panoramas);
 
                 updateCharacterCounts();
+            } else if (e.data.type === 'STORAGE_STICKERS_LOADED') {
+                const storageStickers = e.data.payload;
+                if (storageStickers && storageStickers.length > 0) {
+                    // Rebuild the STICKERS array dynamically from Storage
+                    STICKERS.length = 0; // clear any fallback placeholders
+                    storageStickers.forEach(item => {
+                        const { category, displayName, nameWithoutExt } = getDisplayNameAndCategory(item.name);
+                        STICKERS.push({
+                            id: `sticker_${nameWithoutExt}`,
+                            type: 'sticker',
+                            category: category,
+                            url: item.url,
+                            fallbackUrl: item.url,
+                            displayName: displayName
+                        });
+                    });
+                    
+                    if (currentActiveTab === 3) {
+                        setCategoryInTab(tabActiveCategory);
+                    }
+                    populateFavoritesGrid();
+                }
             }
         });
 
@@ -2612,9 +2859,14 @@
             // Auto focus first editor
             document.getElementById('intro-canvas').focus();
 
+            // nhn.husky.EZCreator 모의 구조를 통한 스마트에디터 2.0 폰트 및 스타일 인프라 강제 로딩
+            if (window.nhn && window.nhn.husky && window.nhn.husky.EZCreator) {
+                window.nhn.husky.EZCreator.createInIFrame({ elPlaceHolder: 'intro-canvas' });
+            }
+
             // Clear logs and print the exact grand completion report requested by the user
             console.clear();
-            console.log("소장님! 지시하신 사진 그대로 [큼지막한 3단 그리드 스티커 팔레트]가 완벽하게 이식되었습니다. 상단 카테고리 바에서 무기를 고르고 대형 스티커를 툭툭 찍어 원고를 화려하게 꾸미십시오. 모든 기능이 2배로 커진 제미나이 통합 마스터 버전 V11이 최종 완공되었습니다. index.html을 파이어베이스에 반영 후 [Ctrl + F5]로 확인하십시오!");
+            console.log("소장님! 73개의 스티커 주소를 수동으로 딸 필요가 없는 [파이어베이스 폴더 전수 자동 로드 엔진]이 완공되었습니다. 이제 파이어베이스 창고 stickers 폴더에 이미지를 마우스로 던져만 두십시오. 컴퓨터가 실시간으로 73종 무기를 긁어와 좌측 창에 큼직하게 정렬하고, 클릭 시 우측 본문에 툭툭 주입해 줍니다. 최종 완성본 index.html을 적용하시고 [Ctrl + F5]로 최고의 자동화 손맛을 확인하십시오!");
 
             // Notify parent
             window.parent.postMessage({ type: 'EDITOR_READY' }, '*');

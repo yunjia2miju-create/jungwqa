@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { Post, gumiDongs } from '../data';
 import { savePostService, getPostsService } from '../firebaseService';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
 import { storage } from '../firebase';
 
 interface AdminWriteSectionProps {
@@ -123,6 +123,43 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             }, '*');
         }
     }, [editingPostId, currentEditPost, iframeReady]);
+
+    useEffect(() => {
+        const fetchStickersFromStorage = async () => {
+            try {
+                const stickersRef = ref(storage, 'stickers');
+                const result = await listAll(stickersRef);
+                const fetchedStickers = await Promise.all(
+                    result.items.map(async (item) => {
+                        try {
+                            const url = await getDownloadURL(item);
+                            return {
+                                name: item.name,
+                                url: url
+                            };
+                        } catch (error) {
+                            console.error(`Error getting download URL for ${item.name}:`, error);
+                            return null;
+                        }
+                    })
+                );
+                const validStickers = fetchedStickers.filter(Boolean) as { name: string; url: string }[];
+                
+                if (iframeRef.current && iframeRef.current.contentWindow) {
+                    iframeRef.current.contentWindow.postMessage({
+                        type: 'STORAGE_STICKERS_LOADED',
+                        payload: validStickers
+                    }, '*');
+                }
+            } catch (err) {
+                console.error("Firebase Storage list stickers error:", err);
+            }
+        };
+
+        if (iframeReady) {
+            fetchStickersFromStorage();
+        }
+    }, [iframeReady]);
 
     useEffect(() => {
         if (currentEditPost) {

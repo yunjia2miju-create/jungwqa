@@ -16,36 +16,178 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&family=Maru+Buri:wght@300;400;600;700&family=Nanum+Pen+Script&family=Nanum+Brush+Script&display=swap');
+        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumBarunGothic.css');
+        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquare.css');
+        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumDasiSiJagHae.css');
+        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumBaReunHiPi.css');
+        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumWooriDdalSonGeulCsi.css');
         
         body {
             font-family: 'Nanum Gothic', sans-serif;
-            background-color: #f8fafc;
+            background-color: #F8FAFC;
             overflow: hidden; /* Prevent body scroll, let left & right panes scroll independently */
             height: 100vh;
+            margin: 0;
+            padding: 0;
         }
         /* Custom scrollbar matching Naver blog editor styling */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #F1F5F9;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+            background: #CBD5E1;
+            border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #94A3B8;
         }
         
+        /* --- [V12 Premium Design Engine] --- */
+        /* Canvases styling for Nanum Gothic 16pt (16pt) equivalent */
         .editor-canvas {
-            min-height: 185px;
+            min-height: 200px;
             outline: none;
             transition: all 0.15s ease-in-out;
+            font-family: 'Nanum Gothic', sans-serif !important;
+            font-size: 16pt !important;
+            font-weight: 500 !important;
+            line-height: 1.8 !important;
+            color: #1E293B !important;
+            word-break: break-all;
+            background-color: #FFFFFF;
         }
         .editor-canvas:focus {
-            background-color: #fff;
+            background-color: #FFFFFF;
+        }
+        .editor-canvas p {
+            margin-bottom: 12px;
+        }
+        
+        /* 11대 매물버튼 & 거래유형 버튼 */
+        .cat-btn, .trans-btn {
+            padding: 10px 16px !important;
+            border-radius: 9999px !important; /* Premium Chip Style */
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            border: 1px solid #E2E8F0 !important;
+            transition: all 0.2s !important;
+        }
+        
+        /* Inputs and Selects */
+        input[type="text"], input[type="number"], select {
+            font-size: 14px !important;
+            padding: 10px 14px !important;
+            border-radius: 10px !important;
+            font-weight: 500 !important;
+            height: auto !important;
+            border: 1px solid #E2E8F0 !important;
+            background-color: #FFFFFF !important;
+            outline: none !important;
+            transition: all 0.2s !important;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: #059669 !important;
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1) !important;
+        }
+        
+        /* Header elements */
+        header {
+            height: 70px !important;
+        }
+        header select {
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+            border-radius: 8px !important;
+        }
+        header span {
+            font-size: 14px !important;
+        }
+        header button {
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            border-radius: 8px !important;
+        }
+        header button i {
+            font-size: 16px !important;
+        }
+        
+        /* Aside sidebar tabs */
+        aside {
+            width: 25% !important; /* Exactly 25% of screen width */
+            background-color: #F8FAFC !important;
+            border-right: 1px solid #E2E8F0 !important;
+        }
+        aside button {
+            padding: 16px 8px !important;
+            font-size: 13px !important;
+            border-radius: 8px !important;
+        }
+        aside button span {
+            font-size: 13px !important;
+        }
+        aside button span:first-child {
+            font-size: 24px !important;
+        }
+        
+        /* Labels & Texts */
+        label {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+        }
+        .text-slate-400 {
+            font-size: 12px !important;
+        }
+        .text-slate-500 {
+            font-size: 13px !important;
+        }
+        .text-emerald-900 {
+            font-size: 15px !important;
+        }
+        .text-slate-700 {
+            font-size: 14px !important;
+        }
+        .font-black, .font-extrabold {
+            font-size: 16px !important;
+        }
+        h3, h3 * {
+            font-size: 18px !important;
+        }
+        
+        /* Bottom Submit Buttons */
+        .w-full.max-w-\[950px\].flex.space-x-6 button {
+            padding: 14px 0 !important;
+            font-size: 16px !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Icons */
+        i, .fa-solid, .fa-regular {
+            font-size: 18px !important;
+        }
+        
+        /* Overrides for generic rounded corners to match 10px~12px */
+        .rounded-2xl, .rounded-3xl {
+            border-radius: 12px !important;
+        }
+        .rounded-xl {
+            border-radius: 10px !important;
+        }
+        
+        /* Overrides for generic box-shadows to subtle premium look */
+        .shadow-md, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-sm {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+        }
+        
+        /* VR Viewer and map containers - Keep 16:9 Aspect Video */
+        .aspect-video {
+            aspect-ratio: 16 / 9 !important;
+            width: 100% !important;
+            height: auto !important;
         }
         
         [contenteditable]:empty:before {
@@ -75,38 +217,40 @@
     <input type="hidden" id="post-transactionType" value="월세">
 
     <!-- ==================== [TOP FIXED BAR] Master Horizontal Fixed Bar ==================== -->
-    <header class="h-24 border-b border-slate-200 bg-white flex flex-row items-center justify-between shrink-0 shadow-xs z-50 select-none">
+    <header class="fixed top-0 left-0 right-0 h-[70px] border-b border-slate-200 bg-white flex flex-row items-center justify-between shrink-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] z-50 select-none">
         <!-- Left: Brand 명판 (구미 태왕공인중개사사무소) -->
-        <div class="w-[480px] h-full px-8 flex items-center border-r border-slate-200 bg-white shrink-0">
-            <div class="flex items-center gap-4">
-                <span class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-2xl">T</span>
+        <div class="w-[25%] h-full px-5 flex items-center border-r border-slate-200 bg-white shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg">T</span>
                 <div class="flex flex-col justify-center text-left">
-                    <span class="text-[20px] font-black text-slate-900 tracking-tight leading-none mb-1.5">구미 태왕공인중개사사무소</span>
-                    <span class="text-xs text-slate-400 font-extrabold tracking-wider leading-none uppercase">TAEWANG REAL ESTATE</span>
+                    <span class="text-sm font-black text-slate-900 tracking-tight leading-none mb-1">구미 태왕공인중개사사무소</span>
+                    <span class="text-[9px] text-slate-400 font-extrabold tracking-wider leading-none uppercase">TAEWANG REAL ESTATE</span>
                 </div>
             </div>
         </div>
 
         <!-- Right: Minimalist Smart Editor 2.0 options -->
-        <div class="flex-1 h-full px-8 flex items-center justify-between">
-            <div class="flex items-center gap-6 text-base">
+        <div class="flex-1 h-full px-5 flex items-center justify-between">
+            <div class="flex items-center gap-4 text-sm">
                 <!-- Font family select -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[18px] font-black text-slate-400 select-none">글꼴</span>
-                    <select onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[18px] font-extrabold focus:outline-none cursor-pointer text-slate-700">
-                        <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-slate-400 select-none">글꼴</span>
+                    <select id="font-family-selector" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
+                        <option value="'Nanum Gothic', sans-serif" selected>나눔고딕</option>
                         <option value="'Nanum Myeongjo', serif">나눔명조</option>
+                        <option value="'NanumBarunGothic', sans-serif">나눔바른고딕</option>
+                        <option value="'NanumSquare', sans-serif">나눔스퀘어</option>
                         <option value="'Maru Buri', serif">마루부리</option>
-                        <option value="'Gowun Dodum', sans-serif">고운돋움</option>
-                        <option value="'Nanum Pen Script', cursive">나눔펜글씨</option>
-                        <option value="'Nanum Brush Script', cursive">나눔붓글씨</option>
+                        <option value="'NanumDasiSiJagHae', sans-serif">다시시작해</option>
+                        <option value="'NanumBaReunHiPi', sans-serif">바른히피</option>
+                        <option value="'NanumWooriDdalSonGeulCsi', sans-serif">우리딸손글씨</option>
                     </select>
                 </div>
 
                 <!-- Font size select -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[18px] font-black text-slate-400 select-none">크기</span>
-                    <select onchange="applyFontSize(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[18px] font-extrabold focus:outline-none cursor-pointer text-slate-700">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-slate-400 select-none">크기</span>
+                    <select onchange="applyFontSize(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
                         <option value="12">12pt</option>
                         <option value="14">14pt</option>
                         <option value="16" selected>16pt</option>
@@ -118,189 +262,323 @@
                 </div>
 
                 <!-- Text styles -->
-                <div class="flex items-center border-l border-r border-slate-200 px-4 gap-2">
-                    <button onclick="document.execCommand('bold', false, null); updateCharacterCounts();" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] font-extrabold cursor-pointer transition-all" title="굵게">B</button>
-                    <button onclick="document.execCommand('italic', false, null); updateCharacterCounts();" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] italic font-extrabold cursor-pointer transition-all" title="기울임">I</button>
-                    <button onclick="document.execCommand('underline', false, null); updateCharacterCounts();" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] underline font-extrabold cursor-pointer transition-all" title="밑줄">U</button>
-                    <button onclick="document.execCommand('strikeThrough', false, null); updateCharacterCounts();" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] line-through font-extrabold cursor-pointer transition-all" title="취소선">S</button>
+                <div class="flex items-center border-l border-r border-slate-250 px-2 gap-1">
+                    <button onclick="document.execCommand('bold', false, null); updateCharacterCounts();" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center text-sm font-black cursor-pointer transition-all" title="굵게">B</button>
+                    <button onclick="document.execCommand('italic', false, null); updateCharacterCounts();" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center text-sm italic font-black cursor-pointer transition-all" title="기울임">I</button>
+                    <button onclick="document.execCommand('underline', false, null); updateCharacterCounts();" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center text-sm underline font-black cursor-pointer transition-all" title="밑줄">U</button>
+                    <button onclick="document.execCommand('strikeThrough', false, null); updateCharacterCounts();" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center text-sm line-through font-black cursor-pointer transition-all" title="취소선">S</button>
+                    
+                    <!-- Text Color Picker -->
+                    <div class="relative flex items-center">
+                        <button onclick="toggleTextColorPicker(event)" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative" title="글자색">
+                            <span class="text-sm font-black leading-none">A</span>
+                            <div id="text-color-indicator" class="w-4 h-0.5 bg-black mt-0.5 rounded-full"></div>
+                        </button>
+                        <!-- Dropdown Panel -->
+                        <div id="text-color-picker-panel" class="hidden absolute top-10 left-0 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[999] w-[240px] text-left select-none">
+                            <span class="block text-xs font-bold text-slate-500 mb-1.5">글자 색상 선택</span>
+                            <div class="grid grid-cols-8 gap-1 mb-2">
+                                <button type="button" onclick="setTextColor('#ffffff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ffffff"></button>
+                                <button type="button" onclick="setTextColor('#f1f5f9')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f1f5f9"></button>
+                                <button type="button" onclick="setTextColor('#cbd5e1')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #cbd5e1"></button>
+                                <button type="button" onclick="setTextColor('#64748b')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #64748b"></button>
+                                <button type="button" onclick="setTextColor('#334155')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #334155"></button>
+                                <button type="button" onclick="setTextColor('#1e293b')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #1e293b"></button>
+                                <button type="button" onclick="setTextColor('#0f172a')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #0f172a"></button>
+                                <button type="button" onclick="setTextColor('#000000')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #000000"></button>
+                                
+                                <button type="button" onclick="setTextColor('#fee2e2')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fee2e2"></button>
+                                <button type="button" onclick="setTextColor('#ef4444')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ef4444"></button>
+                                <button type="button" onclick="setTextColor('#ffedd5')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ffedd5"></button>
+                                <button type="button" onclick="setTextColor('#f97316')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f97316"></button>
+                                <button type="button" onclick="setTextColor('#fef9c3')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fef9c3"></button>
+                                <button type="button" onclick="setTextColor('#eab308')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #eab308"></button>
+                                <button type="button" onclick="setTextColor('#f0fdf4')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f0fdf4"></button>
+                                <button type="button" onclick="setTextColor('#22c55e')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #22c55e"></button>
+                                
+                                <button type="button" onclick="setTextColor('#dcfce7')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #dcfce7"></button>
+                                <button type="button" onclick="setTextColor('#10b981')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #10b981"></button>
+                                <button type="button" onclick="setTextColor('#ccfbf1')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ccfbf1"></button>
+                                <button type="button" onclick="setTextColor('#14b8a6')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #14b8a6"></button>
+                                <button type="button" onclick="setTextColor('#ecfeff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ecfeff"></button>
+                                <button type="button" onclick="setTextColor('#06b6d4')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #06b6d4"></button>
+                                <button type="button" onclick="setTextColor('#e0f2fe')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #e0f2fe"></button>
+                                <button type="button" onclick="setTextColor('#0ea5e9')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #0ea5e9"></button>
+                                
+                                <button type="button" onclick="setTextColor('#dbeafe')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #dbeafe"></button>
+                                <button type="button" onclick="setTextColor('#3b82f6')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #3b82f6"></button>
+                                <button type="button" onclick="setTextColor('#e0e7ff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #e0e7ff"></button>
+                                <button type="button" onclick="setTextColor('#6366f1')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #6366f1"></button>
+                                <button type="button" onclick="setTextColor('#f3e8ff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f3e8ff"></button>
+                                <button type="button" onclick="setTextColor('#a855f7')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #a855f7"></button>
+                                <button type="button" onclick="setTextColor('#fae8ff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fae8ff"></button>
+                                <button type="button" onclick="setTextColor('#d946ef')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #d946ef"></button>
+                                
+                                <button type="button" onclick="setTextColor('#fce7f3')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fce7f3"></button>
+                                <button type="button" onclick="setTextColor('#ec4899')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ec4899"></button>
+                                <button type="button" onclick="setTextColor('#ffe4e6')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ffe4e6"></button>
+                                <button type="button" onclick="setTextColor('#f43f5e')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f43f5e"></button>
+                                <button type="button" onclick="setTextColor('#a7f3d0')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #a7f3d0"></button>
+                                <button type="button" onclick="setTextColor('#059669')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #059669"></button>
+                                <button type="button" onclick="setTextColor('#ddd6fe')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ddd6fe"></button>
+                                <button type="button" onclick="setTextColor('#8b5cf6')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #8b5cf6"></button>
+                            </div>
+                            <div class="flex items-center gap-1.5 border-t border-slate-150 pt-1.5">
+                                <input type="text" id="custom-text-color" value="#000000" class="flex-1 bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-[10px] font-bold focus:outline-none" />
+                                <button type="button" onclick="applyCustomTextColor()" class="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold px-1.5 py-1 rounded-md cursor-pointer">확인</button>
+                                <button type="button" onclick="toggleTextColorPicker(event)" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold px-1.5 py-1 rounded-md cursor-pointer">접기</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Highlight Color Picker -->
+                    <div class="relative flex items-center">
+                        <button onclick="toggleBgColorPicker(event)" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative" title="형광펜">
+                            <span class="text-sm font-black leading-none bg-yellow-200 px-0.5 rounded-xs">T</span>
+                        </button>
+                        <!-- Dropdown Panel -->
+                        <div id="bg-color-picker-panel" class="hidden absolute top-10 left-0 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[999] w-[240px] text-left select-none">
+                            <span class="block text-xs font-bold text-slate-500 mb-1.5">형광펜 색상 선택</span>
+                            <div class="grid grid-cols-8 gap-1 mb-2">
+                                <button type="button" onclick="setBgColor('#ffffff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ffffff" title="없음"></button>
+                                <button type="button" onclick="setBgColor('#fef08a')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fef08a"></button>
+                                <button type="button" onclick="setBgColor('#bbf7d0')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #bbf7d0"></button>
+                                <button type="button" onclick="setBgColor('#bfdbfe')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #bfdbfe"></button>
+                                <button type="button" onclick="setBgColor('#fbcfe8')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fbcfe8"></button>
+                                <button type="button" onclick="setBgColor('#fed7aa')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fed7aa"></button>
+                                <button type="button" onclick="setBgColor('#e9d5ff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #e9d5ff"></button>
+                                <button type="button" onclick="setBgColor('#f3f4f6')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f3f4f6"></button>
+                                
+                                <button type="button" onclick="setBgColor('#fef9c3')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fef9c3"></button>
+                                <button type="button" onclick="setBgColor('#dcfce7')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #dcfce7"></button>
+                                <button type="button" onclick="setBgColor('#dbeafe')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #dbeafe"></button>
+                                <button type="button" onclick="setBgColor('#fce7f3')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #fce7f3"></button>
+                                <button type="button" onclick="setBgColor('#ffedd5')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ffedd5"></button>
+                                <button type="button" onclick="setBgColor('#f3e8ff')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #f3e8ff"></button>
+                                <button type="button" onclick="setBgColor('#ccfbf1')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ccfbf1"></button>
+                                <button type="button" onclick="setBgColor('#ff0000')" class="w-4 h-4 rounded-sm border border-slate-200 cursor-pointer" style="background-color: #ff0000"></button>
+                            </div>
+                            <div class="flex items-center gap-1.5 border-t border-slate-150 pt-1.5">
+                                <input type="text" id="custom-bg-color" value="#fef08a" class="flex-1 bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-[10px] font-bold focus:outline-none" />
+                                <button type="button" onclick="applyCustomBgColor()" class="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold px-1.5 py-1 rounded-md cursor-pointer">확인</button>
+                                <button type="button" onclick="toggleBgColorPicker(event)" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold px-1.5 py-1 rounded-md cursor-pointer">접기</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Alignments -->
-                <div class="flex items-center gap-2 border-r border-slate-200 pr-4">
-                    <button onclick="document.execCommand('justifyLeft', false, null);" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] cursor-pointer transition-all" title="왼쪽 정렬">
-                        <i class="fa-solid fa-align-left text-xl"></i>
+                <div class="flex items-center gap-1 border-r border-slate-200 pr-2">
+                    <button onclick="document.execCommand('justifyLeft', false, null);" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="왼쪽 정렬">
+                        <i class="fa-solid fa-align-left text-sm"></i>
                     </button>
-                    <button onclick="document.execCommand('justifyCenter', false, null);" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] cursor-pointer transition-all" title="가운데 정렬">
-                        <i class="fa-solid fa-align-center text-xl"></i>
+                    <button onclick="document.execCommand('justifyCenter', false, null);" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="가운데 정렬">
+                        <i class="fa-solid fa-align-center text-sm"></i>
                     </button>
-                    <button onclick="document.execCommand('justifyRight', false, null);" type="button" class="w-12 h-12 hover:bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-[20px] cursor-pointer transition-all" title="오른쪽 정렬">
-                        <i class="fa-solid fa-align-right text-xl"></i>
+                    <button onclick="document.execCommand('justifyRight', false, null);" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="오른쪽 정렬">
+                        <i class="fa-solid fa-align-right text-sm"></i>
+                    </button>
+                    
+                    <!-- Special Character Button -->
+                    <button onclick="toggleSpecialSymbolsPopup(event)" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="특수기호">
+                        <span class="text-sm font-black leading-none">※</span>
                     </button>
                 </div>
 
                 <!-- Character counts -->
-                <div class="flex items-center gap-3 font-bold text-slate-500 text-[18px] select-none shrink-0">
+                <div class="flex items-center gap-2 font-bold text-slate-500 text-xs select-none shrink-0">
                     <span>글자수 <span id="char-count-total" class="text-emerald-600 font-extrabold">0</span>자</span>
-                    <div class="text-[14px] text-slate-400 flex items-center gap-1.5">
+                    <div class="text-[10px] text-slate-400 flex items-center gap-1">
                         <span>(한글 <span id="char-count-korean">0</span></span>
                         <span>영어 <span id="char-count-english">0</span>)</span>
                     </div>
                 </div>
 
                 <!-- Focus badge -->
-                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 select-none shrink-0 ml-2">
-                    <span class="text-xs text-slate-400 uppercase font-black">포커스</span>
-                    <span id="active-editor-badge" class="text-[18px] font-black text-slate-700 truncate max-w-[200px]">[책임 중개 소장 한마디]</span>
+                <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 select-none shrink-0 ml-1">
+                    <span class="text-[10px] text-slate-400 uppercase font-black">포커스</span>
+                    <span id="active-editor-badge" class="text-xs font-black text-slate-700 truncate max-w-[120px]">[책임 소장 한마디]</span>
                 </div>
             </div>
 
             <!-- Global Action Buttons -->
-            <div class="flex items-center gap-3">
-                <button onclick="downloadSelf()" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-5 rounded-xl font-bold flex items-center gap-2 cursor-pointer transition-all text-base" title="스마트에디터 파일 백업">
-                    <i class="fa-solid fa-cloud-arrow-down text-lg"></i>
-                    <span>index.html 백업</span>
+            <div class="flex items-center gap-2">
+                <button onclick="downloadSelf()" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-all text-xs" title="스마트에디터 파일 백업">
+                    <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
+                    <span>백업</span>
                 </button>
-                <button onclick="saveAndAlert()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white py-3 px-5 rounded-xl font-bold flex items-center gap-2 cursor-pointer transition-all text-base">
-                    <i class="fa-regular fa-bookmark text-lg"></i>
+                <button onclick="saveAndAlert()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-all text-xs">
+                    <i class="fa-regular fa-bookmark text-sm"></i>
                     <span>임시 저장</span>
                 </button>
-                <button onclick="publishAndAlert()" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-6 rounded-xl font-extrabold flex items-center gap-2 cursor-pointer transition-all text-base">
-                    <i class="fa-solid fa-paper-plane text-lg"></i>
-                    <span>원고 최종 발행</span>
+                <button onclick="publishAndAlert()" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg font-extrabold flex items-center gap-1.5 cursor-pointer transition-all text-xs">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                    <span>최종 발행</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- ==================== [CONTENT BODY] Dual Independent Scrolling Panels ==================== -->
-    <div class="flex-1 flex flex-row w-full overflow-hidden h-[calc(100vh-6rem)]">
+    <div class="flex-1 flex flex-row w-full overflow-hidden h-[calc(100vh-70px)] mt-[70px]">
         
-        <!-- Left Sidebar: Marketing weapons (Gemini style) -->
-        <aside class="w-[480px] shrink-0 border-r border-slate-200 bg-white flex flex-col h-full overflow-hidden z-40 select-none">
-            <!-- 6 Golden Tab Buttons -->
-            <div class="grid grid-cols-3 border-b border-slate-150 bg-slate-50/60 p-2 gap-1 shrink-0">
-                <button id="tab-btn-1" onclick="switchControlTab(1)" type="button" class="py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer border-b-2 border-transparent">
-                    <span class="text-3xl">⭐</span>
-                    <span class="text-[18px] font-black tracking-tight">즐겨찾기</span>
+        <!-- Left Sidebar: Marketing weapons (V13 Control Room Layout) -->
+        <aside class="w-[25%] min-w-[280px] max-w-[360px] shrink-0 border-r border-slate-200 bg-[#F8FAFC] flex flex-col h-full overflow-hidden z-40 select-none">
+            <!-- V13 TOP HORIZONTAL MENU BAR -->
+            <div class="flex flex-row items-center w-full bg-slate-50 border-b border-slate-200 p-1.5 shrink-0 select-none overflow-x-auto scrollbar-none gap-0.5 justify-between">
+                <button id="tab-btn-1" onclick="switchControlTab(1)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="즐겨찾기">
+                    <i class="fa-regular fa-star text-base"></i>
+                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">즐겨찾기</span>
                 </button>
-                <button id="tab-btn-2" onclick="switchControlTab(2)" type="button" class="py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer border-b-2 border-transparent">
-                    <span class="text-3xl">📸</span>
-                    <span class="text-[18px] font-black tracking-tight">사진첨부</span>
+                <button id="tab-btn-2" onclick="switchControlTab(2)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="사진첩">
+                    <i class="fa-regular fa-image text-base"></i>
+                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">사진첩</span>
                 </button>
-                <button id="tab-btn-3" onclick="switchControlTab(3)" type="button" class="py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer border-b-2 border-transparent">
-                    <span class="text-3xl">🎁</span>
-                    <span class="text-[18px] font-black tracking-tight">스티커</span>
+                <button id="tab-btn-3" onclick="switchControlTab(3)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="스티커">
+                    <i class="fa-regular fa-face-smile text-base"></i>
+                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">스티커</span>
                 </button>
-                <button id="tab-btn-4" onclick="switchControlTab(4)" type="button" class="py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer border-b-2 border-transparent">
-                    <span class="text-3xl">❝</span>
-                    <span class="text-[18px] font-black tracking-tight">인용구</span>
+                <button id="tab-btn-4" onclick="switchControlTab(4)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="인용구">
+                    <i class="fa-solid fa-quote-left text-base"></i>
+                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">인용구</span>
                 </button>
-                <button id="tab-btn-5" onclick="switchControlTab(5)" type="button" class="py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer border-b-2 border-transparent">
-                    <span class="text-3xl">📏</span>
-                    <span class="text-[18px] font-black tracking-tight">구분선</span>
+                <button id="tab-btn-5" onclick="switchControlTab(5)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="구분선">
+                    <i class="fa-solid fa-arrows-left-right text-base"></i>
+                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">구분선</span>
                 </button>
-                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer border-b-2 border-transparent">
-                    <span class="text-3xl">📝</span>
-                    <span class="text-[18px] font-black tracking-tight">V7.0</span>
+                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="V7.0">
+                    <i class="fa-regular fa-file-lines text-base"></i>
+                    <span class="text-[14px] font-bold tracking-tighter leading-none mt-1">V7.0</span>
                 </button>
             </div>
-
+ 
             <!-- Scrollable Warehouse Panel -->
-            <div id="control-warehouse-panel" class="flex-grow overflow-y-auto p-6 bg-slate-50 flex flex-col gap-5">
+            <div id="control-warehouse-panel" class="flex-grow overflow-y-auto p-4 bg-white flex flex-col gap-4 h-full">
                 
                 <!-- Tab 1 Content: Favorites -->
-                <div id="tab-content-1" class="hidden flex flex-col gap-4 text-left">
-                    <span class="text-[18px] font-black text-slate-500 uppercase select-none">원클릭 서식</span>
-                    <div id="fav-stickers-grid" class="grid grid-cols-2 gap-3"></div>
-                    <div class="h-[1px] bg-slate-200 w-full my-2"></div>
-                    <span class="text-[18px] font-black text-slate-500 uppercase select-none">안심 컴포넌트</span>
-                    <div class="flex flex-col gap-2.5">
-                        <button onclick="injectFavoriteItem('divider', 'solid')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">구분 실선</button>
-                        <button onclick="injectFavoriteItem('divider', 'dashed')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">구분 점선</button>
-                        <button onclick="injectFavoriteItem('quote', 'vertical')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">버티컬 인용</button>
-                        <button onclick="injectFavoriteItem('quote', 'quotes')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">강조 따옴표</button>
+                <div id="tab-content-1" class="hidden flex flex-col gap-3 text-left">
+                    <span class="text-xs font-black text-slate-500 uppercase select-none">원클릭 서식</span>
+                    <div id="fav-stickers-grid" class="grid grid-cols-2 gap-2"></div>
+                    <div class="h-[1px] bg-slate-200 w-full my-1"></div>
+                    <span class="text-xs font-black text-slate-500 uppercase select-none">안심 컴포넌트</span>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="injectFavoriteItem('divider', 'solid')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">구분 실선</button>
+                        <button onclick="injectFavoriteItem('divider', 'dashed')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">구분 점선</button>
+                        <button onclick="injectFavoriteItem('quote', 'vertical')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">버티컬 인용</button>
+                        <button onclick="injectFavoriteItem('quote', 'quotes')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">강조 따옴표</button>
                     </div>
                 </div>
-
+ 
                 <!-- Tab 2 Content: Inline Photo Upload -->
-                <div id="tab-content-2" class="hidden flex flex-col gap-4 text-left">
-                    <span class="text-[18px] font-black text-slate-500 uppercase select-none">사진 업로드</span>
-                    <button onclick="triggerPhotoUpload()" type="button" class="w-full flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-4 rounded-2xl text-[18px] font-black transition-all cursor-pointer shadow-xs">
-                        <i class="fa-solid fa-camera text-xl"></i>
+                <div id="tab-content-2" class="hidden flex flex-col gap-3 text-left">
+                    <span class="text-xs font-black text-slate-500 uppercase select-none">사진 업로드</span>
+                    <button onclick="triggerPhotoUpload()" type="button" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs">
+                        <i class="fa-solid fa-camera text-sm"></i>
                         <span>사진 파일 선택</span>
                     </button>
-                </div>
-
-                <!-- Tab 3 Content: High-Fidelity Unsplash Stickers -->
-                <div id="tab-content-3" class="hidden flex flex-col gap-4 text-left">
-                    <span class="text-[18px] font-black text-slate-500 uppercase select-none">카테고리 분류</span>
-                    <div class="grid grid-cols-2 gap-2 bg-white p-2 border border-slate-200 rounded-2xl shadow-2xs">
-                        <button id="tab-cat-강아지" onclick="setCategoryInTab('강아지')" type="button" class="px-3 py-3 text-[18px] font-black rounded-xl transition-all cursor-pointer text-center">강아지</button>
-                        <button id="tab-cat-생줘" onclick="setCategoryInTab('생줘')" type="button" class="px-3 py-3 text-[18px] font-black rounded-xl transition-all cursor-pointer text-center">스티커</button>
-                        <button id="tab-cat-가격" onclick="setCategoryInTab('가격')" type="button" class="px-3 py-3 text-[18px] font-black rounded-xl transition-all cursor-pointer text-center">홍보형</button>
-                        <button id="tab-cat-파스인형" onclick="setCategoryInTab('파스인형')" type="button" class="px-3 py-3 text-[18px] font-black rounded-xl transition-all cursor-pointer text-center">인형형</button>
+                    <div class="h-[1px] bg-slate-200 w-full my-1"></div>
+                    <span class="text-xs font-black text-slate-500 uppercase select-none">추천 사진 템플릿</span>
+                    <div id="photos-template-grid" class="grid grid-cols-2 gap-2">
+                        <!-- Populated dynamically -->
                     </div>
-                    <div class="h-[1px] bg-slate-200 w-full my-2"></div>
-                    <div id="tab-stickers-container" class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[460px] pr-1"></div>
                 </div>
-
+ 
+                <!-- Tab 3 Content: Naver SmartEditor Style Sticker Palette -->
+                <div id="tab-content-3" class="hidden flex flex-col gap-4 text-left h-full overflow-hidden select-none">
+                    <!-- 1. [Header Area] -->
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span class="text-sm font-extrabold text-slate-800 tracking-tight">스티커</span>
+                        <button onclick="closeStickerPalette()" type="button" class="w-7 h-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all cursor-pointer" title="닫기">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+ 
+                    <!-- 2. [Category Navigation] -->
+                    <div class="flex items-center justify-between gap-1 border-b border-slate-100 pb-2">
+                        <button onclick="scrollCategories('left')" type="button" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all cursor-pointer" title="이전">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <div id="category-circle-list" class="flex-grow flex items-center justify-center gap-2 px-1 py-1">
+                            <button id="circle-cat-곰돌이" onclick="setCategoryInTab('곰돌이')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="곰돌이">🐻</button>
+                            <button id="circle-cat-햄찌" onclick="setCategoryInTab('햄찌')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="햄찌">🐹</button>
+                            <button id="circle-cat-부동산" onclick="setCategoryInTab('부동산')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="부동산">🏠</button>
+                            <button id="circle-cat-댕댕이" onclick="setCategoryInTab('댕댕이')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="댕댕이">🐶</button>
+                            <button id="circle-cat-인형형" onclick="setCategoryInTab('인형형')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="인형형">🧸</button>
+                        </div>
+                        <button onclick="scrollCategories('right')" type="button" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all cursor-pointer" title="다음">
+                            <i class="fa-solid fa-chevron-right text-sm"></i>
+                        </button>
+                    </div>
+ 
+                    <!-- 3 & 4 & 5. [Sticker Grid Area] with 3 columns, large scale, internal scrolling -->
+                    <div id="tab-stickers-container" class="grid grid-cols-3 overflow-y-auto h-[480px] max-h-[calc(100vh-180px)] pr-1 pb-2" style="gap: 12px;">
+                        <!-- Populated dynamically in 3 columns grid -->
+                    </div>
+                </div>
+ 
                 <!-- Tab 4 Content: Editorial Quote Components -->
-                <div id="tab-content-4" class="hidden flex flex-col gap-4 text-left">
-                    <span class="text-[18px] font-black text-slate-500 uppercase select-none">에디토리얼 인용 블록</span>
-                    <div onclick="injectFavoriteItem('quote', 'vertical')" class="border border-slate-200 rounded-2xl py-4 px-5 bg-white hover:bg-slate-100 cursor-pointer transition-all text-[18px] font-black text-slate-600 shadow-2xs leading-relaxed">
+                <div id="tab-content-4" class="hidden flex flex-col gap-3 text-left">
+                    <span class="text-xs font-black text-slate-500 uppercase select-none">에디토리얼 인용 블록</span>
+                    <div onclick="injectFavoriteItem('quote', 'vertical')" class="border border-slate-200 rounded-lg py-3 px-4 bg-white hover:bg-slate-100 cursor-pointer transition-all text-xs font-bold text-slate-600 shadow-2xs leading-relaxed">
                         "대표 소장이 보증하는 구미 명품..."
                     </div>
-                    <div onclick="injectFavoriteItem('quote', 'quotes')" class="border border-slate-200 rounded-2xl py-4 px-5 bg-white hover:bg-slate-100 cursor-pointer transition-all text-[18px] font-black text-slate-600 shadow-2xs leading-relaxed">
+                    <div onclick="injectFavoriteItem('quote', 'quotes')" class="border border-slate-200 rounded-lg py-3 px-4 bg-white hover:bg-slate-100 cursor-pointer transition-all text-xs font-bold text-slate-600 shadow-2xs leading-relaxed">
                         “특별 수압 테스트 통과 세대”
                     </div>
                 </div>
-
+ 
                 <!-- Tab 5 Content: Automatic Double-Spaced Separator Dividers -->
-                <div id="tab-content-5" class="hidden flex flex-col gap-3 text-left">
-                    <span class="text-[18px] font-black text-slate-500 uppercase select-none">구분선 삽입</span>
-                    <button onclick="insertAutoCalculatedDivider('solid')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">실선</button>
-                    <button onclick="insertAutoCalculatedDivider('dashed')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">점선</button>
-                    <button onclick="insertAutoCalculatedDivider('wavy')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">물결</button>
-                    <button onclick="insertAutoCalculatedDivider('dots')" type="button" class="w-full py-4 px-5 bg-white hover:bg-slate-100 text-slate-700 rounded-2xl text-[18px] font-black border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">점점점</button>
+                <div id="tab-content-5" class="hidden flex flex-col gap-2 text-left">
+                    <span class="text-xs font-black text-slate-500 uppercase select-none">구분선 삽입</span>
+                    <button onclick="insertAutoCalculatedDivider('solid')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">실선</button>
+                    <button onclick="insertAutoCalculatedDivider('dashed')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">점선</button>
+                    <button onclick="insertAutoCalculatedDivider('wavy')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">물결</button>
+                    <button onclick="insertAutoCalculatedDivider('dots')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">점점점</button>
                 </div>
-
+ 
                 <!-- Tab 6 Content: V7.0 체험담 가이드 -->
-                <div id="tab-content-6" class="hidden flex flex-col gap-3 text-left">
-                    <span class="text-[18px] font-black text-purple-600 uppercase select-none">V7.0 안심 가이드</span>
-                    <button onclick="injectV7GuideTemplate('intro')" type="button" class="w-full py-4 px-5 bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-200 rounded-2xl text-[18px] font-black transition-all cursor-pointer text-left shadow-2xs">방문 도입부 감성 문장</button>
-                    <button onclick="injectV7GuideTemplate('body')" type="button" class="w-full py-4 px-5 bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-200 rounded-2xl text-[18px] font-black transition-all cursor-pointer text-left shadow-2xs">수압/배수 검증 템플릿</button>
+                <div id="tab-content-6" class="hidden flex flex-col gap-2 text-left">
+                    <span class="text-xs font-black text-emerald-600 uppercase select-none">안심가이드 템플릿</span>
+                    <button onclick="injectV7GuideTemplate('intro')" type="button" class="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-200 rounded-lg text-xs font-bold transition-all cursor-pointer text-left shadow-2xs">방문 도입부 감성 문장</button>
+                    <button onclick="injectV7GuideTemplate('body')" type="button" class="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-200 rounded-lg text-xs font-bold transition-all cursor-pointer text-left shadow-2xs">수압/배수 검증 템플릿</button>
                 </div>
             </div>
         </aside>
 
         <!-- Right Main Panel: Sequential registration and canvas editors (Gemini style) -->
-        <main class="flex-1 h-full overflow-y-auto bg-slate-50/30 px-8 py-8 flex flex-col items-center space-y-6">
+        <main class="w-[75%] h-full overflow-y-auto bg-white p-10 flex flex-col items-center space-y-8">
             
             <!-- SECTION 1: 매물 기초 정보 기재란 -->
             <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
-                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 select-none">
-                    <i class="fa-solid fa-hotel text-2xl text-emerald-500"></i>
-                    <h3 class="font-extrabold text-[22px] text-slate-900">기본 매물 대분류</h3>
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
+                    <i class="fa-solid fa-hotel text-[32px] text-emerald-500"></i>
+                    <h3 class="font-black text-[26px] text-slate-900">기본 매물 대분류</h3>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-8">
                     <div>
-                        <span class="block text-[18px] font-black text-slate-500 uppercase mb-3 select-none">매물 종류</span>
-                        <div class="flex flex-wrap gap-2.5">
-                            <button onclick="setCategory('원룸')" type="button" class="cat-btn px-6 py-4 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-emerald-500 border-emerald-600 text-white shadow-sm">원룸</button>
-                            <button onclick="setCategory('미투')" type="button" class="cat-btn px-6 py-4 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50">미투</button>
-                            <button onclick="setCategory('투룸')" type="button" class="cat-btn px-6 py-4 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50">투룸</button>
-                            <button onclick="setCategory('쓰리룸')" type="button" class="cat-btn px-6 py-4 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50">쓰리룸</button>
-                            <button onclick="setCategory('오피스텔')" type="button" class="cat-btn px-6 py-4 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50">오피스텔</button>
+                        <span class="block text-[22px] font-black text-slate-500 uppercase mb-4 select-none">매물 종류</span>
+                        <div class="flex flex-wrap gap-3.5">
+                            <button onclick="setCategory('원룸매매')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">원룸매매</button>
+                            <button onclick="setCategory('원룸')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">원룸</button>
+                            <button onclick="setCategory('미투')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">미투</button>
+                            <button onclick="setCategory('투룸')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">투룸</button>
+                            <button onclick="setCategory('쓰리룸')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">쓰리룸</button>
+                            <button onclick="setCategory('상가')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">상가</button>
+                            <button onclick="setCategory('아파트')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">아파트</button>
+                            <button onclick="setCategory('오피스텔')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">오피스텔</button>
+                            <button onclick="setCategory('빌라')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">빌라</button>
+                            <button onclick="setCategory('땅')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">땅</button>
+                            <button onclick="setCategory('기타')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">기타</button>
                         </div>
                     </div>
 
                     <div>
-                        <span class="block text-[18px] font-black text-slate-500 uppercase mb-3 select-none">거래 유형</span>
-                        <div class="flex gap-2.5">
-                            <button onclick="setTransactionType('월세')" type="button" class="trans-btn py-4 px-6 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-emerald-500 border-emerald-600 text-white shadow-sm">월세</button>
-                            <button onclick="setTransactionType('전세')" type="button" class="trans-btn py-4 px-6 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50">전세</button>
-                            <button onclick="setTransactionType('매매')" type="button" class="trans-btn py-4 px-6 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50">매매</button>
+                        <span class="block text-[22px] font-black text-slate-500 uppercase mb-4 select-none">거래 유형</span>
+                        <div class="flex gap-3.5">
+                            <button onclick="setTransactionType('월세')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-emerald-500 border-emerald-600 text-white shadow-sm">월세</button>
+                            <button onclick="setTransactionType('전세')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">전세</button>
+                            <button onclick="setTransactionType('매매')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">매매</button>
                         </div>
                     </div>
                 </div>
@@ -308,15 +586,15 @@
 
             <!-- SECTION 2: 지명 주소 및 상세 정보 입력 -->
             <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
-                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 select-none">
-                    <i class="fa-solid fa-map-location-dot text-2xl text-emerald-500"></i>
-                    <h3 class="font-extrabold text-[22px] text-slate-900">구미 지명 및 법정 주소</h3>
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
+                    <i class="fa-solid fa-map-location-dot text-[32px] text-emerald-500"></i>
+                    <h3 class="font-black text-[26px] text-slate-900">구미 지명 및 법정 주소</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">법정동 선택</label>
-                        <select id="post-dong" onchange="notifyParent()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">법정동 선택</label>
+                        <select id="post-dong" onchange="notifyParent()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
                             <option value="송정동">송정동</option>
                             <option value="원평동">원평동</option>
                             <option value="형곡동">형곡동</option>
@@ -339,16 +617,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">상세 지번 입력</label>
-                        <div class="flex gap-3">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">상세 지번 입력</label>
+                        <div class="flex gap-4">
                             <input 
                                 type="text" 
                                 id="post-address" 
                                 onchange="notifyParent()"
                                 placeholder="예: 송정동 456-12" 
-                                class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500"
+                                class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500"
                             >
-                            <button onclick="searchPage1Address()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white text-[18px] font-bold px-6 py-4 rounded-2xl cursor-pointer">위치조회</button>
+                            <button onclick="searchPage1Address()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white text-[22px] font-bold px-7 py-5 rounded-2xl cursor-pointer">위치조회</button>
                         </div>
                     </div>
                 </div>
@@ -359,107 +637,146 @@
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-3">
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">건물명</label>
-                        <input type="text" id="post-building" oninput="notifyParent()" placeholder="예: 무지개빌" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">건물명</label>
+                        <input type="text" id="post-building" oninput="notifyParent()" placeholder="예: 무지개빌" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">호실 (금고보관)</label>
-                        <input type="text" id="post-room" oninput="notifyParent()" placeholder="예: 301호" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">호실 (금고보관)</label>
+                        <input type="text" id="post-room" oninput="notifyParent()" placeholder="예: 301호" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">해당층</label>
-                        <input type="text" id="post-floor" oninput="notifyParent()" placeholder="예: 3층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">해당층</label>
+                        <input type="text" id="post-floor" oninput="notifyParent()" placeholder="예: 3층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">전체층</label>
-                        <input type="text" id="post-totalFloor" oninput="notifyParent()" placeholder="예: 4층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">전체층</label>
+                        <input type="text" id="post-totalFloor" oninput="notifyParent()" placeholder="예: 4층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
 
             <!-- SECTION 3: 실거래 금액 및 보증금 조건 -->
             <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
-                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 select-none">
-                    <i class="fa-solid fa-coins text-2xl text-emerald-500"></i>
-                    <h3 class="font-extrabold text-[22px] text-slate-900">금액 및 관리비 조건</h3>
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
+                    <i class="fa-solid fa-coins text-[32px] text-emerald-500"></i>
+                    <h3 class="font-black text-[26px] text-slate-900">금액 및 관리비 조건</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">임대 금액 (만 원)</label>
-                        <input type="text" id="post-price" oninput="notifyParent()" placeholder="예: 200/35 또는 5000" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">임대 금액 (만 원)</label>
+                        <input type="text" id="post-price" oninput="notifyParent()" placeholder="예: 200/35 또는 5000" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">관리금 합산 (만 원)</label>
-                        <input type="text" id="post-manageFee" oninput="notifyParent()" placeholder="예: 5" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">관리금 합산 (만 원)</label>
+                        <input type="text" id="post-manageFee" oninput="notifyParent()" placeholder="예: 5" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
 
             <!-- SECTION 4: 연락 담당처 정보 -->
             <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
-                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 select-none">
-                    <i class="fa-solid fa-address-book text-2xl text-emerald-500"></i>
-                    <h3 class="font-extrabold text-[22px] text-slate-900">연락 담당처 정보</h3>
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
+                    <i class="fa-solid fa-address-book text-[32px] text-emerald-500"></i>
+                    <h3 class="font-black text-[26px] text-slate-900">연락 담당처 정보</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">중개사무소 연락처</label>
-                        <input type="text" id="post-phone" oninput="notifyParent()" placeholder="예: 010-1234-5678" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">중개사무소 연락처</label>
+                        <input type="text" id="post-phone" oninput="notifyParent()" placeholder="예: 010-1234-5678" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">임대인 직접 연락처 (금고보관)</label>
-                        <input type="text" id="post-ownerPhone" oninput="notifyParent()" placeholder="예: 010-9876-5432" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">임대인 직접 연락처 (금고보관)</label>
+                        <input type="text" id="post-ownerPhone" oninput="notifyParent()" placeholder="예: 010-9876-5432" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
 
             <!-- SECTION 5: 미디어 자료 등록 구역 -->
-            <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
-                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 select-none">
-                    <i class="fa-solid fa-play text-2xl text-emerald-500"></i>
-                    <h3 class="font-extrabold text-[22px] text-slate-900">미디어 자료 등록 구역</h3>
+            <div class="w-full max-w-[950px] bg-white rounded-3xl border border-slate-200 p-8 space-y-8 shadow-xs text-left">
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
+                    <i class="fa-solid fa-photo-film text-[36px] text-emerald-600"></i>
+                    <h3 class="font-black text-[28px] text-slate-900">미디어 자료 등록 구역 (16:9 수직 통합)</h3>
                 </div>
 
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-[18px] font-black text-slate-500 uppercase mb-2.5">유튜브 동영상 링크</label>
-                        <input type="text" id="post-video" oninput="notifyParent()" placeholder="예: https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[18px] font-bold focus:outline-none focus:border-emerald-500">
+                <div class="space-y-8">
+                    <!-- 1. 유튜브 동영상 링크 입력란 -->
+                    <div class="space-y-3">
+                        <label class="block text-[22px] font-black text-slate-700 select-none">1. 유튜브 동영상 링크</label>
+                        <input type="text" id="post-video" oninput="handleYoutubeInput()" placeholder="예: https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
+                        <!-- 유튜브 16:9 임베드 미리보기 영역 -->
+                        <div id="youtube-preview-container" class="hidden w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-black relative shadow-xs">
+                            <iframe id="youtube-iframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- 일반 사진 등록 -->
-                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-slate-50/50" id="photo-drag-zone">
-                            <i class="fa-solid fa-images text-slate-400 text-4xl mb-3"></i>
-                            <span class="text-lg font-bold text-slate-700">일반 사진 드래그 또는 첨부</span>
+                    <!-- 2. 일반사진 썸네일(대표사진) 등록란 -->
+                    <div class="space-y-3">
+                        <label class="block text-[22px] font-black text-slate-700 select-none">2. 일반사진 썸네일(대표사진) 등록</label>
+                        <!-- 대표사진 드래그 존 / 파일 첨부 -->
+                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-video w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10" id="main-photo-drag-zone">
+                            <input type="file" id="main-photo-input" accept="image/*" class="hidden" onchange="handleMainPhotoUpload(event)">
+                            <div id="main-photo-placeholder" class="flex flex-col items-center justify-center" onclick="document.getElementById('main-photo-input').click()">
+                                <i class="fa-solid fa-image-portrait text-slate-400 text-6xl mb-4"></i>
+                                <span class="text-2xl font-black text-slate-800">대표사진(썸네일) 드래그 또는 클릭 첨부</span>
+                                <span class="text-lg text-slate-400 mt-2">16:9 황금비율 최적화</span>
+                            </div>
+                            <div id="main-photo-preview-container" class="hidden w-full h-full relative">
+                                <img id="main-photo-img" src="" class="w-full h-full object-cover rounded-xl" />
+                                <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-all rounded-xl" onclick="document.getElementById('main-photo-input').click()">
+                                    <span class="text-white text-2xl font-black bg-slate-900/80 px-6 py-3 rounded-2xl"><i class="fa-solid fa-rotate mr-2"></i>대표사진 변경</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 대표사진 삭제/수정 컨트롤러 -->
+                        <div id="main-photo-controls" class="hidden flex justify-end">
+                            <button onclick="deleteMainPhoto()" type="button" class="bg-rose-600 text-white px-6 py-4 rounded-xl text-lg font-black hover:bg-rose-500 cursor-pointer shadow-sm"><i class="fa-solid fa-trash-can mr-2"></i>대표사진 제거</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. 일반사진 추가 첨부 등록란 -->
+                    <div class="space-y-4">
+                        <label class="block text-[22px] font-black text-slate-700 select-none">3. 일반사진 추가 첨부 등록</label>
+                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-[21/9] w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10" id="additional-photos-drag-zone" onclick="document.getElementById('multiple-photos-input').click()">
                             <input type="file" id="multiple-photos-input" multiple accept="image/*" class="hidden" onchange="handleMultiplePhotosUpload(event)">
-                            <button onclick="document.getElementById('multiple-photos-input').click()" type="button" class="mt-4 px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-base font-bold cursor-pointer shadow-sm">파일 선택</button>
+                            <i class="fa-solid fa-images text-slate-400 text-6xl mb-4"></i>
+                            <span class="text-2xl font-black text-slate-800">추가 첨부 사진들 드래그 또는 클릭 첨부</span>
+                            <span class="text-lg text-slate-400 mt-2">여러 장의 일반 사진을 한 번에 등록하십시오</span>
                         </div>
+                        
+                        <!-- 추가 사진 16:9 수직 스택 리스트 -->
+                        <div class="space-y-4">
+                            <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (16:9 비율 폭포수 스택)</span>
+                            <div id="additional-photos-stack" class="flex flex-col gap-6 w-full">
+                                <!-- Previews will be rendered as full-width aspect-video (16:9) cards -->
+                            </div>
+                        </div>
+                    </div>
 
-                        <!-- 360도 VR 파노라마 등록 -->
-                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-slate-50/50" id="pano-drag-zone">
-                            <i class="fa-solid fa-globe text-emerald-500 text-4xl mb-3"></i>
-                            <span class="text-lg font-bold text-slate-700">인스타360 VR 파노라마 등록</span>
+                    <!-- 4. 360도 VR 파노라마 사진 등록란 -->
+                    <div class="space-y-4">
+                        <label class="block text-[22px] font-black text-slate-700 select-none">4. 360도 VR 파노라마 사진 등록</label>
+                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-[21/9] w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10" id="pano-drag-zone" onclick="document.getElementById('multiple-panos-input').click()">
                             <input type="file" id="multiple-panos-input" multiple accept="image/*" class="hidden" onchange="handleMultiplePanosUpload(event)">
-                            <button onclick="document.getElementById('multiple-panos-input').click()" type="button" class="mt-4 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-base font-bold cursor-pointer shadow-sm">파일 선택</button>
+                            <i class="fa-solid fa-globe text-emerald-500 text-6xl mb-4 animate-pulse"></i>
+                            <span class="text-2xl font-black text-slate-800">인스타360 / 캐논 VR 파노라마 사진 등록</span>
+                            <span class="text-lg text-slate-400 mt-2">상하좌우 360도 공간 실감 사진을 첨부하십시오</span>
+                        </div>
+
+                        <!-- 파노라마 VR 목록 (16:9 비율) -->
+                        <div class="grid grid-cols-2 gap-6 pt-2">
+                            <div class="space-y-3">
+                                <span class="block text-[20px] font-black text-slate-500 uppercase select-none">파노라마 리스트</span>
+                                <div id="pano-photos-list" class="grid grid-cols-2 gap-4"></div>
+                            </div>
+                            <!-- VR 웅장한 16:9 하드코딩 뷰어 -->
+                            <div class="space-y-3">
+                                <span class="block text-[20px] font-black text-slate-500 uppercase select-none">360° VR 파노라마 실감 체험뷰어 (16:9 황금비율)</span>
+                                <div id="panorama-viewer-container" class="hidden w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 relative select-none shadow-xs"></div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- 업로드 완료 썸네일 리스트 -->
-                    <div class="grid grid-cols-2 gap-6 pt-3">
-                        <div class="space-y-3">
-                            <span class="block text-[18px] font-black text-slate-500 uppercase select-none">일반 사진 리스트</span>
-                            <div id="general-photos-grid" class="grid grid-cols-2 gap-3"></div>
-                        </div>
-                        <div class="space-y-3">
-                            <span class="block text-[18px] font-black text-slate-500 uppercase select-none">VR 360 파노라마</span>
-                            <div id="pano-photos-list" class="grid grid-cols-2 gap-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- VR Active Viewer Container -->
-                    <div id="panorama-viewer-container" class="hidden w-full h-[400px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 relative select-none"></div>
                 </div>
             </div>
 
@@ -474,7 +791,7 @@
                 </div>
                 <div 
                     id="intro-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-base" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
                     contenteditable="true"
                     data-placeholder="이곳에 구미 대표 소장님의 안심 추천 멘트와 도입부를 작성해 주십시오..."
                     onfocus="focusEditor('intro-canvas', '[책임 중개 소장 한마디]')"
@@ -491,7 +808,7 @@
                 </div>
                 <div 
                     id="body-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-base" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
                     contenteditable="true"
                     data-placeholder="이곳에 실사 현장 중심의 꼼꼼한 세대 본문 원고 내용을 적어 주십시오..."
                     onfocus="focusEditor('body-canvas', '[블로그 본문 원고]')"
@@ -508,7 +825,7 @@
                 </div>
                 <div 
                     id="remarks-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-base" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
                     contenteditable="true"
                     data-placeholder="이곳에 주차 가능 수, 엘리베이터 여부 등 당일 기준 요약 특징을 기재하십시오..."
                     onfocus="focusEditor('remarks-canvas', '[실시간 매물특징]')"
@@ -525,7 +842,7 @@
                 </div>
                 <div 
                     id="guide-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-base" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
                     contenteditable="true"
                     data-placeholder="이곳에 소장님이 현장을 정밀 답사하고 보장하는 배수 상태와 소음 등급을 최종 요약하십시오..."
                     onfocus="focusEditor('guide-canvas', '[전문가 실사 답사가이드]')"
@@ -652,6 +969,19 @@
         </div>
     </div>
 
+    <!-- Floating Special Symbols Popup -->
+    <div id="special-symbols-popup" class="hidden fixed top-32 right-12 bg-white border border-slate-300 rounded-3xl shadow-2xl p-6 z-[1000] w-[380px] select-none text-left animate-fadeIn">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <span class="text-[22px] font-black text-slate-800">많이쓰는 기호 ∨</span>
+            <button onclick="closeSpecialSymbolsPopup()" type="button" class="w-10 h-10 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[24px] font-bold cursor-pointer transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="grid grid-cols-6 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+            <!-- Populated dynamically via JS -->
+        </div>
+    </div>
+
     <!-- Hidden native file loader -->
     <input type="file" id="hidden-photo-input" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
 
@@ -659,34 +989,138 @@
     <script type="text/javascript">
         // Procedural high-fidelity stickers compilation
         const STICKERS = [];
-        const sampleUnsplashIds = [
-            "1543466835-00a7907e9de1", "1517849845537-4d257902454a", "1583511655857-d19b40a7a54e", 
-            "1534361960057-19889db9621e", "1507146426996-ef05306b995a", "1552053831-71594a27632d", 
-            "1530281700549-e82e7bf110d6", "1587300003388-59208cc962cb"
+        const bearUnsplashIds = ["1531853121101-eb02cd7e7e9b", "1559251606-c623743a6d76", "1607604276583-eef5d076aa5f", "1585110396000-c9ffd4e4b308", "1593085512500-5d55148d6f0d", "1542435503-956c469947f6"];
+        const bearLabels = [
+            "블로그 기록중", "집이랑결혼함", "무슨 글감을 써볼까", "블로그리뷰각", "똑똑", "끄응",
+            "밀린글털기", "GRWM!", "찐맛집공개", "어질어질", "키워볼까", "일주일공부",
+            "신남", "퇴근!", "지침", "흑흑", "댓글과 공감", "개운"
         ];
-        
-        // 18 animal-themed stickers
         for (let i = 0; i < 18; i++) {
-            const id = sampleUnsplashIds[i % sampleUnsplashIds.length];
-            STICKERS.push({ category: '강아지', url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=150&h=150&q=80`, displayName: `[동물형 ${i + 1}]` });
+            const id = bearUnsplashIds[i % bearUnsplashIds.length];
+            STICKERS.push({
+                id: `sticker_bear_${i}`,
+                type: 'sticker',
+                category: '곰돌이',
+                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                displayName: bearLabels[i]
+            });
         }
-        // 18 general decorative stickers
-        const mouseImages = ["1537815749002-de6a533c64db", "1425082661705-1834bfd09dca", "1507608869274-d3177c8bb4c7", "1527156278745-ec9b97452d0a"];
+
+        const hamsterUnsplashIds = ["1548767797-d8c844163c4c", "1501705388883-4ed8a543392c", "1425082661705-1834bfd09dca", "1511447333015-45b65e60f6d5"];
+        const hamsterLabels = [
+            "햄찌 출근", "열공 햄찌", "식사중 맛남", "방콕 꿀잠", "총총 걸음", "쳇바퀴 돌기",
+            "집 꾸미기", "해바라기씨", "감동 한가득", "멘붕 완료", "빼꼼 햄찌", "화남 찍찍",
+            "축하 축하", "안녕히가세찌", "눈물 주르륵", "포근한 밤", "기다림 지침", "행복한 하루"
+        ];
         for (let i = 0; i < 18; i++) {
-            const id = mouseImages[i % mouseImages.length];
-            STICKERS.push({ category: '생줘', url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=150&h=150&q=80`, displayName: `[일반형 ${i + 1}]` });
+            const id = hamsterUnsplashIds[i % hamsterUnsplashIds.length];
+            STICKERS.push({
+                id: `sticker_hamster_${i}`,
+                type: 'sticker',
+                category: '햄찌',
+                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                displayName: hamsterLabels[i]
+            });
         }
-        // 18 pricing/marketing badges
-        const priceImages = ["1545324418-cc1a3fa10c00", "1570129477492-45c003edd2be", "1486406146926-c627a92ad1ab", "1554224155-8d04cb21cd6c"];
+
+        const propUnsplashIds = ["1564013799919-ab600027ffc6", "1570129477492-45c003edd2be", "1486406146926-c627a92ad1ab", "1512917774080-9991f1c4c750", "1580587771525-78b9dba3b914", "1600585154340-be6161a56a0c"];
+        const propLabels = [
+            "급매 강추", "풀옵션 완비", "수압 대만족", "채광 양호", "남향 배치", "주차 편의",
+            "초역세권", "신축 첫입주", "전세 자금대출", "관리비 저렴", "즉시 입주", "정밀 정밀실사",
+            "책임 중개", "보증금 상담", "직접 가봄", "안심 매물", "인기 폭발", "대박 찬스"
+        ];
         for (let i = 0; i < 18; i++) {
-            const id = priceImages[i % priceImages.length];
-            STICKERS.push({ category: '가격', url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=150&h=150&q=80`, displayName: `[홍보형 ${i + 1}]` });
+            const id = propUnsplashIds[i % propUnsplashIds.length];
+            STICKERS.push({
+                id: `sticker_prop_${i}`,
+                type: 'sticker',
+                category: '부동산',
+                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                displayName: propLabels[i]
+            });
         }
-        // 19 character/figurine stickers
-        const pastelImages = ["1558060370-d644479cb6f7", "1599839575945-a9e5af0c3fa5", "1555448248-2571daf6344b", "1602810318383-e386cc2a3ccf"];
-        for (let i = 0; i < 19; i++) {
-            const id = pastelImages[i % pastelImages.length];
-            STICKERS.push({ category: '파스인형', url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=150&h=150&q=80`, displayName: `[인형형 ${i + 1}]` });
+
+        const dogUnsplashIds = ["1543466835-00a7907e9de1", "1517849845537-4d257902454a", "1583511655857-d19b40a7a54e", "1534361960057-19889db9621e", "1507146426996-ef05306b995a"];
+        const dogLabels = [
+            "댕댕 출동", "간식 원츄", "멍멍 산책", "뒹굴 뒹굴", "꼬리 흔들기", "으르렁 화남",
+            "갸우뚱?", "쿨쿨 잠꼬대", "눈물 찔끔", "사랑해 멍", "메롱 댕댕", "충성 댕댕",
+            "달려라 달려", "하이파이브", "목욕 싫어", "반가워요", "행복 충전", "안녕 빠이"
+        ];
+        for (let i = 0; i < 18; i++) {
+            const id = dogUnsplashIds[i % dogUnsplashIds.length];
+            STICKERS.push({
+                id: `sticker_dog_${i}`,
+                type: 'sticker',
+                category: '댕댕이',
+                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                displayName: dogLabels[i]
+            });
+        }
+
+        const dollUnsplashIds = ["1558060370-d644479cb6f7", "1599839575945-a9e5af0c3fa5", "1555448248-2571daf6344b", "1602810318383-e386cc2a3ccf", "1584992121161-304a7ac64df2"];
+        const dollLabels = [
+            "러블리 곰", "포근 토끼", "스마일 인형", "우울 곰돌", "행복 퍼피", "깜짝 키티",
+            "잠자는 아가", "인형 놀이", "보들 보들", "귀요미 한마리", "핑키 하트", "포그니 쿠션",
+            "소중해 인형", "새 친구 인형", "동물 친구들", "선물 도착", "반짝 반짝", "포근 안심"
+        ];
+        for (let i = 0; i < 18; i++) {
+            const id = dollUnsplashIds[i % dollUnsplashIds.length];
+            STICKERS.push({
+                id: `sticker_doll_${i}`,
+                type: 'sticker',
+                category: '인형형',
+                url: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
+                displayName: dollLabels[i]
+            });
+        }
+
+        // Additional asset definitions for other categories to enable starring
+        const PHOTOS = [
+            { id: 'photo_0', type: 'photo', displayName: '원룸 건물 외관', url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&h=450&q=80' },
+            { id: 'photo_1', type: 'photo', displayName: '깔끔한 내부 주방', url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&h=450&q=80' },
+            { id: 'photo_2', type: 'photo', displayName: '정밀 실사 화장실', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&h=450&q=80' },
+            { id: 'photo_3', type: 'photo', displayName: '아늑한 방 침실', url: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&h=450&q=80' }
+        ];
+
+        const QUOTES = [
+            { id: 'quote_0', type: 'quote', displayName: '소장 보증 버티컬 인용', styleType: 'vertical', text: '이곳에 소장님만의 실사 답사 인용구 내용을 기록해 주십시오.' },
+            { id: 'quote_1', type: 'quote', displayName: '특별 수압 강조 따옴표', styleType: 'quotes', text: '특별 수압 테스트 통과 세대' },
+            { id: 'quote_2', type: 'quote', displayName: '정밀 실사 신뢰 통과', styleType: 'quotes', text: '현장을 정밀 실사 통과하여 신뢰할 수 있는 매물 정보입니다.' },
+            { id: 'quote_3', type: 'quote', displayName: '프리미엄 공간 입지', styleType: 'vertical', text: '구미 최상의 프리미엄 공간 입지를 지금 확인하십시오.' }
+        ];
+
+        const DIVIDERS = [
+            { id: 'divider_solid', type: 'divider', displayName: '구분 실선', styleType: 'solid' },
+            { id: 'divider_dashed', type: 'divider', displayName: '구분 점선', styleType: 'dashed' },
+            { id: 'divider_wavy', type: 'divider', displayName: '물결 구분선', styleType: 'wavy' },
+            { id: 'divider_dots', type: 'divider', displayName: '점점점 구분선', styleType: 'dots' }
+        ];
+
+        const FORMATS = [
+            { id: 'format_intro', type: 'format', displayName: '방문 도입부 감성 문장', styleType: 'intro', text: '"내가 꿈꾸던 포근하고 햇살 가득한 남향 안식처, 구미 최고의 자리에 위치한 고품격 공간의 실물을 직접 감상해보세요."' },
+            { id: 'format_body', type: 'format', displayName: '수압/배수 검증 템플릿', styleType: 'body', text: '욕실의 수압은 부드럽고 균일한 분사력을 자랑하며 싱크대 배수구 상태를 원격 체크하여 최상의 성능임을 확인했습니다. 실내 소음을 최소화한 명품 공간입니다.' },
+            { id: 'format_guarantee', type: 'format', displayName: '태왕 책임 중개 약속', styleType: 'guarantee', text: '구미 태왕공인중개사사무소는 정직과 신뢰를 바탕으로 책임 중개를 약속드리며, 입주 후 불편사항까지 끝까지 함께 책임집니다.' }
+        ];
+
+        // Persistent Favorites State with pre-populated defaults
+        let favorites = [];
+        try {
+            const saved = localStorage.getItem('taewang_editor_favorites');
+            if (saved) {
+                favorites = JSON.parse(saved);
+            } else {
+                favorites = [
+                    'sticker_prop_0',  // 급매 강추
+                    'sticker_prop_1',  // 풀옵션 완비
+                    'photo_0',         // 원룸 건물 외관
+                    'quote_1',         // 특별 수압 강조 따옴표
+                    'divider_solid',   // 구분 실선
+                    'format_intro'     // 방문 도입부 감성 문장
+                ];
+                localStorage.setItem('taewang_editor_favorites', JSON.stringify(favorites));
+            }
+        } catch (e) {
+            favorites = [];
         }
 
         // State Variables
@@ -695,7 +1129,7 @@
         let activeEditorId = 'intro-canvas';
         let activeEditorLabel = '[책임 중개 소장 한마디]';
         let currentActiveTab = 1;
-        let tabActiveCategory = '강아지';
+        let tabActiveCategory = '곰돌이';
         let apiGeocodedPlace = null;
         let naverMapInstance = null;
         let naverMarkerInstance = null;
@@ -835,20 +1269,59 @@
             renderPanoramaPhotos();
         }
 
+        // Youtube URL input preview
+        function handleYoutubeInput() {
+            const inputVal = document.getElementById('post-video').value.trim();
+            const container = document.getElementById('youtube-preview-container');
+            const iframe = document.getElementById('youtube-iframe');
+            
+            if (!inputVal) {
+                if (container) container.classList.add('hidden');
+                if (iframe) iframe.src = '';
+                notifyParent();
+                return;
+            }
+            
+            let videoId = '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = inputVal.match(regExp);
+            if (match && match[2].length === 11) {
+                videoId = match[2];
+            }
+            
+            if (videoId) {
+                if (iframe) iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                if (container) container.classList.remove('hidden');
+            } else {
+                if (container) container.classList.add('hidden');
+                if (iframe) iframe.src = '';
+            }
+            notifyParent();
+        }
+
         // Batch upload photos
+        function handleMainPhotoUpload(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            uploadBatch([files[0]], 'images', true);
+            e.target.value = '';
+        }
+
         function handleMultiplePhotosUpload(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-            uploadBatch(files, 'images');
+            uploadBatch(files, 'images', false);
+            e.target.value = '';
         }
 
         function handleMultiplePanosUpload(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-            uploadBatch(files, 'pano');
+            uploadBatch(files, 'pano', false);
+            e.target.value = '';
         }
 
-        async function uploadBatch(files, type) {
+        async function uploadBatch(files, type, isMain = false) {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 showLoader(`사진 파일 업로드 중입니다 (${i + 1}/${files.length})`);
@@ -869,7 +1342,15 @@
                                 if (!msgEvent.data) return;
                                 if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === type) {
                                     if (type === 'images') {
-                                        generalPhotos.push(msgEvent.data.payload.url);
+                                        if (isMain) {
+                                            if (generalPhotos.length > 0) {
+                                                generalPhotos[0] = msgEvent.data.payload.url;
+                                            } else {
+                                                generalPhotos.push(msgEvent.data.payload.url);
+                                            }
+                                        } else {
+                                            generalPhotos.push(msgEvent.data.payload.url);
+                                        }
                                     } else if (type === 'pano') {
                                         panoramaPhotos.push(msgEvent.data.payload.url);
                                     }
@@ -884,7 +1365,15 @@
                         } else {
                             const objUrl = URL.createObjectURL(file);
                             if (type === 'images') {
-                                generalPhotos.push(objUrl);
+                                if (isMain) {
+                                    if (generalPhotos.length > 0) {
+                                        generalPhotos[0] = objUrl;
+                                    } else {
+                                        generalPhotos.push(objUrl);
+                                    }
+                                } else {
+                                    generalPhotos.push(objUrl);
+                                }
                             } else if (type === 'pano') {
                                 panoramaPhotos.push(objUrl);
                             }
@@ -902,27 +1391,79 @@
             notifyParent();
         }
 
-        // General Photos Renderer
+        // General Photos Renderer (16:9 Dynamic Split: Representative vs Additional)
         function renderGeneralPhotos() {
-            const grid = document.getElementById('general-photos-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
+            // Render 2. Representative Photo [generalPhotos[0]]
+            const mainZone = document.getElementById('main-photo-drag-zone');
+            const placeholder = document.getElementById('main-photo-placeholder');
+            const previewContainer = document.getElementById('main-photo-preview-container');
+            const previewImg = document.getElementById('main-photo-img');
+            const controls = document.getElementById('main-photo-controls');
 
-            generalPhotos.forEach((url, idx) => {
-                const item = document.createElement('div');
-                item.className = "relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 group flex flex-col aspect-video";
-                item.innerHTML = `
-                    <img src="${url}" class="w-full h-full object-cover">
-                    <div class="absolute bottom-1 left-1 right-1 flex justify-between bg-slate-900/60 p-1 rounded-lg backdrop-blur-xs">
-                        <div class="flex gap-1">
-                            <button onclick="moveGeneralPhoto(${idx}, -1)" type="button" class="bg-slate-800 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] hover:bg-slate-700 cursor-pointer"><i class="fa-solid fa-arrow-left"></i></button>
-                            <button onclick="moveGeneralPhoto(${idx}, 1)" type="button" class="bg-slate-800 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] hover:bg-slate-700 cursor-pointer"><i class="fa-solid fa-arrow-right"></i></button>
+            if (generalPhotos.length > 0) {
+                const repUrl = generalPhotos[0];
+                if (previewImg) previewImg.src = repUrl;
+                if (placeholder) placeholder.classList.add('hidden');
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (controls) controls.classList.remove('hidden');
+                if (mainZone) {
+                    mainZone.classList.remove('border-dashed', 'border-slate-250');
+                    mainZone.classList.add('border-solid', 'border-slate-200');
+                }
+            } else {
+                if (previewImg) previewImg.src = '';
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (previewContainer) previewContainer.classList.add('hidden');
+                if (controls) controls.classList.add('hidden');
+                if (mainZone) {
+                    mainZone.classList.remove('border-solid', 'border-slate-200');
+                    mainZone.classList.add('border-dashed', 'border-slate-250');
+                }
+            }
+
+            // Render 3. Additional Photos [generalPhotos.slice(1)] (16:9 Stacked)
+            const stack = document.getElementById('additional-photos-stack');
+            if (stack) {
+                stack.innerHTML = '';
+                const additionalList = generalPhotos.slice(1);
+                
+                if (additionalList.length === 0) {
+                    stack.innerHTML = `
+                        <div class="py-12 text-center text-xl text-slate-400 font-extrabold bg-slate-50 rounded-2xl border border-slate-150 border-dashed select-none">
+                            등록된 추가 사진이 없습니다. 위 구역에 드래그하여 등록하십시오.
                         </div>
-                        <button onclick="deleteGeneralPhoto(${idx})" type="button" class="bg-rose-600 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] hover:bg-rose-500 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `;
-                grid.appendChild(item);
-            });
+                    `;
+                } else {
+                    additionalList.forEach((url, idx) => {
+                        const actualIdx = idx + 1;
+                        const item = document.createElement('div');
+                        item.className = "relative bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xs flex flex-col aspect-video w-full";
+                        item.innerHTML = `
+                            <img src="${url}" class="w-full h-full object-cover">
+                            <div class="absolute bottom-4 left-4 right-4 flex justify-between bg-slate-950/70 px-4 py-3 rounded-xl backdrop-blur-md border border-slate-800">
+                                <span class="text-white text-lg font-black flex items-center gap-2">
+                                    <span class="bg-emerald-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold">${actualIdx}</span>
+                                    <span>추가 사진</span>
+                                </span>
+                                <div class="flex gap-2">
+                                    <button onclick="moveGeneralPhoto(${actualIdx}, -1)" type="button" class="bg-slate-850 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-base font-bold flex items-center gap-1.5 cursor-pointer transition-all"><i class="fa-solid fa-arrow-up"></i> 위로</button>
+                                    <button onclick="moveGeneralPhoto(${actualIdx}, 1)" type="button" class="bg-slate-850 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-base font-bold flex items-center gap-1.5 cursor-pointer transition-all"><i class="fa-solid fa-arrow-down"></i> 아래로</button>
+                                    <button onclick="deleteGeneralPhoto(${actualIdx})" type="button" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2.5 rounded-lg text-base font-bold flex items-center gap-1.5 cursor-pointer transition-all"><i class="fa-solid fa-trash"></i> 삭제</button>
+                                </div>
+                            </div>
+                        `;
+                        stack.appendChild(item);
+                    });
+                }
+            }
+        }
+
+        function deleteMainPhoto() {
+            if (generalPhotos.length > 0) {
+                generalPhotos.splice(0, 1);
+                renderGeneralPhotos();
+                notifyParent();
+            }
         }
 
         function moveGeneralPhoto(index, dir) {
@@ -949,16 +1490,16 @@
 
             panoramaPhotos.forEach((url, idx) => {
                 const item = document.createElement('div');
-                item.className = "relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 aspect-video group flex flex-col cursor-pointer";
+                item.className = "relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 aspect-video group flex flex-col cursor-pointer hover:shadow-sm";
                 item.onclick = (e) => {
                     if (e.target.closest('button')) return;
                     loadPanoramaInViewer(url);
                 };
                 item.innerHTML = `
                     <img src="${url}" class="w-full h-full object-cover">
-                    <div class="absolute top-1 left-1 bg-emerald-500 text-white font-black text-[9px] px-1.5 py-0.5 rounded shadow">VR 360</div>
-                    <div class="absolute bottom-1 right-1">
-                        <button onclick="deletePanoramaPhoto(${idx})" type="button" class="bg-rose-600 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] hover:bg-rose-500 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                    <div class="absolute top-2 left-2 bg-emerald-600 text-white font-black text-xs px-2.5 py-1 rounded shadow">VR 360 파노라마 실사</div>
+                    <div class="absolute bottom-2 right-2">
+                        <button onclick="deletePanoramaPhoto(${idx})" type="button" class="bg-rose-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-rose-500 cursor-pointer shadow"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 `;
                 grid.appendChild(item);
@@ -1090,6 +1631,113 @@
             }
         }
 
+        // Color Picker & Highlighter Handlers
+        function toggleTextColorPicker(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('text-color-picker-panel');
+            const otherPanel = document.getElementById('bg-color-picker-panel');
+            panel.classList.toggle('hidden');
+            if (otherPanel) otherPanel.classList.add('hidden');
+        }
+
+        function toggleBgColorPicker(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('bg-color-picker-panel');
+            const otherPanel = document.getElementById('text-color-picker-panel');
+            panel.classList.toggle('hidden');
+            if (otherPanel) otherPanel.classList.add('hidden');
+        }
+
+        function setTextColor(color) {
+            restoreSelection();
+            document.execCommand('foreColor', false, color);
+            document.getElementById('text-color-indicator').style.backgroundColor = color;
+            document.getElementById('custom-text-color').value = color;
+            document.getElementById('text-color-picker-panel').classList.add('hidden');
+            updateCharacterCounts();
+            notifyParent();
+        }
+
+        function setBgColor(color) {
+            restoreSelection();
+            document.execCommand('hiliteColor', false, color);
+            document.getElementById('custom-bg-color').value = color;
+            document.getElementById('bg-color-picker-panel').classList.add('hidden');
+            updateCharacterCounts();
+            notifyParent();
+        }
+
+        function applyCustomTextColor() {
+            const color = document.getElementById('custom-text-color').value.trim();
+            if (color) setTextColor(color);
+        }
+
+        function applyCustomBgColor() {
+            const color = document.getElementById('custom-bg-color').value.trim();
+            if (color) setBgColor(color);
+        }
+
+        // Floating Special Symbols Popup
+        function toggleSpecialSymbolsPopup(event) {
+            if (event) event.stopPropagation();
+            const popup = document.getElementById('special-symbols-popup');
+            popup.classList.toggle('hidden');
+            if (!popup.classList.contains('hidden')) {
+                populateSpecialSymbols();
+            }
+        }
+
+        function closeSpecialSymbolsPopup() {
+            document.getElementById('special-symbols-popup').classList.add('hidden');
+        }
+
+        function populateSpecialSymbols() {
+            const grid = document.querySelector('#special-symbols-popup .grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            const marketingSymbols = [
+                '※', '☆', '★', '●', '■', '◆', '▲', '▼', '◀', '▶', '♠', '♣', '♥', '♦', '☎', '☞', '☜', '♨', '♭', '♩', '♪', '♬', '㈜', '㉿', 'ⓐ', 'ⓑ', 'ⓒ', 'ⓓ', 'ⓔ', 'ⓕ', 'ⓖ', 'ⓗ', 'ⓘ', 'ⓙ', 'ⓚ', 'ⓛ', 'ⓜ', 'ⓝ', 'ⓞ',
+                '→', '←', '↑', '↓', '↔', '✔', '📢', '✨', '🔑', '🏠', '🏢', '💰', '🍀', '💎', '🔥', '🚀', '📍', '📞', '⚡', '🎁', '⭐', '🌈', '☀', '🔔', '📌', '🎨', '🎬', '🏡', '🌸', '🌳'
+            ];
+            
+            marketingSymbols.forEach(sym => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'w-12 h-12 hover:bg-slate-100 text-[24px] text-slate-800 rounded-xl flex items-center justify-center font-bold cursor-pointer border border-slate-150 transition-all';
+                btn.innerText = sym;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    insertSymbolAtCursor(sym);
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function insertSymbolAtCursor(sym) {
+            restoreSelection();
+            insertHtmlAtCursor(sym);
+            updateCharacterCounts();
+            notifyParent();
+        }
+
+        // Global click listener to hide picker panels and popups when clicking outside
+        window.addEventListener('click', (e) => {
+            const textColorPanel = document.getElementById('text-color-picker-panel');
+            const bgColorPanel = document.getElementById('bg-color-picker-panel');
+            const specialSymbolsPopup = document.getElementById('special-symbols-popup');
+            
+            if (textColorPanel && !textColorPanel.classList.contains('hidden') && !e.target.closest('#text-color-picker-panel') && !e.target.closest('[title="글자색"]')) {
+                textColorPanel.classList.add('hidden');
+            }
+            if (bgColorPanel && !bgColorPanel.classList.contains('hidden') && !e.target.closest('#bg-color-picker-panel') && !e.target.closest('[title="형광펜"]')) {
+                bgColorPanel.classList.add('hidden');
+            }
+            if (specialSymbolsPopup && !specialSymbolsPopup.classList.contains('hidden') && !e.target.closest('#special-symbols-popup') && !e.target.closest('[title="특수기호"]') && !e.target.closest('#tab-btn-7')) {
+                specialSymbolsPopup.classList.add('hidden');
+            }
+        });
+
         // Insertion at caret
         function insertHtmlAtCursor(html) {
             const sel = window.getSelection();
@@ -1128,9 +1776,9 @@
                 const btn = document.getElementById('tab-btn-' + i);
                 if (btn) {
                     if (i === tabIdx) {
-                        btn.className = "py-4 flex flex-col items-center justify-center gap-2 text-emerald-600 border-b-2 border-emerald-600 transition-all cursor-pointer font-black";
+                        btn.className = "flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-emerald-600 bg-emerald-50 rounded-lg border border-emerald-200/50 cursor-pointer font-black transition-all";
                     } else {
-                        btn.className = "py-4 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 border-b-2 border-transparent transition-all cursor-pointer";
+                        btn.className = "flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all";
                     }
                 }
                 
@@ -1149,17 +1797,44 @@
             }
         }
 
-        // Sticker selection
+        // Helper checking if item is starred
+        function isFavorite(id) {
+            return favorites.includes(id);
+        }
+
+        // Toggles favorite state and triggers real-time updates across all tabs
+        function toggleFavorite(e, id) {
+            if (e) e.stopPropagation();
+            const index = favorites.indexOf(id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(id);
+            }
+            localStorage.setItem('taewang_editor_favorites', JSON.stringify(favorites));
+            
+            // Sync renders
+            renderPhotos();
+            renderQuotes();
+            renderDividers();
+            renderFormats();
+            if (currentActiveTab === 3) {
+                setCategoryInTab(tabActiveCategory);
+            }
+            populateFavoritesGrid();
+        }
+
+        // Sticker selection with interactive 2x Star overlays
         function setCategoryInTab(cat) {
             tabActiveCategory = cat;
-            const categories = ['강아지', '생줘', '가격', '파스인형'];
+            const categories = ['곰돌이', '햄찌', '부동산', '댕댕이', '인형형'];
             categories.forEach(c => {
-                const btn = document.getElementById('tab-cat-' + c);
+                const btn = document.getElementById('circle-cat-' + c);
                 if (btn) {
                     if (c === cat) {
-                        btn.className = "px-3 py-3 text-[18px] font-black rounded-xl bg-emerald-600 text-white transition-all cursor-pointer text-center";
+                        btn.className = "w-8 h-8 rounded-full border border-emerald-500 ring-2 ring-emerald-100 bg-emerald-50 flex items-center justify-center text-lg transition-all cursor-pointer shrink-0 scale-105 shadow-xs";
                     } else {
-                        btn.className = "px-3 py-3 text-[18px] font-black rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer text-center";
+                        btn.className = "w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0 hover:scale-105";
                     }
                 }
             });
@@ -1171,47 +1846,333 @@
             const filtered = STICKERS.filter(s => s.category === cat);
             filtered.forEach(stk => {
                 const item = document.createElement('div');
-                item.className = "bg-white hover:bg-slate-100 rounded-xl border border-slate-200 p-2 flex items-center gap-2.5 cursor-pointer transition-all shrink-0 text-left";
+                item.className = "relative group bg-transparent hover:bg-slate-50 border border-slate-150 hover:border-emerald-300 rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer transition-all";
                 item.onclick = () => injectStickerInActiveEditor(stk.url, stk.category, stk.displayName);
 
+                const isFav = isFavorite(stk.id);
                 item.innerHTML = `
-                    <div class="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0">
-                        <img src="${stk.url}" alt="${stk.displayName}" class="max-h-full max-w-full object-contain" referrerPolicy="no-referrer">
+                    <button onclick="toggleFavorite(event, '${stk.id}')" class="absolute top-1 right-1 text-[28px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                        ${isFav ? '⭐' : '<span class="text-slate-300 hover:text-amber-400">☆</span>'}
+                    </button>
+                    <span class="text-[14px] font-bold text-slate-400 group-hover:text-slate-800 text-center mb-1.5 truncate block max-w-[80%] select-none leading-none">${stk.displayName}</span>
+                    <div class="w-full aspect-square max-h-[100px] flex items-center justify-center overflow-hidden shrink-0 mt-0.5">
+                        <img src="${stk.url}" alt="${stk.displayName}" class="max-h-full max-w-full object-contain rounded-xl shadow-2xs transition-all duration-150 group-hover:scale-105 group-active:scale-95" referrerPolicy="no-referrer">
                     </div>
-                    <span class="text-base font-black text-slate-600 truncate max-w-[100px]">${stk.displayName}</span>
                 `;
                 container.appendChild(item);
             });
         }
 
-        // Populate Favorites Grid
+        // Close Sticker Palette
+        function closeStickerPalette() {
+            const panel = document.getElementById('control-warehouse-panel');
+            if (panel) {
+                panel.classList.add('hidden');
+            }
+            // Remove highlight from all horizontal tab buttons
+            for (let i = 1; i <= 6; i++) {
+                const btn = document.getElementById('tab-btn-' + i);
+                if (btn) {
+                    btn.className = "flex-1 min-w-[48px] flex flex-col items-center justify-center py-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all";
+                }
+            }
+        }
+
+        // Scroll Categories with < and > arrows
+        function scrollCategories(dir) {
+            const list = ['곰돌이', '햄찌', '부동산', '댕댕이', '인형형'];
+            let idx = list.indexOf(tabActiveCategory);
+            if (dir === 'left') {
+                idx = (idx - 1 + list.length) % list.length;
+            } else {
+                idx = (idx + 1) % list.length;
+            }
+            setCategoryInTab(list[idx]);
+        }
+
+        // Populate Favorites Tab (Tab 1) dynamically with 2x scaling sizes
         function populateFavoritesGrid() {
-            const list = [
-                STICKERS[0],  
-                STICKERS[1],  
-                STICKERS[18], 
-                STICKERS[19], 
-                STICKERS[36], 
-                STICKERS[37]  
-            ];
+            const container = document.getElementById('tab-content-1');
+            if (!container) return;
             
-            const container = document.getElementById('fav-stickers-grid');
+            // Filter categories
+            const favStickers = STICKERS.filter(s => favorites.includes(s.id));
+            const favPhotos = PHOTOS.filter(p => favorites.includes(p.id));
+            const favQuotes = QUOTES.filter(q => favorites.includes(q.id));
+            const favDividers = DIVIDERS.filter(d => favorites.includes(d.id));
+            const favFormats = FORMATS.filter(f => favorites.includes(f.id));
+            
+            const totalFavCount = favStickers.length + favPhotos.length + favQuotes.length + favDividers.length + favFormats.length;
+            
+            if (totalFavCount === 0) {
+                container.innerHTML = `
+                    <div class="py-16 px-4 text-center text-slate-400 select-none flex flex-col items-center justify-center gap-4">
+                        <span class="text-[54px]">⭐</span>
+                        <span class="text-[20px] font-black leading-snug">아직 즐겨찾는 무기가 없습니다.<br>다른 탭에서 별표(☆)를 터치하여<br>자신만의 즐겨찾기를 채워보세요!</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            // 1. Favorite Stickers Section
+            if (favStickers.length > 0) {
+                html += `
+                    <div class="mb-5 select-none">
+                        <span class="text-[20px] font-black text-slate-500 uppercase tracking-tight flex items-center gap-2 mb-3">
+                            <span>🎁 즐겨찾는 스티커</span>
+                            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-sm font-extrabold">${favStickers.length}</span>
+                        </span>
+                        <div class="grid grid-cols-3 overflow-y-auto pr-1 pb-2" id="fav-stickers-container" style="gap: 12px; height: 380px; max-h: calc(100vh - 220px);"></div>
+                    </div>
+                `;
+            }
+            
+            // 2. Favorite Photos Section
+            if (favPhotos.length > 0) {
+                html += `
+                    <div class="mb-5 select-none">
+                        <span class="text-[20px] font-black text-slate-500 uppercase tracking-tight flex items-center gap-2 mb-3">
+                            <span>📸 즐겨찾는 사진 템플릿</span>
+                            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-sm font-extrabold">${favPhotos.length}</span>
+                        </span>
+                        <div class="grid grid-cols-2 gap-3" id="fav-photos-container"></div>
+                    </div>
+                `;
+            }
+            
+            // 3. Favorite Components Section (Quotes, Dividers, V7 Formats)
+            const hasComponents = favQuotes.length > 0 || favDividers.length > 0 || favFormats.length > 0;
+            if (hasComponents) {
+                html += `
+                    <div class="mb-5 select-none">
+                        <span class="text-[20px] font-black text-slate-500 uppercase tracking-tight flex items-center gap-2 mb-3">
+                            <span>⚡ 즐겨찾는 원클릭 컴포넌트</span>
+                            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-sm font-extrabold">${favQuotes.length + favDividers.length + favFormats.length}</span>
+                        </span>
+                        <div class="flex flex-col gap-2.5" id="fav-components-container"></div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+            // Populate Stickers
+            if (favStickers.length > 0) {
+                const stkGrid = document.getElementById('fav-stickers-container');
+                favStickers.forEach(stk => {
+                    const div = document.createElement('div');
+                    div.className = "relative bg-white hover:bg-emerald-50/30 rounded-2xl border border-slate-200 hover:border-emerald-300 p-2.5 flex flex-col items-center justify-center cursor-pointer transition-all shadow-2xs";
+                    div.onclick = () => injectStickerInActiveEditor(stk.url, stk.category, stk.displayName);
+                    div.innerHTML = `
+                        <button onclick="toggleFavorite(event, '${stk.id}')" class="absolute top-1 right-1 text-[28px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                            ⭐
+                        </button>
+                        <span class="text-[14px] font-extrabold text-slate-500 mb-1.5 truncate max-w-[80%] text-center block select-none leading-none">${stk.displayName}</span>
+                        <div class="w-full aspect-square max-h-[90px] flex items-center justify-center overflow-hidden shrink-0 mt-0.5">
+                            <img src="${stk.url}" class="max-h-full max-w-full object-contain rounded-xl" referrerPolicy="no-referrer">
+                        </div>
+                    `;
+                    stkGrid.appendChild(div);
+                });
+            }
+            
+            // Populate Photos
+            if (favPhotos.length > 0) {
+                const photoGrid = document.getElementById('fav-photos-container');
+                favPhotos.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = "relative group bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden aspect-video cursor-pointer transition-all hover:shadow-xs";
+                    div.onclick = () => injectPhotoInActiveEditor(p.url, p.displayName);
+                    div.innerHTML = `
+                        <img src="${p.url}" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 inset-x-0 bg-black/60 px-3 py-1.5 text-white text-[14px] font-bold truncate">${p.displayName}</div>
+                        <button onclick="toggleFavorite(event, '${p.id}')" class="absolute top-1.5 right-1.5 text-[32px] focus:outline-none transition-all drop-shadow-md cursor-pointer hover:scale-110 z-20">
+                            ⭐
+                        </button>
+                    `;
+                    photoGrid.appendChild(div);
+                });
+            }
+            
+            // Populate Components
+            if (hasComponents) {
+                const compStack = document.getElementById('fav-components-container');
+                
+                // Add Quotes
+                favQuotes.forEach(q => {
+                    const div = document.createElement('div');
+                    div.className = "relative border border-slate-200 rounded-2xl py-5 pl-6 pr-14 bg-white hover:bg-slate-50 hover:border-emerald-300 cursor-pointer transition-all shadow-2xs leading-relaxed text-left";
+                    div.onclick = () => injectQuoteInActiveEditor(q.styleType, q.text);
+                    
+                    let previewText = '';
+                    if (q.styleType === 'vertical') {
+                        previewText = `<div style="border-left: 4px solid #10b981; padding-left: 10px; font-size: 18px; color: #475569;" class="font-bold">"${q.text}"</div>`;
+                    } else {
+                        previewText = `<div style="text-align: center; color: #0f172a; font-size: 18px;" class="font-bold">“${q.text}”</div>`;
+                    }
+                    
+                    div.innerHTML = `
+                        ${previewText}
+                        <button onclick="toggleFavorite(event, '${q.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                            ⭐
+                        </button>
+                    `;
+                    compStack.appendChild(div);
+                });
+                
+                // Add Dividers
+                favDividers.forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = "relative border border-slate-200 rounded-2xl py-5 pl-6 pr-14 bg-white hover:bg-slate-50 hover:border-emerald-300 cursor-pointer transition-all shadow-2xs text-[20px] font-black text-slate-700 text-left";
+                    div.onclick = () => insertAutoCalculatedDivider(d.styleType);
+                    
+                    let stylePreview = '';
+                    if (d.styleType === 'solid') stylePreview = '<div class="h-0.5 bg-slate-300 w-[60%] my-1.5 inline-block vertical-middle mr-2"></div>';
+                    if (d.styleType === 'dashed') stylePreview = '<div class="border-t-2 border-dashed border-slate-400 w-[60%] my-1.5 inline-block vertical-middle mr-2"></div>';
+                    if (d.styleType === 'wavy') stylePreview = '<span class="text-slate-400 text-xs tracking-wider mr-2">〜〜〜</span>';
+                    if (d.styleType === 'dots') stylePreview = '<span class="text-slate-400 text-xs tracking-widest mr-2">•••</span>';
+
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span>${d.displayName}</span>
+                            ${stylePreview}
+                        </div>
+                        <button onclick="toggleFavorite(event, '${d.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                            ⭐
+                        </button>
+                    `;
+                    compStack.appendChild(div);
+                });
+                
+                // Add Formats
+                favFormats.forEach(f => {
+                    const div = document.createElement('div');
+                    div.className = "relative border border-purple-200 rounded-2xl py-5 pl-6 pr-14 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-400 cursor-pointer transition-all shadow-2xs text-[20px] font-black text-purple-950 text-left";
+                    div.onclick = () => injectV7GuideTemplate(f.styleType);
+                    
+                    div.innerHTML = `
+                        <span>${f.displayName}</span>
+                        <button onclick="toggleFavorite(event, '${f.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                            ⭐
+                        </button>
+                    `;
+                    compStack.appendChild(div);
+                });
+            }
+        }
+
+        // Render photo templates with interactive star toggling
+        function renderPhotos() {
+            const container = document.getElementById('photos-template-grid');
             if (!container) return;
             container.innerHTML = '';
             
-            list.forEach(stk => {
-                if (!stk) return;
+            PHOTOS.forEach(p => {
+                const isFav = isFavorite(p.id);
                 const div = document.createElement('div');
-                div.className = "bg-white hover:bg-emerald-50/50 rounded-xl border border-slate-200 hover:border-emerald-300 p-2 flex items-center gap-2.5 cursor-pointer transition-all shrink-0 text-left";
-                div.title = stk.displayName;
-                div.onclick = () => injectStickerInActiveEditor(stk.url, stk.category, stk.displayName);
+                div.className = "relative group bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden aspect-video cursor-pointer transition-all hover:shadow-xs";
+                div.onclick = () => injectPhotoInActiveEditor(p.url, p.displayName);
                 div.innerHTML = `
-                    <div class="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0">
-                        <img src="${stk.url}" class="max-h-full max-w-full object-contain" referrerPolicy="no-referrer">
-                    </div>
-                    <span class="text-base font-black text-slate-600 truncate max-w-[100px]">${stk.displayName}</span>
+                    <img src="${p.url}" class="w-full h-full object-cover">
+                    <div class="absolute bottom-0 inset-x-0 bg-black/60 px-3 py-1.5 text-white text-[14px] font-bold truncate">${p.displayName}</div>
+                    <button onclick="toggleFavorite(event, '${p.id}')" class="absolute top-1.5 right-1.5 text-[32px] focus:outline-none transition-all drop-shadow-md cursor-pointer hover:scale-110 z-20">
+                        ${isFav ? '⭐' : '<span class="text-white hover:text-amber-400">☆</span>'}
+                    </button>
                 `;
                 container.appendChild(div);
+            });
+        }
+
+        // Render quotes with interactive star toggling (2x scaling)
+        function renderQuotes() {
+            const container = document.getElementById('tab-content-4');
+            if (!container) return;
+            container.innerHTML = `
+                <span class="text-[20px] font-black text-slate-500 uppercase select-none mb-2">에디토리얼 인용 블록</span>
+                <div class="flex flex-col gap-3.5" id="quotes-container"></div>
+            `;
+            const listContainer = document.getElementById('quotes-container');
+            QUOTES.forEach(q => {
+                const isFav = isFavorite(q.id);
+                const div = document.createElement('div');
+                div.className = "relative border border-slate-200 rounded-2xl py-5 pl-6 pr-14 bg-white hover:bg-slate-50 hover:border-emerald-300 cursor-pointer transition-all shadow-2xs leading-relaxed";
+                div.onclick = () => injectQuoteInActiveEditor(q.styleType, q.text);
+                
+                let previewText = '';
+                if (q.styleType === 'vertical') {
+                    previewText = `<div style="border-left: 4px solid #10b981; padding-left: 10px; font-size: 18px; color: #475569;" class="font-bold">"${q.text}"</div>`;
+                } else {
+                    previewText = `<div style="text-align: center; color: #0f172a; font-size: 18px;" class="font-bold">“${q.text}”</div>`;
+                }
+                
+                div.innerHTML = `
+                    ${previewText}
+                    <button onclick="toggleFavorite(event, '${q.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                        ${isFav ? '⭐' : '<span class="text-slate-300 hover:text-amber-400">☆</span>'}
+                    </button>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+
+        // Render dividers with interactive star toggling
+        function renderDividers() {
+            const container = document.getElementById('tab-content-5');
+            if (!container) return;
+            container.innerHTML = `
+                <span class="text-[20px] font-black text-slate-500 uppercase select-none mb-2">구분선 삽입</span>
+                <div class="flex flex-col gap-3" id="dividers-container"></div>
+            `;
+            const listContainer = document.getElementById('dividers-container');
+            DIVIDERS.forEach(d => {
+                const isFav = isFavorite(d.id);
+                const div = document.createElement('div');
+                div.className = "relative border border-slate-200 rounded-2xl py-5 pl-6 pr-14 bg-white hover:bg-slate-50 hover:border-emerald-300 cursor-pointer transition-all shadow-2xs text-[20px] font-black text-slate-700 text-left";
+                div.onclick = () => insertAutoCalculatedDivider(d.styleType);
+                
+                let stylePreview = '';
+                if (d.styleType === 'solid') stylePreview = '<div class="h-0.5 bg-slate-300 w-[60%] my-1.5 inline-block vertical-middle mr-2"></div>';
+                if (d.styleType === 'dashed') stylePreview = '<div class="border-t-2 border-dashed border-slate-400 w-[60%] my-1.5 inline-block vertical-middle mr-2"></div>';
+                if (d.styleType === 'wavy') stylePreview = '<span class="text-slate-400 text-xs tracking-wider mr-2">〜〜〜</span>';
+                if (d.styleType === 'dots') stylePreview = '<span class="text-slate-400 text-xs tracking-widest mr-2">•••</span>';
+
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span>${d.displayName}</span>
+                        ${stylePreview}
+                    </div>
+                    <button onclick="toggleFavorite(event, '${d.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                        ${isFav ? '⭐' : '<span class="text-slate-300 hover:text-amber-400">☆</span>'}
+                    </button>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+
+        // Render V7 formats with interactive star toggling
+        function renderFormats() {
+            const container = document.getElementById('tab-content-6');
+            if (!container) return;
+            container.innerHTML = `
+                <span class="text-[20px] font-black text-purple-600 uppercase select-none mb-2">V7.0 안심 가이드</span>
+                <div class="flex flex-col gap-3" id="formats-container"></div>
+            `;
+            const listContainer = document.getElementById('formats-container');
+            FORMATS.forEach(f => {
+                const isFav = isFavorite(f.id);
+                const div = document.createElement('div');
+                div.className = "relative border border-purple-200 rounded-2xl py-5 pl-6 pr-14 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-400 cursor-pointer transition-all shadow-2xs text-[20px] font-black text-purple-950 text-left";
+                div.onclick = () => injectV7GuideTemplate(f.styleType);
+                
+                div.innerHTML = `
+                    <span>${f.displayName}</span>
+                    <button onclick="toggleFavorite(event, '${f.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
+                        ${isFav ? '⭐' : '<span class="text-purple-300 hover:text-amber-400">☆</span>'}
+                    </button>
+                `;
+                listContainer.appendChild(div);
             });
         }
 
@@ -1220,39 +2181,59 @@
             if (!activeEditorId) return;
             restoreSelection();
             
-            const maxW = category === '가격' ? '145px' : '135px';
-            const html = `<img src="${url}" class="blog-custom-sticker" style="max-width:${maxW}; display:inline-block; vertical-align:middle; margin: 4px;" alt="${displayName}" referrerPolicy="no-referrer" />`;
+            // 2배 대형화: 소장님이 보시기에 큼지막하게 자동 주입 (노안 방지 2배 적용)
+            const maxW = category === '부동산' ? '280px' : '240px';
+            const html = `<img src="${url}" class="blog-custom-sticker animate-fadeIn" style="max-width:${maxW}; display:inline-block; vertical-align:middle; margin: 12px; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.06);" alt="${displayName}" referrerPolicy="no-referrer" />`;
             
             insertHtmlAtCursor(html);
             updateCharacterCounts();
             notifyParent();
         }
 
-        // Inject Favorites
+        // Inject Photo
+        function injectPhotoInActiveEditor(url, displayName) {
+            if (!activeEditorId) return;
+            restoreSelection();
+            const imgHtml = `
+                <p><br></p>
+                <div style="text-align: center; margin: 16px auto; max-width: 100%;">
+                    <div style="display: inline-block; width: 100%; max-width: 650px; aspect-ratio: 16/9; overflow: hidden; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06); background-color: #f1f5f9; position: relative;">
+                        <img src="${url}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${displayName}" />
+                    </div>
+                </div>
+                <p><br></p>
+            `;
+            insertHtmlAtCursor(imgHtml);
+            updateCharacterCounts();
+            notifyParent();
+        }
+
+        // Inject Quote
+        function injectQuoteInActiveEditor(styleType, text) {
+            if (!activeEditorId) return;
+            restoreSelection();
+            let quoteHtml = '';
+            if (styleType === 'vertical') {
+                quoteHtml = `<p><br></p><div style="border-left: 5px solid #10b981; padding: 16px 24px; margin: 18px auto; background-color: #f8fafc; word-break: break-all; font-family: 'Nanum Gothic', sans-serif; font-size: 18px; line-height: 1.6; color: #334155; font-weight: 700;">${text}</div><p><br></p>`;
+            } else if (styleType === 'quotes') {
+                quoteHtml = `<p><br></p><div style="text-align: center; margin: 24px auto; word-break: break-all;"><div style="font-family: serif; font-size: 36px; color: #10b981; line-height: 1; font-weight: bold; margin-bottom: 8px; user-select: none;">“</div><div style="font-family: 'Nanum Gothic', sans-serif; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.6; padding: 0 20px;">${text}</div><div style="font-family: serif; font-size: 36px; color: #10b981; line-height: 1; font-weight: bold; margin-top: 8px; user-select: none;">”</div></div><p><br></p>`;
+            }
+            insertHtmlAtCursor(quoteHtml);
+            updateCharacterCounts();
+            notifyParent();
+        }
+
+        // Inject Favorites fallback
         function injectFavoriteItem(itemType, styleType) {
             if (!activeEditorId) return;
             restoreSelection();
             
             if (itemType === 'divider') {
-                let dividerHtml = '';
-                const margin = "20px";
-                if (styleType === 'solid') {
-                    dividerHtml = `<p><br></p><hr class="select-none-card" style="border: none; border-top: 2px solid #cbd5e1; margin: ${margin} auto; width: 90%;" /><p><br></p>`;
-                } else if (styleType === 'dashed') {
-                    dividerHtml = `<p><br></p><hr class="select-none-card" style="border: none; border-top: 2px dashed #94a3b8; margin: ${margin} auto; width: 90%;" /><p><br></p>`;
-                }
-                insertHtmlAtCursor(dividerHtml);
+                insertAutoCalculatedDivider(styleType);
             } else if (itemType === 'quote') {
-                let quoteHtml = '';
-                if (styleType === 'vertical') {
-                    quoteHtml = `<p><br></p><div style="border-left: 5px solid #10b981; padding: 12px 18px; margin: 18px auto; background-color: #f8fafc; word-break: break-all; font-family: 'Nanum Gothic', sans-serif; font-size: 14px; line-height: 1.6; color: #334155;">이곳에 소장님만의 실사 답사 인용구 내용을 기록해 주십시오.</div><p><br></p>`;
-                } else if (styleType === 'quotes') {
-                    quoteHtml = `<p><br></p><div style="text-align: center; margin: 24px auto; word-break: break-all;"><div style="font-family: serif; font-size: 32px; color: #10b981; line-height: 1; font-weight: bold; margin-bottom: 8px; user-select: none;">“</div><div style="font-family: 'Nanum Gothic', sans-serif; font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.6; padding: 0 20px;">현장을 정밀 실사 통과하여 신뢰할 수 있는 매물 정보입니다.</div><div style="font-family: serif; font-size: 32px; color: #10b981; line-height: 1; font-weight: bold; margin-top: 8px; user-select: none;">”</div></div><p><br></p>`;
-                }
-                insertHtmlAtCursor(quoteHtml);
+                const text = styleType === 'vertical' ? '이곳에 소장님만의 실사 답사 인용구 내용을 기록해 주십시오.' : '현장을 정밀 실사 통과하여 신뢰할 수 있는 매물 정보입니다.';
+                injectQuoteInActiveEditor(styleType, text);
             }
-            updateCharacterCounts();
-            notifyParent();
         }
 
         function triggerPhotoUpload() {
@@ -1497,7 +2478,8 @@
         // Drag and drop setup
         function initDragAndDrop() {
             const zones = [
-                { id: 'photo-drag-zone', type: 'images' },
+                { id: 'main-photo-drag-zone', type: 'representative' },
+                { id: 'additional-photos-drag-zone', type: 'images' },
                 { id: 'pano-drag-zone', type: 'pano' }
             ];
             
@@ -1523,7 +2505,13 @@
                     const dt = e.dataTransfer;
                     const files = Array.from(dt.files).filter(f => f.type.startsWith('image/'));
                     if (files.length > 0) {
-                        uploadBatch(files, z.type);
+                        if (z.type === 'representative') {
+                            uploadBatch([files[0]], 'images', true);
+                        } else if (z.type === 'images') {
+                            uploadBatch(files, 'images', false);
+                        } else if (z.type === 'pano') {
+                            uploadBatch(files, 'pano');
+                        }
                     }
                 }, false);
             });
@@ -1589,7 +2577,10 @@
                 if (data.manageFee) document.getElementById('post-manageFee').value = data.manageFee;
                 if (data.phone) document.getElementById('post-phone').value = data.phone;
                 if (data.ownerPhone) document.getElementById('post-ownerPhone').value = data.ownerPhone;
-                if (data.video) document.getElementById('post-video').value = data.video;
+                if (data.video) {
+                    document.getElementById('post-video').value = data.video;
+                    handleYoutubeInput();
+                }
                 if (data.isRecommended !== undefined) document.getElementById('post-isRecommended').checked = data.isRecommended;
                 
                 if (data.title !== undefined) document.getElementById('intro-canvas').innerHTML = data.title || '<p><br></p>';
@@ -1607,6 +2598,13 @@
         // DOM Loaded Init
         window.addEventListener('DOMContentLoaded', () => {
             initCaretTracking();
+            
+            // Initialize dynamic lists
+            renderPhotos();
+            renderQuotes();
+            renderDividers();
+            renderFormats();
+            
             populateFavoritesGrid();
             switchControlTab(1);
             initDragAndDrop();
@@ -1616,7 +2614,7 @@
 
             // Clear logs and print the exact grand completion report requested by the user
             console.clear();
-            console.log("소장님! 지시하신 신의 한 수 그대로 1·2페이지 분할을 전면 폐기하고 [단일 화면]으로 완전 통합하였습니다! 최상단에 [태왕명판 + 스마트메뉴] 고정, 하단 좌측에 [제미나이식 제어실 내부 스크롤], 하단 우측에 [매물등록 + 블로그 4대 원고창 와이드 통합 스크롤] 체제를 완벽하게 결착한 스마트에디터 2.0 마스터 마킹 버전이 최종 대완공되었습니다. index.html 파일을 다운로드하셔서 파이어베이스 금고에 반영하시고 [Ctrl + F5]로 완벽한 원스톱 동선의 손맛을 확인하십시오!");
+            console.log("소장님! 지시하신 사진 그대로 [큼지막한 3단 그리드 스티커 팔레트]가 완벽하게 이식되었습니다. 상단 카테고리 바에서 무기를 고르고 대형 스티커를 툭툭 찍어 원고를 화려하게 꾸미십시오. 모든 기능이 2배로 커진 제미나이 통합 마스터 버전 V11이 최종 완공되었습니다. index.html을 파이어베이스에 반영 후 [Ctrl + F5]로 확인하십시오!");
 
             // Notify parent
             window.parent.postMessage({ type: 'EDITOR_READY' }, '*');

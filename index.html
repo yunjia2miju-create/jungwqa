@@ -46,6 +46,9 @@
     <!-- FontAwesome Icons for visual elegance -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <!-- Google Fonts for Nanum Gothic -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" />
+
     <!-- Pannellum for 360 viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" crossorigin="anonymous" />
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" crossorigin="anonymous"></script>
@@ -64,6 +67,146 @@
         src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
         font-weight: normal;
         font-style: normal;
+      }
+
+      /* ==========================================
+         Admin UI V14 Crisp Design System (Nanum Gothic)
+         ========================================== */
+      
+      /* Nanum Gothic Font Family and Text Smoothing */
+      .admin-ui-root,
+      .admin-ui-root :not(.fa):not(.fab):not(.fad):not(.fal):not(.far):not(.fas):not([class*="fa-"]) {
+        font-family: 'Nanum Gothic', sans-serif !important;
+      }
+      
+      .admin-ui-root,
+      .admin-ui-root * {
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+      }
+
+      /* Uniform Font Weight (가늘고 눈이 편안한 일반 굵기 400으로 전체 고정) */
+      .admin-ui-root,
+      .admin-ui-root h1,
+      .admin-ui-root h2,
+      .admin-ui-root h3,
+      .admin-ui-root h4,
+      .admin-ui-root h5,
+      .admin-ui-root h6,
+      .admin-ui-root p,
+      .admin-ui-root span,
+      .admin-ui-root a,
+      .admin-ui-root button,
+      .admin-ui-root input,
+      .admin-ui-root textarea,
+      .admin-ui-root label,
+      .admin-ui-root th,
+      .admin-ui-root td,
+      .admin-ui-root select,
+      .admin-ui-root strong,
+      .admin-ui-root b {
+        font-weight: 400 !important;
+      }
+
+      /* Unified Font Size 12pt로 일괄 하향 조정 */
+      .admin-ui-root,
+      .admin-ui-root h1,
+      .admin-ui-root h2,
+      .admin-ui-root h3,
+      .admin-ui-root h4,
+      .admin-ui-root h5,
+      .admin-ui-root h6,
+      .admin-ui-root p,
+      .admin-ui-root span,
+      .admin-ui-root a,
+      .admin-ui-root button,
+      .admin-ui-root input,
+      .admin-ui-root textarea,
+      .admin-ui-root label,
+      .admin-ui-root th,
+      .admin-ui-root td,
+      .admin-ui-root select {
+        font-size: 12pt !important;
+      }
+
+      /* Borders and Box visibility for Inputs, Textareas, Selects - 선명하고 쨍하게 2px Slate-500 적용 */
+      .admin-ui-root input,
+      .admin-ui-root textarea,
+      .admin-ui-root select {
+        border: 2px solid #64748b !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        padding: 8px 12px !important;
+        margin: 4px 0 !important;
+      }
+
+      /* Focus states for input elements */
+      .admin-ui-root input:focus,
+      .admin-ui-root textarea:focus,
+      .admin-ui-root select:focus {
+        border-color: #334155 !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.15) !important;
+      }
+
+      /* Buttons: Rounded 8px, crisp 2px border, unified padding and clear shadow */
+      .admin-ui-root button,
+      .admin-ui-root .btn {
+        border: 2px solid #64748b !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+        padding: 8px 14px !important;
+        transition: all 0.2s ease-in-out !important;
+      }
+
+      /* Hover states for buttons to feel responsive and highly professional */
+      .admin-ui-root button:hover,
+      .admin-ui-root .btn:hover {
+        border-color: #334155 !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08) !important;
+        transform: translateY(-1px) !important;
+      }
+
+      /* Card containers and panels: rounded 8px, clean 2px border, elegant shadow */
+      .admin-ui-root div[class*="bg-"],
+      .admin-ui-root .bg-white,
+      .admin-ui-root .bg-slate-50,
+      .admin-ui-root .bg-emerald-50,
+      .admin-ui-root .bg-amber-50 {
+        border: 2px solid #64748b !important;
+        border-radius: 8px !important;
+        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.06), 0 4px 8px -2px rgba(0, 0, 0, 0.04) !important;
+        padding: 20px !important;
+        margin-bottom: 16px !important;
+      }
+
+      /* Table Styles: Crisp borders, unified padding */
+      .admin-ui-root table {
+        border: 2px solid #64748b !important;
+        border-collapse: collapse !important;
+        width: 100% !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+      }
+
+      .admin-ui-root th,
+      .admin-ui-root td {
+        border: 2px solid #64748b !important;
+        padding: 10px 14px !important;
+        vertical-align: middle !important;
+      }
+
+      .admin-ui-root th {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+      }
+
+      /* Prevent margin/padding clutter on containers */
+      .admin-ui-root form > div {
+        margin-bottom: 10px !important;
       }
     </style>
   </head>

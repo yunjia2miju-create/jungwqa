@@ -195,8 +195,16 @@ export default function App() {
                 <main className="flex-grow w-full">
                     {activeSection === 'main' && <MainTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
                     {activeSection === 'detail' && <DetailTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
-                    {activeSection === 'admin-login' && <AdminLoginSection showToast={showToast} />}
-                    {activeSection === 'admin-dashboard' && <AdminDashboardSection showToast={showToast} />}
+                    {activeSection === 'admin-login' && (
+                        <div className="admin-ui-root">
+                            <AdminLoginSection showToast={showToast} />
+                        </div>
+                    )}
+                    {activeSection === 'admin-dashboard' && (
+                        <div className="admin-ui-root">
+                            <AdminDashboardSection showToast={showToast} />
+                        </div>
+                    )}
                     {activeSection === 'admin-write' && <AdminWriteSection showToast={showToast} />}
                 </main>
 

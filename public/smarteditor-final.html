@@ -6,8 +6,8 @@
     <title>구미 태왕공인중개사사무소 스마트에디터 2.0 마스터</title>
     <!-- Tailwind CSS v4 via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Pro 6 Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome 6.5.1 CDN Force Injected -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Pannellum VR Viewer Library -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
@@ -35,6 +35,14 @@
             font-style: normal;
         }
         
+        /* ==========================================
+           Font Awesome Icon Restoration
+           ========================================== */
+        .fas, .far, .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+            font-weight: 900 !important;
+        }
+
         body {
             font-family: 'Nanum Gothic', sans-serif;
             background-color: #F8FAFC;
@@ -212,6 +220,202 @@
         
         .select-none-card {
             user-select: none;
+        }
+
+        /* =======================================================
+           [1. 모바일 화면 전용 레이아웃 대수술 및 V14 디자인 밸런스 유지]
+           ======================================================= */
+        @media screen and (max-width: 768px) {
+            /* [전체 프레임 구조]: 1단 롤링 구조로 유연하게 전환 */
+            body, html {
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                width: 100% !important;
+            }
+            .flex-1.flex.flex-row.w-full.overflow-hidden {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin-top: 0 !important;
+            }
+
+            /* [최상단 고정바 및 스마트 메뉴]: 모바일 상단 메뉴 완전 고정 (Sticky Fix) 적용 */
+            header {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 9999 !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: auto !important;
+                padding-top: 6px !important;
+                padding-bottom: 6px !important;
+                background-color: #ffffff !important;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+            }
+            header > div:first-child {
+                display: none !important; /* 브랜드 명판 숨김 */
+            }
+            header > div:last-child {
+                width: 100% !important;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+                height: auto !important;
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            header > div:last-child > div:first-child {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                overflow-x: visible !important;
+                white-space: normal !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding-top: 4px !important;
+                padding-bottom: 4px !important;
+                flex-grow: 1 !important;
+                min-width: 0 !important;
+            }
+            header > div:last-child > div:first-child::-webkit-scrollbar {
+                display: none !important;
+            }
+            header > div:last-child > div:first-child > * {
+                flex-shrink: 0 !important;
+            }
+            header > div:last-child > div:last-child {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                gap: 8px !important;
+                flex-shrink: 0 !important;
+            }
+            header > div:last-child > div:last-child button {
+                padding: 10px !important;
+                font-size: 9px !important;
+                font-weight: 400 !important;
+                border-radius: 8px !important;
+                border: 1.5px solid #94a3b8 !important;
+            }
+
+            /* [하단 좌측 3구역 제어실]: 작업실 맨 아래로 이동하여 결착 */
+            aside {
+                order: 2 !important;
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+                border-right: none !important;
+                border-top: 1.5px solid #94a3b8 !important;
+                background-color: #F8FAFC !important;
+            }
+            main.w-\[75\%\] {
+                order: 1 !important;
+                width: 100% !important;
+                max-width: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 16px !important;
+            }
+
+            /* 73종 스티커 팔레트 가로 3단 그리드 유지 및 자동 축소/확대 */
+            #tab-stickers-container {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: 12px !important;
+                height: auto !important;
+                max-height: 450px !important;
+                overflow-y: auto !important;
+            }
+            #tab-stickers-container > div {
+                padding: 8px !important;
+                border-radius: 12px !important;
+            }
+            #tab-stickers-container img {
+                max-height: 70px !important;
+            }
+
+            /* [하단 우측 4구역 통합 작업실]: 모바일 가로폭 100% 꽉 차게 조율 */
+            main.w-\[75\%\] > div, .w-full.max-w-\[950px\] {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 16px !important;
+                box-sizing: border-box !important;
+            }
+
+            /* [11대 매물 종류 버튼]: 자동 줄바꿈 적용 및 터치 칩 형태 정렬 */
+            .cat-btn, .trans-btn {
+                padding: 10px !important;
+                font-size: 9px !important;
+                border-radius: 9999px !important;
+                font-weight: 500 !important;
+                flex: 0 1 auto !important;
+            }
+            .flex-wrap {
+                flex-wrap: wrap !important;
+            }
+
+            /* [선명한 나눔고딕 & 초정밀 9px 마이크로 타이포그래피 (모바일 전용)]: UI 글자 크기 9px 일괄 축소 및 일반 굵기 400 고정 */
+            body, button, select, input, label, span, p, .text-slate-700, .cat-btn, .trans-btn, h3, h3 *, aside, aside *, header, header * {
+                font-family: 'Nanum Gothic', sans-serif !important;
+                font-size: 9px !important;
+                font-weight: 400 !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                text-rendering: optimizeLegibility !important;
+            }
+            
+            /* 모바일에서도 아이콘 폰트가 무시되지 않도록 강제 적용 */
+            .fas, .far, .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+                font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+                font-weight: 900 !important;
+            }
+            
+            /* 스코프 제한: 실제 블로그 본문 및 에디터 캔버스는 영향 받지 않음 */
+            .editor-canvas, .editor-canvas * {
+                font-size: 16pt !important;
+                font-weight: 500 !important;
+            }
+
+            /* [고대비 외곽선 및 시인성 극대화]: 진한 Slate 계열(#94a3b8)의 2.0px 외곽선 세우기 */
+            input[type="text"], input[type="number"], select, button, .cat-btn, .trans-btn, textarea, [contenteditable="true"], .editor-canvas, div.w-full.max-w-\[950px\], aside, th, td, table {
+                border: 2.0px solid #94a3b8 !important;
+            }
+
+            /* [미디어 16:9 스택]: 유튜브 -> 대표사진 -> 추가사진 -> 360 VR 16:9 비율 고수 */
+            #youtube-preview-container, 
+            #youtube-preview-container iframe,
+            #main-photo-drag-zone, 
+            #main-photo-drag-zone img,
+            #additional-photos-stack > div,
+            #additional-photos-stack > div img,
+            #pano-photos-list > div,
+            #pano-photos-list img,
+            #panorama-viewer-container,
+            .aspect-video,
+            .aspect-\[21\/9\] {
+                aspect-ratio: 16 / 9 !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+
+            /* VR 좌우 분할 구역을 수직으로 스택 */
+            div.grid.grid-cols-2 {
+                grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+                gap: 16px !important;
+            }
+            /* 세부 지번 및 건물 상세 정보 그리드는 2단 구성 유지 */
+            div.grid.grid-cols-2.md\:grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 12px !important;
+            }
         }
     </style>
 </head>
@@ -2842,8 +3046,34 @@
             }
         });
 
+        // Dynamic header height margin-top auto adjustment for Sticky Fix
+        function adjustHeaderMargin() {
+            if (window.innerWidth <= 768) {
+                var header = document.querySelector('header');
+                var contentBody = document.querySelector('.flex-1.flex.flex-row.w-full.overflow-hidden');
+                if (header && contentBody) {
+                    var height = header.offsetHeight;
+                    contentBody.style.setProperty('margin-top', height + 'px', 'important');
+                    contentBody.style.setProperty('height', 'calc(100vh - ' + height + 'px)', 'important');
+                }
+            } else {
+                var contentBody = document.querySelector('.flex-1.flex.flex-row.w-full.overflow-hidden');
+                if (contentBody) {
+                    contentBody.style.setProperty('margin-top', '70px', 'important');
+                    contentBody.style.setProperty('height', 'calc(100vh - 70px)', 'important');
+                }
+            }
+        }
+        window.addEventListener('resize', adjustHeaderMargin);
+        window.addEventListener('load', adjustHeaderMargin);
+
         // DOM Loaded Init
         window.addEventListener('DOMContentLoaded', () => {
+            adjustHeaderMargin();
+            // Call again with a slight delay to ensure dynamic rendering is finished
+            setTimeout(adjustHeaderMargin, 100);
+            setTimeout(adjustHeaderMargin, 500);
+
             initCaretTracking();
             
             // Initialize dynamic lists

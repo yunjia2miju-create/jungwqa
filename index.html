@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <!-- Font Awesome 6.5.1 CDN Force Injected -->
+    <!-- Font Awesome 6.5.1 CDN Force Injected (Dual CDN for absolute reliability) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
@@ -82,11 +83,12 @@
       }
 
       /* ==========================================
-         Font Awesome Icon Restoration
+         Font Awesome Icon Restoration (10pt 쨍하게 표출)
          ========================================== */
-      .fas, .far, .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+      .fas, .far, .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"], [class*="fa-"]::before, [class*="fa-"]::after {
         font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
         font-weight: 900 !important;
+        font-size: 10pt !important;
       }
 
       /* ==========================================
@@ -317,6 +319,24 @@
           font-size: 9px !important;
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
+        }
+
+        /* 모바일/태블릿 상단바 폰트 어썸 아이콘 깨짐 최종 방어 (10pt 쨍하게 표출) */
+        .admin-ui-root .fas, 
+        .admin-ui-root .far, 
+        .admin-ui-root .fa, 
+        .admin-ui-root .fa-solid, 
+        .admin-ui-root .fa-regular, 
+        .admin-ui-root .fa-brands, 
+        .admin-ui-root [class*="fa-"],
+        .admin-ui-root [class*="fa-"]::before,
+        .admin-ui-root [class*="fa-"]::after {
+          font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+          font-weight: 900 !important;
+          font-size: 10pt !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
 
         /* 최상단 메뉴바 반응형 레이아웃 정돈 */

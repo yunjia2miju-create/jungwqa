@@ -2588,7 +2588,8 @@
             return {
                 exec: function(command, args) {
                     console.log(`oEditors.getById["${elementId}"].exec called:`, command, args);
-                    if (command === "SET_IR" && args && args[0] !== undefined) {
+                    const cmdUpper = (command || "").toUpperCase();
+                    if ((cmdUpper === "SET_IR" || cmdUpper === "SET_HTML" || cmdUpper === "SETHTML") && args && args[0] !== undefined) {
                         const val = args[0];
                         if (elementId === "ir1") {
                             // If ir1 is called, and val is an object, populate all canvases
@@ -2610,7 +2611,9 @@
                             }
                         }
                         updateCharacterCounts();
-                        notifyParent();
+                        if (!window.isBatchLoading) {
+                            notifyParent();
+                        }
                     } else if (command === "PASTE_HTML" && args && args[0]) {
                         if (elementId !== "ir1" && document.getElementById(elementId)) {
                             activeEditorId = elementId;
@@ -3131,22 +3134,35 @@
             const data = window.pendingEditorData;
             console.log("injectPendingDataUsingSetIR: fOnAppLoad 혹은 LOAD_DATA 도달에 맞춰 oEditors.getById SET_IR 강제 주입 실행");
             
-            // 1. [책임 중개 소장 한마디] 본문 영역 강제 주입
-            if (data.title !== undefined) {
-                window.oEditors.getById["intro-canvas"].exec("SET_IR", [data.title]);
+            window.isBatchLoading = true;
+            try {
+                // 1. oEditors.getById["ir1"]의 통합 SET_IR 호출로 4대 에디터 주소선에 일괄 강제 주입
+                if (window.oEditors && window.oEditors.getById && window.oEditors.getById["ir1"]) {
+                    window.oEditors.getById["ir1"].exec("SET_IR", [data]);
+                }
+
+                // 2. 개별 에디터 인스턴스에 대한 SET_IR 개별 호출 (2중 안전 장치)
+                // [책임 중개 소장 한마디] 본문 영역 강제 주입
+                if (data.title !== undefined) {
+                    window.oEditors.getById["intro-canvas"].exec("SET_IR", [data.title]);
+                }
+                // [블로그 본문 원고] 본문 영역 강제 주입
+                if (data.intro !== undefined) {
+                    window.oEditors.getById["body-canvas"].exec("SET_IR", [data.intro]);
+                }
+                // [실시간 매물특징] 본문 영역 강제 주입
+                if (data.remarks !== undefined) {
+                    window.oEditors.getById["remarks-canvas"].exec("SET_IR", [data.remarks]);
+                }
+                // [전문가 실사 답사가이드] 본문 영역 강제 주입
+                if (data.body !== undefined) {
+                    window.oEditors.getById["guide-canvas"].exec("SET_IR", [data.body]);
+                }
+            } finally {
+                window.isBatchLoading = false;
             }
-            // 2. [블로그 본문 원고] 본문 영역 강제 주입
-            if (data.intro !== undefined) {
-                window.oEditors.getById["body-canvas"].exec("SET_IR", [data.intro]);
-            }
-            // 3. [실시간 매물특징] 본문 영역 강제 주입
-            if (data.remarks !== undefined) {
-                window.oEditors.getById["remarks-canvas"].exec("SET_IR", [data.remarks]);
-            }
-            // 4. [전문가 실사 답사가이드] 본문 영역 강제 주입
-            if (data.body !== undefined) {
-                window.oEditors.getById["guide-canvas"].exec("SET_IR", [data.body]);
-            }
+            // Trigger notifyParent once after all 4 editors are completely populated
+            notifyParent();
         }
 
         // Iframe listeners
@@ -3261,18 +3277,22 @@
             document.getElementById('intro-canvas').focus();
 
             // nhn.husky.EZCreator 모의 구조를 통한 스마트에디터 2.0 폰트 및 스타일 인프라 강제 로딩 및 fOnAppLoad 탑재
+            const onAppLoadHandler = function() {
+                console.log("SmartEditor 2.0 fOnAppLoad 콜백 실행됨 - 기존 데이터 SET_IR 강제 주입");
+                if (window.pendingEditorData) {
+                    injectPendingDataUsingSetIR();
+                }
+                window.isEditorAppLoaded = true;
+            };
+
             if (window.nhn && window.nhn.husky && window.nhn.husky.EZCreator) {
                 window.nhn.husky.EZCreator.createInIFrame({ 
                     elPlaceHolder: 'intro-canvas',
-                    fOnAppLoad: function() {
-                        console.log("nhn.husky.EZCreator.createInIFrame fOnAppLoad 콜백 실행됨 - 기존 데이터 SET_IR 강제 주입");
-                        // 에디터 생성 완료 시 대기중인 파이어베이스 데이터가 있다면 SET_IR을 호출하여 강제 주입 완결
-                        if (window.pendingEditorData) {
-                            injectPendingDataUsingSetIR();
-                        }
-                        window.isEditorAppLoaded = true;
-                    }
+                    fOnAppLoad: onAppLoadHandler
                 });
+            } else {
+                // NHN 객체가 없는 비가동 환경에서도 모의 시스템의 로드 루틴을 즉각 가동하여 데이터 파이프라인 결착 보장
+                onAppLoadHandler();
             }
 
             // Clear logs and print the exact grand completion report requested by the user

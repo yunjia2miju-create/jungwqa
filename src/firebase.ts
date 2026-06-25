@@ -5,8 +5,9 @@ import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = (firebaseConfig as any).firestoreDatabaseId 
-  ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId) 
+// V13 규격 당시의 무결점 주소 규격에 따라 파이어베이스 데이터베이스 호출 경로(Database ID)를 원래대로 무결점 원상복구합니다.
+export const db = firebaseConfig.firestoreDatabaseId 
+  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
 export const auth = getAuth();
 export const storage = getStorage(app);

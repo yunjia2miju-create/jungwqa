@@ -55,18 +55,18 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [iframeReady, setIframeReady] = useState<boolean>(false);
+    const hasLoadedPostIdRef = useRef<string | null>(null);
+
+    // Reset load tracking when editing post ID changes
+    useEffect(() => {
+        hasLoadedPostIdRef.current = null;
+    }, [editingPostId]);
 
     useEffect(() => {
         const handleMessage = async (e: MessageEvent) => {
             if (!e.data) return;
             if (e.data.type === 'EDITOR_READY') {
                 setIframeReady(true);
-                if (iframeRef.current && iframeRef.current.contentWindow) {
-                    iframeRef.current.contentWindow.postMessage({
-                        type: 'LOAD_DATA',
-                        payload: formData
-                    }, '*');
-                }
             } else if (e.data.type === 'SAVE_DATA') {
                 setFormData(prev => ({
                     ...prev,
@@ -117,10 +117,21 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
 
     useEffect(() => {
         if (iframeReady && iframeRef.current && iframeRef.current.contentWindow) {
-            iframeRef.current.contentWindow.postMessage({
-                type: 'LOAD_DATA',
-                payload: formData
-            }, '*');
+            const currentPostId = editingPostId || 'new';
+            if (hasLoadedPostIdRef.current !== currentPostId) {
+                if (editingPostId && !currentEditPost) {
+                    return; // Wait until firebase data is fully populated in currentEditPost
+                }
+                const payload = currentEditPost || {
+                    category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
+                    title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
+                };
+                iframeRef.current.contentWindow.postMessage({
+                    type: 'LOAD_DATA',
+                    payload: payload
+                }, '*');
+                hasLoadedPostIdRef.current = currentPostId;
+            }
         }
     }, [editingPostId, currentEditPost, iframeReady]);
 

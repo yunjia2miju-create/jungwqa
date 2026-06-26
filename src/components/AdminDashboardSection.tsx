@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { getPostsService, deletePostService, getInquiriesService, toggleInquiryProcessedService, getRegisteredUsersService, toggleApproveUserService, deleteRegisteredUserService } from '../firebaseService';
+import { NaverBlogHelperModal } from './NaverBlogHelper';
+import { Post } from '../data';
+
+// Strips HTML tags for clean textual display
+function stripHtml(htmlStr: string | undefined): string {
+    if (!htmlStr) return '';
+    let text = htmlStr.replace(/<[^>]*>/g, ' ');
+    text = text
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+    return text.replace(/\s+/g, ' ').trim();
+}
 
 interface AdminDashboardSectionProps {
     showToast: (msg: string, type: 'success' | 'error') => void;
@@ -19,6 +35,8 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
 
     // Real-time search query for posts
     const [adminSearchQuery, setAdminSearchQuery] = useState('');
+    const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
+    const [selectedBlogPost, setSelectedBlogPost] = useState<Post | null>(null);
 
     // Real-time filtered posts list
     const filteredPosts = posts.filter(p => {
@@ -154,28 +172,28 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
     return (
         <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn text-left">
             {/* Upper Dashboard Header (Inline Panel) */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8 mb-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div className="flex items-center gap-4">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <span className="bg-emerald-50 text-emerald-600 p-4 rounded-3xl shrink-0">
-                        <i className="fa-solid fa-chart-line text-3xl"></i>
+                        <i className="fa-solid fa-chart-line text-2xl sm:text-3xl"></i>
                     </span>
                     <div className="text-left">
-                        <h2 className="text-2xl font-black text-slate-900">중개 종합 관리자 센터 (소장님 전용)</h2>
-                        <p className="text-sm text-slate-400 font-bold">팝업창 없는 100% 쾌적한 전면 화면 제어판 가동 중</p>
+                        <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">중개 종합 관리자 센터 (소장님 전용)</h2>
+                        <p className="text-xs sm:text-sm text-slate-400 font-bold">팝업창 없는 100% 쾌적한 전면 화면 제어판 가동 중</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end">
+                <div className="flex flex-row items-center gap-2.5 w-full lg:w-auto shrink-0 justify-start lg:justify-end">
                     <button 
                         onClick={() => setIsChangingPassword(true)}
-                        className="inline-flex items-center gap-2 text-base font-black text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-6 py-4 rounded-2xl transition-all cursor-pointer"
+                        className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-2 text-sm sm:text-base font-black text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl transition-all cursor-pointer whitespace-nowrap"
                     >
-                        <i className="fa-solid fa-key text-lg"></i>
+                        <i className="fa-solid fa-key text-base sm:text-lg"></i>
                         <span>비밀번호 수정</span>
                     </button>
                     <button 
                         onClick={() => setActiveSection('main')} 
-                        className="text-base font-black bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-4 rounded-2xl transition-all cursor-pointer"
+                        className="flex-1 lg:flex-initial text-sm sm:text-base font-black bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl transition-all cursor-pointer whitespace-nowrap"
                     >
                         대시보드 닫기
                     </button>
@@ -184,11 +202,11 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
 
             {/* Change Password Panel inline if active */}
             {isChangingPassword && (
-                <div className="bg-amber-50 rounded-3xl border border-amber-200/80 p-8 mb-6 text-left animate-fadeIn">
-                    <h3 className="text-lg font-extrabold text-amber-800 uppercase tracking-widest mb-2">
+                <div className="bg-amber-50 rounded-3xl border border-amber-200/80 p-6 sm:p-8 mb-6 text-left animate-fadeIn">
+                    <h3 className="text-base sm:text-lg font-extrabold text-amber-800 uppercase tracking-widest mb-2">
                         <i className="fa-solid fa-shield-halved mr-1.5"></i>보안 비밀번호 변경
                     </h3>
-                    <p className="text-amber-700 text-sm mb-5 font-bold">안전한 중개 관리를 위해 소장님만의 6자리 숫자 비밀번호를 설정할 수 있습니다.</p>
+                    <p className="text-amber-700 text-xs sm:text-sm mb-5 font-bold">안전한 중개 관리를 위해 소장님만의 6자리 숫자 비밀번호를 설정할 수 있습니다.</p>
                     <form onSubmit={handlePasswordChangeSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input 
                             type="password" 
@@ -196,7 +214,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             value={currentPassInput}
                             onChange={e => setCurrentPassInput(e.target.value)}
                             placeholder="현재 비밀번호 (초기: 1234)" 
-                            className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-base focus:outline-none focus:border-emerald-500 font-black"
+                            className="bg-white border border-slate-200 rounded-2xl px-5 py-3.5 sm:px-6 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-emerald-500 font-black"
                         />
                         <input 
                             type="password" 
@@ -205,19 +223,19 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             value={newPassInput}
                             onChange={e => setNewPassInput(e.target.value.replace(/[^0-9]/g, ''))}
                             placeholder="새 비밀번호 (숫자 6자리)" 
-                            className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-base focus:outline-none focus:border-emerald-500 font-black font-mono"
+                            className="bg-white border border-slate-200 rounded-2xl px-5 py-3.5 sm:px-6 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-emerald-500 font-black font-mono"
                         />
                         <div className="flex gap-2">
                             <button 
                                 type="submit"
-                                className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl text-base shadow-md transition-all cursor-pointer"
+                                className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 sm:py-4 rounded-2xl text-sm sm:text-base shadow-md transition-all cursor-pointer"
                             >
                                 수정 완료
                             </button>
                             <button 
                                 type="button" 
                                 onClick={() => setIsChangingPassword(false)}
-                                className="w-1/3 bg-slate-200 text-slate-700 font-black py-4 rounded-2xl text-base transition-all cursor-pointer"
+                                className="w-1/3 bg-slate-200 text-slate-700 font-black py-3.5 sm:py-4 rounded-2xl text-sm sm:text-base transition-all cursor-pointer"
                             >
                                 취소
                             </button>
@@ -227,18 +245,18 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             )}
 
             {/* Inline Sync Panel without any popups */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8 mb-6">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div className="flex items-start gap-4">
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
                         <div className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl shrink-0">
-                            <i className="text-3xl fa-solid fa-cloud-arrow-up"></i>
+                            <i className="text-2xl sm:text-3xl fa-solid fa-cloud-arrow-up"></i>
                         </div>
-                        <div className="text-left space-y-1">
-                            <h4 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        <div className="text-left space-y-1.5 min-w-0">
+                            <h4 className="text-lg sm:text-xl font-black text-slate-900 flex flex-wrap items-center gap-2">
                                 <span>실시간 구글 클라우드 동기화 가동 중</span>
-                                <span className="bg-emerald-100 text-emerald-700 text-xs font-black px-3.5 py-1 rounded-full">클라우드 Live 완료</span>
+                                <span className="bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-black px-3 py-1 rounded-full whitespace-nowrap">클라우드 Live 완료</span>
                             </h4>
-                            <p className="text-slate-500 text-base leading-relaxed max-w-4xl font-sans font-semibold">
+                            <p className="text-slate-500 text-xs sm:text-base leading-relaxed max-w-4xl font-sans font-semibold">
                                 등록한 매물 및 고객 상담 기록은 구글 파이어베이스 클라우드 데이터베이스에 실시간 영구 연동되어 관리됩니다. 
                                 다른 PC나 스마트폰 브라우저에서 접속하더라도 동일한 최신 화면이 완벽히 동기화되어 나타납니다.
                             </p>
@@ -247,7 +265,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     <div className="shrink-0 flex items-center w-full lg:w-auto">
                         <button 
                             onClick={handleGoogleLogout}
-                            className="w-full lg:w-auto text-base font-black text-red-650 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 px-6 py-4 rounded-2xl transition-all active:scale-95 cursor-pointer shadow-xs"
+                            className="w-full lg:w-auto text-xs sm:text-sm md:text-base font-black text-red-650 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl transition-all active:scale-95 cursor-pointer shadow-xs whitespace-nowrap"
                         >
                             소장님 원격 세션 로그아웃
                         </button>
@@ -391,42 +409,55 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     </div>
 
                     {filteredPosts.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             {filteredPosts.map(p => (
-                                <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-6 rounded-3xl flex items-center justify-between transition-all">
-                                    <div className="flex items-center space-x-4 text-left">
-                                        <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200">
+                                <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all min-w-0">
+                                    <div className="flex items-start sm:items-center gap-4 text-left min-w-0 flex-1">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200">
                                             <img src={p.thumbnail} alt={p.building} className="w-full h-full object-cover" />
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.category}</span>
-                                                <span className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-black px-2.5 py-1 rounded-lg uppercase shadow-sm leading-none">{p.dong}</span>
-                                                {p.isRecommended && <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm leading-none">추천★</span>}
-                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[11px] font-black px-2 py-0.5 rounded-lg leading-none font-mono">ID: {p.id.replace('default-', '')}</span>
+                                        <div className="space-y-1.5 min-w-0 flex-1">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] sm:text-xs font-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg uppercase shadow-sm leading-none whitespace-nowrap">{p.category}</span>
+                                                <span className="bg-slate-100 text-slate-700 border border-slate-200 text-[10px] sm:text-xs font-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg uppercase shadow-sm leading-none whitespace-nowrap">{p.dong}</span>
+                                                {p.isRecommended && <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] sm:text-xs font-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg shadow-sm leading-none whitespace-nowrap">추천★</span>}
+                                                <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-lg leading-none font-mono whitespace-nowrap">ID: {p.id.replace('default-', '')}</span>
                                             </div>
-                                            <h4 className="text-base font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-sm text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
-                                            <p className="text-sm text-slate-400 font-bold leading-relaxed">{p.title || '등록된 타이틀 내용 없음'}</p>
+                                            <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-xs sm:text-sm text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
+                                            <p className="text-xs sm:text-sm text-slate-400 font-bold leading-relaxed line-clamp-2">{stripHtml(p.title) || '등록된 타이틀 내용 없음'}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-2 shrink-0">
+                                    <div className="flex items-center justify-end gap-2 shrink-0 border-t border-slate-200/60 pt-3 sm:pt-0 sm:border-0 sm:pl-2">
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedBlogPost(p);
+                                                setIsBlogModalOpen(true);
+                                            }} 
+                                            className="text-emerald-700 hover:text-white bg-emerald-100 hover:bg-emerald-600 border border-emerald-200 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0"
+                                            title="AI 네이버 블로그 원고 자동 생성 및 등록 도우미"
+                                        >
+                                            <i className="fa-solid fa-wand-magic-sparkles"></i>
+                                            <span className="sm:hidden text-xs font-bold">AI블로그</span>
+                                        </button>
                                         <button 
                                             onClick={() => {
                                                 // Open write module specifying editing post
                                                 localStorage.setItem('taewang_editing_post_id', p.id);
                                                 setActiveSection('admin-write');
                                             }} 
-                                            className="text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 p-4 rounded-2xl text-base font-black transition-all cursor-pointer shadow-xs"
+                                            className="text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0"
                                             title="매물 상세 내용 및 답사 기록 수정"
                                         >
                                             <i className="fa-solid fa-pen-to-square"></i>
+                                            <span className="sm:hidden text-xs font-bold">수정</span>
                                         </button>
                                         <button 
                                             onClick={() => handleDeletePost(p.id)} 
-                                            className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-4 rounded-2xl text-base font-black transition-all cursor-pointer shadow-xs"
+                                            className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0"
                                             title="데이터 영구 삭제"
                                         >
                                             <i className="fa-solid fa-trash-can"></i>
+                                            <span className="sm:hidden text-xs font-bold">삭제</span>
                                         </button>
                                     </div>
                                 </div>
@@ -533,6 +564,8 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     </div>
                 </div>
             )}
+            
+            <NaverBlogHelperModal post={selectedBlogPost} isOpen={isBlogModalOpen} onClose={() => setIsBlogModalOpen(false)} />
         </div>
     );
 }

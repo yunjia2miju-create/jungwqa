@@ -694,7 +694,7 @@ export const MainTab = ({
                                                     {p.transactionType || '월세'}
                                                 </span>
                                                 <span className="font-black text-slate-900 text-[16px] sm:text-[18px] lg:text-xl xl:text-2xl truncate flex-grow min-w-0 mr-1 leading-snug">
-                                                    {p.building}
+                                                    {p.building}{isAdminLoggedIn && p.room ? ` ${p.room}호` : ''}
                                                 </span>
 
                                             </div>

@@ -5,6 +5,7 @@ import { useAppStore } from '../store';
 
 import PannellumViewer from './PannellumViewer';
 import { Naver360Icon } from './Naver360Icon';
+import { NaverBlogHelperModal } from './NaverBlogHelper';
 
 const cleanNbsp = (text: string | null | undefined): string => {
     if (!text) return '';
@@ -24,6 +25,7 @@ export const DetailTab = ({
     const [copied, setCopied] = React.useState(false);
     const [activeZoomUrl, setActiveZoomUrl] = React.useState<string | null>(null);
     const [isHovered, setIsHovered] = React.useState<string | null>(null);
+    const [isBlogModalOpen, setIsBlogModalOpen] = React.useState(false);
 
     React.useEffect(() => {
         if (selectedPostId) {
@@ -321,88 +323,97 @@ export const DetailTab = ({
                         )}
                     </div>
                     {isAdminLoggedIn ? (
-                        <button 
-                            onClick={() => {
-                                const titleText = cleanNbsp(p.title);
-                                const introText = cleanNbsp(p.intro);
-                                const bodyText = cleanNbsp(p.body);
-                                
-                                const formatToDoubleSpacing = (text: string) => {
-                                    if (!text) return "";
-                                    const isHtml = /<[a-z][\s\S]*>/i.test(text);
-                                    if (isHtml) {
-                                        let cleanText = text
-                                            .replace(/<\/p>/gi, '\n\n')
-                                            .replace(/<\/div>/gi, '\n\n')
-                                            .replace(/<br\s*\/?>/gi, '\n')
-                                            .replace(/<blockquote[^>]*>/gi, '\n🟢 [인용구시작]\n')
-                                            .replace(/<\/blockquote>/gi, '\n[인용구끝]\n\n')
-                                            .replace(/<h[1-6][^>]*>/gi, '\n\n[ ')
-                                            .replace(/<\/h[1-6]>/gi, ' ]\n\n')
-                                            .replace(/<[^>]+>/g, '') // Strip remaining tags
-                                            .replace(/&nbsp;/g, ' ')
-                                            .replace(/&amp;/g, '&')
-                                            .replace(/&lt;/g, '<')
-                                            .replace(/&gt;/g, '>');
-                                        return cleanText
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <button 
+                                onClick={() => {
+                                    const titleText = cleanNbsp(p.title);
+                                    const introText = cleanNbsp(p.intro);
+                                    const bodyText = cleanNbsp(p.body);
+                                    
+                                    const formatToDoubleSpacing = (text: string) => {
+                                        if (!text) return "";
+                                        const isHtml = /<[a-z][\s\S]*>/i.test(text);
+                                        if (isHtml) {
+                                            let cleanText = text
+                                                .replace(/<\/p>/gi, '\n\n')
+                                                .replace(/<\/div>/gi, '\n\n')
+                                                .replace(/<br\s*\/?>/gi, '\n')
+                                                .replace(/<blockquote[^>]*>/gi, '\n🟢 [인용구시작]\n')
+                                                .replace(/<\/blockquote>/gi, '\n[인용구끝]\n\n')
+                                                .replace(/<h[1-6][^>]*>/gi, '\n\n[ ')
+                                                .replace(/<\/h[1-6]>/gi, ' ]\n\n')
+                                                .replace(/<[^>]+>/g, '') // Strip remaining tags
+                                                .replace(/&nbsp;/g, ' ')
+                                                .replace(/&amp;/g, '&')
+                                                .replace(/&lt;/g, '<')
+                                                .replace(/&gt;/g, '>');
+                                            return cleanText
+                                                .split('\n')
+                                                .map(line => line.trim())
+                                                .filter(line => line.length > 0)
+                                                .join('\n\n');
+                                        }
+                                        return text
+                                            .replace(/\\n/g, '\n')
                                             .split('\n')
                                             .map(line => line.trim())
                                             .filter(line => line.length > 0)
                                             .join('\n\n');
-                                    }
-                                    return text
-                                        .replace(/\\n/g, '\n')
-                                        .split('\n')
-                                        .map(line => line.trim())
-                                        .filter(line => line.length > 0)
-                                        .join('\n\n');
-                                };
-                                
-                                const formattedTitle = formatToDoubleSpacing(titleText);
-                                const formattedIntro = formatToDoubleSpacing(introText);
-                                const formattedBody = formatToDoubleSpacing(bodyText);
-                                
-                                // Build the final optimized blog post
-                                const fullContent = `📢 [블로그 홍보 제목]\n\n${formattedTitle}\n\n🟢 [체험적 서론]\n\n${formattedIntro}\n\n🏠 [상세한 관찰 본론 및 법정 고시]\n\n${formattedBody}`;
-                                
-                                navigator.clipboard.writeText(fullContent).then(() => {
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                }).catch(err => {
-                                    console.error("Copy failed: ", err);
-                                });
-                            }}
-                            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shrink-0 select-none shadow-sm cursor-pointer border ${
-                                copied 
-                                ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-950/25 shadow-sm'
-                            }`}
-                        >
-                            {copied ? (
-                                <>
-                                    <i className="fa-solid fa-circle-check"></i>
-                                    <span>이중 개행 원고 복사 성공!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <i className="fa-solid fa-paste"></i>
-                                    <span>블로그 원고 복사 (원스톱)</span>
-                                </>
-                            )}
-                        </button>
+                                    };
+                                    
+                                    const formattedTitle = formatToDoubleSpacing(titleText);
+                                    const formattedIntro = formatToDoubleSpacing(introText);
+                                    const formattedBody = formatToDoubleSpacing(bodyText);
+                                    
+                                    // Build the final optimized blog post
+                                    const fullContent = `📢 [블로그 홍보 제목]\n\n${formattedTitle}\n\n🟢 [체험적 서론]\n\n${formattedIntro}\n\n🏠 [상세한 관찰 본론 및 법정 고시]\n\n${formattedBody}`;
+                                    
+                                    navigator.clipboard.writeText(fullContent).then(() => {
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }).catch(err => {
+                                        console.error("Copy failed: ", err);
+                                    });
+                                }}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shrink-0 select-none shadow-sm cursor-pointer border ${
+                                    copied 
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-950/25 shadow-sm'
+                                }`}
+                            >
+                                {copied ? (
+                                    <>
+                                        <i className="fa-solid fa-circle-check"></i>
+                                        <span>원고 복사 완료!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-paste"></i>
+                                        <span>블로그 원고 복사 (원스톱)</span>
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setIsBlogModalOpen(true)}
+                                className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm border border-emerald-200 cursor-pointer"
+                            >
+                                <i className="fa-solid fa-wand-magic-sparkles text-emerald-600"></i>
+                                <span>AI 네이버 등록 도우미 🤖</span>
+                            </button>
+                        </div>
                     ) : (
                         <button 
                             onClick={() => {
                                 if (showToast) {
-                                    showToast("소장님(관리자) 로그인 상태에서만 원고 복사 기능을 사용할 수 있습니다.", "error");
+                                    showToast("소장님(관리자) 로그인 상태에서만 원고 복사 및 AI 블로그 자동화 기능을 사용할 수 있습니다.", "error");
                                 } else {
-                                    alert("소장님(관리자) 로그인 상태에서만 원고 복사 기능을 사용할 수 있습니다.");
+                                    alert("소장님(관리자) 로그인 상태에서만 원고 복사 및 AI 블로그 자동화 기능을 사용할 수 있습니다.");
                                 }
                             }}
                             className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shrink-0 select-none shadow-sm cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-500 border-slate-200"
                         >
                             <i className="fa-solid fa-lock text-slate-400"></i>
-                            <span>원고 복사 (소장님 전용 🔒)</span>
+                            <span>블로그 원고 & AI 등록기 (소장님 전용 🔒)</span>
                         </button>
                     )}
                 </div>
@@ -423,22 +434,15 @@ export const DetailTab = ({
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                         alt="매물 대표 사진"
                     />
-                    {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                    {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                        <span 
-                            className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-[10px] sm:text-xs md:text-sm"
+                        <i 
+                            className="fa-solid fa-house select-none pointer-events-none text-4xl sm:text-6xl md:text-7xl"
                             style={{ 
                                 color: '#FFFFFF',
-                                opacity: 0.15,
-                                textShadow: 'none'
-                             }}
-                        >
-                            태왕공인중개사
-                        </span>
-                    </div>
-                    <div className="watermark-overlay">
-                        <i className="fa-solid fa-house-shield text-[10px]"></i>
-                        <span>태왕공인중개사</span>
+                                opacity: 0.18,
+                            }}
+                        ></i>
                     </div>
                     {/* Hover status tip */}
                     <div className="absolute top-4 right-4 sm:top-5 sm:right-5 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-20">
@@ -468,22 +472,15 @@ export const DetailTab = ({
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                         alt={`실사 추가 사진 ${i+1}`}
                                     />
-                                    {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                                    {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                                        <span 
-                                            className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-[10px] sm:text-xs md:text-sm"
+                                        <i 
+                                            className="fa-solid fa-house select-none pointer-events-none text-3xl sm:text-5xl"
                                             style={{ 
                                                 color: '#FFFFFF',
-                                                opacity: 0.15,
-                                                textShadow: 'none'
+                                                opacity: 0.18,
                                             }}
-                                        >
-                                            태왕공인중개사
-                                        </span>
-                                    </div>
-                                    <div className="watermark-overlay">
-                                        <i className="fa-solid fa-house-shield text-[10px]"></i>
-                                        <span>태왕공인중개사</span>
+                                        ></i>
                                     </div>
                                     {/* Hover status tip */}
                                     <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
@@ -751,9 +748,15 @@ export const DetailTab = ({
                             <div key={rec.id} onClick={() => setSelectedPostId(rec.id)} className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group">
                                 <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 watermark-container">
                                     <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                    <div className="watermark-overlay">
-                                        <i className="fa-solid fa-house-shield text-[10px]"></i>
-                                        <span>태왕공인중개사</span>
+                                    {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                                        <i 
+                                            className="fa-solid fa-house select-none pointer-events-none text-3xl sm:text-4xl"
+                                            style={{ 
+                                                color: '#FFFFFF',
+                                                opacity: 0.18,
+                                            }}
+                                        ></i>
                                     </div>
                                 </div>
                                 <div className="p-4 flex-grow flex flex-col justify-between">
@@ -839,24 +842,15 @@ export const DetailTab = ({
                                 onClick={() => setActiveZoomUrl(null)}
                             />
                             
-                            {/* Exact center copyright watermark (no box background, elegant semi-transparent style) */}
+                            {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10 w-full h-full">
-                                <span 
-                                    className="select-none pointer-events-none font-medium tracking-[0.25em] whitespace-nowrap text-xs sm:text-sm md:text-base lg:text-lg"
+                                <i 
+                                    className="fa-solid fa-house select-none pointer-events-none text-6xl sm:text-8xl"
                                     style={{ 
                                         color: '#FFFFFF',
-                                        opacity: 0.15,
-                                        textShadow: 'none'
+                                        opacity: 0.18,
                                     }}
-                                >
-                                    태왕공인중개사
-                                </span>
-                            </div>
-
-                            {/* Watermark also visible on enlarged screen */}
-                            <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-black shadow flex items-center gap-1.5 select-none opacity-90">
-                                <i className="fa-solid fa-house-shield text-emerald-400"></i>
-                                <span>태왕공인중개사</span>
+                                ></i>
                             </div>
                         </div>
 
@@ -885,6 +879,8 @@ export const DetailTab = ({
                     </div>
                 </div>
             )}
+            
+            <NaverBlogHelperModal post={p} isOpen={isBlogModalOpen} onClose={() => setIsBlogModalOpen(false)} />
         </section>
     );
 };

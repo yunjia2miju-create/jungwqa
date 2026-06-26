@@ -42,6 +42,17 @@ export default function App() {
         getPostsService()
             .then(data => {
                 setPosts(data);
+                
+                // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
+                const params = new URLSearchParams(window.location.search);
+                const urlPostId = params.get('postId');
+                if (urlPostId) {
+                    const postExists = data.some(p => p.id === urlPostId);
+                    if (postExists) {
+                        useAppStore.getState().setSelectedPostId(urlPostId);
+                        useAppStore.getState().setActiveSection('detail');
+                    }
+                }
             })
             .catch(err => console.error("매물 목록을 불러오는 중 오류 발생:", err));
 

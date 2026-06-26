@@ -8,7 +8,7 @@ import {
   orderBy,
   updateDoc
 } from 'firebase/firestore';
-import { db, OperationType, handleFirestoreError, auth } from './firebase';
+import { db, defaultDb, OperationType, handleFirestoreError, auth } from './firebase';
 import { Post, Inquiry, defaultPosts } from './data';
 
 // --- Posts API ---
@@ -17,74 +17,109 @@ import { Post, Inquiry, defaultPosts } from './data';
  * Reads all property listings (posts) from Firestore and merges with Express API / Default data
  */
 export async function getPostsService(): Promise<Post[]> {
-  let firestorePosts: Post[] = [];
-  let expressPosts: Post[] = [];
-
-  const postsRef = collection(db, 'posts');
-  const q = query(postsRef, orderBy('createdAt', 'desc'));
-
-  // Run BOTH cloud firestore query and local server fetch concurrently!
-  await Promise.allSettled([
-    (async () => {
-      try {
-    
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const list: Post[] = [];
-          snapshot.forEach((doc) => {
-            list.push(doc.data() as Post);
-          });
-          firestorePosts = list;
-        }
-      } catch (err) {
-        console.warn("Firestore posts retrieval bypassed, trying local API fallback:", err);
-      }
-    })(),
-    (async () => {
-      try {
-        const res = await fetch('/api/posts');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            expressPosts = data;
-          }
-        }
-      } catch (err) {
-        console.warn("Express backend posts endpoint failed", err);
-      }
-    })()
-  ]);
-
-  // 3. Fallback to bundled static default data if both are empty
-  if (firestorePosts.length === 0 && expressPosts.length === 0) {
-    return defaultPosts;
-  }
-
-  // Merge lists by unique post ID so that both local and cloud updates are shown
   const mergedMap = new Map<string, Post>();
-  
-  // First load express posts
-  expressPosts.forEach(p => {
+  let legacyPosts: Post[] = [];
+
+  // Add default static posts as initial base
+  defaultPosts.forEach(p => {
     if (p && p.id) {
       mergedMap.set(p.id, p);
     }
   });
 
-  // Then merge firestore posts, prioritizing newer updates / cloud truths
-  firestorePosts.forEach(p => {
-    if (p && p.id) {
-      const existing = mergedMap.get(p.id);
-      if (!existing || p.createdAt > (existing.createdAt || 0)) {
-        mergedMap.set(p.id, p);
-      }
-    }
-  });
+  const fetchTasks: Promise<void>[] = [];
 
+  // Task A: Fetch from Express backend
+  fetchTasks.push((async () => {
+    try {
+      const res = await fetch('/api/posts');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          data.forEach(p => {
+            if (p && p.id) {
+              mergedMap.set(p.id, p);
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Express backend posts fetch failed:", err);
+    }
+  })());
+
+  // Task B: Fetch from active Firestore database
+  fetchTasks.push((async () => {
+    try {
+      const postsRef = collection(db, 'posts');
+      const q = query(postsRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        const p = doc.data() as Post;
+        if (p && p.id) {
+          mergedMap.set(p.id, p);
+        }
+      });
+    } catch (err) {
+      console.warn("Active Firestore database posts fetch failed:", err);
+    }
+  })());
+
+  // Task C: Fetch from legacy default database (if different)
+  if (db !== defaultDb) {
+    fetchTasks.push((async () => {
+      try {
+        const legacyRef = collection(defaultDb, 'posts');
+        const q = query(legacyRef, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+          const p = doc.data() as Post;
+          if (p && p.id) {
+            legacyPosts.push(p);
+            const existing = mergedMap.get(p.id);
+            if (!existing || p.createdAt > (existing.createdAt || 0)) {
+              mergedMap.set(p.id, p);
+            }
+          }
+        });
+      } catch (err) {
+        console.warn("Legacy Firestore database posts fetch failed:", err);
+      }
+    })());
+  }
+
+  // Wait for all fetch tasks to complete or settle
+  await Promise.allSettled(fetchTasks);
+
+  // Trigger background migration if legacy posts were discovered
+  if (legacyPosts.length > 0 && db !== defaultDb) {
+    setTimeout(async () => {
+      console.log(`[Migration] Found ${legacyPosts.length} legacy posts. Starting automatic migration in background...`);
+      for (const post of legacyPosts) {
+        try {
+          // 1. Write to active Firestore database
+          const activeDocRef = doc(db, 'posts', post.id);
+          await setDoc(activeDocRef, post, { merge: true });
+
+          // 2. Write/Sync to Express backend
+          await fetch('/api/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(post)
+          });
+        } catch (migErr) {
+          console.warn(`[Migration] Failed migrating post ${post.id}:`, migErr);
+        }
+      }
+      console.log("[Migration] Automatic migration completed successfully.");
+    }, 1000);
+  }
+
+  // Convert map to array and sort descending by createdAt
   const mergedList = Array.from(mergedMap.values());
-  // Sort by createdAt descending (newest first)
   mergedList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-  // Clean all &nbsp; characters on fetch to ensure no visual defects
+  // Clean nbsp characters
   const cleanNbsp = (str?: string) => str ? str.replace(/&nbsp;/gi, ' ') : '';
   const cleanedList = mergedList.map(p => ({
     ...p,
@@ -185,61 +220,37 @@ export async function deletePostService(id: string): Promise<void> {
  * Retrieves client counseling requests (Inquiries)
  */
 export async function getInquiriesService(): Promise<Inquiry[]> {
-  let firestoreInqs: Inquiry[] = [];
-  
-  // 1. Try Firestore first only if compiled as the authorized admin to prevent permission warnings
+  // 1. Try Express backend first because it is super fast with server-side caching
+  try {
+    const res = await fetch('/api/inquiries');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("Express backend inquiries fetch failed, trying direct Firestore:", err);
+  }
+
+  // 2. Direct client-side Firestore fallback only if authorized admin
   const isAdmin = auth.currentUser && auth.currentUser.email === 'yunjia2miju@gmail.com';
   if (isAdmin) {
     try {
       const inquiriesRef = collection(db, 'inquiries');
       const q = query(inquiriesRef, orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
-      
+      const list: Inquiry[] = [];
       snapshot.forEach((doc) => {
-        firestoreInqs.push(doc.data() as Inquiry);
+        list.push(doc.data() as Inquiry);
       });
+      return list;
     } catch (err) {
-      console.warn("Firestore inquiries retrieval failed, trying local API:", err);
+      console.warn("Firestore inquiries retrieval failed:", err);
     }
   }
 
-  let expressInqs: Inquiry[] = [];
-  // 2. Try Express backend
-  try {
-    const res = await fetch('/api/inquiries');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        expressInqs = data;
-      }
-    }
-  } catch (err) {
-    console.warn("Express backend inquiries endpoint failed", err);
-  }
-
-  if (firestoreInqs.length === 0 && expressInqs.length === 0) {
-    return [];
-  }
-
-  const mergedMap = new Map<string, Inquiry>();
-  expressInqs.forEach(inq => {
-    if (inq && inq.id) {
-      mergedMap.set(inq.id, inq);
-    }
-  });
-
-  firestoreInqs.forEach(inq => {
-    if (inq && inq.id) {
-      const existing = mergedMap.get(inq.id);
-      if (!existing || inq.createdAt > (existing.createdAt || 0)) {
-        mergedMap.set(inq.id, inq);
-      }
-    }
-  });
-
-  const mergedList = Array.from(mergedMap.values());
-  mergedList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return mergedList;
+  return [];
 }
 
 /**
@@ -327,62 +338,36 @@ export interface RegisteredUser {
  * Fetch all registered users
  */
 export async function getRegisteredUsersService(): Promise<RegisteredUser[]> {
-  let firestoreUsers: RegisteredUser[] = [];
-  try {
-    const q = query(collection(db, 'registered_users'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    if (!snapshot.empty) {
-      snapshot.forEach((doc) => {
-        firestoreUsers.push(doc.data() as RegisteredUser);
-      });
-    }
-  } catch (err) {
-    console.warn("Firestore registered_users fetch bypassed (using local storage/API fallback) - likely offline or unmigrated:", err);
-  }
-
-  let expressUsers: RegisteredUser[] = [];
+  // 1. Try Express backend first because it is lightning fast
   try {
     const res = await fetch('/api/users');
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
-        expressUsers = data;
+        return data;
       }
     }
   } catch (err) {
-    console.warn("Failed fetching registered users from API", err);
+    console.warn("Express backend users fetch failed, trying direct Firestore:", err);
   }
 
-  // Fallback to local storage
-  const localList = JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
-
-  const mergedMap = new Map<string, RegisteredUser>();
-
-  // 1. Fill from local storage
-  localList.forEach((u: any) => {
-    if (u && u.email) {
-      mergedMap.set(u.email, u);
+  // 2. Direct client-side Firestore fallback
+  try {
+    const q = query(collection(db, 'registered_users'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const list: RegisteredUser[] = [];
+      snapshot.forEach((doc) => {
+        list.push(doc.data() as RegisteredUser);
+      });
+      return list;
     }
-  });
+  } catch (err) {
+    console.warn("Firestore registered_users fetch failed:", err);
+  }
 
-  // 2. Fill/overwrite from Express API
-  expressUsers.forEach(u => {
-    if (u && u.email) {
-      mergedMap.set(u.email, u);
-    }
-  });
-
-  // 3. Fill/overwrite from Firestore client (the absolute persistent cloud truth)
-  firestoreUsers.forEach(u => {
-    if (u && u.email) {
-      mergedMap.set(u.email, u);
-    }
-  });
-
-  const mergedList = Array.from(mergedMap.values());
-  // Sort descending by createdAt
-  mergedList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-  return mergedList;
+  // 3. Local storage final fallback
+  return JSON.parse(localStorage.getItem('taewang_registered_users') || '[]');
 }
 
 /**

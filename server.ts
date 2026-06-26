@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import { defaultPosts } from './src/data';
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
+import { GoogleGenAI } from '@google/genai';
 
 const _filename = typeof __filename !== 'undefined'
   ? __filename
@@ -53,6 +54,22 @@ async function startServer() {
     // Ensure users.json exists
     if (!fs.existsSync(USERS_FILE)) {
       fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    }
+
+    // Programmatically replicate vr-captured-banner.png as fixed-master-vr-banner.png
+    try {
+      const assetsDir = path.join(projectRoot, 'public', 'assets');
+      if (!fs.existsSync(assetsDir)) {
+        fs.mkdirSync(assetsDir, { recursive: true });
+      }
+      const srcBanner = path.join(assetsDir, 'vr-captured-banner.png');
+      const destBanner = path.join(assetsDir, 'fixed-master-vr-banner.png');
+      if (fs.existsSync(srcBanner) && !fs.existsSync(destBanner)) {
+        fs.copyFileSync(srcBanner, destBanner);
+        console.log("[Server Startup] Replicated vr-captured-banner.png to fixed-master-vr-banner.png successfully.");
+      }
+    } catch (bannerErr) {
+      console.warn("[Server Startup] Failed to replicate master banner image:", bannerErr);
     }
   } catch (fsErr) {
     console.warn("[Cloud Run Startup] Cannot write local data files on read-only file system, serving safely from memory.", fsErr);
@@ -248,6 +265,11 @@ async function startServer() {
     }
   });
 
+  app.get('/assets/vr-captured-banner.png', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.sendFile(path.join(projectRoot, 'public/assets/vr-captured-banner.png'));
+  });
+
   // Request logger
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -363,8 +385,93 @@ async function startServer() {
 
   // Cache variables
   let cachedPostsList: any[] | null = null;
+  let cachedInquiriesList: any[] | null = null;
+  let cachedUsersList: any[] | null = null;
   const imageCache = new Map<string, { body: Buffer; contentType: string }>();
   const MAX_IMAGE_CACHE_SIZE = 150;
+
+  app.get('/api/vr-banner', (req, res) => {
+    const rawSpatial1Url = req.query.spatial1Url as string || '';
+    const building = (req.query.building as string || '포브스').trim();
+    const address = (req.query.address as string || '구미시 송정동 구미시 송정동 482-3').trim();
+
+    // Ensure spatial1Url is absolute or fallback
+    let spatial1Url = rawSpatial1Url;
+    if (!spatial1Url) {
+      spatial1Url = 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&h=450&q=80';
+    } else if (spatial1Url.startsWith('/')) {
+      const host = req.get('host') || 'localhost:3000';
+      const protocol = req.secure ? 'https' : 'http';
+      spatial1Url = `${protocol}://${host}${spatial1Url}`;
+    }
+
+    const escapeXml = (unsafe: string) => {
+      return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    };
+
+    const safeUrl = escapeXml(spatial1Url);
+    const safeBuilding = escapeXml(building);
+    const safeAddress = escapeXml(address);
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <!-- Shadow filters for crisp overlays -->
+    <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+    <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+    <clipPath id="rounded-corners">
+      <rect width="800" height="450" rx="16" ry="16" />
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#rounded-corners)">
+    <!-- Background Image (First Kitchen Photo) -->
+    <image href="${safeUrl}" x="0" y="0" width="800" height="450" preserveAspectRatio="xMidYMid slice" />
+
+    <!-- Dark Semi-Transparent Dimming Overlay for perfect readability -->
+    <rect width="800" height="450" fill="#000000" fill-opacity="0.35" />
+
+    <!-- Component A: Perfectly centered, crisp green rounded-square button -->
+    <g filter="url(#drop-shadow)">
+      <rect x="320" y="80" width="160" height="160" rx="32" fill="#10b981" />
+      
+      <!-- Distinct White Home Outline Icon -->
+      <polygon points="400,105 365,134 435,134" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round" />
+      <rect x="375" y="134" width="50" height="38" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round" />
+      <path d="M394,172 L394,152 A2,2 0 0,1 396,150 L404,150 A2,2 0 0,1 406,152 L406,172" fill="none" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" />
+      
+      <!-- Clean "VR 360 투어" text -->
+      <text x="400" y="215" text-anchor="middle" font-family="'Malgun Gothic', '맑은 고딕', sans-serif" font-weight="bold" font-size="19" fill="#ffffff" letter-spacing="-0.5">VR 360 투어</text>
+    </g>
+
+    <!-- Component B: Dark semi-transparent black pill-shaped information badge -->
+    <g filter="url(#badge-shadow)">
+      <rect x="120" y="270" width="560" height="110" rx="55" fill="#000000" fill-opacity="0.75" stroke="#ffffff" stroke-opacity="0.15" stroke-width="1.5" />
+      
+      <!-- Green indicator subtext -->
+      <text x="400" y="303" text-anchor="middle" font-family="'Malgun Gothic', '맑은 고딕', sans-serif" font-weight="bold" font-size="13" fill="#34d399" letter-spacing="1.5">360° VR 투어 지원</text>
+      
+      <!-- Prominent white building name -->
+      <text x="400" y="336" text-anchor="middle" font-family="'Malgun Gothic', '맑은 고딕', sans-serif" font-weight="bold" font-size="21" fill="#ffffff" letter-spacing="-0.5">${safeBuilding}</text>
+      
+      <!-- Exact location address -->
+      <text x="400" y="363" text-anchor="middle" font-family="'Malgun Gothic', '맑은 고딕', sans-serif" font-weight="medium" font-size="13" fill="#94a3b8" letter-spacing="-0.5">${safeAddress}</text>
+    </g>
+  </g>
+</svg>`;
+
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=600');
+    res.send(svg);
+  });
 
   app.get('/api/posts', async (req, res) => {
     if (cachedPostsList !== null) {
@@ -373,7 +480,13 @@ async function startServer() {
       return;
     }
 
-    const list = await executeFirestoreOp(async (dbInstance) => {
+    // Serve local JSON immediately to prevent blocking due to firestore database cold-starts
+    const fallbackResult = readPosts();
+    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
+    res.json(fallbackResult);
+
+    // Trigger Firestore background query asynchronously to refresh local JSON and cache
+    executeFirestoreOp(async (dbInstance) => {
       const postsRef = dbInstance.collection('posts');
       const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
       if (!snapshot.empty) {
@@ -381,31 +494,24 @@ async function startServer() {
         snapshot.forEach((doc: any) => {
           list.push(doc.data());
         });
-        return list;
+        cachedPostsList = list;
+        writePosts(list);
+        console.log("[Firestore Admin] Background posts sync completed successfully.");
       } else {
-        // Firestore is empty! Seed defaultPosts into Firestore!
-        console.log("Firestore posts collection is empty. Seeding defaultPosts...");
+        // Seed if empty
+        console.log("Firestore posts collection is empty. Seeding defaultPosts in background...");
         const batch = dbInstance.batch();
         defaultPosts.forEach((post) => {
           const docRef = postsRef.doc(post.id);
           batch.set(docRef, post);
         });
         await batch.commit();
-        console.log("Successfully seeded default posts to Firestore!");
-        return defaultPosts;
+        cachedPostsList = defaultPosts;
+        writePosts(defaultPosts);
       }
-    }, null);
-
-    if (list !== null) {
-      cachedPostsList = list;
-      res.setHeader('X-Cache', 'MISS');
-      res.json(list);
-    } else {
-      const fallbackResult = readPosts();
-      cachedPostsList = fallbackResult;
-      res.setHeader('X-Cache', 'MISS-FALLBACK');
-      res.json(fallbackResult);
-    }
+    }, null).catch(err => {
+      console.error("[Firestore Admin] Background posts sync failed:", err);
+    });
   });
 
   app.post('/api/posts', async (req, res) => {
@@ -607,25 +713,36 @@ async function startServer() {
   });
 
   app.get('/api/inquiries', async (req, res) => {
-    const list = await executeFirestoreOp(async (dbInstance) => {
+    if (cachedInquiriesList !== null) {
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cachedInquiriesList);
+      return;
+    }
+
+    // Serve local JSON immediately to prevent blocking
+    const fallbackResult = readInquiries();
+    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
+    res.json(fallbackResult);
+
+    // Sync from Firestore in background
+    executeFirestoreOp(async (dbInstance) => {
       const inquiriesRef = dbInstance.collection('inquiries');
       const snapshot = await inquiriesRef.orderBy('createdAt', 'desc').get();
       const list: any[] = [];
       snapshot.forEach((doc: any) => {
         list.push(doc.data());
       });
-      return list;
-    }, null);
-
-    if (list !== null) {
-      res.json(list);
-    } else {
-      res.json(readInquiries());
-    }
+      cachedInquiriesList = list;
+      writeInquiries(list);
+      console.log("[Firestore Admin] Background inquiries sync completed.");
+    }, null).catch(err => {
+      console.error("[Firestore Admin] Background inquiries sync failed:", err);
+    });
   });
 
   app.post('/api/inquiries', async (req, res) => {
     const inqData = req.body;
+    cachedInquiriesList = null; // Invalidate cache
 
     // 1. Save to Cloud Firestore
     await executeFirestoreOp(async (dbInstance) => {
@@ -645,6 +762,7 @@ async function startServer() {
 
   app.post('/api/inquiries/:id/toggle', async (req, res) => {
     const { id } = req.params;
+    cachedInquiriesList = null; // Invalidate cache
 
     // 1. Update in Cloud Firestore
     await executeFirestoreOp(async (dbInstance) => {
@@ -675,25 +793,35 @@ async function startServer() {
 
   // --- Users API ---
   app.get('/api/users', async (req, res) => {
-    const list = await executeFirestoreOp(async (dbInstance) => {
+    if (cachedUsersList !== null) {
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cachedUsersList);
+      return;
+    }
+
+    const fallbackResult = readUsers();
+    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
+    res.json(fallbackResult);
+
+    // Sync from Firestore in background
+    executeFirestoreOp(async (dbInstance) => {
       const usersRef = dbInstance.collection('registered_users');
       const snapshot = await usersRef.orderBy('createdAt', 'desc').get();
       const list: any[] = [];
       snapshot.forEach((doc: any) => {
         list.push(doc.data());
       });
-      return list;
-    }, null);
-
-    if (list !== null) {
-      res.json(list);
-    } else {
-      res.json(readUsers());
-    }
+      cachedUsersList = list;
+      writeUsers(list);
+      console.log("[Firestore Admin] Background users sync completed.");
+    }, null).catch(err => {
+      console.error("[Firestore Admin] Background users sync failed:", err);
+    });
   });
 
   app.post('/api/users', async (req, res) => {
     const userData = req.body;
+    cachedUsersList = null; // Invalidate cache
     if (!userData.email) {
       res.status(400).json({ error: "Email is required" });
       return;
@@ -722,6 +850,7 @@ async function startServer() {
 
   app.post('/api/users/:email/toggle', async (req, res) => {
     const { email } = req.params;
+    cachedUsersList = null; // Invalidate cache
 
     // 1. Update in Cloud Firestore
     await executeFirestoreOp(async (dbInstance) => {
@@ -759,6 +888,7 @@ async function startServer() {
 
   app.delete('/api/users/:email', async (req, res) => {
     const { email } = req.params;
+    cachedUsersList = null; // Invalidate cache
 
     // 1. Delete from Cloud Firestore
     await executeFirestoreOp(async (dbInstance) => {
@@ -817,6 +947,355 @@ async function startServer() {
     
     verificationCodes.delete('admin');
     res.json({ success: true, message: "2차 모바일 인증이 최종 완료되었습니다." });
+  });
+
+  // Naver Blog Article Auto-Generator using Gemini API with Local Template Fallback
+  app.post('/api/naver-blog/generate', async (req, res) => {
+    const { 
+      category, transactionType, dong, building, room, floor, totalFloor, 
+      price, manageFee, phone, remarks, intro, body, address, postId, origin 
+    } = req.body;
+
+    // Preserve <img> tags while stripping other HTML tags
+    const cleanHtmlKeepImages = (str: string) => {
+      if (!str) return '';
+      // Replace divs and paragraphs with linebreaks
+      let step1 = str
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<\/div>/gi, '\n\n')
+        .replace(/<br\s*\/?>/gi, '\n');
+      
+      // Replace all HTML tags EXCEPT <img> tags with spaces
+      let step2 = step1.replace(/<(?!\/?img\b)[^>]*>/gi, ' ');
+      
+      // Clean up whitespace &nbsp; and multiple spaces
+      let step3 = step2
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return step3;
+    };
+
+    const cleanIntro = cleanHtmlKeepImages(intro);
+    const cleanBody = cleanHtmlKeepImages(body);
+    const cleanRemarks = cleanHtmlKeepImages(remarks);
+
+    // Strict readability & double line break rules enforcement function
+    const enforceReadabilityRules = (text: string): string => {
+      if (!text) return '';
+
+      // Split text into HTML tags and plain text content to avoid modifying within tags (like <img src="..." />)
+      const parts = text.split(/(<[^>]+>)/g);
+
+      const processedParts = parts.map(part => {
+        if (part.startsWith('<') && part.endsWith('>')) {
+          return part; // Keep HTML tags untouched
+        }
+
+        // Rule 1: Mandatory Double Line Breaks After Every Single Sentence ending with punctuation .!?
+        let content = part.replace(/([가-힣a-zA-Z0-9"'\)\]])([.!?])(?:\s+|$)(?!\d)/g, '$1$2\n\n');
+        return content;
+      });
+
+      const merged = processedParts.join('');
+
+      // Rule 2: spacing around headings.
+      const lines = merged.split('\n');
+      const formattedLines: string[] = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        const isHeading = /^#+\s+.+/.test(trimmed) || /^\[[^\]\n]+\]$/.test(trimmed);
+
+        if (isHeading) {
+          if (formattedLines.length > 0 && formattedLines[formattedLines.length - 1] !== '') {
+            formattedLines.push('');
+          }
+          formattedLines.push(trimmed);
+          formattedLines.push('');
+        } else {
+          if (trimmed === '') {
+            if (formattedLines.length > 0 && formattedLines[formattedLines.length - 1] !== '') {
+              formattedLines.push('');
+            }
+          } else {
+            formattedLines.push(trimmed);
+          }
+        }
+      }
+
+      const result: string[] = [];
+      for (let i = 0; i < formattedLines.length; i++) {
+        const line = formattedLines[i];
+        if (line === '') {
+          if (result.length > 0 && result[result.length - 1] !== '') {
+            result.push('');
+          }
+        } else {
+          result.push(line);
+        }
+      }
+
+      return result.join('\n');
+    };
+
+    // Build VR link
+    const vrLinkHtml = postId && origin
+      ? `<div style="margin: 20px 0; text-align: center;"><a href="${origin}/?postId=${postId}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">[태왕 전용 360도 VR 실감 투어 클릭]</a></div>`
+      : '';
+
+    // Beautiful rule-based fallback generator if API key is not available
+    const generateFallback = () => {
+      const generatedTitle = `[구미 ${dong} ${category}] ${transactionType} ${price} | 태왕공인중개사사무소 책임 중개 보증 매물`;
+      
+      let bodyWithImagesAndVr = cleanBody;
+      // Inject the VR link right under the body content or at the top of body
+      if (vrLinkHtml) {
+        bodyWithImagesAndVr = vrLinkHtml + '\n\n' + bodyWithImagesAndVr;
+      }
+
+      const generatedContent = `[태왕공인중개사사무소 엄선 매물 안내]
+
+구미 전 지역의 품격 있는 주거 공간을 전문적으로 제안해 드리는 태왕공인중개사사무소 대표 남주근 소장입니다.
+
+오늘 소개해 드리는 매물은 구미시 ${dong} 소재의 매우 드문 높은 소장가치를 자랑하는 [${category}] 매물입니다.
+
+[현장 검증 및 입지 분석 서론]
+
+본 매물은 대표 공인중개사가 직접 현장 입하여 구조적 안전성과 모든 설비 작동 여부를 철저하게 점검하고 검증을 완료한 신뢰도 높은 정식 매물입니다.
+
+인근의 핵심 교통 인프라와 편의 정비 구역이 도보 생활권 내에 온전히 포진되어 있어 삶의 품격을 드높이며, 고요하고 정숙한 주변 주거 환경을 통하여 평온하고 안락한 사생활을 누리실 수 있습니다. 내부 올리모델링 및 친환경 정밀 청소가 완비되어 즉시 입주가 가능한 최상의 상태를 자랑합니다.
+
+[매물 요약 명세 정보]
+
+- 매물 종류: ${category}
+- 거래 유형: ${transactionType}
+- 보증금 및 월세: ${price}
+- 기본 관리비: ${manageFee || '별도 문의(규약 준수)'}
+- 매물 소재지: 경상북도 구미시 ${dong} ${building ? building : ''} ${room ? room + '호' : ''}
+- 해당층 / 전체층: ${floor ? floor + '층' : '해당층'} / 전체 ${totalFloor ? totalFloor + '층' : '전체층'}
+- 공식 중개 상담: ${phone || '010-7590-0111'}
+
+[태왕 중개사 추천 사유]
+
+1. 최상의 가성비 보유: 주변의 동급 주거 시설 시세와 비교해 보아도 대단히 합리적이고 우수한 차임 조건으로 책정되어 고정 주거 비용 부담을 확연하게 경감시켜 줍니다.
+
+2. 풀옵션 및 첨단 가전 완비: 세탁기, 냉장고, 에어컨, 가스레인지, 고화질 TV 등 일상생활에 긴요한 필수 주거 가전 및 엄선된 가구류 일체가 내장되어 신속하고 격조 높은 이주가 가능합니다.
+
+3. 철저한 보안 및 쾌적성: 건물 내외에 최신 고화질 CCTV가 실시간 감시 작동 중이며, 세심한 건물 정비 관리 덕분에 품위 있고 대단히 안전한 정주 여건을 선사합니다.
+
+${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr ? `[상세 특징 및 이미지 목록]\n\n${bodyWithImagesAndVr}\n\n` : ''}${cleanRemarks ? `[기타 명세 사항]\n\n${cleanRemarks}\n\n` : ''}상세 명세 분석 및 안전하고 성실한 계약 진행을 원하시는 분들께서는 태왕공인중개사사무소로 부담 없이 연락 주시기 바랍니다. 한결같은 신용과 책임 정성을 바탕으로 끝까지 성실하게 안내해 드릴 것을 약속드립니다.
+
+[공인중개사법에 따른 표시의무 표기 및 문의처]
+
+- 상호: 태왕공인중개사사무소
+- 등록번호: 제 47190-2020-00055 호
+- 대표 소장: 남주근
+- 소재지: 경상북도 구미시 신시로 10길 107
+- 대표 연락처: ${phone || '010-7590-0111'} (전화 상담 환영)`;
+
+      const generatedTags = `#구미${category} #구미${dong}${category} #태왕공인중개사사무소 #구미부동산 #구미${dong}월세`;
+      return { title: generatedTitle, content: enforceReadabilityRules(generatedContent), tags: generatedTags, isFallback: true };
+    };
+
+    if (!process.env.GEMINI_API_KEY) {
+      console.warn("GEMINI_API_KEY is not configured. Serving local rule-based Naver Blog generator fallback.");
+      return res.json(generateFallback());
+    }
+
+    try {
+      const gAI = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const prompt = `당신은 구미 태왕공인중개사사무소의 유능한 명품 부동산 전문 마케팅 실장입니다. 다음 실매물 정보를 바탕으로 네이버 블로그 검색최적화(DIA, C-Rank 알고리즘)에 최적화된 고품질 홍보 원고를 작성해 주세요.
+
+매물 정보:
+- 매물 종류: ${category || '원룸'}
+- 거래 유형: ${transactionType || '월세'}
+- 지번/주소: ${address || ''} (${dong || '송정동'})
+- 건물명: ${building || ''}
+- 호실: ${room || ''}
+- 층수: ${floor || ''} / 전체 ${totalFloor || ''}층
+- 가격: ${price || ''}
+- 관리비: ${manageFee || ''}
+- 소장 직통 연락처: ${phone || '010-7590-0111'}
+- 비고: ${cleanRemarks || ''}
+- 매물 소개 및 상세 특징: ${cleanIntro || ''}
+- 설명 본문(에디터 원본 HTML 포함): ${cleanBody || ''}
+
+★ 중요 작성 지침 ★
+1. 이모지 완전 배제 (치명적 준수 사항):
+   - 제목, 본문, 추천 태그를 포함한 모든 텍스트에서 🏠, ✨, 🟢, 📢, 💡, 📞, 📝, 🌐 등 어떠한 이모지도 절대로 사용하지 마십시오. 단 하나의 이모지도 노출되어서는 안 됩니다.
+   
+2. 묵직하고 신뢰감 넘치는 명품 서사형 어투:
+   - 가볍거나 경쾌한 말투를 완전히 제거하고, 품격과 가치를 드러내는 엄격하고 묵직한 명품 스토리텔링 어투를 유지하십시오 (~체, ~하였습니다 등의 정중하고 격조 높은 신뢰감 있는 어조).
+   
+3. 에디터 삽입 이미지 태그(<img>) 완벽 보존 및 연동:
+   - 본문에 포함된 모든 이미지 태그(예: <img src="파이어베이스 주소" ... />)들을 절대로 삭제하지 말고 본문의 흐름에 맞춰 정확한 순서대로 완벽히 그대로 포함시켜 출력해 주십시오. 이미지 태그는 사진 파일의 주소이므로 한 자도 변조되어서는 안 됩니다.
+   
+4. 360도 VR 큰창 링크 강제 결착:
+   - 본문 중간 혹은 이미지 바로 밑에 독자들이 클릭하여 VR로 즉시 이동할 수 있도록 다음 하이퍼링크 코드를 무조건 원본 그대로 포함시켜 주십시오:
+     ${vrLinkHtml}
+     
+5. 문장 마침표 후 강제 2회 줄바꿈 (모바일 가독성 극대화):
+   - 마침표(.), 느낌표(!), 물음표(?) 등으로 끝나는 모든 문장은 즉시 문장을 종료하고 줄바꿈을 두 번 실행하여, 문장과 문장 사이에 반드시 비어있는 한 줄(공백 라인)이 생기도록 하십시오.
+   - 이 규칙은 서론, 본문, 결론뿐만 아니라 자주 묻는 질문(FAQ)의 답변 및 매물 설명 명세표 내부 텍스트 등 모든 원고 영역에서 단 한 문장도 예외 없이 철저하게 100% 적용되어야 합니다.
+
+6. 모든 헤딩(대괄호 제목 포함)의 상하 공백 강제 삽입:
+   - [#], [##], [###] 등 모든 헤딩이나, [태왕공인중개사사무소 엄선 매물 안내], [현장 검증 및 입지 분석 서론] 등의 대괄호형 대제목/소제목들이 들어갈 때는 해당 제목의 위(바로 앞)와 아래(바로 뒤)에 반드시 각각 비어있는 한 줄(공백 라인)을 삽입하여 제목이 문장들 사이에 완벽하게 독립되어 배치되도록 하십시오.
+   
+7. 구성 안내:
+   - [태왕공인중개사사무소 엄선 매물 안내]: 서두 부분에 작성하십시오.
+   - [현장 검증 및 입지 분석 서론]: 직접 입주 전 검증을 완료한 귀한 매물임을 진중하게 표현하십시오.
+   - [매물 요약 명세 정보]: 가격, 층수, 관리비 등을 깔끔한 리스트 구조로 작성하십시오.
+   - [태왕 중개사 제안 포인트]: 이 매물만의 3가지 특장점을 격식 있는 표현으로 기술하십시오.
+   - [법정 표기 의무 및 문의처]:
+     - 상호: 태왕공인중개사사무소
+     - 등록번호: 제 47190-2020-00055 호
+     - 대표 소장: 남주근
+     - 소재지: 경상북도 구미시 신시로 10길 107
+     - 대표 연락처: ${phone || '010-7590-0111'} (전화 상담 항시 가능)
+
+8. 해시태그: 매물과 관련된 해시태그 5~8개를 작성해 주세요. (예: #구미원룸 #구미송정동원룸 #태왕공인중개사사무소 #구미월세 - 이모지 금지)
+
+반드시 다음 형식의 JSON 데이터만 출력해 주셔야 하며, 다른 설명이나 주석 텍스트를 절대로 섞지 마세요.
+{
+  "title": "여기에 블로그 제목 입력 (이모지 절대 금지)",
+  "content": "이중 줄바꿈(\\n\\n)과 이미지 태그 및 VR 링크 코드가 온전히 포함된 명품 서사형 블로그 본문 텍스트 (이모지 절대 금지)",
+  "tags": "해시태그 문자열 (예: #구미원룸 #송정동월세 #태왕공인중개사사무소)"
+}`;
+
+      const response = await gAI.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        }
+      });
+
+      const responseText = response.text || '';
+      try {
+        const parsed = JSON.parse(responseText.trim());
+        return res.json({
+          title: parsed.title || `[구미 ${dong} ${category}] ${transactionType} ${price} | 태왕공인중개사사무소 추천 매물`,
+          content: enforceReadabilityRules(parsed.content || ''),
+          tags: parsed.tags || `#구미${category} #구미${dong}${category} #태왕공인중개사사무소`,
+          isFallback: false
+        });
+      } catch (parseError) {
+        console.error("Gemini response parse error:", parseError, "Response was:", responseText);
+        return res.json(generateFallback());
+      }
+    } catch (apiError: any) {
+      console.error("Gemini API call failed:", apiError);
+      return res.json(generateFallback());
+    }
+  });
+
+  // Direct Blog Dispatching and Publishing Router (Dual-Platform support: Naver & Blogspot)
+  app.post('/api/blog/publish', async (req, res) => {
+    const { slotId, platform, accountId, credentials, title, content, htmlContent, tags, postId, origin } = req.body;
+    
+    console.log(`[Blog Publish Router] Request received for Slot: ${slotId}, Platform: ${platform}, Account ID: ${accountId}`);
+
+    if (platform === 'blogspot') {
+      try {
+        const blogId = accountId || 'default-blog-id';
+        let accessToken = credentials?.accessToken;
+        
+        // Google Blogger API integration. Refreshes the token if refresh parameters exist.
+        if (credentials?.refreshToken && credentials?.clientId && credentials?.clientSecret) {
+          console.log("[Blogger API Proxy] Access token stale or refreshing requested...");
+          const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: credentials.clientId,
+              client_secret: credentials.clientSecret,
+              refresh_token: credentials.refreshToken,
+              grant_type: 'refresh_token'
+            })
+          });
+          
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            accessToken = tokenData.access_token;
+            console.log("[Blogger API Proxy] Access token obtained successfully via Refresh Token.");
+          } else {
+            const errText = await tokenRes.text();
+            console.error("[Blogger API Proxy] Refresh token exchange failed:", errText);
+            throw new Error(`Google OAuth Refresh Failed: ${errText}`);
+          }
+        }
+        
+        if (!accessToken) {
+          throw new Error("블로그스팟 API를 호출하기 위해 Access Token 또는 Refresh Token과 Client Credentials 설정이 필요합니다.");
+        }
+        
+        const labels = tags 
+          ? tags.split(/[\s,#]+/).map((t: string) => t.trim()).filter((t: string) => t.length > 0)
+          : [];
+        
+        console.log(`[Blogger API Proxy] Dispatching post to Google Blogger Blog ID: ${blogId}`);
+        const bloggerUrl = `https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts`;
+        
+        const bloggerRes = await fetch(bloggerUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            kind: 'blogger#post',
+            blog: { id: blogId },
+            title: title,
+            content: htmlContent || content, // Rich HTML payload with images and VR link intact
+            labels: labels
+          })
+        });
+        
+        if (bloggerRes.ok) {
+          const postResult = await bloggerRes.json();
+          console.log(`[Blogger API Proxy] Successfully published post to Blogspot. Post ID: ${postResult.id}`);
+          return res.json({
+            success: true,
+            message: "구글 블로그스팟에 성공적으로 즉시 발행 및 전송되었습니다!",
+            postId: postResult.id,
+            url: postResult.url
+          });
+        } else {
+          const errText = await bloggerRes.text();
+          console.error("[Blogger API Proxy] Publication request returned error:", errText);
+          throw new Error(`Google Blogger API Error: ${errText}`);
+        }
+      } catch (err: any) {
+        console.error("[Blogger API Route Exception]", err);
+        return res.status(500).json({
+          success: false,
+          error: err.message || "구글 블로그스팟 API 발행 중 원인 미상의 오류가 발생했습니다."
+        });
+      }
+    } else {
+      // Naver Blog
+      console.log(`[Naver Blog Dispatch] Returning copy/paste redirection anchor for account: ${accountId}`);
+      return res.json({
+        success: true,
+        message: `네이버 원스톱 HTML 클립보드 복사 결착 성공! (${accountId} 채널)`,
+        simulated: true,
+        url: `https://blog.naver.com/${accountId}?Redirect=Write`
+      });
+    }
   });
 
   app.all('/api/*', (req, res) => {

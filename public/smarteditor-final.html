@@ -17,21 +17,46 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&family=Maru+Buri:wght@300;400;600;700&family=Nanum+Pen+Script&family=Nanum+Brush+Script&display=swap');
-        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumBarunGothic.css');
-        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquare.css');
-        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumDasiSiJagHae.css');
-        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/NanumBaReunHiPi.css');
-        @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff');
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css');
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css');
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css');
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-dasi-si-jag-hae.css');
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-ba-reun-hi-pi.css');
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-woori-ddal-son-geul-ssi.css');
         
         @font-face {
             font-family: 'NaverWooriDdalSonGeulSsi';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
+            src: local('NanumWooriDdalSonGeulSsi'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff2') format('woff2'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff') format('woff');
             font-weight: normal;
             font-style: normal;
         }
         @font-face {
             font-family: '우리딸손글씨';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
+            src: local('NanumWooriDdalSonGeulSsi'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff2') format('woff2'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'NanumDasiSiJagHae';
+            src: local('NanumDasiSiJagHae'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-dasi-si-jag-hae.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'NanumBaReunHiPi';
+            src: local('NanumBaReunHiPi'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-ba-reun-hi-pi.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'NanumBarunGothic';
+            src: local('NanumBarunGothic'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-barun-gothic/NanumBarunGothic.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'NanumSquare';
+            src: local('NanumSquare'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-square/NanumSquareR.woff2') format('woff2');
             font-weight: normal;
             font-style: normal;
         }
@@ -70,13 +95,13 @@
         }
         
         /* --- [V12 Premium Design Engine] --- */
-        /* Canvases styling for Nanum Gothic 16pt (16pt) equivalent */
+        /* Canvases styling for Nanum Gothic 16px equivalent */
         .editor-canvas {
             min-height: 200px;
             outline: none;
             transition: all 0.15s ease-in-out;
             font-family: 'Nanum Gothic', sans-serif;
-            font-size: 16pt;
+            font-size: 16px;
             font-weight: 500 !important;
             line-height: 1.8 !important;
             color: #1E293B !important;
@@ -162,22 +187,22 @@
             font-weight: 600 !important;
             color: #475569 !important;
         }
-        .text-slate-400 {
+        .text-slate-400:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 12px !important;
         }
-        .text-slate-500 {
+        .text-slate-500:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 13px !important;
         }
-        .text-emerald-900 {
+        .text-emerald-900:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 15px !important;
         }
-        .text-slate-700 {
+        .text-slate-700:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 14px !important;
         }
-        .font-black, .font-extrabold {
+        .font-black:not(.editor-canvas):not(.editor-canvas *), .font-extrabold:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 16px !important;
         }
-        h3, h3 * {
+        h3:not(.editor-canvas):not(.editor-canvas *), h3 *:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 18px !important;
         }
         
@@ -189,7 +214,7 @@
         }
         
         /* Icons */
-        i, .fa-solid, .fa-regular {
+        i:not(.editor-canvas):not(.editor-canvas *), .fa-solid:not(.editor-canvas):not(.editor-canvas *), .fa-regular:not(.editor-canvas):not(.editor-canvas *) {
             font-size: 18px !important;
         }
         
@@ -364,8 +389,15 @@
                 flex-wrap: wrap !important;
             }
 
-            /* [선명한 나눔고딕 & 초정밀 9px 마이크로 타이포그래피 (모바일 전용)]: UI 글자 크기 9px 일괄 축소 및 일반 굵기 400 고정 */
-            body, button, select, input, label, span, p, .text-slate-700, .cat-btn, .trans-btn, h3, h3 *, aside, aside *, header, header * {
+            /* [선명한 나눔고딕 & 초정밀 9px 마이크로 타이포그래피 (모바일 전용)]: UI 글자 크기 9px 일괄 축소 및 일반 굵기 400 고정 (에디터 영역 예외처리 완료) */
+            body, button, select, input, label, 
+            span:not(.editor-canvas):not(.editor-canvas *), 
+            p:not(.editor-canvas):not(.editor-canvas *), 
+            .text-slate-700:not(.editor-canvas):not(.editor-canvas *), 
+            .cat-btn, .trans-btn, 
+            h3:not(.editor-canvas):not(.editor-canvas *), 
+            h3 *:not(.editor-canvas):not(.editor-canvas *), 
+            aside, aside *, header, header * {
                 font-family: 'Nanum Gothic', sans-serif !important;
                 font-size: 9px !important;
                 font-weight: 400 !important;
@@ -384,10 +416,10 @@
                 justify-content: center !important;
             }
             
-            /* 스코프 제한: 실제 블로그 본문 및 에디터 캔버스는 영향 받지 않음 */
-            .editor-canvas, .editor-canvas * {
-                font-size: 16pt !important;
-                font-weight: 500 !important;
+            /* 스코프 제한: 실제 블로그 본문 및 에디터 캔버스 자체의 기본값만 제어하고 개별 요소 스타일은 해방 */
+            .editor-canvas {
+                font-size: 16px;
+                font-weight: 500;
             }
 
             /* [고대비 외곽선 및 시인성 극대화]: 진한 Slate 계열(#94a3b8)의 2.0px 외곽선 세우기 */
@@ -459,7 +491,8 @@
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-400 select-none">글꼴</span>
                     <select id="font-family-selector" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
-                        <option value="'Nanum Gothic', sans-serif" selected>나눔고딕</option>
+                        <option value="inherit" selected>기본서체</option>
+                        <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
                         <option value="'Nanum Myeongjo', serif">나눔명조</option>
                         <option value="'NanumBarunGothic', sans-serif">나눔바른고딕</option>
                         <option value="'NanumSquare', sans-serif">나눔스퀘어</option>
@@ -473,14 +506,17 @@
                 <!-- Font size select -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-400 select-none">크기</span>
-                    <select onchange="applyFontSize(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
-                        <option value="12">12pt</option>
-                        <option value="14">14pt</option>
-                        <option value="16" selected>16pt</option>
-                        <option value="18">18pt</option>
-                        <option value="20">20pt</option>
-                        <option value="24">24pt</option>
-                        <option value="30">30pt</option>
+                    <select id="font-size-selector" onchange="applyFontSize(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
+                        <option value="11px">11</option>
+                        <option value="13px">13</option>
+                        <option value="15px">15</option>
+                        <option value="16px" selected>16</option>
+                        <option value="19px">19</option>
+                        <option value="24px">24</option>
+                        <option value="28px">28</option>
+                        <option value="30px">30</option>
+                        <option value="34px">34</option>
+                        <option value="38px">38</option>
                     </select>
                 </div>
 
@@ -1838,6 +1874,172 @@
             updateCharacterCounts();
         }
 
+        // [네이버형 커서 위치 글자 크기/글꼴 실시간 역추적 동기화 기능]
+        function updateUIFontSizeFromCaret() {
+            try {
+                const selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0) return;
+                
+                const range = selection.getRangeAt(0);
+                let node = range.startContainer;
+                if (!node) return;
+                
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node = node.parentElement;
+                }
+                if (!node) return;
+
+                // 에디터 캔버스 영역 내부인지 철저히 검증
+                let isInsideCanvas = false;
+                let temp = node;
+                while (temp) {
+                    if (temp.classList && temp.classList.contains('editor-canvas')) {
+                        isInsideCanvas = true;
+                        break;
+                    }
+                    temp = temp.parentElement;
+                }
+                if (!isInsideCanvas) return;
+
+                // 1차 역추적: 인라인 스타일 font-size 우선 탐색
+                let matchedSizeStr = null;
+                let curr = node;
+                while (curr && curr.classList && !curr.classList.contains('editor-canvas')) {
+                    if (curr.style && curr.style.fontSize) {
+                        matchedSizeStr = curr.style.fontSize;
+                        break;
+                    }
+                    // font 태그의 size 속성이 있는 경우도 백업 지원
+                    if (curr.tagName === 'FONT' && curr.getAttribute('size')) {
+                        const sz = curr.getAttribute('size');
+                        // HTML font size (1-7)를 px 단위로 변환 매핑
+                        const mapping = { '1': '11px', '2': '13px', '3': '15px', '4': '16px', '5': '24px', '6': '30px', '7': '38px' };
+                        if (mapping[sz]) {
+                            matchedSizeStr = mapping[sz];
+                            break;
+                        }
+                    }
+                    curr = curr.parentElement;
+                }
+
+                // 2차 역추적: 인라인 스타일이 없는 경우 브라우저 렌더링 값(Computed Style) 역산 추적
+                if (!matchedSizeStr) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        matchedSizeStr = window.getComputedStyle(node).fontSize;
+                    } else if (node.parentElement) {
+                        matchedSizeStr = window.getComputedStyle(node.parentElement).fontSize;
+                    }
+                }
+
+                if (!matchedSizeStr) {
+                    matchedSizeStr = '16px'; // 기본값
+                }
+
+                // px 및 pt 단위를 실시간 해독하여 소장님 숫자와 1:1 철컥 동기화
+                let sizePx = null;
+                if (matchedSizeStr.endsWith('pt')) {
+                    const pt = parseFloat(matchedSizeStr);
+                    sizePx = pt * 1.33333; // 1pt = 1.33333px
+                } else if (matchedSizeStr.endsWith('px')) {
+                    sizePx = parseFloat(matchedSizeStr);
+                } else {
+                    sizePx = parseFloat(matchedSizeStr);
+                }
+
+                if (isNaN(sizePx)) return;
+
+                // 에디터 상단 메뉴의 실제 지원 규격 (11px ~ 38px)
+                const targetSizes = [11, 13, 15, 16, 19, 24, 28, 30, 34, 38];
+                let closestSize = 16; // 기본값 16
+                let minDiff = Infinity;
+                targetSizes.forEach(sz => {
+                    const diff = Math.abs(sizePx - sz);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestSize = sz;
+                    }
+                });
+
+                const targetVal = closestSize + 'px';
+                const selector = document.getElementById('font-size-selector');
+                if (selector && selector.value !== targetVal) {
+                    selector.value = targetVal;
+                }
+            } catch (err) {
+                console.error("updateUIFontSizeFromCaret error:", err);
+            }
+        }
+
+        function updateUIFontFamilyFromCaret() {
+            try {
+                const selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0) return;
+                
+                const range = selection.getRangeAt(0);
+                let node = range.startContainer;
+                if (!node) return;
+                
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node = node.parentElement;
+                }
+                if (!node) return;
+
+                let isInsideCanvas = false;
+                let temp = node;
+                while (temp) {
+                    if (temp.classList && temp.classList.contains('editor-canvas')) {
+                        isInsideCanvas = true;
+                        break;
+                    }
+                    temp = temp.parentElement;
+                }
+                if (!isInsideCanvas) return;
+
+                let matchedFontStr = null;
+                let curr = node;
+                while (curr && curr.classList && !curr.classList.contains('editor-canvas')) {
+                    if (curr.style && curr.style.fontFamily) {
+                        matchedFontStr = curr.style.fontFamily;
+                        break;
+                    }
+                    curr = curr.parentElement;
+                }
+
+                if (!matchedFontStr) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        matchedFontStr = window.getComputedStyle(node).fontFamily;
+                    } else if (node.parentElement) {
+                        matchedFontStr = window.getComputedStyle(node.parentElement).fontFamily;
+                    }
+                }
+
+                if (!matchedFontStr) return;
+
+                const fontStrClean = matchedFontStr.replace(/['"]/g, '').toLowerCase();
+                const selector = document.getElementById('font-family-selector');
+                if (selector) {
+                    let matched = false;
+                    for (let i = 0; i < selector.options.length; i++) {
+                        const optVal = selector.options[i].value.replace(/['"]/g, '').toLowerCase();
+                        if (optVal === 'inherit') continue;
+                        const firstFontOfOpt = optVal.split(',')[0].trim();
+                        if (fontStrClean.includes(firstFontOfOpt) || optVal.includes(fontStrClean)) {
+                            if (selector.value !== selector.options[i].value) {
+                                selector.value = selector.options[i].value;
+                            }
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        selector.value = 'inherit';
+                    }
+                }
+            } catch (err) {
+                console.error("updateUIFontFamilyFromCaret error:", err);
+            }
+        }
+
         function initCaretTracking() {
             const canvases = document.querySelectorAll('.editor-canvas');
             canvases.forEach(c => {
@@ -1845,15 +2047,28 @@
                     c.addEventListener(evtName, () => {
                         saveCurrentSelection();
                         updateCharacterCounts();
+                        updateUIFontSizeFromCaret();
+                        updateUIFontFamilyFromCaret();
                         notifyParent();
                     });
                 });
                 ['focus', 'blur'].forEach(evtName => {
                     c.addEventListener(evtName, () => {
                         updateCharacterCounts();
+                        updateUIFontSizeFromCaret();
+                        updateUIFontFamilyFromCaret();
                         notifyParent();
                     });
                 });
+            });
+
+            // 실시간 selectionchange 이벤트 리스너를 더해 커서 드래그 및 정밀 이동까지 즉시 포착
+            document.addEventListener('selectionchange', () => {
+                const activeEl = document.activeElement;
+                if (activeEl && activeEl.classList && activeEl.classList.contains('editor-canvas')) {
+                    updateUIFontSizeFromCaret();
+                    updateUIFontFamilyFromCaret();
+                }
             });
 
             // Prevent focus dispersion & save selection before click focus leaves editor
@@ -1930,7 +2145,7 @@
         }
 
         function applyFontSize(size) {
-            // Convert e.g. "16" to "16px"
+            // Convert to px instead of pt to match Naver Blog's exact px standard
             const sizeStr = size.endsWith('px') || size.endsWith('pt') ? size : size + 'px';
             if (window.oEditors && window.oEditors.getById && window.oEditors.getById["ir1"]) {
                 window.oEditors.getById["ir1"].exec("SET_WYSIWYG_STYLE", [{ fontSize: sizeStr }]);

@@ -137,6 +137,32 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
 
     useEffect(() => {
         const fetchStickersFromStorage = async () => {
+            const CACHE_KEY = 'taewang_stickers_cache';
+            const CACHE_TIME_KEY = 'taewang_stickers_cache_time';
+            
+            // Check localStorage cache first
+            const cached = localStorage.getItem(CACHE_KEY);
+            const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+            const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime, 10) : Infinity;
+            
+            // If cache exists and is younger than 12 hours, load it immediately
+            if (cached && cacheAge < 12 * 60 * 60 * 1000) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.length > 0) {
+                        if (iframeRef.current && iframeRef.current.contentWindow) {
+                            iframeRef.current.contentWindow.postMessage({
+                                type: 'STORAGE_STICKERS_LOADED',
+                                payload: parsed
+                            }, '*');
+                        }
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Stickers cache parse failed, re-fetching:", e);
+                }
+            }
+
             try {
                 const stickersRef = ref(storage, 'stickers');
                 const result = await listAll(stickersRef);
@@ -156,6 +182,10 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 );
                 const validStickers = fetchedStickers.filter(Boolean) as { name: string; url: string }[];
                 
+                // Save to localStorage
+                localStorage.setItem(CACHE_KEY, JSON.stringify(validStickers));
+                localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+
                 if (iframeRef.current && iframeRef.current.contentWindow) {
                     iframeRef.current.contentWindow.postMessage({
                         type: 'STORAGE_STICKERS_LOADED',

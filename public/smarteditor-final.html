@@ -12,10 +12,22 @@
     <!-- Pannellum VR Viewer Library -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <!-- SortableJS Library for Drag and Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <!-- Naver Maps API V3 -->
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=WLIBZPK6dNLqtg0eyd0i&submodules=geocoder"></script>
     
     <style>
+        /* ==========================================
+           소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격
+           ========================================== */
+        html, body, div, span {
+            transform: translate3d(0, 0, 0) !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+            text-rendering: optimizeLegibility !important;
+        }
+
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&family=Maru+Buri:wght@300;400;600;700&family=Nanum+Pen+Script&family=Nanum+Brush+Script&display=swap');
         @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css');
         @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css');
@@ -102,7 +114,7 @@
             transition: all 0.15s ease-in-out;
             font-family: 'Nanum Gothic', sans-serif;
             font-size: 16px;
-            font-weight: 500 !important;
+            font-weight: 400 !important;
             line-height: 1.8 !important;
             color: #1E293B !important;
             word-break: break-all;
@@ -120,7 +132,7 @@
             padding: 10px 16px !important;
             border-radius: 9999px !important; /* Premium Chip Style */
             font-size: 14px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             border: 1px solid #E2E8F0 !important;
             transition: all 0.2s !important;
         }
@@ -130,7 +142,7 @@
             font-size: 14px !important;
             padding: 10px 14px !important;
             border-radius: 10px !important;
-            font-weight: 500 !important;
+            font-weight: 400 !important;
             height: auto !important;
             border: 1px solid #E2E8F0 !important;
             background-color: #FFFFFF !important;
@@ -184,7 +196,7 @@
         /* Labels & Texts */
         label {
             font-size: 14px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             color: #475569 !important;
         }
         .text-slate-400:not(.editor-canvas):not(.editor-canvas *) {
@@ -382,7 +394,7 @@
                 padding: 10px !important;
                 font-size: 9px !important;
                 border-radius: 9999px !important;
-                font-weight: 500 !important;
+                font-weight: 700 !important;
                 flex: 0 1 auto !important;
             }
             .flex-wrap {
@@ -419,7 +431,7 @@
             /* 스코프 제한: 실제 블로그 본문 및 에디터 캔버스 자체의 기본값만 제어하고 개별 요소 스타일은 해방 */
             .editor-canvas {
                 font-size: 16px;
-                font-weight: 500;
+                font-weight: 400;
             }
 
             /* [고대비 외곽선 및 시인성 극대화]: 진한 Slate 계열(#94a3b8)의 2.0px 외곽선 세우기 */
@@ -432,8 +444,6 @@
             #youtube-preview-container iframe,
             #main-photo-drag-zone, 
             #main-photo-drag-zone img,
-            #additional-photos-stack > div,
-            #additional-photos-stack > div img,
             #pano-photos-list > div,
             #pano-photos-list img,
             #panorama-viewer-container,
@@ -454,6 +464,108 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 12px !important;
             }
+        }
+
+        /* 추가 사진 격자형 컴팩트 축소 레이아웃 글로벌 스타일 */
+        #additional-photos-stack {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 12px !important;
+            justify-content: start !important;
+            width: 100% !important;
+        }
+        #additional-photos-stack > div.additional-photo-card {
+            width: 100% !important;
+            aspect-ratio: auto !important;
+            height: auto !important;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 12px !important;
+            transition: all 0.2s ease-in-out !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+            overflow: hidden !important;
+        }
+        #additional-photos-stack > div.additional-photo-card:hover {
+            border-color: #005A36 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            transform: translateY(-2px) !important;
+        }
+        #additional-photos-stack > div.additional-photo-card img {
+            width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            height: auto !important;
+            object-fit: cover !important;
+        }
+
+        /* 파노라마 사진 격자형 컴팩트 축소 레이아웃 글로벌 스타일 */
+        #pano-photos-list {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 12px !important;
+            justify-content: start !important;
+            width: 100% !important;
+        }
+        #pano-photos-list > div {
+            width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 12px !important;
+            transition: all 0.2s ease-in-out !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+            overflow: hidden !important;
+        }
+        #pano-photos-list > div:hover {
+            border-color: #005A36 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            transform: translateY(-2px) !important;
+        }
+        #pano-photos-list > div img {
+            width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            height: auto !important;
+            object-fit: cover !important;
+        }
+
+        /* Drag & Drop Grab/Grabbing Cursors */
+        #additional-photos-stack > div.additional-photo-card,
+        #pano-photos-list > div {
+            cursor: grab !important;
+        }
+        #additional-photos-stack > div.additional-photo-card:active,
+        #pano-photos-list > div:active {
+            cursor: grabbing !important;
+        }
+        /* SortableJS drag-active classes */
+        .sortable-ghost {
+            opacity: 0.45 !important;
+            background-color: #f1f5f9 !important;
+            border: 2px dashed #059669 !important;
+        }
+        .sortable-chosen {
+            cursor: grabbing !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            transform: scale(1.02) !important;
+        }
+        .sortable-drag {
+            cursor: grabbing !important;
+            opacity: 0.9 !important;
+        }
+        
+        /* Left upper horizontal tab buttons precision style override */
+        [id^="tab-btn-"] {
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        [id^="tab-btn-"] i {
+            font-size: 27px !important; /* 1.5 times the standard 18px */
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+            text-rendering: optimizeLegibility !important;
+            transform: translate3d(0, 0, 0) !important;
+            backface-visibility: hidden !important;
         }
     </style>
 </head>
@@ -684,30 +796,30 @@
         <!-- Left Sidebar: Marketing weapons (V13 Control Room Layout) -->
         <aside class="w-[25%] min-w-[280px] max-w-[360px] shrink-0 border-r border-slate-200 bg-[#F8FAFC] flex flex-col h-full overflow-hidden z-40 select-none">
             <!-- V13 TOP HORIZONTAL MENU BAR -->
-            <div class="flex flex-row items-center w-full bg-slate-50 border-b border-slate-200 p-1 shrink-0 select-none gap-0.5 justify-between overflow-hidden">
-                <button id="tab-btn-1" onclick="switchControlTab(1)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="즐겨찾기">
-                    <i class="fa-regular fa-star text-sm"></i>
-                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">즐겨찾기</span>
+            <div class="flex flex-row items-center w-full bg-slate-50 border-b border-slate-200 p-2 shrink-0 select-none gap-[8px] justify-between overflow-hidden">
+                <button id="tab-btn-1" onclick="switchControlTab(1)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="즐겨찾기">
+                    <i class="fa-regular fa-star" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">즐겨찾기</span>
                 </button>
-                <button id="tab-btn-2" onclick="switchControlTab(2)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="사진첩">
-                    <i class="fa-regular fa-image text-sm"></i>
-                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">사진첩</span>
+                <button id="tab-btn-2" onclick="switchControlTab(2)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="사진첩">
+                    <i class="fa-regular fa-image" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">사진첩</span>
                 </button>
-                <button id="tab-btn-3" onclick="switchControlTab(3)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="스티커">
-                    <i class="fa-regular fa-face-smile text-sm"></i>
-                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">스티커</span>
+                <button id="tab-btn-3" onclick="switchControlTab(3)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="스티커">
+                    <i class="fa-regular fa-face-smile" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">스티커</span>
                 </button>
-                <button id="tab-btn-4" onclick="switchControlTab(4)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="인용구">
-                    <i class="fa-solid fa-quote-left text-sm"></i>
-                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">인용구</span>
+                <button id="tab-btn-4" onclick="switchControlTab(4)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="인용구">
+                    <i class="fa-solid fa-quote-left" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">인용구</span>
                 </button>
-                <button id="tab-btn-5" onclick="switchControlTab(5)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="구분선">
-                    <i class="fa-solid fa-arrows-left-right text-sm"></i>
-                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">구분선</span>
+                <button id="tab-btn-5" onclick="switchControlTab(5)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="구분선">
+                    <i class="fa-solid fa-arrows-left-right" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">구분선</span>
                 </button>
-                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 rounded-lg transition-all cursor-pointer" title="V7.0">
-                    <i class="fa-regular fa-file-lines text-sm"></i>
-                    <span class="text-[11px] font-extrabold tracking-tighter leading-none mt-1">V7.0</span>
+                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="V7.0">
+                    <i class="fa-regular fa-file-lines" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">V7.0</span>
                 </button>
             </div>
  
@@ -897,19 +1009,19 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-3">
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">건물명</label>
-                        <input type="text" id="post-building" oninput="notifyParent()" placeholder="예: 무지개빌" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-building" oninput="notifyParentDebounced()" placeholder="예: 무지개빌" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">호실 (금고보관)</label>
-                        <input type="text" id="post-room" oninput="notifyParent()" placeholder="예: 301호" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-room" oninput="notifyParentDebounced()" placeholder="예: 301호" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">해당층</label>
-                        <input type="text" id="post-floor" oninput="notifyParent()" placeholder="예: 3층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-floor" oninput="notifyParentDebounced()" placeholder="예: 3층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">전체층</label>
-                        <input type="text" id="post-totalFloor" oninput="notifyParent()" placeholder="예: 4층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-totalFloor" oninput="notifyParentDebounced()" placeholder="예: 4층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
@@ -924,11 +1036,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">임대 금액 (만 원)</label>
-                        <input type="text" id="post-price" oninput="notifyParent()" placeholder="예: 200/35 또는 5000" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-price" oninput="notifyParentDebounced()" placeholder="예: 200/35 또는 5000" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">관리금 합산 (만 원)</label>
-                        <input type="text" id="post-manageFee" oninput="notifyParent()" placeholder="예: 5" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-manageFee" oninput="notifyParentDebounced()" placeholder="예: 5" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
@@ -943,11 +1055,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">중개사무소 연락처</label>
-                        <input type="text" id="post-phone" oninput="notifyParent()" placeholder="예: 010-1234-5678" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-phone" oninput="notifyParentDebounced()" placeholder="예: 010-1234-5678" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">임대인 직접 연락처 (금고보관)</label>
-                        <input type="text" id="post-ownerPhone" oninput="notifyParent()" placeholder="예: 010-9876-5432" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-ownerPhone" oninput="notifyParentDebounced()" placeholder="예: 010-9876-5432" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
@@ -1004,11 +1116,11 @@
                             <span class="text-lg text-slate-400 mt-2">여러 장의 일반 사진을 한 번에 등록하십시오</span>
                         </div>
                         
-                        <!-- 추가 사진 16:9 수직 스택 리스트 -->
+                        <!-- 추가 사진 16:9 격자형 리스트 -->
                         <div class="space-y-4">
-                            <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (16:9 비율 폭포수 스택)</span>
-                            <div id="additional-photos-stack" class="flex flex-col gap-6 w-full">
-                                <!-- Previews will be rendered as full-width aspect-video (16:9) cards -->
+                            <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (16:9 비율 컴팩트 격자형 배치)</span>
+                            <div id="additional-photos-stack" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;">
+                                <!-- Previews will be rendered as compact 220px aspect-video (16:9) cards -->
                             </div>
                         </div>
                     </div>
@@ -1024,10 +1136,10 @@
                         </div>
 
                         <!-- 파노라마 VR 목록 (16:9 비율) -->
-                        <div class="grid grid-cols-2 gap-6 pt-2">
+                        <div class="space-y-6 pt-2">
                             <div class="space-y-3">
                                 <span class="block text-[20px] font-black text-slate-500 uppercase select-none">파노라마 리스트</span>
-                                <div id="pano-photos-list" class="grid grid-cols-2 gap-4"></div>
+                                <div id="pano-photos-list" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;"></div>
                             </div>
                             <!-- VR 웅장한 16:9 하드코딩 뷰어 -->
                             <div class="space-y-3">
@@ -1050,7 +1162,7 @@
                 </div>
                 <div 
                     id="intro-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-normal" 
                     contenteditable="true"
                     data-placeholder="이곳에 구미 대표 소장님의 안심 추천 멘트와 도입부를 작성해 주십시오..."
                     onfocus="focusEditor('intro-canvas', '[책임 중개 소장 한마디]')"
@@ -1067,7 +1179,7 @@
                 </div>
                 <div 
                     id="body-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-normal" 
                     contenteditable="true"
                     data-placeholder="이곳에 실사 현장 중심의 꼼꼼한 세대 본문 원고 내용을 적어 주십시오..."
                     onfocus="focusEditor('body-canvas', '[블로그 본문 원고]')"
@@ -1084,7 +1196,7 @@
                 </div>
                 <div 
                     id="remarks-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-normal" 
                     contenteditable="true"
                     data-placeholder="이곳에 주차 가능 수, 엘리베이터 여부 등 당일 기준 요약 특징을 기재하십시오..."
                     onfocus="focusEditor('remarks-canvas', '[실시간 매물특징]')"
@@ -1101,7 +1213,7 @@
                 </div>
                 <div 
                     id="guide-canvas" 
-                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-semibold" 
+                    class="editor-canvas p-6 text-slate-800 text-xl leading-relaxed font-normal" 
                     contenteditable="true"
                     data-placeholder="이곳에 소장님이 현장을 정밀 답사하고 보장하는 배수 상태와 소음 등급을 최종 요약하십시오..."
                     onfocus="focusEditor('guide-canvas', '[전문가 실사 답사가이드]')"
@@ -1109,7 +1221,7 @@
             </div>
 
             <!-- SECTION 7: 태왕 추천 랜드마크 매물 등록 -->
-            <div class="w-full max-w-[950px] flex items-center justify-between bg-emerald-50/50 p-8 rounded-2xl border border-emerald-200 font-semibold shadow-xs overflow-hidden text-left">
+            <div class="w-full max-w-[950px] flex items-center justify-between bg-emerald-50/50 p-8 rounded-2xl border border-emerald-200 font-bold shadow-xs overflow-hidden text-left">
                 <div class="text-left select-none">
                     <span class="text-[20px] font-black text-emerald-900 flex items-center gap-3">
                         <i class="fa-solid fa-star text-2xl text-amber-500 animate-pulse"></i>
@@ -1514,6 +1626,50 @@
             }, '*');
         }
 
+        // Debounce helper to prevent excessive React updates & reflows
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+        const notifyParentDebounced = debounce(notifyParent, 200);
+
+        // IntersectionObserver Lazy-Loading system for 360 & general images
+        let lazyImageObserver;
+        function initLazyLoading() {
+            if ('IntersectionObserver' in window) {
+                if (lazyImageObserver) {
+                    lazyImageObserver.disconnect();
+                }
+                lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            if (img.dataset.src) {
+                                img.src = img.dataset.src;
+                                img.removeAttribute('data-src');
+                            }
+                            observer.unobserve(img);
+                        }
+                    });
+                });
+                document.querySelectorAll('.lazy-load-img').forEach(img => {
+                    lazyImageObserver.observe(img);
+                });
+            } else {
+                // Fallback for older browsers
+                document.querySelectorAll('.lazy-load-img').forEach(img => {
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                    }
+                });
+            }
+        }
+
         // Image loaders
         function loadImages(joinedStr) {
             if (!joinedStr) {
@@ -1542,7 +1698,7 @@
             if (!inputVal) {
                 if (container) container.classList.add('hidden');
                 if (iframe) iframe.src = '';
-                notifyParent();
+                notifyParentDebounced();
                 return;
             }
             
@@ -1560,7 +1716,7 @@
                 if (container) container.classList.add('hidden');
                 if (iframe) iframe.src = '';
             }
-            notifyParent();
+            notifyParentDebounced();
         }
 
         // Batch upload photos
@@ -1685,34 +1841,56 @@
                 }
             }
 
-            // Render 3. Additional Photos [generalPhotos.slice(1)] (16:9 Stacked)
+            // Render 3. Additional Photos [generalPhotos.slice(1)] (16:9 Grid Layout with Compact Design)
             const stack = document.getElementById('additional-photos-stack');
             if (stack) {
                 stack.innerHTML = '';
                 const additionalList = generalPhotos.slice(1);
                 
                 if (additionalList.length === 0) {
+                    stack.style.display = 'block'; // Make empty banner full-width
                     stack.innerHTML = `
-                        <div class="py-12 text-center text-xl text-slate-400 font-extrabold bg-slate-50 rounded-2xl border border-slate-150 border-dashed select-none">
+                        <div class="py-12 text-center text-xl text-slate-400 font-extrabold bg-slate-50 rounded-2xl border border-slate-150 border-dashed select-none w-full">
                             등록된 추가 사진이 없습니다. 위 구역에 드래그하여 등록하십시오.
                         </div>
                     `;
                 } else {
+                    stack.style.display = 'grid'; // Enable the 4 columns grid
                     additionalList.forEach((url, idx) => {
                         const actualIdx = idx + 1;
                         const item = document.createElement('div');
-                        item.className = "relative bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xs flex flex-col aspect-video w-full";
+                        item.className = "additional-photo-card relative bg-white rounded-xl overflow-hidden flex flex-col w-full";
+                        
+                        const isFirst = (actualIdx === 1);
+                        const isLast = (actualIdx === generalPhotos.length - 1);
+                        
                         item.innerHTML = `
-                            <img src="${url}" class="w-full h-full object-cover">
-                            <div class="absolute bottom-4 left-4 right-4 flex justify-between bg-slate-950/70 px-4 py-3 rounded-xl backdrop-blur-md border border-slate-800">
-                                <span class="text-white text-lg font-black flex items-center gap-2">
-                                    <span class="bg-emerald-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold">${actualIdx}</span>
-                                    <span>추가 사진</span>
-                                </span>
-                                <div class="flex gap-2">
-                                    <button onclick="moveGeneralPhoto(${actualIdx}, -1)" type="button" class="bg-slate-850 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-base font-bold flex items-center gap-1.5 cursor-pointer transition-all"><i class="fa-solid fa-arrow-up"></i> 위로</button>
-                                    <button onclick="moveGeneralPhoto(${actualIdx}, 1)" type="button" class="bg-slate-850 hover:bg-slate-700 text-white px-4 py-2.5 rounded-lg text-base font-bold flex items-center gap-1.5 cursor-pointer transition-all"><i class="fa-solid fa-arrow-down"></i> 아래로</button>
-                                    <button onclick="deleteGeneralPhoto(${actualIdx})" type="button" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2.5 rounded-lg text-base font-bold flex items-center gap-1.5 cursor-pointer transition-all"><i class="fa-solid fa-trash"></i> 삭제</button>
+                            <!-- Control Bar Right Above the Photo -->
+                            <div class="flex items-center justify-between bg-slate-50 px-1 py-1 sm:px-1.5 sm:py-1 border-b border-slate-200 w-full select-none" style="padding: 3px 6px !important;">
+                                <div class="flex gap-1 items-center">
+                                    <!-- Previous Button (70% Compact Scale) -->
+                                    <button onclick="moveGeneralPhoto(${actualIdx}, -1)" type="button" class="bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-300 rounded cursor-pointer transition-all flex items-center" style="padding: 2px 4px !important; line-height: 1 !important; font-size: 7.5px !important; font-weight: 700 !important; border-width: 1px !important;" ${isFirst ? 'disabled style="opacity: 0.35; cursor: not-allowed; border-color: #e2e8f0; color: #cbd5e1; padding: 2px 4px !important; font-size: 7.5px !important; font-weight: 700 !important;"' : ''}>
+                                        ◀ Prev
+                                    </button>
+                                    <!-- Next Button (70% Compact Scale) -->
+                                    <button onclick="moveGeneralPhoto(${actualIdx}, 1)" type="button" class="bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-300 rounded cursor-pointer transition-all flex items-center" style="padding: 2px 4px !important; line-height: 1 !important; font-size: 7.5px !important; font-weight: 700 !important; border-width: 1px !important;" ${isLast ? 'disabled style="opacity: 0.35; cursor: not-allowed; border-color: #e2e8f0; color: #cbd5e1; padding: 2px 4px !important; font-size: 7.5px !important; font-weight: 700 !important;"' : ''}>
+                                        Next ▶
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <!-- Drag Handle symbol (↕) -->
+                                    <span class="text-slate-400 font-bold select-none cursor-grab" style="font-size: 10px !important; margin: 0 1px !important;" title="순서 변경">↕</span>
+                                    <!-- Delete Button (70% Compact Scale) -->
+                                    <button onclick="deleteGeneralPhoto(${actualIdx})" type="button" class="bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 rounded cursor-pointer transition-all flex items-center justify-center" style="padding: 0 !important; width: 15px !important; height: 15px !important;" title="삭제">
+                                        <i class="fa-solid fa-trash-can" style="font-size: 8px !important;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- 16:9 Image Area with absolute order indicator badge -->
+                            <div class="relative w-full aspect-video overflow-hidden" style="aspect-ratio: 16 / 9 !important;">
+                                <img data-src="${url}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'><rect width='100%' height='100%' fill='%23cbd5e1'/></svg>" class="w-full h-full object-cover lazy-load-img" loading="lazy">
+                                <div class="absolute top-1 left-1 bg-black/75 text-white font-black rounded backdrop-blur-xs select-none border border-white/10 shadow-sm" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important;">
+                                    [${idx + 1}]
                                 </div>
                             </div>
                         `;
@@ -1720,6 +1898,7 @@
                     });
                 }
             }
+            initLazyLoading();
         }
 
         function deleteMainPhoto() {
@@ -1732,7 +1911,8 @@
 
         function moveGeneralPhoto(index, dir) {
             const target = index + dir;
-            if (target < 0 || target >= generalPhotos.length) return;
+            // Prevent swapping with the representative photo (index 0) or going out of bounds
+            if (index < 1 || target < 1 || target >= generalPhotos.length) return;
             const temp = generalPhotos[index];
             generalPhotos[index] = generalPhotos[target];
             generalPhotos[target] = temp;
@@ -1754,20 +1934,24 @@
 
             panoramaPhotos.forEach((url, idx) => {
                 const item = document.createElement('div');
-                item.className = "relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 aspect-video group flex flex-col cursor-pointer hover:shadow-sm";
+                item.className = "pano-photo-card relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 aspect-video group flex flex-col cursor-pointer hover:shadow-sm";
+                item.style.aspectRatio = "16 / 9";
                 item.onclick = (e) => {
                     if (e.target.closest('button')) return;
                     loadPanoramaInViewer(url);
                 };
                 item.innerHTML = `
-                    <img src="${url}" class="w-full h-full object-cover">
-                    <div class="absolute top-2 left-2 bg-emerald-600 text-white font-black text-xs px-2.5 py-1 rounded shadow">VR 360 파노라마 실사</div>
-                    <div class="absolute bottom-2 right-2">
-                        <button onclick="deletePanoramaPhoto(${idx})" type="button" class="bg-rose-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-rose-500 cursor-pointer shadow"><i class="fa-solid fa-trash"></i></button>
+                    <img data-src="${url}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'><rect width='100%' height='100%' fill='%23cbd5e1'/></svg>" class="w-full h-full object-cover lazy-load-img" loading="lazy">
+                    <!-- Diet/Minimal VR Label Badge (70% Compact Scale) -->
+                    <div class="absolute top-1 left-1 bg-emerald-600/90 text-white font-bold rounded shadow-xs select-none" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important; border: 1px solid rgba(16, 185, 129, 0.2);">VR 360 파노라마 실사</div>
+                    <!-- Delete Button (70% Compact Scale) -->
+                    <div class="absolute bottom-1 right-1">
+                        <button onclick="deletePanoramaPhoto(${idx})" type="button" class="bg-rose-600 text-white hover:bg-rose-500 rounded flex items-center justify-center cursor-pointer shadow-sm" style="width: 15px !important; height: 15px !important; padding: 0 !important;"><i class="fa-solid fa-trash" style="font-size: 8px !important;"></i></button>
                     </div>
                 `;
                 grid.appendChild(item);
             });
+            initLazyLoading();
         }
 
         function deletePanoramaPhoto(index) {
@@ -2049,7 +2233,7 @@
                         updateCharacterCounts();
                         updateUIFontSizeFromCaret();
                         updateUIFontFamilyFromCaret();
-                        notifyParent();
+                        notifyParentDebounced();
                     });
                 });
                 ['focus', 'blur'].forEach(evtName => {
@@ -2398,9 +2582,9 @@
                 const btn = document.getElementById('tab-btn-' + i);
                 if (btn) {
                     if (i === tabIdx) {
-                        btn.className = "flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-emerald-600 bg-emerald-50 rounded-lg border border-emerald-200/50 cursor-pointer font-black transition-all text-[11px]";
+                        btn.className = "p-0 aspect-square flex-1 flex items-center justify-center text-emerald-600 bg-emerald-50 rounded-xl border-2 border-emerald-500 shadow-sm cursor-pointer font-black transition-all duration-200 ease-out transform active:scale-95";
                     } else {
-                        btn.className = "flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all text-[11px]";
+                        btn.className = "p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95";
                     }
                 }
                 
@@ -2495,7 +2679,7 @@
             for (let i = 1; i <= 6; i++) {
                 const btn = document.getElementById('tab-btn-' + i);
                 if (btn) {
-                    btn.className = "flex-1 min-w-[40px] flex flex-col items-center justify-center py-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-all text-[11px]";
+                    btn.className = "p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95";
                 }
             }
         }
@@ -3469,6 +3653,70 @@
         window.addEventListener('resize', adjustHeaderMargin);
         window.addEventListener('load', adjustHeaderMargin);
 
+        // SortableJS Drag & Drop Sort initialization safely wrapped in a local scope
+        function initSortablePhotos() {
+            (function() {
+                // 1. Sortable for General Photos (additional-photos-stack)
+                const additionalStack = document.getElementById('additional-photos-stack');
+                if (additionalStack && typeof Sortable !== 'undefined') {
+                    Sortable.create(additionalStack, {
+                        draggable: ".additional-photo-card",
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
+                        dragClass: 'sortable-drag',
+                        onEnd: function(evt) {
+                            const oldIndex = evt.oldIndex;
+                            const newIndex = evt.newIndex;
+                            if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return;
+                            
+                            // Adjusting array indices: we slice generalPhotos from 1,
+                            // so the child oldIndex corresponds to generalPhotos[oldIndex + 1]
+                            const targetOld = oldIndex + 1;
+                            const targetNew = newIndex + 1;
+                            if (targetOld < 1 || targetOld >= generalPhotos.length || targetNew < 1 || targetNew >= generalPhotos.length) return;
+                            
+                            const movedItem = generalPhotos.splice(targetOld, 1)[0];
+                            generalPhotos.splice(targetNew, 0, movedItem);
+                            
+                            // Optimizing render & message posting inside requestAnimationFrame to prevent layout reflow during dragging lifecycle
+                            requestAnimationFrame(() => {
+                                renderGeneralPhotos();
+                                notifyParent();
+                            });
+                        }
+                    });
+                }
+
+                // 2. Sortable for Panorama Photos (pano-photos-list)
+                const panoList = document.getElementById('pano-photos-list');
+                if (panoList && typeof Sortable !== 'undefined') {
+                    Sortable.create(panoList, {
+                        draggable: ".pano-photo-card",
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
+                        dragClass: 'sortable-drag',
+                        onEnd: function(evt) {
+                            const oldIndex = evt.oldIndex;
+                            const newIndex = evt.newIndex;
+                            if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return;
+                            if (oldIndex < 0 || oldIndex >= panoramaPhotos.length || newIndex < 0 || newIndex >= panoramaPhotos.length) return;
+                            
+                            const movedItem = panoramaPhotos.splice(oldIndex, 1)[0];
+                            panoramaPhotos.splice(newIndex, 0, movedItem);
+                            
+                            // Optimizing render & message posting inside requestAnimationFrame to prevent layout reflow during dragging lifecycle
+                            requestAnimationFrame(() => {
+                                renderPanoramaPhotos();
+                                notifyParent();
+                            });
+                        }
+                    });
+                }
+            })();
+        }
+
         // DOM Loaded Init
         window.addEventListener('DOMContentLoaded', () => {
             adjustHeaderMargin();
@@ -3487,6 +3735,7 @@
             populateFavoritesGrid();
             switchControlTab(1);
             initDragAndDrop();
+            initSortablePhotos();
             
             // Auto focus first editor
             document.getElementById('intro-canvas').focus();

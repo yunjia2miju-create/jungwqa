@@ -256,7 +256,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                 <span>실시간 구글 클라우드 동기화 가동 중</span>
                                 <span className="bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-black px-3 py-1 rounded-full whitespace-nowrap">클라우드 Live 완료</span>
                             </h4>
-                            <p className="text-slate-500 text-xs sm:text-base leading-relaxed max-w-4xl font-sans font-semibold">
+                            <p className="text-slate-500 text-xs sm:text-base leading-relaxed max-w-4xl font-sans font-normal">
                                 등록한 매물 및 고객 상담 기록은 구글 파이어베이스 클라우드 데이터베이스에 실시간 영구 연동되어 관리됩니다. 
                                 다른 PC나 스마트폰 브라우저에서 접속하더라도 동일한 최신 화면이 완벽히 동기화되어 나타납니다.
                             </p>
@@ -274,7 +274,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex border-b border-slate-200 w-full overflow-x-auto scrollbar-hide shrink-0 mb-6 font-semibold">
+            <div className="flex border-b border-slate-200 w-full overflow-x-auto scrollbar-hide shrink-0 mb-6 font-bold">
                 <button 
                     onClick={() => setAdminTab('inquiry')} 
                     className={`py-4 px-8 text-base sm:text-[18px] font-black transition-all whitespace-nowrap cursor-pointer ${
@@ -305,7 +305,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             {adminTab === 'inquiry' && (
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
                     <div className="overflow-x-auto w-full">
-                        <table className="w-full text-left font-medium border-collapse min-w-[700px]">
+                        <table className="w-full text-left font-normal border-collapse min-w-[700px]">
                             <thead>
                                 <tr className="bg-slate-50 text-slate-500 text-sm font-black border-b border-slate-200">
                                     <th className="p-6 pl-8">의뢰 접수 시간</th>
@@ -330,7 +330,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                         <td className="p-6 text-lg font-mono font-bold text-slate-600">
                                             <a href={`tel:${inq.phone}`} className="hover:text-emerald-600 hover:underline">{inq.phone}</a>
                                         </td>
-                                        <td className="p-6 text-base text-slate-600 max-w-lg break-all whitespace-pre-wrap text-left leading-relaxed font-semibold">
+                                        <td className="p-6 text-base text-slate-600 max-w-lg break-all whitespace-pre-wrap text-left leading-relaxed font-normal">
                                             {inq.message}
                                         </td>
                                         <td className="p-6 text-center pr-8">
@@ -468,7 +468,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                             <i className="fa-solid fa-magnifying-glass text-4xl mb-4 text-slate-300 block"></i>
                             <p className="text-base font-black text-slate-700">검색 조건에 맞는 매물이 없습니다.</p>
                             <p className="text-sm text-slate-450 font-bold mt-2">입력하신 검색어 "{adminSearchQuery}"를 확인하시거나 다른 키워드로 검색해 보세요.</p>
-                            <p className="text-xs text-slate-400 font-semibold mt-1">예: 동 이름 (송정동), 매물 형태 (원룸, 미투), 가격 (200, 23/2.5) 등</p>
+                            <p className="text-xs text-slate-400 font-normal mt-1">예: 동 이름 (송정동), 매물 형태 (원룸, 미투), 가격 (200, 23/2.5) 등</p>
                             <button
                                 onClick={() => setAdminSearchQuery('')}
                                 className="mt-6 px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 active:scale-95 rounded-2xl text-sm font-black transition-all cursor-pointer"
@@ -483,7 +483,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
             {adminTab === 'members' && (
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
                     <div className="overflow-x-auto w-full animate-fadeIn">
-                        <table className="w-full text-left font-medium border-collapse min-w-[700px]">
+                        <table className="w-full text-left font-normal border-collapse min-w-[700px]">
                             <thead>
                                 <tr className="bg-slate-50 text-slate-500 text-sm font-black border-b border-slate-200">
                                     <th className="p-6 pl-8">회원 가입 일시</th>

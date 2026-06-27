@@ -56,6 +56,16 @@
     <style type="text/css">
       @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff');
       
+      /* ==========================================
+         소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격
+         ========================================== */
+      html, body, div, span {
+        transform: translate3d(0, 0, 0);
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+      }
+
       @font-face {
         font-family: 'NaverWooriDdalSonGeulSsi';
         src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
@@ -80,6 +90,33 @@
         z-index: 9999 !important;
         background: #FFFFFF !important;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+      }
+
+      /* ==========================================
+         글자 외곽선 선명도(Anti-aliasing) 최적화 규칙 주입
+         ========================================== */
+      * {
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+      }
+
+      /* ==========================================
+         소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단
+         ========================================== */
+      div, section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
+        transform-style: preserve-3d !important;
+        backface-visibility: hidden !important;
+      }
+
+      /* ==========================================
+         하드웨어 폰트 렌더링 속성 정돈
+         ========================================== */
+      html, body, button, input, select, textarea, p, span, h1, h2, h3, h4, h5, h6 {
+        font-synthesis: none !important;
+        -webkit-text-stroke: 0px !important;
+        -webkit-text-size-adjust: 100% !important;
+        text-shadow: 0 0 0 transparent !important;
       }
 
     </style>

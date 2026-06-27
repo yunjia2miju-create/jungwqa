@@ -662,6 +662,7 @@ export const MainTab = ({
                                                     alt={p.building} 
                                                     referrerPolicy="no-referrer"
                                                     className="w-full h-full object-cover rounded-xl transition-transform duration-500 hover:scale-105"
+                                                    loading="lazy"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">

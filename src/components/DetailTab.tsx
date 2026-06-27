@@ -433,6 +433,7 @@ export const DetailTab = ({
                         src={p.thumbnail} 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                         alt="매물 대표 사진"
+                        loading="lazy"
                     />
                     {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
@@ -471,6 +472,7 @@ export const DetailTab = ({
                                         onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} 
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                         alt={`실사 추가 사진 ${i+1}`}
+                                        loading="lazy"
                                     />
                                     {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
@@ -542,7 +544,7 @@ export const DetailTab = ({
                                         onClick={() => setActivePanoIndex(idx)}
                                         className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-emerald-600 scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                     >
-                                        <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} />
+                                        <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} loading="lazy" />
                                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                             <span className="text-[8px] font-black text-white bg-black/40 px-1.5 py-0.5 rounded">Sc-{idx + 1}</span>
                                         </div>
@@ -654,7 +656,7 @@ export const DetailTab = ({
                                                 <i className="fa-solid fa-circle-exclamation text-amber-500"></i>
                                                 <span>공인중개사법시행령 제17조의2(중개대상물 명시의무)를 준수하는 공식 기재 고시란입니다.</span>
                                             </p>
-                                         </div>
+                                        </div>
                                     </div>
                                 );
                             }
@@ -671,7 +673,7 @@ export const DetailTab = ({
                             <span>소장의 고화질 동영상 브리핑</span>
                         </h4>
                         <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-md">
-                            <iframe src={embedUrl} className="w-full h-full" frameBorder="0" allowFullScreen></iframe>
+                            <iframe src={embedUrl} className="w-full h-full" frameBorder="0" loading="lazy" allowFullScreen></iframe>
                         </div>
                     </div>
                 )}
@@ -682,7 +684,7 @@ export const DetailTab = ({
                         <span>실시간 대화형 정밀 위치</span>
                     </h4>
                     <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-md relative bg-slate-100">
-                        <iframe width="100%" height="100%" frameBorder="0" style={{border:0}} src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&t=&z=18&ie=UTF8&iwloc=&output=embed`} allowFullScreen></iframe>
+                        <iframe width="100%" height="100%" frameBorder="0" style={{border:0}} src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&t=&z=18&ie=UTF8&iwloc=&output=embed`} loading="lazy" allowFullScreen></iframe>
                     </div>
                 </div>
 
@@ -747,7 +749,7 @@ export const DetailTab = ({
                         {matchingRecs.map(rec => (
                             <div key={rec.id} onClick={() => setSelectedPostId(rec.id)} className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group">
                                 <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 watermark-container">
-                                    <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                     {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
                                         <i 
@@ -840,6 +842,7 @@ export const DetailTab = ({
                                 className="max-w-full max-h-[72vh] object-contain rounded-xl select-none cursor-zoom-out" 
                                 alt="매물 고화질 실사"
                                 onClick={() => setActiveZoomUrl(null)}
+                                loading="lazy"
                             />
                             
                             {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}

@@ -417,11 +417,11 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                         <div className="p-6">
                             {authMode === 'login' ? (
                                 <>
-                                    <p className="text-slate-500 text-xs mb-4 leading-relaxed font-semibold">
+                                    <p className="text-slate-500 text-xs mb-4 leading-relaxed font-bold">
                                         매물 등록 및 개인 맞춤 상담을 이용하시려면 이메일 혹은 소셜 계정으로 로그인해주세요.
                                     </p>
                                     
-                                    <form onSubmit={handleEmailLogin} className="space-y-3 font-medium">
+                                    <form onSubmit={handleEmailLogin} className="space-y-3 font-normal">
                                         <div>
                                             <input 
                                                 type="email" 
@@ -429,7 +429,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputEmail}
                                                 onChange={e => setInputEmail(e.target.value)}
                                                 placeholder="이메일 주소 입력" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                         </div>
                                         <div>
@@ -439,7 +439,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputPassword}
                                                 onChange={e => setInputPassword(e.target.value)}
                                                 placeholder="비밀번호 입력" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                         </div>
 
@@ -447,7 +447,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                             <button 
                                                 type="button" 
                                                 onClick={() => setActiveSection('main')} 
-                                                className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-semibold transition-all"
+                                                className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-bold transition-all"
                                             >
                                                 홈으로
                                             </button>
@@ -467,7 +467,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                         구미태왕공인중개사 간편 회원 가입을 진심으로 환영합니다.
                                     </p>
                                     
-                                    <form onSubmit={handleEmailSignUp} className="space-y-3 font-medium">
+                                    <form onSubmit={handleEmailSignUp} className="space-y-3 font-normal">
                                         <div>
                                             <input 
                                                 type="email" 
@@ -475,7 +475,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputEmail}
                                                 onChange={e => setInputEmail(e.target.value)}
                                                 placeholder="이메일 주소 (ID)" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                         </div>
                                         <div>
@@ -485,7 +485,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputPassword}
                                                 onChange={e => setInputPassword(e.target.value)}
                                                 placeholder="비밀번호 설정 (6자 이상)" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                         </div>
                                         <div>
@@ -495,7 +495,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputPasswordConfirm}
                                                 onChange={e => setInputPasswordConfirm(e.target.value)}
                                                 placeholder="비밀번호 재확인 입력" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
@@ -505,7 +505,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputName}
                                                 onChange={e => setInputName(e.target.value)}
                                                 placeholder="실명 / 닉네임" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                             <input 
                                                 type="text" 
@@ -513,7 +513,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                                 value={inputPhone}
                                                 onChange={e => setInputPhone(e.target.value)}
                                                 placeholder="연락처 (모바일)" 
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-semibold"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs focus:outline-none focus:border-emerald-500 transition-all font-normal"
                                             />
                                         </div>
 
@@ -521,7 +521,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                             <button 
                                                 type="button" 
                                                 onClick={() => setActiveSection('main')} 
-                                                className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-semibold transition-all"
+                                                className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-bold transition-all"
                                             >
                                                 홈으로
                                             </button>
@@ -589,10 +589,10 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                             <span className="text-emerald-600 animate-pulse"><i className="fa-solid fa-mobile-screen-button"></i></span>
                             <span>소장님 모바일 2차 인증 (SMS)</span>
                         </h3>
-                        <div className="bg-emerald-50 border border-emerald-100/70 rounded-xl p-3 mb-4 text-[11px] text-emerald-800 leading-relaxed font-semibold">
+                        <div className="bg-emerald-50 border border-emerald-100/70 rounded-xl p-3 mb-4 text-[11px] text-emerald-800 leading-relaxed font-bold">
                             안전한 종합 중개 관리를 위해 전용번호로 전송되는 인증 보안을 거쳐 관리자 권한을 가동합니다.
                         </div>
-                        <p className="text-slate-500 text-xs mb-4 leading-relaxed font-semibold">
+                        <p className="text-slate-500 text-xs mb-4 leading-relaxed font-normal">
                             등록된 소장님 번호 <span className="font-bold text-slate-800">010-****-0111</span>로 발송된 6자리 코드를 입력해주세요.
                         </p>
                         <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
@@ -619,7 +619,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-sans text-xs font-bold text-rose-500">만료됨</span>
                                 )}
                             </div>
-                            <div className="flex justify-between items-center px-1 text-[11px] font-semibold">
+                            <div className="flex justify-between items-center px-1 text-[11px] font-bold">
                                 <span className="text-slate-400 font-sans">인증번호를 받지 못하셨나요?</span>
                                 <button
                                     type="button"
@@ -635,7 +635,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                                 <button 
                                     type="button" 
                                     onClick={() => setLoginStep('password')} 
-                                    className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-semibold transition-all"
+                                    className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-bold transition-all"
                                 >
                                     이전 단계
                                 </button>
@@ -672,7 +672,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                     <p className="text-slate-500 text-[11px] leading-relaxed mb-4">
                         보안 네트워크 브라우저/모바일 팝업 차단에서도 원활하게 로그인할 수 있도록 지원하는 태왕 부동산 전용 간편 채널입니다.
                     </p>
-                    <div className="space-y-3 font-semibold">
+                    <div className="space-y-3 font-bold">
                         <div>
                             <label className="block text-[10px] text-slate-400 mb-1">인증할 계정 이메일</label>
                             <input 

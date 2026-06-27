@@ -28,47 +28,100 @@
             text-rendering: optimizeLegibility !important;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&family=Maru+Buri:wght@300;400;600;700&family=Nanum+Pen+Script&family=Nanum+Brush+Script&display=swap');
-        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css');
-        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css');
-        @import url('https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css');
-        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-dasi-si-jag-hae.css');
-        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-ba-reun-hi-pi.css');
-        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-woori-ddal-son-geul-ssi.css');
-        
+        /* ==========================================
+           [전역 웹 폰트 시스템] 8대 명품 글꼴 패밀리 고속 정의
+           ========================================== */
+
+        /* [1번] 마루부리 */
         @font-face {
-            font-family: 'NaverWooriDdalSonGeulSsi';
-            src: local('NanumWooriDdalSonGeulSsi'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff2') format('woff2'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff') format('woff');
-            font-weight: normal;
-            font-style: normal;
+            font-family: 'MaruBuri';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Regular.ttf?alt=media&token=2b69fbc0-96a8-46c0-ba6a-a6ead4b64671') format('truetype');
+            font-weight: 400;
+            font-display: swap;
         }
         @font-face {
-            font-family: '우리딸손글씨';
-            src: local('NanumWooriDdalSonGeulSsi'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff2') format('woff2'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-woori-ddal-son-geul-ssi.woff') format('woff');
-            font-weight: normal;
-            font-style: normal;
+            font-family: 'MaruBuri';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Bold.ttf?alt=media&token=47ef75d2-75c0-416d-9b0d-df37bb35f257') format('truetype');
+            font-weight: 700;
+            font-display: swap;
         }
+
+        /* [2번] 나눔바른고딕 */
         @font-face {
-            font-family: 'NanumDasiSiJagHae';
-            src: local('NanumDasiSiJagHae'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-dasi-si-jag-hae.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: 'NanumBaReunHiPi';
-            src: local('NanumBaReunHiPi'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-son-geul-ssi/nanum-ba-reun-hi-pi.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
+            font-family: 'NanumBarunGothic';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothic.ttf?alt=media&token=28fda42d-0f43-4e1c-8d04-6b75b29ea960') format('truetype');
+            font-weight: 400;
+            font-display: swap;
         }
         @font-face {
             font-family: 'NanumBarunGothic';
-            src: local('NanumBarunGothic'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-barun-gothic/NanumBarunGothic.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothicBold.ttf?alt=media&token=ed8e7704-8fb3-4a28-84db-a5607a388cce') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        /* [3번] 나눔고딕 */
+        @font-face {
+            font-family: 'NanumGothic';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothic.ttf?alt=media&token=b7438dca-9864-4e9d-9f2f-fa3b963bd149') format('truetype');
+            font-weight: 400;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'NanumGothic';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothicBold.ttf?alt=media&token=860a8c44-e0dc-41e2-9493-9af1ff139059') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        /* [4번] 나눔스퀘어 */
+        @font-face {
+            font-family: 'NanumSquare';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acR.ttf?alt=media&token=ebed2d9c-9797-4c0f-8d12-1897caa33a82') format('truetype');
+            font-weight: 400;
+            font-display: swap;
         }
         @font-face {
             font-family: 'NanumSquare';
-            src: local('NanumSquare'), url('https://hangeul.pstatic.net/hangeul_static/webfont/nanum-square/NanumSquareR.woff2') format('woff2');
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acB.ttf?alt=media&token=ba37a539-ded4-49eb-9d05-c8d97d737ab3') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        /* [5번] 나눔명조 */
+        @font-face {
+            font-family: 'NanumMyeongjo';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjo.ttf?alt=media&token=cc825be5-1c1f-4456-a610-04d280ddc7d2') format('truetype');
+            font-weight: 400;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'NanumMyeongjo';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjoBold.ttf?alt=media&token=c21aacaf-c99b-4043-a110-235f4a7338dc') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        /* [6번] 다시시작해 */
+        @font-face {
+            font-family: 'DasiSijakhae';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia2%2Fyunjia2.ttf?alt=media&token=ac563ee5-54f0-4b78-a6fc-89aae9ff4188') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* [7번] 바른히피 */
+        @font-face {
+            font-family: 'BareunHippie';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia3%2Fyunjia3.ttf?alt=media&token=825c35f2-7953-472b-98fb-68d99f2e35bb') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* [8번] 우리딸손글씨 */
+        @font-face {
+            font-family: 'UriTtal';
+            src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia4%2Fyunjia4.ttf?alt=media&token=8dda2df0-6a89-4eec-91b4-dbb318dc98e6') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -603,15 +656,15 @@
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-400 select-none">글꼴</span>
                     <select id="font-family-selector" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
-                        <option value="inherit" selected>기본서체</option>
-                        <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
-                        <option value="'Nanum Myeongjo', serif">나눔명조</option>
-                        <option value="'NanumBarunGothic', sans-serif">나눔바른고딕</option>
-                        <option value="'NanumSquare', sans-serif">나눔스퀘어</option>
-                        <option value="'Maru Buri', serif">마루부리</option>
-                        <option value="'NanumDasiSiJagHae', sans-serif">다시시작해</option>
-                        <option value="'NanumBaReunHiPi', sans-serif">바른히피</option>
-                        <option value="'NaverWooriDdalSonGeulSsi', '우리딸손글씨', sans-serif">우리딸손글씨</option>
+                        <option value="inherit">기본서체</option>
+                        <option value="MaruBuri">마루부리</option>
+                        <option value="NanumBarunGothic">나눔바른고딕</option>
+                        <option value="NanumGothic" selected>나눔고딕</option>
+                        <option value="NanumSquare">나눔스퀘어</option>
+                        <option value="NanumMyeongjo">나눔명조</option>
+                        <option value="DasiSijakhae">다시시작해</option>
+                        <option value="BareunHippie">바른히피</option>
+                        <option value="UriTtal">우리딸손글씨</option>
                     </select>
                 </div>
 
@@ -778,11 +831,11 @@
                     <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
                     <span>백업</span>
                 </button>
-                <button onclick="saveAndAlert()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-all text-xs">
+                <button id="btn-header-save" onclick="saveAndAlert()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-all text-xs">
                     <i class="fa-regular fa-bookmark text-sm"></i>
                     <span>임시 저장</span>
                 </button>
-                <button onclick="publishAndAlert()" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg font-extrabold flex items-center gap-1.5 cursor-pointer transition-all text-xs">
+                <button id="btn-header-publish" onclick="publishAndAlert()" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg font-extrabold flex items-center gap-1.5 cursor-pointer transition-all text-xs">
                     <i class="fa-solid fa-paper-plane text-sm"></i>
                     <span>최종 발행</span>
                 </button>
@@ -1249,6 +1302,7 @@
                     작성 종료 / 목록 복귀
                 </button>
                 <button 
+                    id="btn-bottom-publish"
                     type="button" 
                     onclick="publishAndAlert()"
                     class="w-2/3 py-6 rounded-3xl text-[20px] font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-all cursor-pointer shadow-md text-center flex items-center justify-center gap-3"
@@ -2321,6 +2375,41 @@
 
         // Apply Font Styles (드래그된 텍스트 실시간 0.1초 즉시 적용 및 무결점 강제 주입)
         function applyFontFamily(fontName) {
+            // 본문 편집 영역 전역의 base font-family를 바뀐 폰트명으로 실시간 교체
+            let dynamicStyle = document.getElementById('editor-active-font-style');
+            if (!dynamicStyle) {
+                dynamicStyle = document.createElement('style');
+                dynamicStyle.id = 'editor-active-font-style';
+                document.head.appendChild(dynamicStyle);
+            }
+            if (fontName && fontName !== 'inherit') {
+                dynamicStyle.innerHTML = `
+                    .editor-canvas, .editor-canvas * {
+                        font-family: '${fontName}', sans-serif !important;
+                    }
+                `;
+                
+                // [DasiSijakhae], [BareunHippie], [UriTtal] 및 일반 폰트 선택 시 본문 영역의 즉각적인 수동 변환 보장
+                const canvases = document.querySelectorAll('.editor-canvas');
+                canvases.forEach(el => {
+                    el.style.setProperty('font-family', fontName, 'important');
+                    const children = el.querySelectorAll('*');
+                    children.forEach(child => {
+                        child.style.setProperty('font-family', fontName, 'important');
+                    });
+                });
+            } else {
+                dynamicStyle.innerHTML = '';
+                const canvases = document.querySelectorAll('.editor-canvas');
+                canvases.forEach(el => {
+                    el.style.removeProperty('font-family');
+                    const children = el.querySelectorAll('*');
+                    children.forEach(child => {
+                        child.style.removeProperty('font-family');
+                    });
+                });
+            }
+
             if (window.oEditors && window.oEditors.getById && window.oEditors.getById["ir1"]) {
                 window.oEditors.getById["ir1"].exec("FONT_NAME", [fontName]);
             } else {
@@ -3432,6 +3521,41 @@
         }
 
         function saveAndAlert() {
+            // 2중 안전 잠금 및 로딩 표시 개시 (Double-click prevention)
+            const btnHeaderSave = document.getElementById('btn-header-save');
+            const btnHeaderPublish = document.getElementById('btn-header-publish');
+            const btnBottomPublish = document.getElementById('btn-bottom-publish');
+
+            // 원래 내용 백업
+            if (btnHeaderSave && !btnHeaderSave.dataset.originalHtml) {
+                btnHeaderSave.dataset.originalHtml = btnHeaderSave.innerHTML;
+            }
+            if (btnHeaderPublish && !btnHeaderPublish.dataset.originalHtml) {
+                btnHeaderPublish.dataset.originalHtml = btnHeaderPublish.innerHTML;
+            }
+            if (btnBottomPublish && !btnBottomPublish.dataset.originalHtml) {
+                btnBottomPublish.dataset.originalHtml = btnBottomPublish.innerHTML;
+            }
+
+            const headerLoadingHtml = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>💾 매물 데이터 저장 중... 잠시만 기다려주세요</span>';
+            const bottomLoadingHtml = '<i class="fa-solid fa-spinner fa-spin text-xl animate-spin"></i> <span>💾 매물 데이터 저장 중... 잠시만 기다려주세요</span>';
+
+            if (btnHeaderSave) {
+                btnHeaderSave.disabled = true;
+                btnHeaderSave.innerHTML = headerLoadingHtml;
+                btnHeaderSave.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+            if (btnHeaderPublish) {
+                btnHeaderPublish.disabled = true;
+                btnHeaderPublish.innerHTML = headerLoadingHtml;
+                btnHeaderPublish.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+            if (btnBottomPublish) {
+                btnBottomPublish.disabled = true;
+                btnBottomPublish.innerHTML = bottomLoadingHtml;
+                btnBottomPublish.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+
             // 에디터 원고 내부의 이모지 및 ㅎㅎ, ㅋㅋ, ㅠㅠ 등 인터넷 채팅 요소 정제 및 원천 차단
             const cleanTitle = sanitizeContent(document.getElementById('intro-canvas').innerHTML);
             const cleanRemarks = sanitizeContent(document.getElementById('remarks-canvas').innerHTML);
@@ -3629,8 +3753,38 @@
                     }
                     populateFavoritesGrid();
                 }
+            } else if (e.data.type === 'SUBMIT_SUCCESS' || e.data.type === 'SUBMIT_ERROR') {
+                restoreSaveButtons();
             }
         });
+
+        function restoreSaveButtons() {
+            const btnHeaderSave = document.getElementById('btn-header-save');
+            const btnHeaderPublish = document.getElementById('btn-header-publish');
+            const btnBottomPublish = document.getElementById('btn-bottom-publish');
+
+            if (btnHeaderSave) {
+                btnHeaderSave.disabled = false;
+                if (btnHeaderSave.dataset.originalHtml) {
+                    btnHeaderSave.innerHTML = btnHeaderSave.dataset.originalHtml;
+                }
+                btnHeaderSave.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            if (btnHeaderPublish) {
+                btnHeaderPublish.disabled = false;
+                if (btnHeaderPublish.dataset.originalHtml) {
+                    btnHeaderPublish.innerHTML = btnHeaderPublish.dataset.originalHtml;
+                }
+                btnHeaderPublish.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            if (btnBottomPublish) {
+                btnBottomPublish.disabled = false;
+                if (btnBottomPublish.dataset.originalHtml) {
+                    btnBottomPublish.innerHTML = btnBottomPublish.dataset.originalHtml;
+                }
+                btnBottomPublish.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
 
         // Dynamic header height margin-top auto adjustment for Sticky Fix
         function adjustHeaderMargin() {

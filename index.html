@@ -54,8 +54,104 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" crossorigin="anonymous"></script>
     
     <style type="text/css">
-      @import url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff');
-      
+      /* ==========================================
+         [전역 웹 폰트 시스템] 8대 명품 글꼴 패밀리 고속 정의
+         ========================================== */
+
+      /* [1번] 마루부리 */
+      @font-face {
+        font-family: 'MaruBuri';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Regular.ttf?alt=media&token=2b69fbc0-96a8-46c0-ba6a-a6ead4b64671') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'MaruBuri';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Bold.ttf?alt=media&token=47ef75d2-75c0-416d-9b0d-df37bb35f257') format('truetype');
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      /* [2번] 나눔바른고딕 */
+      @font-face {
+        font-family: 'NanumBarunGothic';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothic.ttf?alt=media&token=28fda42d-0f43-4e1c-8d04-6b75b29ea960') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'NanumBarunGothic';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothicBold.ttf?alt=media&token=ed8e7704-8fb3-4a28-84db-a5607a388cce') format('truetype');
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      /* [3번] 나눔고딕 */
+      @font-face {
+        font-family: 'NanumGothic';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothic.ttf?alt=media&token=b7438dca-9864-4e9d-9f2f-fa3b963bd149') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'NanumGothic';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothicBold.ttf?alt=media&token=860a8c44-e0dc-41e2-9493-9af1ff139059') format('truetype');
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      /* [4번] 나눔스퀘어 */
+      @font-face {
+        font-family: 'NanumSquare';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acR.ttf?alt=media&token=ebed2d9c-9797-4c0f-8d12-1897caa33a82') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'NanumSquare';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acB.ttf?alt=media&token=ba37a539-ded4-49eb-9d05-c8d97d737ab3') format('truetype');
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      /* [5번] 나눔명조 */
+      @font-face {
+        font-family: 'NanumMyeongjo';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjo.ttf?alt=media&token=cc825be5-1c1f-4456-a610-04d280ddc7d2') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'NanumMyeongjo';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjoBold.ttf?alt=media&token=c21aacaf-c99b-4043-a110-235f4a7338dc') format('truetype');
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      /* [6번] 다시시작해 */
+      @font-face {
+        font-family: 'DasiSijakhae';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia2%2Fyunjia2.ttf?alt=media&token=ac563ee5-54f0-4b78-a6fc-89aae9ff4188') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      /* [7번] 바른히피 */
+      @font-face {
+        font-family: 'BareunHippie';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia3%2Fyunjia3.ttf?alt=media&token=825c35f2-7953-472b-98fb-68d99f2e35bb') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      /* [8번] 우리딸손글씨 */
+      @font-face {
+        font-family: 'UriTtal';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia4%2Fyunjia4.ttf?alt=media&token=8dda2df0-6a89-4eec-91b4-dbb318dc98e6') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+
       /* ==========================================
          소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격
          ========================================== */
@@ -64,19 +160,6 @@
         -webkit-font-smoothing: antialiased !important;
         -moz-osx-font-smoothing: grayscale !important;
         text-rendering: optimizeLegibility !important;
-      }
-
-      @font-face {
-        font-family: 'NaverWooriDdalSonGeulSsi';
-        src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
-        font-weight: normal;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: '우리딸손글씨';
-        src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_08@1.0/NaverWooriDdalSonGeulSsi.woff') format('woff');
-        font-weight: normal;
-        font-style: normal;
       }
 
       /* ==========================================

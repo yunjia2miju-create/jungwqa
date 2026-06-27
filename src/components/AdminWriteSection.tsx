@@ -255,6 +255,13 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             setPosts(updated);
             showToast(editingPostId ? "매물 답사기가 최종 수정 저장되었습니다!" : "신규 매물 전고가 완벽 등록 발행되었습니다!", "success");
             
+            // Notify iframe of successful save before redirecting
+            if (iframeRef.current && iframeRef.current.contentWindow) {
+                iframeRef.current.contentWindow.postMessage({
+                    type: 'SUBMIT_SUCCESS'
+                }, '*');
+            }
+
             // Go back to dashboard on complete
             localStorage.removeItem('taewang_editing_post_id');
             setActiveSection('admin-dashboard');
@@ -262,6 +269,14 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             console.error(err);
             const errMsg = err?.message || String(err);
             showToast(`매물 저장 실패: ${errMsg.substring(0, 100)}`, "error");
+            
+            // Send error notification back to iframe to unlock buttons
+            if (iframeRef.current && iframeRef.current.contentWindow) {
+                iframeRef.current.contentWindow.postMessage({
+                    type: 'SUBMIT_ERROR',
+                    payload: { message: errMsg }
+                }, '*');
+            }
         } finally {
             setIsSubmitting(false);
         }

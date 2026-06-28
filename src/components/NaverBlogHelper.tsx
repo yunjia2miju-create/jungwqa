@@ -196,6 +196,76 @@ function parseLegalDisclosures(content: string) {
     };
 }
 
+// Strict image sanitization and optimization function for Naver Blog compatibility
+function sanitizeAndOptimizeAllImages(html: string, postTitle: string): string {
+    if (!html) return '';
+
+    // Match all img tags (including self-closing and standard ones)
+    return html.replace(/<img\s+([^>]*?)>/gi, (match, attributesStr) => {
+        // Extract attributes using case-insensitive regex
+        const srcMatch = attributesStr.match(/src=["']([^"']*)["']/i);
+        const altMatch = attributesStr.match(/alt=["']([^"']*)["']/i);
+        const widthMatch = attributesStr.match(/width=["']([^"']*)["']/i);
+        const heightMatch = attributesStr.match(/height=["']([^"']*)["']/i);
+        const styleMatch = attributesStr.match(/style=["']([^"']*)["']/i);
+
+        let src = srcMatch ? srcMatch[1] : '';
+        let alt = altMatch ? altMatch[1] : '';
+        let width = widthMatch ? widthMatch[1] : '';
+        let height = heightMatch ? heightMatch[1] : '';
+        let style = styleMatch ? styleMatch[1] : '';
+
+        // 1. Base64 원천 차단 (Strict block of data:image/...)
+        if (src.startsWith('data:image/') || !src.trim()) {
+            return ''; // Strip this element completely
+        }
+
+        // 2. URL 용접 (Convert relative virtual path to absolute URL)
+        if (src.startsWith('/')) {
+            src = `${window.location.origin}${src}`;
+        }
+
+        // 3. 표준 alt, width, height 속성 최적화 자동 마감
+        if (!alt || alt === '대표' || alt === '대표 이미지' || alt === '상세 사진' || alt.includes('추가 사진')) {
+            alt = alt ? `${alt} - ${postTitle}` : `태왕공인중개사사무소 실매물 사진 - ${postTitle}`;
+        }
+
+        // Standard size mapping
+        let normWidth = "800";
+        let normHeight = "600";
+
+        if (width && /^\d+$/.test(width)) {
+            normWidth = width;
+        } else if (width && width.endsWith('px')) {
+            normWidth = width.replace('px', '');
+        }
+
+        if (height && /^\d+$/.test(height)) {
+            normHeight = height;
+        } else if (height && height.endsWith('px')) {
+            normHeight = height.replace('px', '');
+        } else {
+            if (normWidth !== "800") {
+                normHeight = Math.round(parseInt(normWidth) * 0.75).toString();
+            }
+        }
+
+        // Layout-friendly styling for naver blog editor pasting
+        let normStyle = `max-width: 100% !important; height: auto !important; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: block; margin: 15px auto;`;
+        
+        if (style) {
+            // If sticker gif is specified, keep it compact
+            if (style.includes('width: 80px') || style.includes('width:80px') || src.includes('/stickers/') || src.includes('/sticker/')) {
+                normWidth = "80";
+                normHeight = "80";
+                normStyle = `width: 80px !important; height: auto !important; display: inline-block; margin: 4px;`;
+            }
+        }
+
+        return `<img src="${src}" alt="${alt}" width="${normWidth}" height="${normHeight}" style="${normStyle}" referrerPolicy="no-referrer" />`;
+    });
+}
+
 interface NaverBlogHelperModalProps {
     post: Post | null;
     isOpen: boolean;
@@ -667,7 +737,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
                </div>`
             : '';
 
-        return `
+        const rawHtml = `
             <div style="font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; line-height: 1.8; color: #333333; max-width: 800px; margin: 0 auto; padding: 10px;">
                 ${repImgHtml}
                 ${postTitleHtml}
@@ -677,6 +747,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
                 ${additionalImagesHtml}
             </div>
         `;
+        return sanitizeAndOptimizeAllImages(rawHtml, title);
     };
 
     useEffect(() => {
@@ -688,7 +759,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
     // Rich Text Clipboard copy handler keeping absolute sequencing
     const handleCopyRichText = async () => {
         if (!post) return;
-        const htmlFormatted = isHtmlMode ? htmlContent : buildSequentialHtml();
+        const htmlFormatted = isHtmlMode ? sanitizeAndOptimizeAllImages(htmlContent, title) : buildSequentialHtml();
         
         // Plain Text Fallback Format with Zero-Loss mapped details
         const parsed = parseLegalDisclosures(content);

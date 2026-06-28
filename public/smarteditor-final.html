@@ -434,6 +434,35 @@
                 max-height: 70px !important;
             }
 
+            /* 감정별 분류 탭 메뉴 & 스티커 서랍 개조 */
+            .sticker-tab-container {
+                display: flex;
+                gap: 6px;
+                margin-bottom: 12px;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 6px;
+            }
+            .sticker-tab {
+                flex: 1;
+                padding: 6px 4px;
+                font-size: 12px;
+                background-color: #f8fafc;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                cursor: pointer;
+                color: #475569;
+                font-weight: bold;
+                text-align: center;
+                transition: all 0.1s ease-in-out;
+            }
+            .sticker-tab.active {
+                background-color: #28a745 !important;
+                color: white !important;
+                border-color: #28a745 !important;
+                font-weight: bold !important;
+                box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+            }
+
             /* [하단 우측 4구역 통합 작업실]: 모바일 가로폭 100% 꽉 차게 조율 */
             main.w-\[75\%\] > div, .w-full.max-w-\[950px\] {
                 width: 100% !important;
@@ -619,6 +648,35 @@
             text-rendering: optimizeLegibility !important;
             transform: translate3d(0, 0, 0) !important;
             backface-visibility: hidden !important;
+        }
+
+        /* 법정동 바둑판 격자판 스타일 */
+        .dong-grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 칼날 같은 3열 배분 */
+            gap: 8px;
+            max-width: 450px;
+            margin-top: 10px;
+        }
+        .dong-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .dong-btn:hover {
+            background-color: #e9ecef;
+        }
+        /* 소장님이 선택하신 동을 시각적으로 강조하는 회색 하이라이트 선로 */
+        .dong-btn.active {
+            background-color: #dee2e6;
+            font-weight: 700;
+            border-color: #ced4da;
         }
     </style>
 </head>
@@ -870,9 +928,9 @@
                     <i class="fa-solid fa-arrows-left-right" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
                     <span class="hidden" style="display: none !important;">구분선</span>
                 </button>
-                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="V7.0">
-                    <i class="fa-regular fa-file-lines" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
-                    <span class="hidden" style="display: none !important;">V7.0</span>
+                <button id="tab-btn-6" onclick="switchControlTab(6)" type="button" class="p-0 aspect-square flex-1 flex items-center justify-center text-slate-400 bg-white hover:bg-slate-50 hover:text-emerald-600 rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out transform hover:scale-[1.02] hover:border-slate-300 active:scale-95" title="V7.3">
+                    <i class="fa-solid fa-dice" style="font-size: 27px !important; -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; text-rendering: optimizeLegibility !important; transform: translate3d(0,0,0) !important; backface-visibility: hidden !important;"></i>
+                    <span class="hidden" style="display: none !important;">V7.3</span>
                 </button>
             </div>
  
@@ -917,21 +975,12 @@
                         </button>
                     </div>
  
-                    <!-- 2. [Category Navigation] -->
-                    <div class="flex items-center justify-between gap-1 border-b border-slate-100 pb-2">
-                        <button onclick="scrollCategories('left')" type="button" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all cursor-pointer" title="이전">
-                            <i class="fa-solid fa-chevron-left text-sm"></i>
-                        </button>
-                        <div id="category-circle-list" class="flex-grow flex items-center justify-center gap-2 px-1 py-1">
-                            <button id="circle-cat-곰돌이" onclick="setCategoryInTab('곰돌이')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="곰돌이">🐻</button>
-                            <button id="circle-cat-햄찌" onclick="setCategoryInTab('햄찌')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="햄찌">🐹</button>
-                            <button id="circle-cat-부동산" onclick="setCategoryInTab('부동산')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="부동산">🏠</button>
-                            <button id="circle-cat-댕댕이" onclick="setCategoryInTab('댕댕이')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="댕댕이">🐶</button>
-                            <button id="circle-cat-인형형" onclick="setCategoryInTab('인형형')" type="button" class="w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0" title="인형형">🧸</button>
-                        </div>
-                        <button onclick="scrollCategories('right')" type="button" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all cursor-pointer" title="다음">
-                            <i class="fa-solid fa-chevron-right text-sm"></i>
-                        </button>
+                    <!-- 2. [Category Navigation]: 감정별 분류 탭 메뉴 -->
+                    <div class="sticker-tab-container flex gap-1.5 border-b border-slate-100 pb-2 mb-2">
+                        <button id="tab-sticker-all" class="sticker-tab active flex-1 py-1 px-1.5 text-xs text-center font-bold bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg cursor-pointer transition-all" onclick="filterStickers('all', this)">전체</button>
+                        <button id="tab-sticker-fighting" class="sticker-tab flex-1 py-1 px-1.5 text-xs text-center font-bold bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg cursor-pointer transition-all" onclick="filterStickers('fighting', this)">파이팅</button>
+                        <button id="tab-sticker-daily" class="sticker-tab flex-1 py-1 px-1.5 text-xs text-center font-bold bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg cursor-pointer transition-all" onclick="filterStickers('daily', this)">일상/먹방</button>
+                        <button id="tab-sticker-sad" class="sticker-tab flex-1 py-1 px-1.5 text-xs text-center font-bold bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg cursor-pointer transition-all" onclick="filterStickers('sad', this)">시무룩</button>
                     </div>
  
                     <!-- 3 & 4 & 5. [Sticker Grid Area] with 3 columns, large scale, internal scrolling -->
@@ -960,11 +1009,9 @@
                     <button onclick="insertAutoCalculatedDivider('dots')" type="button" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer text-left shadow-2xs">점점점</button>
                 </div>
  
-                <!-- Tab 6 Content: V7.0 체험담 가이드 -->
+                <!-- Tab 6 Content: V7.3 무한 조합 주사위 마스터 엔진 -->
                 <div id="tab-content-6" class="hidden flex flex-col gap-2 text-left">
-                    <span class="text-xs font-black text-emerald-600 uppercase select-none">안심가이드 템플릿</span>
-                    <button onclick="injectV7GuideTemplate('intro')" type="button" class="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-200 rounded-lg text-xs font-bold transition-all cursor-pointer text-left shadow-2xs">방문 도입부 감성 문장</button>
-                    <button onclick="injectV7GuideTemplate('body')" type="button" class="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-200 rounded-lg text-xs font-bold transition-all cursor-pointer text-left shadow-2xs">수압/배수 검증 템플릿</button>
+                    <span class="text-xs font-black text-purple-600 uppercase select-none">주사위 마스터 엔진</span>
                 </div>
             </div>
         </aside>
@@ -1018,26 +1065,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">법정동 선택</label>
-                        <select id="post-dong" onchange="notifyParent()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
-                            <option value="송정동">송정동</option>
-                            <option value="원평동">원평동</option>
-                            <option value="형곡동">형곡동</option>
-                            <option value="신평동">신평동</option>
-                            <option value="비산동">비산동</option>
-                            <option value="광평동">광평동</option>
-                            <option value="사곡동">사곡동</option>
-                            <option value="임은동">임은동</option>
-                            <option value="상모동">상모동</option>
-                            <option value="봉곡동">봉곡동</option>
-                            <option value="부곡동">부곡동</option>
-                            <option value="지산동">지산동</option>
-                            <option value="도량동">도량동</option>
-                            <option value="양포동">양포동</option>
-                            <option value="구평동">구평동</option>
-                            <option value="황상동">황상동</option>
-                            <option value="인동">인동</option>
-                            <option value="진평동">진평동</option>
-                        </select>
+                        <div class="dong-grid-container select-none" id="dongGrid"></div>
+                        <input type="hidden" id="post-dong" value="송정동">
                     </div>
 
                     <div>
@@ -1107,12 +1136,18 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">중개사무소 연락처</label>
-                        <input type="text" id="post-phone" oninput="notifyParentDebounced()" placeholder="예: 010-1234-5678" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <div class="flex items-center justify-between mb-3 select-none">
+                            <label class="block text-[22px] font-black text-slate-500 uppercase">중개사무소 연락처</label>
+                            <span id="phone-digit-count" class="text-lg font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-150">0자리</span>
+                        </div>
+                        <input type="text" id="post-phone" placeholder="예: 010-1234-5678" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">임대인 직접 연락처 (금고보관)</label>
-                        <input type="text" id="post-ownerPhone" oninput="notifyParentDebounced()" placeholder="예: 010-9876-5432" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <div class="flex items-center justify-between mb-3 select-none">
+                            <label class="block text-[22px] font-black text-slate-500 uppercase">임대인 직접 연락처 (금고보관)</label>
+                            <span id="ownerPhone-digit-count" class="text-lg font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-150">0자리</span>
+                        </div>
+                        <input type="text" id="post-ownerPhone" placeholder="예: 010-9876-5432" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
             </div>
@@ -1414,6 +1449,24 @@
     <script type="text/javascript">
         // Procedural high-fidelity stickers compilation
         const STICKERS = [];
+
+        // 12 Mouse Stickers from user prompt
+        const MOUSE_STICKERS = [
+            { id: "sticker_mouse_1", type: "sticker", category: "daily", url: "/assets/mouse_1.jpg", fallbackUrl: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=300&h=300&q=80", displayName: "네잎클로버생쥐" },
+            { id: "sticker_mouse_2", type: "sticker", category: "daily", url: "/assets/mouse_2.jpg", fallbackUrl: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&h=300&q=80", displayName: "소담소담" },
+            { id: "sticker_mouse_3", type: "sticker", category: "daily", url: "/assets/mouse_3.jpg", fallbackUrl: "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?auto=format&fit=crop&w=300&h=300&q=80", displayName: "밥먹는생쥐" },
+            { id: "sticker_mouse_4", type: "sticker", category: "daily", url: "/assets/mouse_4.jpg", fallbackUrl: "https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=300&h=300&q=80", displayName: "냠냠잠자는생쥐" },
+            { id: "sticker_mouse_5", type: "sticker", category: "sad", url: "/assets/mouse_5.jpg", fallbackUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=300&h=300&q=80", displayName: "수풀생쥐" },
+            { id: "sticker_mouse_6", type: "sticker", category: "daily", url: "/assets/mouse_6.jpg", fallbackUrl: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=300&h=300&q=80", displayName: "기타치는생쥐" },
+            { id: "sticker_mouse_7", type: "sticker", category: "sad", url: "/assets/mouse_7.jpg", fallbackUrl: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&h=300&q=80", displayName: "방전된생쥐" },
+            { id: "sticker_mouse_8", type: "sticker", category: "sad", url: "/assets/mouse_8.jpg", fallbackUrl: "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=300&h=300&q=80", displayName: "그건좀NO" },
+            { id: "sticker_mouse_9", type: "sticker", category: "daily", url: "/assets/mouse_9.jpg", fallbackUrl: "https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=300&h=300&q=80", displayName: "서있는생쥐" },
+            { id: "sticker_mouse_10", type: "sticker", category: "sad", url: "/assets/mouse_10.jpg", fallbackUrl: "https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=300&h=300&q=80", displayName: "시무룩벽보기" },
+            { id: "sticker_mouse_11", type: "sticker", category: "fighting", url: "/assets/mouse_11.jpg", fallbackUrl: "https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&w=300&h=300&q=80", displayName: "가보자고생쥐" },
+            { id: "sticker_mouse_12", type: "sticker", category: "fighting", url: "/assets/mouse_12.jpg", fallbackUrl: "https://images.unsplash.com/photo-1555448248-2571daf6344b?auto=format&fit=crop&w=300&h=300&q=80", displayName: "응원해생쥐" }
+        ];
+        MOUSE_STICKERS.forEach(s => STICKERS.push(s));
+
         const bearUnsplashIds = ["1531853121101-eb02cd7e7e9b", "1559251606-c623743a6d76", "1607604276583-eef5d076aa5f", "1585110396000-c9ffd4e4b308", "1593085512500-5d55148d6f0d", "1542435503-956c469947f6"];
         const bearLabels = [
             "블로그 기록중", "집이랑결혼함", "무슨 글감을 써볼까", "블로그리뷰각", "똑똑", "끄응",
@@ -1422,13 +1475,20 @@
         ];
         for (let i = 0; i < 18; i++) {
             const id = bearUnsplashIds[i % bearUnsplashIds.length];
+            const label = bearLabels[i];
+            let category = 'daily';
+            if (label === "신남" || label === "퇴근!" || label === "개운") {
+                category = 'fighting';
+            } else if (label === "끄응" || label === "어질어질" || label === "지침" || label === "흑흑") {
+                category = 'sad';
+            }
             STICKERS.push({
                 id: `sticker_bear_${i}`,
                 type: 'sticker',
-                category: '곰돌이',
+                category: category,
                 url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fbear_${i}.png?alt=media&token=ba900be4-2451-4043-a623-28ebbfda7451`,
                 fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
-                displayName: bearLabels[i]
+                displayName: label
             });
         }
 
@@ -1440,13 +1500,20 @@
         ];
         for (let i = 0; i < 18; i++) {
             const id = hamsterUnsplashIds[i % hamsterUnsplashIds.length];
+            const label = hamsterLabels[i];
+            let category = 'daily';
+            if (label === "햄찌 출근" || label === "열공 햄찌" || label === "축하 축하" || label === "행복한 하루") {
+                category = 'fighting';
+            } else if (label === "멘붕 완료" || label === "화남 찍찍" || label === "눈물 주르륵" || label === "기다림 지침") {
+                category = 'sad';
+            }
             STICKERS.push({
                 id: `sticker_hamster_${i}`,
                 type: 'sticker',
-                category: '햄찌',
+                category: category,
                 url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fhamster_${i}.png?alt=media&token=e93a20cb-8025-4c07-b08f-dfa2dbda66a1`,
                 fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
-                displayName: hamsterLabels[i]
+                displayName: label
             });
         }
 
@@ -1461,7 +1528,7 @@
             STICKERS.push({
                 id: `sticker_prop_${i}`,
                 type: 'sticker',
-                category: '부동산',
+                category: 'fighting', // Business promo is always motivational
                 url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fprop_${i}.png?alt=media&token=f0142bda-78b9-4972-881a-641ba66a19fe`,
                 fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
                 displayName: propLabels[i]
@@ -1476,13 +1543,20 @@
         ];
         for (let i = 0; i < 18; i++) {
             const id = dogUnsplashIds[i % dogUnsplashIds.length];
+            const label = dogLabels[i];
+            let category = 'daily';
+            if (label === "댕댕 출동" || label === "하이파이브" || label === "달려라 달려" || label === "반가워요" || label === "행복 충전") {
+                category = 'fighting';
+            } else if (label === "으르렁 화남" || label === "눈물 찔끔") {
+                category = 'sad';
+            }
             STICKERS.push({
                 id: `sticker_dog_${i}`,
                 type: 'sticker',
-                category: '댕댕이',
+                category: category,
                 url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fdog_${i}.png?alt=media&token=c28ebbfd-881a-4c07-b08f-dfa2dbda66a1`,
                 fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
-                displayName: dogLabels[i]
+                displayName: label
             });
         }
 
@@ -1494,13 +1568,20 @@
         ];
         for (let i = 0; i < 18; i++) {
             const id = dollUnsplashIds[i % dollUnsplashIds.length];
+            const label = dollLabels[i];
+            let category = 'daily';
+            if (label === "러블리 곰" || label === "포근 토끼" || label === "스마일 인형" || label === "행복 퍼피" || label === "선물 도착" || label === "포근 안심") {
+                category = 'fighting';
+            } else if (label === "우울 곰돌") {
+                category = 'sad';
+            }
             STICKERS.push({
                 id: `sticker_doll_${i}`,
                 type: 'sticker',
-                category: '인형형',
+                category: category,
                 url: `https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/stickers%2Fdoll_${i}.png?alt=media&token=a7f3d059-8b5c-4c07-be61-61a56a0c28eb`,
                 fallbackUrl: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=300&h=300&q=80`,
-                displayName: dollLabels[i]
+                displayName: label
             });
         }
 
@@ -1559,7 +1640,7 @@
         let activeEditorId = 'intro-canvas';
         let activeEditorLabel = '[책임 중개 소장 한마디]';
         let currentActiveTab = 1;
-        let tabActiveCategory = '곰돌이';
+        let tabActiveCategory = 'all';
         let apiGeocodedPlace = null;
         let naverMapInstance = null;
         let naverMarkerInstance = null;
@@ -1652,6 +1733,7 @@
 
         // Extract dataset and notify parent React
         function notifyParent() {
+            updateDicePreview();
             const data = {
                 category: document.getElementById('post-category').value,
                 transactionType: document.getElementById('post-transactionType').value,
@@ -2815,17 +2897,51 @@
             populateFavoritesGrid();
         }
 
-        // Sticker selection with interactive 2x Star overlays
+        // Sticker selection with interactive 2x Star overlays and 0.1-second filter transitions
+        function filterStickers(category, tabElement) {
+            // Remove active class from all other tabs
+            document.querySelectorAll('.sticker-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+
+            const container = document.getElementById('tab-stickers-container');
+            if (container) {
+                // Fade out (0.1s transition)
+                container.style.transition = 'opacity 0.1s ease-in-out, transform 0.1s ease-in-out';
+                container.style.opacity = '0';
+                container.style.transform = 'scale(0.95)';
+                
+                // After 100ms, update items and fade back in
+                setTimeout(() => {
+                    setCategoryInTab(category);
+                    container.style.opacity = '1';
+                    container.style.transform = 'scale(1)';
+                }, 100);
+            } else {
+                setCategoryInTab(category);
+            }
+        }
+
         function setCategoryInTab(cat) {
             tabActiveCategory = cat;
-            const categories = ['곰돌이', '햄찌', '부동산', '댕댕이', '인형형'];
-            categories.forEach(c => {
-                const btn = document.getElementById('circle-cat-' + c);
-                if (btn) {
-                    if (c === cat) {
-                        btn.className = "w-8 h-8 rounded-full border border-emerald-500 ring-2 ring-emerald-100 bg-emerald-50 flex items-center justify-center text-lg transition-all cursor-pointer shrink-0 scale-105 shadow-xs";
+
+            // Highlight the active sticker tab in the DOM (in case setCategoryInTab is called directly)
+            const tabIds = {
+                'all': 'tab-sticker-all',
+                'fighting': 'tab-sticker-fighting',
+                'daily': 'tab-sticker-daily',
+                'sad': 'tab-sticker-sad'
+            };
+            Object.keys(tabIds).forEach(key => {
+                const tabBtn = document.getElementById(tabIds[key]);
+                if (tabBtn) {
+                    if (key === cat) {
+                        tabBtn.className = "sticker-tab active flex-1 py-1 px-1.5 text-xs text-center font-bold bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg cursor-pointer transition-all";
                     } else {
-                        btn.className = "w-8 h-8 rounded-full border border-slate-200 hover:border-emerald-500 bg-white flex items-center justify-center text-lg transition-all cursor-pointer shrink-0 hover:scale-105";
+                        tabBtn.className = "sticker-tab flex-1 py-1 px-1.5 text-xs text-center font-bold bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg cursor-pointer transition-all";
                     }
                 }
             });
@@ -2834,7 +2950,10 @@
             if (!container) return;
             container.innerHTML = '';
 
-            const filtered = STICKERS.filter(s => s.category === cat);
+            const filtered = cat === 'all' 
+                ? STICKERS 
+                : STICKERS.filter(s => s.category === cat);
+
             filtered.forEach(stk => {
                 const item = document.createElement('div');
                 item.className = "relative group bg-transparent hover:bg-slate-50 border border-slate-150 hover:border-emerald-300 rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer transition-all";
@@ -3142,29 +3261,84 @@
             });
         }
 
-        // Render V7 formats with interactive star toggling
+        // Render V7.3 Dice Engine with real-time variables linkage
         function renderFormats() {
             const container = document.getElementById('tab-content-6');
             if (!container) return;
+            
             container.innerHTML = `
-                <span class="text-[20px] font-black text-purple-600 uppercase select-none mb-2">V7.0 안심 가이드</span>
-                <div class="flex flex-col gap-3" id="formats-container"></div>
-            `;
-            const listContainer = document.getElementById('formats-container');
-            FORMATS.forEach(f => {
-                const isFav = isFavorite(f.id);
-                const div = document.createElement('div');
-                div.className = "relative border border-purple-200 rounded-2xl py-5 pl-6 pr-14 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-400 cursor-pointer transition-all shadow-2xs text-[20px] font-black text-purple-950 text-left";
-                div.onclick = () => injectV7GuideTemplate(f.styleType);
-                
-                div.innerHTML = `
-                    <span>${f.displayName}</span>
-                    <button onclick="toggleFavorite(event, '${f.id}')" class="absolute top-1/2 -translate-y-1/2 right-3 text-[32px] focus:outline-none transition-all cursor-pointer hover:scale-110 z-20">
-                        ${isFav ? '⭐' : '<span class="text-purple-300 hover:text-amber-400">☆</span>'}
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[20px] font-black text-purple-600 uppercase select-none tracking-tight">V7.3 무한 조합 주사위 마스터 엔진</span>
+                        <span class="text-xs text-slate-500 font-bold leading-relaxed">전산 전람에 등록된 매물 기본 데이터를 실시간 뼈대로 낚아채, 총 324개 이상의 조합으로 사람이 직접 답사하며 쓴 유정화 소장의 명품 실무 살점(Story)들을 무한 큐레이션합니다.</span>
+                    </div>
+                    
+                    <!-- Real-time Connected Form Data Box -->
+                    <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-4 flex flex-col gap-2.5">
+                        <div class="flex items-center gap-1.5 text-xs font-black text-purple-800 select-none">
+                            <i class="fa-solid fa-link animate-pulse"></i>
+                            <span>실시간 전산 장부 연동 상태</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-xs font-bold text-slate-600">
+                            <div class="flex justify-between border-b border-purple-100 pb-1">
+                                <span class="text-slate-400">매물종류</span>
+                                <span id="dice-preview-type" class="text-purple-700 font-extrabold">-</span>
+                            </div>
+                            <div class="flex justify-between border-b border-purple-100 pb-1">
+                                <span class="text-slate-400">거래유형</span>
+                                <span id="dice-preview-trade" class="text-purple-700 font-extrabold">-</span>
+                            </div>
+                            <div class="flex justify-between border-b border-purple-100 pb-1 col-span-2">
+                                <span class="text-slate-400">법정동</span>
+                                <span id="dice-preview-dong" class="text-purple-700 font-extrabold text-right truncate max-w-[150px]">-</span>
+                            </div>
+                            <div class="flex justify-between border-b border-purple-100 pb-1 col-span-2">
+                                <span class="text-slate-400">건물명</span>
+                                <span id="dice-preview-building" class="text-purple-700 font-extrabold text-right truncate max-w-[150px]">-</span>
+                            </div>
+                            <div class="flex justify-between border-b border-purple-100 pb-1 col-span-2">
+                                <span class="text-slate-400">연동층수</span>
+                                <span class="text-purple-700 font-extrabold"><span id="dice-preview-floor">-</span> / <span id="dice-preview-totalFloor">-</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Master Execution Button -->
+                    <button onclick="runMasterDiceEngine()" type="button" class="w-full py-4.5 px-6 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl text-[18px] font-black tracking-tight transition-all cursor-pointer text-center shadow-md hover:shadow-lg active:scale-98 transform hover:scale-[1.01] flex items-center justify-center gap-2 select-none">
+                        <i class="fa-solid fa-dice text-[22px] animate-bounce"></i>
+                        <span>무한 조합 주사위 가동!</span>
                     </button>
-                `;
-                listContainer.appendChild(div);
-            });
+                    
+                    <!-- Engine Logic Description card -->
+                    <div class="border border-slate-100 rounded-xl p-3 bg-slate-50 text-[11px] text-slate-500 leading-relaxed font-medium">
+                        <span class="font-black text-slate-700 block mb-1">💡 사용 가이드</span>
+                        원하는 본문 입력창(예: [실지 답사 상세 보고] 칸)을 먼저 한 번 클릭(포커싱)하신 후, 위 <b class="text-purple-600">무한 조합 주사위 가동!</b> 버튼을 눌러주십시오. 매칭된 데이터와 함께 시각적 개방감을 살려주는 <b>엔터 2번 규칙</b>이 자동 적용된 명품 답사기가 즉시 생성됩니다.
+                    </div>
+                </div>
+            `;
+            
+            updateDicePreview();
+        }
+
+        // Update real-time dice connection states
+        function updateDicePreview() {
+            const pType = document.getElementById('dice-preview-type');
+            if (!pType) return; // If Tab 6 is not currently rendered, skip
+
+            const data = getFormStructureData();
+            
+            const pTrade = document.getElementById('dice-preview-trade');
+            const pDong = document.getElementById('dice-preview-dong');
+            const pBuilding = document.getElementById('dice-preview-building');
+            const pFloor = document.getElementById('dice-preview-floor');
+            const pTotalFloor = document.getElementById('dice-preview-totalFloor');
+            
+            pType.innerText = data.type;
+            if (pTrade) pTrade.innerText = data.trade;
+            if (pDong) pDong.innerText = data.dong;
+            if (pBuilding) pBuilding.innerText = data.building;
+            if (pFloor) pFloor.innerText = data.floor;
+            if (pTotalFloor) pTotalFloor.innerText = data.totalFloor;
         }
 
         // Define oEditors bridge to handle SmartEditor 2.0 command exec / pasteHTML
@@ -3425,6 +3599,130 @@
             insertHtmlAtCursor(tag);
             updateCharacterCounts();
             notifyParent();
+        }
+
+        // 소장님 매물창의 뼈대 데이터를 실시간 수집하는 전산 장부
+        function getFormStructureData() {
+            const catVal = document.getElementById('post-category')?.value || "원룸";
+            const transVal = document.getElementById('post-transactionType')?.value || "월세";
+            const dongVal = document.getElementById('post-dong')?.value || "구미 지역";
+            const buildingVal = (document.getElementById('post-building')?.value || "").trim() || "신축 건물";
+            
+            const floorRaw = (document.getElementById('post-floor')?.value || "").trim();
+            const floorVal = floorRaw ? (floorRaw.endsWith('층') ? floorRaw : floorRaw + '층') : "해당층";
+            
+            const totalFloorRaw = (document.getElementById('post-totalFloor')?.value || "").trim();
+            const totalFloorVal = totalFloorRaw ? (totalFloorRaw.endsWith('층') ? totalFloorRaw : totalFloorRaw + '층') : "전체층";
+
+            return {
+                type: catVal,         // 매물종류 (원룸 등)
+                trade: transVal,      // 거래유형 (월세 등)
+                dong: dongVal,         // 법정동
+                building: buildingVal, // 건물명
+                floor: floorVal,       // 당해층
+                totalFloor: totalFloorVal // 전체층
+            };
+        }
+
+        // Convert newlines to elegant HTML blocks with visual empty lines (엔터 2번 규칙)
+        function convertNewlinesToParagraphs(text) {
+            return text.split('\n\n')
+                .filter(para => para.trim())
+                .map(para => `<p style="line-height: 1.8; font-family: 'Nanum Gothic', sans-serif; font-size: 15px; color: #334155; margin-bottom: 16px;">${para.trim()}</p><p><br></p>`)
+                .join('');
+        }
+
+        // 뼈대 위에 소장님의 명품 실무 살점(Story)들을 무한으로 엮어내는 주사위 가동 기지
+        function runMasterDiceEngine() {
+            // 다른 입력창은 전부 제외하고 오직 [2번] 창인 [블로그 본문 원고](body-canvas)로 출력 선로를 고정
+            activeEditorId = 'body-canvas';
+            activeEditorLabel = '[블로그 본문 원고]';
+
+            // 현재 셀렉션이 body-canvas 내부에 있지 않다면, 강제로 body-canvas 끝 지점에 커서가 잡히도록 셀렉션을 제거
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                let node = sel.anchorNode;
+                let insideTarget = false;
+                const targetEl = document.getElementById('body-canvas');
+                while (node) {
+                    if (node === targetEl) {
+                        insideTarget = true;
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+                if (!insideTarget) {
+                    sel.removeAllRanges();
+                }
+            }
+
+            const data = getFormStructureData();
+
+            // 1그룹: 일상 및 출동 스토리
+            const s1 = [
+                "오늘 유정화 소장과 시원한 아이스 아메리카노 한 잔 마시다가, 문득 계약 나오기 딱 좋은 매물이 생각나 서둘러 카메라를 챙겨 들었습니다.\n\n",
+                "오후에 태왕 전산실장과 함께 현장 답사 선로를 점검할 겸, 주차장 상태가 괜찮다는 소문이 자자한 현장으로 대포처럼 달려갔습니다.\n\n",
+                "햇살이 유난히 좋은 오늘 아침, 손님에게 정말 자신 있게 소개해 드릴 수 있는 깔끔한 집이 접수되어 직접 서둘러 발걸음을 옮겼습니다.\n\n"
+            ];
+
+            // 2그룹: 뼈대 결합 (동 + 건물명)
+            const s2 = [
+                `그렇게 도착한 곳은 바로 [${data.dong}] 핵심 입지에 든든하게 자리 잡은 [${data.building}] 현장입니다.\n\n`,
+                `이번에 새롭게 발굴한 매물은 주거 선호도가 무척 높은 [${data.dong}] 동네 중심에 위치한 [${data.building}] [${data.type}] 매물입니다.\n\n`
+            ];
+
+            // 3그룹: 직장 거리 및 교통 인프라
+            const s3 = [
+                "직접 걸어보며 출퇴근 동선을 체크해 보니, 구미 국가산단 반도체 클러스터 공단까지 신호등 한두 개만 건너면 다이렉트로 닿는 직주근접의 최강 입지입니다.\n\n",
+                "인근 대구경북 통합신공항 배후 도로망선과 바로 연결되는 길목이라, 향후 교통 인프라 프리미엄 가치까지 톡톡히 누릴 수 있는 아주 든든한 위치입니다.\n\n",
+                "대중교통 버스 정류장도 도보 2분 거리에 딱 붙어 있어서 공단이나 시내권 어디로든 막힘없이 출퇴근하기 정말 쾌적한 교통망을 자랑합니다.\n\n"
+            ];
+
+            // 4그룹: 주변 편의성 및 생활 인프라
+            const s4 = [
+                "동네를 한 바퀴 슥 둘러보니 도보 3분 거리에 대형 마트와 은행, 병원들이 촘촘하게 박혀 있어서 한밤중에 급한 일 생겨도 전혀 걱정 없겠다는 확신이 들었습니다.\n\n",
+                "조금만 걸어나가면 맛있는 음식점들과 예쁜 카페 골목이 형성되어 있어, 퇴근 후 가볍게 슬리퍼 끌고 나가서 일상을 즐기기에 이보다 더 편할 수 없습니다.\n\n",
+                "인근에 산책하기 좋은 청정 공원과 편의시설이 밀집해 있어서 조용하면서도 편리한 생활을 원하시는 분들에게 딱 맞춤형 인프라입니다.\n\n"
+            ];
+
+            // 5그룹: 내부 장단점 및 층수 뼈대 연동 (컴퓨터가 흉내 못 내는 진짜 현실감)
+            const s5 = [
+                `이번 매물은 전체 [${data.totalFloor}] 건물 중 로열층인 [${data.floor}]에 위치해 있어서, 거실 창문을 열었을 때 가로막히는 것 없이 시원한 개방감이 쨍하게 들어오는 독보적인 장점이 있습니다.\n\n`,
+                `도어락을 열고 직접 들어가 보니 복도와 옆방 소음이 거의 안 들릴 정도로 방음 상태가 조용해서 참 좋았고, 다용도 수납 공간도 열어보니 깊이가 생각보다 훨씬 깊어서 짐 보관하기 넉넉합니다.\n\n`,
+                `채광이 하루 종일 화사하게 들어와 집안 분위기가 무척 따뜻하다는 메리트가 있는 반면, 워낙 인기가 좋은 골목이라 퇴근길 주차 공간을 살짝 선점해야 하는 솔직한 특징도 함께 참고하셔야 합니다.\n\n`
+            ];
+
+            // 6그룹: 태왕 책임중개 약속 마무리
+            const s6 = [
+                "저희 태왕은 손님의 안전한 보증금과 편안한 정착을 책임지는 동반자가 되겠습니다. 실물 방을 직접 저와 동행하며 눈으로 확인하고 싶으시다면 언제든 편하게 연락해 주십시오.\n\n",
+                "직접 발로 뛰며 눈으로 검증한 정직한 매물만 중개합니다. 아래 저희 태왕 공식 홈페이지 링크에서 마우스로 돌려보는 360도 VR 화면으로 내부를 미리 스캔해 보시고 편하게 문의 주십시오.\n\n"
+            ];
+
+            // 주사위 무작위 추첨식 가동!
+            let text = 
+                s1[Math.floor(Math.random() * s1.length)] +
+                s2[Math.floor(Math.random() * s2.length)] +
+                s3[Math.floor(Math.random() * s3.length)] +
+                s4[Math.floor(Math.random() * s4.length)] +
+                s5[Math.floor(Math.random() * s5.length)] +
+                s6[Math.floor(Math.random() * s6.length)];
+
+            // 문장부호 끝 지점마다 엔터 2번(빈 줄 생성) 가독성 규칙 적용
+            // .!? 뒤에 공백이나 끝 지점이고 숫자가 뒤따르지 않는 경우 \n\n으로 강제 전환
+            const sentenceRegex = /([가-힣a-zA-Z0-9"'\)\]])([.!?])(?:\s+|$)(?!\d)/g;
+            let enforcedText = text.replace(sentenceRegex, '$1$2\n\n');
+            
+            // 연속된 불필요한 줄바꿈 제거 후 각 단락들을 단일 빈 줄(\n\n)로 완벽 리포맷팅
+            enforcedText = enforcedText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line !== '')
+                .join('\n\n');
+
+            // Elegant HTML structure with visual "Enter twice" rule applied
+            const htmlText = convertNewlinesToParagraphs(enforcedText);
+
+            // 소장님 에디터에 철컥 주입
+            insertHtmlAtActiveEditor(htmlText);
         }
 
         // V7.0 Guide Templates
@@ -3742,22 +4040,10 @@
         // Dynamic category and display name extractor for storage stickers
         function getDisplayNameAndCategory(fileName) {
             const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
-            let category = '부동산'; // default fallback
+            let category = 'daily'; // Default category
             let displayName = nameWithoutExt;
 
-            // Detect category
             const lower = nameWithoutExt.toLowerCase();
-            if (lower.includes('bear') || lower.includes('곰')) {
-                category = '곰돌이';
-            } else if (lower.includes('hamster') || lower.includes('ham') || lower.includes('햄') || lower.includes('찌')) {
-                category = '햄찌';
-            } else if (lower.includes('prop') || lower.includes('부동산') || lower.includes('land') || lower.includes('house') || lower.includes('home') || lower.includes('방')) {
-                category = '부동산';
-            } else if (lower.includes('dog') || lower.includes('댕댕') || lower.includes('개') || lower.includes('멍')) {
-                category = '댕댕이';
-            } else if (lower.includes('doll') || lower.includes('인형') || lower.includes('toy')) {
-                category = '인형형';
-            }
 
             // Match specific index-based hardcoded names (bear_0, hamster_5, etc.)
             const match = nameWithoutExt.match(/^([a-zA-Z]+)_(\d+)$/);
@@ -3766,19 +4052,94 @@
                 const index = parseInt(match[2], 10);
                 if (prefix === 'bear' && index < bearLabels.length) {
                     displayName = bearLabels[index];
-                    category = '곰돌이';
                 } else if (prefix === 'hamster' && index < hamsterLabels.length) {
                     displayName = hamsterLabels[index];
-                    category = '햄찌';
                 } else if (prefix === 'prop' && index < propLabels.length) {
                     displayName = propLabels[index];
-                    category = '부동산';
                 } else if (prefix === 'dog' && index < dogLabels.length) {
                     displayName = dogLabels[index];
-                    category = '댕댕이';
                 } else if (prefix === 'doll' && index < dollLabels.length) {
                     displayName = dollLabels[index];
-                    category = '인형형';
+                }
+            }
+
+            // Detect category based on name (supports both mouse and default characters)
+            if (lower.includes('mouse') || lower.includes('생쥐') || lower.includes('소담') || lower.includes('그건좀') || lower.includes('clover') || lower.includes('가보자고') || lower.includes('응원')) {
+                // Rule 1: 파이팅
+                if (lower.includes('가보자고') || lower.includes('응원') || lower.includes('mouse (11)') || lower.includes('mouse (12)') || lower.includes('mouse_11') || lower.includes('mouse_12')) {
+                    category = 'fighting';
+                    displayName = lower.includes('가보자고') ? '가보자고' : '응원해~';
+                }
+                // Rule 2: 시무룩
+                else if (lower.includes('시무룩') || lower.includes('방전') || lower.includes('no') || lower.includes('수풀') || lower.includes('벽보기') || 
+                         lower.includes('mouse (5)') || lower.includes('mouse (7)') || lower.includes('mouse (8)') || lower.includes('mouse (10)') ||
+                         lower.includes('mouse_5') || lower.includes('mouse_7') || lower.includes('mouse_8') || lower.includes('mouse_10')) {
+                    category = 'sad';
+                    if (lower.includes('시무룩') || lower.includes('벽보기') || lower.includes('mouse (10)') || lower.includes('mouse_10')) {
+                        displayName = '시무룩...';
+                    } else if (lower.includes('방전') || lower.includes('mouse (7)') || lower.includes('mouse_7')) {
+                        displayName = '방전...';
+                    } else if (lower.includes('no') || lower.includes('mouse (8)') || lower.includes('mouse_8')) {
+                        displayName = '그건좀NO';
+                    } else {
+                        displayName = '수풀생쥐';
+                    }
+                }
+                // Rule 3: 일상/먹방
+                else {
+                    category = 'daily';
+                    if (lower.includes('밥') || lower.includes('먹는') || lower.includes('mouse (3)') || lower.includes('mouse_3')) {
+                        displayName = '밥먹는생쥐';
+                    } else if (lower.includes('잠자는') || lower.includes('냠냠') || lower.includes('mouse (4)') || lower.includes('mouse_4')) {
+                        displayName = '냠냠';
+                    } else if (lower.includes('네잎클로버') || lower.includes('clover') || lower.includes('mouse (1)') || lower.includes('mouse_1')) {
+                        displayName = '네잎클로버';
+                    } else if (lower.includes('소담') || lower.includes('mouse (2)') || lower.includes('mouse_2')) {
+                        displayName = '소담소담';
+                    } else if (lower.includes('기타') || lower.includes('guitar') || lower.includes('mouse (6)') || lower.includes('mouse_6')) {
+                        displayName = '기타치는생쥐';
+                    } else if (lower.includes('서있는') || lower.includes('stand') || lower.includes('mouse (9)') || lower.includes('mouse_9')) {
+                        displayName = '서있는생쥐';
+                    } else {
+                        displayName = nameWithoutExt;
+                    }
+                }
+            } else {
+                // Categorize bear, hamster, prop, dog, doll
+                if (lower.includes('bear') || lower.includes('곰')) {
+                    if (displayName === "신남" || displayName === "퇴근!" || displayName === "개운") {
+                        category = 'fighting';
+                    } else if (displayName === "끄응" || displayName === "어질어질" || displayName === "지침" || displayName === "흑흑") {
+                        category = 'sad';
+                    } else {
+                        category = 'daily';
+                    }
+                } else if (lower.includes('hamster') || lower.includes('ham') || lower.includes('햄') || lower.includes('찌')) {
+                    if (displayName === "햄찌 출근" || displayName === "열공 햄찌" || displayName === "축하 축하" || displayName === "행복한 하루") {
+                        category = 'fighting';
+                    } else if (displayName === "멘붕 완료" || displayName === "화남 찍찍" || displayName === "눈물 주르륵" || displayName === "기다림 지침") {
+                        category = 'sad';
+                    } else {
+                        category = 'daily';
+                    }
+                } else if (lower.includes('prop') || lower.includes('부동산') || lower.includes('land') || lower.includes('house') || lower.includes('home') || lower.includes('방')) {
+                    category = 'fighting';
+                } else if (lower.includes('dog') || lower.includes('댕댕') || lower.includes('개') || lower.includes('멍')) {
+                    if (displayName === "댕댕 출동" || displayName === "하이파이브" || displayName === "달려라 달려" || displayName === "반가워요" || displayName === "행복 충전") {
+                        category = 'fighting';
+                    } else if (displayName === "으르렁 화남" || displayName === "눈물 찔끔") {
+                        category = 'sad';
+                    } else {
+                        category = 'daily';
+                    }
+                } else if (lower.includes('doll') || lower.includes('인형') || lower.includes('toy')) {
+                    if (displayName === "러블리 곰" || displayName === "포근 토끼" || displayName === "스마일 인형" || displayName === "행복 퍼피" || displayName === "선물 도착" || displayName === "포근 안심") {
+                        category = 'fighting';
+                    } else if (displayName === "우울 곰돌") {
+                        category = 'sad';
+                    } else {
+                        category = 'daily';
+                    }
                 }
             }
 
@@ -3944,6 +4305,97 @@
         window.addEventListener('resize', adjustHeaderMargin);
         window.addEventListener('load', adjustHeaderMargin);
 
+        // [연락 담당처 정보] 실시간 휴대폰 및 국번 자동 마스킹 및 자릿수 실시간 감시 엔진 (Regex Input Mask)
+        function initPhoneInputMask() {
+            const phoneInput = document.getElementById('post-phone');
+            const ownerPhoneInput = document.getElementById('post-ownerPhone');
+            const phoneCount = document.getElementById('phone-digit-count');
+            const ownerPhoneCount = document.getElementById('ownerPhone-digit-count');
+
+            function applyMaskAndCount(input, countSpan) {
+                if (!input) return;
+                let val = input.value;
+                // 숫자가 아닌 글자 즉시 소거 (한글, 영문, 오타 기호 등 완벽 차단)
+                const numbers = val.replace(/[^0-9]/g, '');
+                const count = numbers.length;
+
+                // 실시간 입력 자릿수 감시 표시 갱신
+                if (countSpan) {
+                    countSpan.textContent = `${count}자리`;
+                    if (count === 11 || (numbers.startsWith('02') && (count === 9 || count === 10))) {
+                        countSpan.className = "text-lg font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 transition-all shadow-xs";
+                    } else if (count > 0) {
+                        countSpan.className = "text-lg font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-200 transition-all shadow-xs";
+                    } else {
+                        countSpan.className = "text-lg font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-150 transition-all";
+                    }
+                }
+
+                // 하이픈 자동 삽입 포맷팅 제어 엔진 (0.1초 미만 철컥철컥 이식)
+                let formatted = '';
+                if (numbers.startsWith('02')) {
+                    // 서울 지역번호 (02)
+                    if (count <= 2) {
+                        formatted = numbers;
+                    } else if (count <= 5) {
+                        formatted = numbers.replace(/^(\d{2})(\d+)/, '$1-$2');
+                    } else if (count <= 9) {
+                        formatted = numbers.replace(/^(\d{2})(\d{3})(\d+)/, '$1-$2-$3');
+                    } else {
+                        formatted = numbers.substring(0, 10).replace(/^(\d{2})(\d{4})(\d{4})/, '$1-$2-$3');
+                    }
+                } else if (numbers.startsWith('050') || numbers.startsWith('012')) {
+                    // 4자리 안심번호 및 기타 특수번호 (0505, 0502 등)
+                    if (count <= 4) {
+                        formatted = numbers;
+                    } else if (count <= 7) {
+                        formatted = numbers.replace(/^(\d{4})(\d+)/, '$1-$2');
+                    } else if (count <= 11) {
+                        formatted = numbers.replace(/^(\d{4})(\d{3})(\d+)/, '$1-$2-$3');
+                    } else {
+                        formatted = numbers.substring(0, 12).replace(/^(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+                    }
+                } else {
+                    // 일반 휴대폰 번호(010) 및 3자리 지역번호 (031, 054 등)
+                    if (count <= 3) {
+                        formatted = numbers;
+                    } else if (count <= 6) {
+                        formatted = numbers.replace(/^(\d{3})(\d+)/, '$1-$2');
+                    } else if (count <= 10) {
+                        formatted = numbers.replace(/^(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+                    } else {
+                        formatted = numbers.substring(0, 11).replace(/^(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+                    }
+                }
+
+                input.value = formatted;
+                
+                // 부모 React에 실시간 데이터 동기화
+                notifyParentDebounced();
+            }
+
+            if (phoneInput) {
+                phoneInput.addEventListener('input', () => applyMaskAndCount(phoneInput, phoneCount));
+                // 초기 포맷 적용
+                applyMaskAndCount(phoneInput, phoneCount);
+            }
+            if (ownerPhoneInput) {
+                ownerPhoneInput.addEventListener('input', () => applyMaskAndCount(ownerPhoneInput, ownerPhoneCount));
+                // 초기 포맷 적용
+                applyMaskAndCount(ownerPhoneInput, ownerPhoneCount);
+            }
+
+            // 부모 React로부터 LOAD_DATA 수신 시 강제 값 주입 대응 감시 장치
+            window.addEventListener('message', function(e) {
+                if (e.data && e.data.type === 'LOAD_DATA') {
+                    setTimeout(() => {
+                        applyMaskAndCount(phoneInput, phoneCount);
+                        applyMaskAndCount(ownerPhoneInput, ownerPhoneCount);
+                    }, 100);
+                }
+            });
+        }
+
         // SortableJS Drag & Drop Sort initialization safely wrapped in a local scope
         function initSortablePhotos() {
             (function() {
@@ -4008,6 +4460,80 @@
             })();
         }
 
+        // 구미시 전체 법정동 데이터를 가나다순으로 한 치의 오차 없이 정렬한 마스터 리스트
+        const gumiDongs = [
+            "거의동", "고아읍", "공단동", 
+            "광평동", "구평동", "구포동", 
+            "금전동", "남통동", "도개면", 
+            "도량동", "무을면", "봉곡동", 
+            "부곡동", "비산동", "사곡동", 
+            "산동읍", "상모동", "선기동", 
+            "선산읍", "송정동", "수점동", 
+            "시미동", "신동", "신평동", 
+            "양호동", "오태동", "옥계동", 
+            "옥성면", "원평동", "인의동", 
+            "임수동", "임은동", "장천면", 
+            "지산동", "진평동", "해평면", 
+            "형곡동", "황상동"
+        ];
+
+        function buildDongGrid() {
+            const container = document.getElementById('dongGrid');
+            const postDongInput = document.getElementById('post-dong');
+            const currentValue = postDongInput ? postDongInput.value : '송정동';
+            
+            if (container) {
+                container.innerHTML = gumiDongs.map(dong => {
+                    const isActive = dong === currentValue ? 'active' : '';
+                    return `<div class="dong-btn ${isActive}" onclick="selectDong(this, '${dong}')">${dong}</div>`;
+                }).join('');
+            }
+        }
+
+        // 마우스로 동을 누를 때마다 하이라이트가 스르륵 이동하며 데이터가 철컥 입력되는 스위치 엔진
+        function selectDong(element, dongValue) {
+            // 기존에 켜져 있던 하이라이트 불빛을 싹 꺼버림
+            document.querySelectorAll('.dong-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 내가 누른 버튼에만 회색 불빛 활성화 콱!
+            element.classList.add('active');
+            
+            // 매물 저장 창고에 선택한 법정동 정보 전달 완공
+            const postDongInput = document.getElementById('post-dong');
+            if (postDongInput) {
+                postDongInput.value = dongValue;
+            }
+            
+            notifyParent();
+            console.log("🎯 선택된 법정동 선로 변환 완료:", dongValue);
+        }
+
+        function updateDongGridHighlight(dongValue) {
+            document.querySelectorAll('.dong-btn').forEach(btn => {
+                if (btn.textContent.trim() === dongValue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function setupPostDongPropertyDescriptor() {
+            const postDongInput = document.getElementById('post-dong');
+            if (postDongInput) {
+                const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                Object.defineProperty(postDongInput, 'value', {
+                    get: function() {
+                        return descriptor.get.call(this);
+                    },
+                    set: function(val) {
+                        descriptor.set.call(this, val);
+                        updateDongGridHighlight(val);
+                    }
+                });
+            }
+        }
+
         // DOM Loaded Init
         window.addEventListener('DOMContentLoaded', () => {
             adjustHeaderMargin();
@@ -4027,6 +4553,14 @@
             switchControlTab(1);
             initDragAndDrop();
             initSortablePhotos();
+            initPhoneInputMask();
+            
+            // Initialize Legal District grid and properties
+            setupPostDongPropertyDescriptor();
+            buildDongGrid();
+            
+            // Periodically sync dice preview states fallback
+            setInterval(updateDicePreview, 1000);
             
             // Auto focus first editor
             document.getElementById('intro-canvas').focus();

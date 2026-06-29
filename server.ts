@@ -1303,6 +1303,33 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     res.status(404).json({ error: `API 경로를 찾을 수 없습니다: ${req.url}` });
   });
 
+  // Helper to find a post by ID for SSR Meta Injection
+  async function getPostById(id: string): Promise<any> {
+    if (cachedPostsList) {
+      const found = cachedPostsList.find((p: any) => p.id === id);
+      if (found) return found;
+    }
+    if (firestoreDb && !firestorePermissionFailed) {
+      try {
+        const docRef = firestoreDb.collection('posts').doc(id);
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
+          return docSnap.data();
+        }
+      } catch (err) {
+        console.warn("[getPostById] Firestore fetch failed, falling back to JSON:", err);
+      }
+    }
+    try {
+      const posts = readPosts();
+      const found = posts.find((p: any) => p.id === id);
+      if (found) return found;
+    } catch (err) {
+      console.error("[getPostById] Local posts read failed:", err);
+    }
+    return null;
+  }
+
   // Vite middleware for development or fallback static serving
   const isProd = process.env.NODE_ENV === 'production' || _dirname.endsWith('dist') || _dirname.endsWith('dist/');
   const distPath = isProd
@@ -1315,13 +1342,87 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
+    // Intercept development requests with id query parameters for hot meta-tag injection
+    app.get('/', async (req, res, next) => {
+      const itemId = req.query.id || req.query.postId;
+      if (itemId && typeof itemId === 'string') {
+        const indexPath = path.join(projectRoot, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          try {
+            let html = fs.readFileSync(indexPath, 'utf-8');
+            html = await vite.transformIndexHtml(req.originalUrl, html);
+            const post = await getPostById(itemId);
+            if (post) {
+              const dong = post.dong || '구미';
+              const building = post.building || '추천 매물';
+              const type = post.category || '매물';
+              
+              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
+              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+
+              html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
+              
+              if (html.includes('id="ogImage"')) {
+                html = html.replace(/<meta id="ogImage" property="og:image" content="[^"]*"\s*\/?>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+              }
+            }
+            res.send(html);
+            return;
+          } catch (e) {
+            console.error("Error transforming dev index.html:", e);
+          }
+        }
+      }
+      next();
+    });
+
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.use(express.static(distPath, { index: false }));
+    
+    app.get('*', async (req, res) => {
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
+        try {
+          let html = fs.readFileSync(indexPath, 'utf-8');
+          const itemId = req.query.id || req.query.postId;
+          if (itemId && typeof itemId === 'string') {
+            const post = await getPostById(itemId);
+            if (post) {
+              const dong = post.dong || '구미';
+              const building = post.building || '추천 매물';
+              const type = post.category || '매물';
+              
+              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
+              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+
+              html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
+              
+              if (html.includes('id="ogImage"')) {
+                html = html.replace(/<meta id="ogImage" property="og:image" content="[^"]*"\s*\/?>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+              }
+            }
+          }
+          res.send(html);
+        } catch (err) {
+          console.error("Error inject dynamic OG tags:", err);
+          res.sendFile(indexPath);
+        }
       } else {
         console.error(`[ERROR] index.html not found in distPath: ${distPath}`);
         res.status(500).send(`📢 index.html을 찾을 수 없습니다. (경로: ${indexPath})`);

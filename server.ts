@@ -1360,19 +1360,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              
-              let host = req.get('host') || 'www.xn--h49a2pelq49bcrfloji4br3e56y.com';
-              if (host.includes('태왕공인중개사사무소.com')) {
-                host = 'www.xn--h49a2pelq49bcrfloji4br3e56y.com';
-              }
-              const newUrl = `${req.protocol}://${host}${req.originalUrl}`;
-              const newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
               html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
               html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
-              html = html.replace(/<link rel="canonical" id="canonicalUrl" href="[^"]*"\s*\/?>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
               
               if (html.includes('id="ogImage"')) {
                 html = html.replace(/<meta id="ogImage" property="og:image" content="[^"]*"\s*\/?>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
@@ -1409,19 +1403,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              
-              let host = req.get('host') || 'www.xn--h49a2pelq49bcrfloji4br3e56y.com';
-              if (host.includes('태왕공인중개사사무소.com')) {
-                host = 'www.xn--h49a2pelq49bcrfloji4br3e56y.com';
-              }
-              const newUrl = `${req.protocol}://${host}${req.originalUrl}`;
-              const newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
               html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
               html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
-              html = html.replace(/<link rel="canonical" id="canonicalUrl" href="[^"]*"\s*\/?>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
               
               if (html.includes('id="ogImage"')) {
                 html = html.replace(/<meta id="ogImage" property="og:image" content="[^"]*"\s*\/?>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);

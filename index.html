@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
+
     <!-- [최상단 최적화 선로] SEO 및 SNS 공유 로봇용 핵심 메타 태그 (800x400 황금비율 표준 준수) -->
     <meta name="naver-site-verification" content="260d86e2408a640874f6f77f5f621042b214ea4d" />
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
@@ -11,101 +12,75 @@
     
     <meta id="ogTitle" property="og:title" content="태왕공인중개사사무소" />
     <meta id="ogDesc" property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보" />
-    <meta id="ogUrl" property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com" />
+    <meta id="ogUrl" property="og:url" content="https://www.태왕공인중개사사무소.com" />
     <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg" />
     <meta property="og:image:width" content="800" />
     <meta property="og:image:height" content="400" />
-    <meta property="og:type" content="website" />
 
     <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
     <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
 
-    <!-- [최상단 가동] 어떤 플랫폼의 링크 공유창이든 0.1초 만에 타격하여 이미지를 고정하는 자바스크립트 엔진 -->
+    <!-- [최상단 가동] 카카오톡, 네이버, 문자 로봇용 실시간 메타 정보 주입 엔진 -->
     <script type="text/javascript">
-      function runUniversalCardEngine() {
+      // 카카오톡, 네이버, 문자 로봇이 주소(?id=local-...)를 긁어갈 때 실시간 변환하는 엔진
+      function runDynamicCardEngine() {
           try {
-              // 1. 주소창 뒤의 고유 매물 ID(?id=local-...) 또는 postId 낚아채기
+              // 1. 주소창 뒤의 고유 매물 ID(?id=local-1782481745054)를 추출합니다.
               const urlParams = new URLSearchParams(window.location.search);
               const itemId = urlParams.get('id') || urlParams.get('postId'); 
               
-              // 🌟 수집 로봇들의 한글 도메인 번역 지연 타임아웃 방지를 위해 영문 퓨니코드 absolute path 정제
-              let host = window.location.host;
-              let protocol = window.location.protocol;
-              const punyDomain = 'www.xn--h49a2pelq49bcrfloji4br3e56y.com';
-              
-              if (host.includes('태왕공인중개사사무소.com')) {
-                  host = punyDomain;
+              // 🌟 문자 및 카카오 로봇에게 보안 주소 검증 도장을 찍어주기 위해 현재 상세 주소 정제 (punycode 자동 호환)
+              let canonicalUrl = window.location.href;
+              if (canonicalUrl.includes('태왕공인중개사사무소.com')) {
+                  canonicalUrl = canonicalUrl.replace('태왕공인중개사사무소.com', 'xn--h49a2pelq49bcrfloji4br3e56y.com');
               }
-              
-              let currentUrl = protocol + '//' + host + window.location.pathname + window.location.search;
               
               const canonicalEl = document.getElementById('canonicalUrl');
               if (canonicalEl) {
-                  canonicalEl.setAttribute('href', currentUrl);
+                  canonicalEl.setAttribute('href', canonicalUrl);
               }
               
               if (itemId) {
-                  // 소장님이 바둑판 격자에서 누른 데이터 실시간 매칭 (V25 연동)
+                  // 2. 현재 입력창이나 장부에 기록된 뼈대 데이터(법정동, 건물명, 매물종류 등)를 수집합니다.
                   const dong = document.getElementById('selectedDong')?.value || "구미"; 
                   const building = document.getElementById('buildingName')?.value || "추천 매물";
                   const type = document.querySelector('.btn-item.active')?.innerText || "매물";
                   
-                  // 카카오톡, 페이스북, 네이버 밴드 카드에 박힐 알맹이 간판 조립
-                  const dynamicTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-                  const dynamicDesc = "실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.";
+                  // 🌟 유튜브처럼 실시간으로 알맹이 정보 카드 레이아웃 용접
+                  const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
+                  const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
                   
-                  // 외부 로봇들의 눈에 보이는 간판 정보를 실시간 강제 용접
-                  document.getElementById('ogTitle').setAttribute('content', dynamicTitle);
-                  document.getElementById('ogDesc').setAttribute('content', dynamicDesc);
-                  document.getElementById('ogUrl').setAttribute('content', currentUrl);
-                  
-                  // 🌟 [핵심 개조] 소장님 홈페이지 화면에 실제로 '출력되고 있는 진짜 매물 사진'의 주소를 낚아챕니다.
-                  // 기존에 itemId로 이미지 주소를 강제 조립하던 구형 스크립트 방식(.../images/${itemId}.jpg) 전면 폐기!
-                  const imgEl = document.querySelector('.main-preview-img') || 
-                                document.querySelector('#detailMainImg') || 
-                                document.querySelector('#mainImage') || 
-                                document.querySelector('.property-img') || 
-                                document.querySelector('img[alt="매물 대표 사진"]');
-                  
-                  let realWebImage = "";
-                  if (imgEl && imgEl.src) {
-                      realWebImage = imgEl.src;
-                      if (realWebImage.startsWith('/')) {
-                          realWebImage = window.location.origin + realWebImage;
-                      }
-                  }
-                  
-                  if (realWebImage && (realWebImage.startsWith('http://') || realWebImage.startsWith('https://'))) {
-                      // 진짜 사진 주소가 발견되면 전 채널 로봇에게 이 주소를 쾅 찍어줌
-                      document.getElementById('ogImage').setAttribute('content', realWebImage);
-                  } else {
-                      // 사진을 못 찾았을 때를 대비한 든든한 대문 로고 기본 안심 사진 선로
-                      document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
-                  }
-                  
-                  console.log("🎯 [전산실 마감] 실제 화면 이미지 다이렉트 매칭 완공");
+                  // 3. 외부 로봇들 눈에 보이는 간판 태그를 즉시 교체합니다.
+                  document.getElementById('ogTitle').setAttribute('content', newTitle);
+                  document.getElementById('ogDesc').setAttribute('content', newDesc);
+                  document.getElementById('ogUrl').setAttribute('content', canonicalUrl);
+
+                  // 🌟 [매물별 동적 이미지 매칭 선로] 
+                  // 소장님이 인스타360으로 찍어 올리신 해당 매물의 메인 대표 사진 주소로 실시간 교체하여 기계에게 주입
+                  const itemImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
+                  document.getElementById('ogImage').setAttribute('content', itemImage);
               } else {
                   // ID가 없을 경우 standard default_thumb.jpg 철컥 고정
                   document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
-                  document.getElementById('ogUrl').setAttribute('content', currentUrl);
+                  document.getElementById('ogUrl').setAttribute('content', canonicalUrl);
               }
           } catch (e) {
               console.error('Dynamic card engine error:', e);
           }
       }
 
-      // 페이지 구동과 동시에 전역망 엔진 즉시 가동 (HTML 파싱 중에도 즉시 타격)
+      // 화면 로딩과 동시에 엔진 즉시 1차 강제 동기화 (HTML 파싱 중에도 즉시 타격)
       try {
-          runUniversalCardEngine();
+          runDynamicCardEngine();
       } catch (err) {}
 
       // 화면 로딩의 각 이정표마다 촘촘하게 동기화 가동
-      window.addEventListener('DOMContentLoaded', runUniversalCardEngine);
+      window.addEventListener('DOMContentLoaded', runDynamicCardEngine);
       // React 마운트 후 및 상태 변경 시 지속적인 실시간 동기화를 위한 추가 감시 장치
       window.addEventListener('load', function() {
-          runUniversalCardEngine();
+          runDynamicCardEngine();
           // 옵저버를 통해 DOM의 변화가 생겼을 때 실시간으로 메타 태그를 다시 정렬합니다.
-          var observer = new MutationObserver(runUniversalCardEngine);
+          var observer = new MutationObserver(runDynamicCardEngine);
           var targetNode = document.getElementById('root');
           if (targetNode) {
               observer.observe(targetNode, { childList: true, subtree: true });

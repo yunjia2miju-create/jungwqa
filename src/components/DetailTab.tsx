@@ -430,9 +430,8 @@ export const DetailTab = ({
                     </div>
 
                     <img 
-                        id="detailMainImg"
                         src={p.thumbnail} 
-                        className="main-preview-img w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                         alt="매물 대표 사진"
                         loading="lazy"
                     />

@@ -34,16 +34,14 @@
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
     <meta name="description" content="[공간 실감 360° 현장 VR 투어] 구미 전지역 원룸, 투룸, 오피스텔 실시간 공실 현황 및 프리미엄 책임 중개 전문 태왕공인중개사사무소입니다." />
     
-    <meta id="ogTitle" property="og:title" content="태왕공인중개사사무소" />
-    <meta id="ogDesc" property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보" />
-    <meta id="ogUrl" property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com" />
-    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg" />
-    <meta property="og:image:width" content="800" />
-    <meta property="og:image:height" content="400" />
-    <meta id="ogType" property="og:type" content="article" />
-
-    <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
-    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
+    <meta property="og:title" content="구미 태왕공인중개사사무소">
+    <meta property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보 상세 보기">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
+    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="400">
+    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
 
     <!-- [최상단 가동] 어떤 플랫폼의 링크 공유창이든 0.1초 만에 타격하여 이미지를 고정하고, 튕김 현상을 원천 차단하는 자바스크립트 요격 엔진 -->
     <script type="text/javascript">
@@ -122,66 +120,65 @@
                   const dynamicDesc = "실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.";
                   
                   // 외부 로봇들의 눈에 보이는 간판 정보를 실시간 강제 용접
-                  document.getElementById('ogTitle').setAttribute('content', dynamicTitle);
-                  document.getElementById('ogDesc').setAttribute('content', dynamicDesc);
-                  document.getElementById('ogUrl').setAttribute('content', currentUrl);
+                  const ogTitleEl = document.querySelector('meta[property="og:title"]');
+                  if (ogTitleEl) ogTitleEl.setAttribute('content', dynamicTitle);
                   
-                  const ogTypeEl = document.getElementById('ogType');
+                  const ogDescEl = document.querySelector('meta[property="og:description"]');
+                  if (ogDescEl) ogDescEl.setAttribute('content', dynamicDesc);
+                  
+                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
+                  if (ogUrlEl) ogUrlEl.setAttribute('content', currentUrl);
+                  
+                  const ogTypeEl = document.querySelector('meta[property="og:type"]');
                   if (ogTypeEl) {
                       ogTypeEl.setAttribute('content', 'article');
                   }
                   
-                  // 🌟 [하이브리드 다이렉트 매칭 선로] 
-                  // 1. 화면에 출력되고 있는 진짜 매물 사진 낚아채기 (소장님의 V29-B 100% 무결점 보존 작동)
-                  const imgEl = document.querySelector('.main-preview-img') || 
-                                document.querySelector('#detailMainImg') || 
-                                document.querySelector('#mainImage') || 
-                                document.querySelector('.property-img') || 
-                                document.querySelector('img[alt="매물 대표 사진"]') ||
-                                document.querySelector('.detail-main-img');
-                  
+                  // 🌟 [실제 화면 이미지 다이렉트 매칭 그물망 코드]
+                  const imgEl = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img') || document.querySelector('img[alt="매물 대표 사진"]');
                   let realWebImage = "";
                   if (imgEl && imgEl.src) {
                       realWebImage = imgEl.src;
-                      if (realWebImage.startsWith('/')) {
-                          realWebImage = window.location.origin + realWebImage;
-                      }
+                      if (realWebImage.startsWith('/')) { realWebImage = window.location.origin + realWebImage; }
                   }
-                  
                   if (realWebImage && (realWebImage.startsWith('http://') || realWebImage.startsWith('https://'))) {
                       document.getElementById('ogImage').setAttribute('content', realWebImage);
                   } else {
-                      // 2. 만약 아직 렌더링되지 않았을 경우, API 선로를 타고 실시간 매물 정보를 캐시 조회하여 100% 매칭
                       document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
-                      
-                      fetch('/api/posts')
-                          .then(res => res.json())
-                          .then(posts => {
-                              const foundPost = posts.find(p => p.id === itemId);
-                              if (foundPost) {
-                                  let fetchedImg = foundPost.spatial1Url || foundPost.thumbnailUrl || foundPost.images?.[0];
-                                  if (fetchedImg) {
-                                      if (fetchedImg.startsWith('/')) {
-                                          fetchedImg = window.location.origin + fetchedImg;
-                                      }
-                                      document.getElementById('ogImage').setAttribute('content', fetchedImg);
-                                      console.log("🎯 [요격 엔진-비동기] 진짜 대표 이미지 자동 대통합 완공:", fetchedImg);
-                                  }
-                                  
-                                  const dbDong = foundPost.dong || dong;
-                                  const dbBuilding = foundPost.building || building;
-                                  const dbType = foundPost.category || type;
-                                  document.getElementById('ogTitle').setAttribute('content', `태왕공인중개사사무소 - [${dbDong} ${dbBuilding} ${dbType}]`);
-                              }
-                          })
-                          .catch(err => console.error("비동기 보정 엔진 폴백 작동:", err));
                   }
+                  
+                  // 만약 아직 렌더링되지 않았을 경우, 백그라운드 API를 타서 보완
+                  fetch('/api/posts')
+                      .then(res => res.json())
+                      .then(posts => {
+                          const foundPost = posts.find(p => p.id === itemId);
+                          if (foundPost) {
+                              let fetchedImg = foundPost.spatial1Url || foundPost.thumbnailUrl || foundPost.images?.[0];
+                              if (fetchedImg) {
+                                  if (fetchedImg.startsWith('/')) {
+                                      fetchedImg = window.location.origin + fetchedImg;
+                                  }
+                                  const currentOgImg = document.getElementById('ogImage')?.getAttribute('content');
+                                  if (!currentOgImg || currentOgImg.includes('default_thumb.jpg')) {
+                                      document.getElementById('ogImage').setAttribute('content', fetchedImg);
+                                  }
+                              }
+                              
+                              const dbDong = foundPost.dong || dong;
+                              const dbBuilding = foundPost.building || building;
+                              const dbType = foundPost.category || type;
+                              const ogTitleEl = document.querySelector('meta[property="og:title"]');
+                              if (ogTitleEl) ogTitleEl.setAttribute('content', `태왕공인중개사사무소 - [${dbDong} ${dbBuilding} ${dbType}]`);
+                          }
+                      })
+                      .catch(err => console.error("비동기 보정 엔진 폴백 작동:", err));
                   
                   console.log("🎯 [전산실 마감] 실제 화면 이미지 다이렉트 매칭 완공");
               } else {
                   // ID가 없을 경우 standard default_thumb.jpg 철컥 고정
                   document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
-                  document.getElementById('ogUrl').setAttribute('content', currentUrl);
+                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
+                  if (ogUrlEl) ogUrlEl.setAttribute('content', currentUrl);
               }
           } catch (e) {
               console.error('Dynamic card engine error:', e);

@@ -39,11 +39,21 @@
                   canonicalEl.setAttribute('href', canonicalUrl);
               }
               
+              const ogUrlEl = document.getElementById('ogUrl');
+              if (ogUrlEl) {
+                  ogUrlEl.setAttribute('content', canonicalUrl);
+              }
+              
               // 🌟 [실제 화면 이미지 다이렉트 매칭 그물망 코드 (querySelector 로직)]
               // 화면에 실제로 렌더링된 진짜 매물 이미지 엘리먼트를 실시간으로 추적하여 src를 강제 추출/매칭하는 querySelector 그물망
               let actualScreenImg = '';
               try {
-                  const targetImg = document.querySelector('img[alt="매물 대표 사진"]') || 
+                  const targetImg = document.querySelector('.main-preview-img') || 
+                                    document.querySelector('#detailMainImg') || 
+                                    document.querySelector('#mainImage') || 
+                                    document.querySelector('.property-img') ||
+                                    document.querySelector('.gallery-top img') || 
+                                    document.querySelector('img[alt="매물 대표 사진"]') ||
                                     document.querySelector('img[alt="VR 대표 실사 썸네일"]') || 
                                     document.querySelector('#detail-section img') || 
                                     document.querySelector('#vr-starter-thumbnail-mask img') ||
@@ -51,6 +61,9 @@
                                     document.querySelector('img[src*="/images/"]');
                   if (targetImg && targetImg.src) {
                       actualScreenImg = targetImg.src;
+                      if (actualScreenImg.startsWith('/')) { 
+                          actualScreenImg = window.location.origin + actualScreenImg; 
+                      }
                   }
               } catch (imgErr) {
                   console.error('Image querySelector error:', imgErr);
@@ -77,14 +90,10 @@
                       ogDescEl.setAttribute('content', newDesc);
                   }
 
-                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
-                  if (ogUrlEl) {
-                      ogUrlEl.setAttribute('content', canonicalUrl);
-                  }
-
                   // 🌟 [매물별 동적 이미지 매칭 선로] 
                   // 소장님이 인스타360으로 찍어 올리신 해당 매물의 메인 대표 사진 주소 혹은 실제 화면 이미지로 실시간 교체하여 기계에게 주입
-                  const itemImage = actualScreenImg || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
+                  // 만에 하나 사진이 없는 매물일 때만 예비용으로 default_thumb.jpg가 작동하도록 이중 안전망을 구축하십시오.
+                  const itemImage = actualScreenImg || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg`;
                   const ogImageEl = document.getElementById('ogImage');
                   if (ogImageEl) {
                       ogImageEl.setAttribute('content', itemImage);
@@ -95,11 +104,6 @@
                   const ogImageEl = document.getElementById('ogImage');
                   if (ogImageEl) {
                       ogImageEl.setAttribute('content', itemImage);
-                  }
-                  
-                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
-                  if (ogUrlEl) {
-                      ogUrlEl.setAttribute('content', canonicalUrl);
                   }
               }
           } catch (e) {
@@ -122,11 +126,17 @@
               document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
               
               // 소장님이 이전에 성공하신 이미지 다이렉트 매칭 그물망 코드 가동
-              const imgEl = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img');
+              const imgEl = document.querySelector('.main-preview-img') || 
+                            document.querySelector('#detailMainImg') || 
+                            document.querySelector('#mainImage') || 
+                            document.querySelector('.property-img') ||
+                            document.querySelector('.gallery-top img') ||
+                            document.querySelector('img[alt="매물 대표 사진"]');
               if (imgEl && imgEl.src) {
                   let realImg = imgEl.src;
                   if (realImg.startsWith('/')) { realImg = window.location.origin + realImg; }
                   document.getElementById('ogImage')?.setAttribute('content', realImg);
+                  console.log("🎯 [전산실 완공] 실제 화면 매물 대표 사진 다이렉트 매칭 성공:", realImg);
               }
           }
       });

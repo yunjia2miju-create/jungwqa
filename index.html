@@ -1,14 +1,16 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <script>
-      const currentUrl = window.location.href; 
-      const ogUrlMeta = document.createElement('meta');
-      ogUrlMeta.setAttribute('property', 'og:url');
-      ogUrlMeta.setAttribute('content', currentUrl);
-      document.head.appendChild(ogUrlMeta);
-    </script>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8">
+    <meta property="og:title" id="ogTitle" content="구미 태왕공인중개사사무소">
+    <meta property="og:description" id="ogDesc" content="공간 실감 360도 현장 VR 투어 | 매물 정보 상세 보기">
+    <meta property="og:type" content="article">
+    <meta id="ogUrl" property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
+    <meta property="og:site_name" content="구미 태왕공인중개사사무소">
+    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
 
@@ -16,16 +18,6 @@
     <meta name="naver-site-verification" content="260d86e2408a640874f6f77f5f621042b214ea4d" />
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
     <meta name="description" content="[공간 실감 360° 현장 VR 투어] 구미 전지역 원룸, 투룸, 오피스텔 실시간 공실 현황 및 프리미엄 책임 중개 전문 태왕공인중개사사무소입니다." />
-    
-    <meta id="ogTitle" property="og:title" content="구미 태왕공인중개사사무소">
-    <meta id="ogDesc" property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보 상세 보기">
-    <meta property="og:type" content="article">
-    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg">
-    <meta property="og:image:width" content="800">
-    <meta property="og:image:height" content="400">
-
-    <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
-    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
 
     <!-- [최상단 가동] 카카오톡, 네이버, 문자 로봇용 실시간 메타 정보 주입 엔진 -->
     <script type="text/javascript">
@@ -121,7 +113,23 @@
       } catch (err) {}
 
       // 화면 로딩의 각 이정표마다 촘촘하게 동기화 가동
-      window.addEventListener('DOMContentLoaded', runDynamicCardEngine);
+      window.addEventListener('DOMContentLoaded', function() {
+          runDynamicCardEngine();
+          
+          const currentUrl = window.location.href;
+          if (currentUrl.includes('id=')) {
+              document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
+              document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
+              
+              // 소장님이 이전에 성공하신 이미지 다이렉트 매칭 그물망 코드 가동
+              const imgEl = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img');
+              if (imgEl && imgEl.src) {
+                  let realImg = imgEl.src;
+                  if (realImg.startsWith('/')) { realImg = window.location.origin + realImg; }
+                  document.getElementById('ogImage')?.setAttribute('content', realImg);
+              }
+          }
+      });
       // React 마운트 후 및 상태 변경 시 지속적인 실시간 동기화를 위한 추가 감시 장치
       window.addEventListener('load', function() {
           runDynamicCardEngine();

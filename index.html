@@ -20,8 +20,53 @@
     <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
     <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
 
-    <!-- [최상단 가동] 어떤 플랫폼의 링크 공유창이든 0.1초 만에 타격하여 이미지를 고정하는 자바스크립트 엔진 -->
+    <!-- [최상단 가동] 어떤 플랫폼의 링크 공유창이든 0.1초 만에 타격하여 이미지를 고정하고, 튕김 현상을 원천 차단하는 자바스크립트 요격 엔진 -->
     <script type="text/javascript">
+      // 🌟 [최상단 요격 엔진] 봇(User-Agent) 및 상세 매물 주소 진입 시 튕김/주소 유실 강제 차단 선로 완공
+      (function() {
+          try {
+              const urlParams = new URLSearchParams(window.location.search);
+              const itemId = urlParams.get('id') || urlParams.get('postId');
+              
+              if (itemId) {
+                  const ua = navigator.userAgent.toLowerCase();
+                  const isBot = /bot|crawl|slurp|spider|facebook|kakaotalk|naver|daum|bandit|scooter/i.test(ua);
+                  
+                  // 튕김 방지: React 초기화 과정에서 selectedPostId가 null일 때 pushState로 ?id=...를 날려버리는 선로 요격
+                  const originalPushState = window.history.pushState;
+                  const originalReplaceState = window.history.replaceState;
+
+                  window.history.pushState = function(state, title, url) {
+                      if (url && typeof url === 'string') {
+                          const newParams = new URLSearchParams(url.split('?')[1] || '');
+                          if (!newParams.get('id') && !newParams.get('postId')) {
+                              console.warn("⚠️ [요격 엔진] pushState 주소창 세척 차단 및 상세 ID 복원 완료");
+                              const separator = url.includes('?') ? '&' : '?';
+                              url = url + separator + "id=" + encodeURIComponent(itemId);
+                          }
+                      }
+                      return originalPushState.apply(this, arguments);
+                  };
+
+                  window.history.replaceState = function(state, title, url) {
+                      if (url && typeof url === 'string') {
+                          const newParams = new URLSearchParams(url.split('?')[1] || '');
+                          if (!newParams.get('id') && !newParams.get('postId')) {
+                              console.warn("⚠️ [요격 엔진] replaceState 주소창 세척 차단 및 상세 ID 복원 완료");
+                              const separator = url.includes('?') ? '&' : '?';
+                              url = url + separator + "id=" + encodeURIComponent(itemId);
+                          }
+                      }
+                      return originalReplaceState.apply(this, arguments);
+                  };
+                  
+                  console.log("🎯 [요격 엔진] 봇 및 일반 공유 유입 상세 주소 철통 보존 완료.");
+              }
+          } catch (err) {
+              console.error("요격 엔진 작동 실패:", err);
+          }
+      })();
+
       function runUniversalCardEngine() {
           try {
               // 1. 주소창 뒤의 고유 매물 ID(?id=local-...) 또는 postId 낚아채기
@@ -59,13 +104,14 @@
                   document.getElementById('ogDesc').setAttribute('content', dynamicDesc);
                   document.getElementById('ogUrl').setAttribute('content', currentUrl);
                   
-                  // 🌟 [핵심 개조] 소장님 홈페이지 화면에 실제로 '출력되고 있는 진짜 매물 사진'의 주소를 낚아챕니다.
-                  // 기존에 itemId로 이미지 주소를 강제 조립하던 구형 스크립트 방식(.../images/${itemId}.jpg) 전면 폐기!
+                  // 🌟 [하이브리드 다이렉트 매칭 선로] 
+                  // 1. 화면에 출력되고 있는 진짜 매물 사진 낚아채기 (소장님의 V29-B 100% 무결점 보존 작동)
                   const imgEl = document.querySelector('.main-preview-img') || 
                                 document.querySelector('#detailMainImg') || 
                                 document.querySelector('#mainImage') || 
                                 document.querySelector('.property-img') || 
-                                document.querySelector('img[alt="매물 대표 사진"]');
+                                document.querySelector('img[alt="매물 대표 사진"]') ||
+                                document.querySelector('.detail-main-img');
                   
                   let realWebImage = "";
                   if (imgEl && imgEl.src) {
@@ -76,11 +122,32 @@
                   }
                   
                   if (realWebImage && (realWebImage.startsWith('http://') || realWebImage.startsWith('https://'))) {
-                      // 진짜 사진 주소가 발견되면 전 채널 로봇에게 이 주소를 쾅 찍어줌
                       document.getElementById('ogImage').setAttribute('content', realWebImage);
                   } else {
-                      // 사진을 못 찾았을 때를 대비한 든든한 대문 로고 기본 안심 사진 선로
+                      // 2. 만약 아직 렌더링되지 않았을 경우, API 선로를 타고 실시간 매물 정보를 캐시 조회하여 100% 매칭
                       document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
+                      
+                      fetch('/api/posts')
+                          .then(res => res.json())
+                          .then(posts => {
+                              const foundPost = posts.find(p => p.id === itemId);
+                              if (foundPost) {
+                                  let fetchedImg = foundPost.spatial1Url || foundPost.thumbnailUrl || foundPost.images?.[0];
+                                  if (fetchedImg) {
+                                      if (fetchedImg.startsWith('/')) {
+                                          fetchedImg = window.location.origin + fetchedImg;
+                                      }
+                                      document.getElementById('ogImage').setAttribute('content', fetchedImg);
+                                      console.log("🎯 [요격 엔진-비동기] 진짜 대표 이미지 자동 대통합 완공:", fetchedImg);
+                                  }
+                                  
+                                  const dbDong = foundPost.dong || dong;
+                                  const dbBuilding = foundPost.building || building;
+                                  const dbType = foundPost.category || type;
+                                  document.getElementById('ogTitle').setAttribute('content', `태왕공인중개사사무소 - [${dbDong} ${dbBuilding} ${dbType}]`);
+                              }
+                          })
+                          .catch(err => console.error("비동기 보정 엔진 폴백 작동:", err));
                   }
                   
                   console.log("🎯 [전산실 마감] 실제 화면 이미지 다이렉트 매칭 완공");

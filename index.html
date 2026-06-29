@@ -44,29 +44,72 @@
                   ogUrlEl.setAttribute('content', canonicalUrl);
               }
               
-              // 🌟 [실제 화면 이미지 다이렉트 매칭 그물망 코드 (querySelector 로직)]
-              // 화면에 실제로 렌더링된 진짜 매물 이미지 엘리먼트를 실시간으로 추적하여 src를 강제 추출/매칭하는 querySelector 그물망
+              // 🌟 [파이어베이스 스토리지 전용 정밀 센서 구축 (Firebase Storage Precision Sensor)]
+              // 화면 내 모든 이미지 태그를 전수 조사하여 src 주소에 "firebasestorage" 또는 "googleapis"가 포함된 진짜 매물 대표 사진의 보안 토큰 포함 전체 인터넷 절대 경로를 실시간으로 완전히 낚아챔
               let actualScreenImg = '';
               try {
-                  const targetImg = document.querySelector('.main-preview-img') || 
-                                    document.querySelector('#detailMainImg') || 
-                                    document.querySelector('#mainImage') || 
-                                    document.querySelector('.property-img') ||
-                                    document.querySelector('.gallery-top img') || 
-                                    document.querySelector('img[alt="매물 대표 사진"]') ||
-                                    document.querySelector('img[alt="VR 대표 실사 썸네일"]') || 
-                                    document.querySelector('#detail-section img') || 
-                                    document.querySelector('#vr-starter-thumbnail-mask img') ||
-                                    document.querySelector('img[src*="firebasestorage"]') ||
-                                    document.querySelector('img[src*="/images/"]');
-                  if (targetImg && targetImg.src) {
-                      actualScreenImg = targetImg.src;
-                      if (actualScreenImg.startsWith('/')) { 
-                          actualScreenImg = window.location.origin + actualScreenImg; 
+                  // 1단계: 대표적인 매물 이미지 선택자들을 우선 검출
+                  const selectors = [
+                      '.main-preview-img',
+                      '#detailMainImg',
+                      '#mainImage',
+                      '.property-img',
+                      '.gallery-top img',
+                      'img[alt="매물 대표 사진"]',
+                      'img[alt="VR 대표 실사 썸네일"]',
+                      '#detail-section img',
+                      '#vr-starter-thumbnail-mask img'
+                  ];
+                  for (let i = 0; i < selectors.length; i++) {
+                      const img = document.querySelector(selectors[i]);
+                      if (img && img.src && (img.src.includes('firebasestorage') || img.src.includes('googleapis'))) {
+                          actualScreenImg = img.src;
+                          break;
                       }
                   }
+
+                  // 2단계: 위 선택자로 검출하지 못했거나 일반 이미지인 경우, 화면 내 모든 img 태그를 스캔하여 진짜 파이어베이스 저장소 절대 경로를 낚아챔
+                  if (!actualScreenImg) {
+                      const allImgs = Array.from(document.querySelectorAll('img'));
+                      // firebasestorage 또는 googleapis가 src에 포함되면서 폰트나 로고가 아닌 것 중 적정 크기(offsetWidth > 100) 우선 탐색
+                      const firebaseImg = allImgs.find(img => {
+                          const src = img.src || '';
+                          return (src.includes('firebasestorage') || src.includes('googleapis')) && 
+                                 !src.includes('/fonts%2F') && 
+                                 img.offsetWidth > 100 && 
+                                 img.offsetHeight > 100;
+                      }) || allImgs.find(img => {
+                          const src = img.src || '';
+                          return (src.includes('firebasestorage') || src.includes('googleapis')) && !src.includes('/fonts%2F');
+                      });
+
+                      if (firebaseImg && firebaseImg.src) {
+                          actualScreenImg = firebaseImg.src;
+                      }
+                  }
+
+                  // 3단계: 그래도 없고 로컬 이미지 선택자가 존재하는 경우 대체재 적용
+                  if (!actualScreenImg) {
+                      const targetImg = document.querySelector('.main-preview-img') || 
+                                        document.querySelector('#detailMainImg') || 
+                                        document.querySelector('#mainImage') || 
+                                        document.querySelector('.property-img') ||
+                                        document.querySelector('.gallery-top img') || 
+                                        document.querySelector('img[alt="매물 대표 사진"]') ||
+                                        document.querySelector('img[alt="VR 대표 실사 썸네일"]') || 
+                                        document.querySelector('#detail-section img') || 
+                                        document.querySelector('#vr-starter-thumbnail-mask img') ||
+                                        document.querySelector('img[src*="/images/"]');
+                      if (targetImg && targetImg.src) {
+                          actualScreenImg = targetImg.src;
+                      }
+                  }
+
+                  if (actualScreenImg && actualScreenImg.startsWith('/')) { 
+                      actualScreenImg = window.location.origin + actualScreenImg; 
+                  }
               } catch (imgErr) {
-                  console.error('Image querySelector error:', imgErr);
+                  console.error('Firebase storage sensor error:', imgErr);
               }
 
               if (itemId) {
@@ -125,18 +168,27 @@
               document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
               document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
               
-              // 소장님이 이전에 성공하신 이미지 다이렉트 매칭 그물망 코드 가동
-              const imgEl = document.querySelector('.main-preview-img') || 
-                            document.querySelector('#detailMainImg') || 
-                            document.querySelector('#mainImage') || 
-                            document.querySelector('.property-img') ||
-                            document.querySelector('.gallery-top img') ||
-                            document.querySelector('img[alt="매물 대표 사진"]');
-              if (imgEl && imgEl.src) {
-                  let realImg = imgEl.src;
+              // 🌟 [파이어베이스 스토리지 전용 정밀 센서 적용]
+              const allImgs = Array.from(document.querySelectorAll('img'));
+              const firebaseImg = allImgs.find(img => img.src && (img.src.includes('firebasestorage') || img.src.includes('googleapis')));
+              let realImg = '';
+              if (firebaseImg && firebaseImg.src) {
+                  realImg = firebaseImg.src;
+              } else {
+                  const imgEl = document.querySelector('.main-preview-img') || 
+                                document.querySelector('#detailMainImg') || 
+                                document.querySelector('#mainImage') || 
+                                document.querySelector('.property-img') ||
+                                document.querySelector('.gallery-top img') ||
+                                document.querySelector('img[alt="매물 대표 사진"]');
+                  if (imgEl && imgEl.src) {
+                      realImg = imgEl.src;
+                  }
+              }
+              if (realImg) {
                   if (realImg.startsWith('/')) { realImg = window.location.origin + realImg; }
                   document.getElementById('ogImage')?.setAttribute('content', realImg);
-                  console.log("🎯 [전산실 완공] 실제 화면 매물 대표 사진 다이렉트 매칭 성공:", realImg);
+                  console.log("🎯 [전산실 완공] 파이어베이스 스토리지 진짜 대표 사진 실시간 다이렉트 매칭 성공:", realImg);
               }
           }
       });
@@ -273,25 +325,49 @@
       /* [6번] 다시시작해 */
       @font-face {
         font-family: 'DasiSijakhae';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia2%2Fyunjia2.ttf?alt=media&token=ac563ee5-54f0-4b78-a6fc-89aae9ff4188') format('truetype');
-        font-weight: normal;
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%8B%A4%EC%8B%9C_%EC%8B%9C%EC%9E%91%ED%95%B4%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%8B%A4%EC%8B%9C%20%EC%8B%9C%EC%9E%91%ED%95%B4.ttf?alt=media&token=0c5041e8-3cb6-488b-abb9-4118b0a3a6ff') format('truetype');
+        font-weight: 400;
         font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'DasiSijakhae';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%8B%A4%EC%8B%9C_%EC%8B%9C%EC%9E%91%ED%95%B4%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%8B%A4%EC%8B%9C%20%EC%8B%9C%EC%9E%91%ED%95%B4.ttf?alt=media&token=0c5041e8-3cb6-488b-abb9-4118b0a3a6ff') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
       }
 
       /* [7번] 바른히피 */
       @font-face {
         font-family: 'BareunHippie';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia3%2Fyunjia3.ttf?alt=media&token=825c35f2-7953-472b-98fb-68d99f2e35bb') format('truetype');
-        font-weight: normal;
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC.ttf?alt=media&token=4bd0adcb-798f-4c5a-b55e-ad1a43c58f62') format('truetype');
+        font-weight: 400;
         font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'BareunHippie';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC.ttf?alt=media&token=4bd0adcb-798f-4c5a-b55e-ad1a43c58f62') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
       }
 
       /* [8번] 우리딸손글씨 */
       @font-face {
         font-family: 'UriTtal';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia4%2Fyunjia4.ttf?alt=media&token=8dda2df0-6a89-4eec-91b4-dbb318dc98e6') format('truetype');
-        font-weight: normal;
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EC%9A%B0%EB%A6%AC%EB%94%B8_%EC%86%90%EA%B8%80%EC%94%A8%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EC%9A%B0%EB%A6%AC%EB%94%B8%20%EC%86%90%EA%B8%80%EC%94%A8.ttf?alt=media&token=b5a276f5-7f01-4f4e-8533-0f928bb6527f') format('truetype');
+        font-weight: 400;
         font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'UriTtal';
+        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EC%9A%B0%EB%A6%AC%EB%94%B8_%EC%86%90%EA%B8%80%EC%94%A8%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EC%9A%B0%EB%A6%AC%EB%94%B8%20%EC%86%90%EA%B8%80%EC%94%A8.ttf?alt=media&token=b5a276f5-7f01-4f4e-8533-0f928bb6527f') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
       }
 
       /* ==========================================

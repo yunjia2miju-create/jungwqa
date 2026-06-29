@@ -1365,7 +1365,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
               html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              if (html.includes('id="ogUrl"')) {
+                html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogUrl" property="og:url" content="${newUrl}" />\n</head>`);
+              }
               html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
               
               if (html.includes('id="ogImage"')) {
@@ -1408,7 +1412,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
               html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              if (html.includes('id="ogUrl"')) {
+                html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogUrl" property="og:url" content="${newUrl}" />\n</head>`);
+              }
               html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
               
               if (html.includes('id="ogImage"')) {

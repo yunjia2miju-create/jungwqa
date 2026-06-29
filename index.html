@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <script>
+      const currentUrl = window.location.href; 
+      const ogUrlMeta = document.createElement('meta');
+      ogUrlMeta.setAttribute('property', 'og:url');
+      ogUrlMeta.setAttribute('content', currentUrl);
+      document.head.appendChild(ogUrlMeta);
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
@@ -10,15 +17,15 @@
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
     <meta name="description" content="[공간 실감 360° 현장 VR 투어] 구미 전지역 원룸, 투룸, 오피스텔 실시간 공실 현황 및 프리미엄 책임 중개 전문 태왕공인중개사사무소입니다." />
     
-    <meta id="ogTitle" property="og:title" content="태왕공인중개사사무소" />
-    <meta id="ogDesc" property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보" />
-    <meta id="ogUrl" property="og:url" content="https://www.태왕공인중개사사무소.com" />
-    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg" />
-    <meta property="og:image:width" content="800" />
-    <meta property="og:image:height" content="400" />
+    <meta id="ogTitle" property="og:title" content="구미 태왕공인중개사사무소">
+    <meta id="ogDesc" property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보 상세 보기">
+    <meta property="og:type" content="article">
+    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="400">
 
     <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
-    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
+    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
 
     <!-- [최상단 가동] 카카오톡, 네이버, 문자 로봇용 실시간 메타 정보 주입 엔진 -->
     <script type="text/javascript">
@@ -40,6 +47,23 @@
                   canonicalEl.setAttribute('href', canonicalUrl);
               }
               
+              // 🌟 [실제 화면 이미지 다이렉트 매칭 그물망 코드 (querySelector 로직)]
+              // 화면에 실제로 렌더링된 진짜 매물 이미지 엘리먼트를 실시간으로 추적하여 src를 강제 추출/매칭하는 querySelector 그물망
+              let actualScreenImg = '';
+              try {
+                  const targetImg = document.querySelector('img[alt="매물 대표 사진"]') || 
+                                    document.querySelector('img[alt="VR 대표 실사 썸네일"]') || 
+                                    document.querySelector('#detail-section img') || 
+                                    document.querySelector('#vr-starter-thumbnail-mask img') ||
+                                    document.querySelector('img[src*="firebasestorage"]') ||
+                                    document.querySelector('img[src*="/images/"]');
+                  if (targetImg && targetImg.src) {
+                      actualScreenImg = targetImg.src;
+                  }
+              } catch (imgErr) {
+                  console.error('Image querySelector error:', imgErr);
+              }
+
               if (itemId) {
                   // 2. 현재 입력창이나 장부에 기록된 뼈대 데이터(법정동, 건물명, 매물종류 등)를 수집합니다.
                   const dong = document.getElementById('selectedDong')?.value || "구미"; 
@@ -51,18 +75,40 @@
                   const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
                   
                   // 3. 외부 로봇들 눈에 보이는 간판 태그를 즉시 교체합니다.
-                  document.getElementById('ogTitle').setAttribute('content', newTitle);
-                  document.getElementById('ogDesc').setAttribute('content', newDesc);
-                  document.getElementById('ogUrl').setAttribute('content', canonicalUrl);
+                  const ogTitleEl = document.getElementById('ogTitle');
+                  if (ogTitleEl) {
+                      ogTitleEl.setAttribute('content', newTitle);
+                  }
+                  
+                  const ogDescEl = document.getElementById('ogDesc');
+                  if (ogDescEl) {
+                      ogDescEl.setAttribute('content', newDesc);
+                  }
+
+                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
+                  if (ogUrlEl) {
+                      ogUrlEl.setAttribute('content', canonicalUrl);
+                  }
 
                   // 🌟 [매물별 동적 이미지 매칭 선로] 
-                  // 소장님이 인스타360으로 찍어 올리신 해당 매물의 메인 대표 사진 주소로 실시간 교체하여 기계에게 주입
-                  const itemImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
-                  document.getElementById('ogImage').setAttribute('content', itemImage);
+                  // 소장님이 인스타360으로 찍어 올리신 해당 매물의 메인 대표 사진 주소 혹은 실제 화면 이미지로 실시간 교체하여 기계에게 주입
+                  const itemImage = actualScreenImg || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
+                  const ogImageEl = document.getElementById('ogImage');
+                  if (ogImageEl) {
+                      ogImageEl.setAttribute('content', itemImage);
+                  }
               } else {
-                  // ID가 없을 경우 standard default_thumb.jpg 철컥 고정
-                  document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
-                  document.getElementById('ogUrl').setAttribute('content', canonicalUrl);
+                  // ID가 없을 경우 실제 화면에 잡히는 이미지가 있으면 그걸 쓰고, 없으면 standard default_thumb.jpg 철컥 고정
+                  const itemImage = actualScreenImg || 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg';
+                  const ogImageEl = document.getElementById('ogImage');
+                  if (ogImageEl) {
+                      ogImageEl.setAttribute('content', itemImage);
+                  }
+                  
+                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
+                  if (ogUrlEl) {
+                      ogUrlEl.setAttribute('content', canonicalUrl);
+                  }
               }
           } catch (e) {
               console.error('Dynamic card engine error:', e);

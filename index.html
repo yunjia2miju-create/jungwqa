@@ -59,11 +59,31 @@
                   document.getElementById('ogDesc').setAttribute('content', dynamicDesc);
                   document.getElementById('ogUrl').setAttribute('content', currentUrl);
                   
-                  // 인스타360으로 촬영하여 서버에 저장해 둔 해당 매물의 진짜 대표 사진 주소로 강제 연결
-                  const itemImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/${itemId}.jpg`;
-                  document.getElementById('ogImage').setAttribute('content', itemImage);
+                  // 🌟 [핵심 개조] 소장님 홈페이지 화면에 실제로 '출력되고 있는 진짜 매물 사진'의 주소를 낚아챕니다.
+                  // 기존에 itemId로 이미지 주소를 강제 조립하던 구형 스크립트 방식(.../images/${itemId}.jpg) 전면 폐기!
+                  const imgEl = document.querySelector('.main-preview-img') || 
+                                document.querySelector('#detailMainImg') || 
+                                document.querySelector('#mainImage') || 
+                                document.querySelector('.property-img') || 
+                                document.querySelector('img[alt="매물 대표 사진"]');
                   
-                  console.log("🚀 [전산실 완공] 카톡·문자·페이스북·밴드 전 채널 동적 카드 선로 100% 개통");
+                  let realWebImage = "";
+                  if (imgEl && imgEl.src) {
+                      realWebImage = imgEl.src;
+                      if (realWebImage.startsWith('/')) {
+                          realWebImage = window.location.origin + realWebImage;
+                      }
+                  }
+                  
+                  if (realWebImage && (realWebImage.startsWith('http://') || realWebImage.startsWith('https://'))) {
+                      // 진짜 사진 주소가 발견되면 전 채널 로봇에게 이 주소를 쾅 찍어줌
+                      document.getElementById('ogImage').setAttribute('content', realWebImage);
+                  } else {
+                      // 사진을 못 찾았을 때를 대비한 든든한 대문 로고 기본 안심 사진 선로
+                      document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
+                  }
+                  
+                  console.log("🎯 [전산실 마감] 실제 화면 이미지 다이렉트 매칭 완공");
               } else {
                   // ID가 없을 경우 standard default_thumb.jpg 철컥 고정
                   document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');

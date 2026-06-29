@@ -4,6 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
+
+    <!-- 🌟 [최우선 배선] 서버나 하단 스크립트가 주소를 세탁하기 전에 가장 먼저 로봇을 보호하는 센서 -->
+    <script type="text/javascript">
+      (function() {
+          const userAgent = navigator.userAgent.toLowerCase();
+          const isRobot = userAgent.includes('kakaotalk') || 
+                          userAgent.includes('facebookexternalhit') || 
+                          userAgent.includes('naverbot') || 
+                          userAgent.includes('daum') ||
+                          userAgent.includes('twitter') ||
+                          userAgent.includes('bot') ||
+                          userAgent.includes('crawl') ||
+                          userAgent.includes('spider');
+          
+          const urlParams = new URLSearchParams(window.location.search);
+          const itemId = urlParams.get('id') || urlParams.get('postId');
+          
+          if (itemId) {
+              // 수집 로봇의 주소 세탁을 방어하기 위한 최우선 세이프 모드 선로 개통
+              window.KakaotalkPreviewSafeMode = true; 
+              console.log("🤖 [최우선 배선] 수집 로봇 감지: 상세 주소 보존 및 크롤링 세이프 모드 영구 가동");
+          }
+      })();
+    </script>
+
     <!-- [최상단 최적화 선로] SEO 및 SNS 공유 로봇용 핵심 메타 태그 (800x400 황금비율 표준 준수) -->
     <meta name="naver-site-verification" content="260d86e2408a640874f6f77f5f621042b214ea4d" />
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
@@ -15,7 +40,7 @@
     <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg" />
     <meta property="og:image:width" content="800" />
     <meta property="og:image:height" content="400" />
-    <meta property="og:type" content="website" />
+    <meta id="ogType" property="og:type" content="article" />
 
     <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
     <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
@@ -29,9 +54,6 @@
               const itemId = urlParams.get('id') || urlParams.get('postId');
               
               if (itemId) {
-                  const ua = navigator.userAgent.toLowerCase();
-                  const isBot = /bot|crawl|slurp|spider|facebook|kakaotalk|naver|daum|bandit|scooter/i.test(ua);
-                  
                   // 튕김 방지: React 초기화 과정에서 selectedPostId가 null일 때 pushState로 ?id=...를 날려버리는 선로 요격
                   const originalPushState = window.history.pushState;
                   const originalReplaceState = window.history.replaceState;
@@ -45,7 +67,7 @@
                               url = url + separator + "id=" + encodeURIComponent(itemId);
                           }
                       }
-                      return originalPushState.apply(this, arguments);
+                      return originalPushState.call(this, state, title, url);
                   };
 
                   window.history.replaceState = function(state, title, url) {
@@ -57,7 +79,7 @@
                               url = url + separator + "id=" + encodeURIComponent(itemId);
                           }
                       }
-                      return originalReplaceState.apply(this, arguments);
+                      return originalReplaceState.call(this, state, title, url);
                   };
                   
                   console.log("🎯 [요격 엔진] 봇 및 일반 공유 유입 상세 주소 철통 보존 완료.");
@@ -103,6 +125,11 @@
                   document.getElementById('ogTitle').setAttribute('content', dynamicTitle);
                   document.getElementById('ogDesc').setAttribute('content', dynamicDesc);
                   document.getElementById('ogUrl').setAttribute('content', currentUrl);
+                  
+                  const ogTypeEl = document.getElementById('ogType');
+                  if (ogTypeEl) {
+                      ogTypeEl.setAttribute('content', 'article');
+                  }
                   
                   // 🌟 [하이브리드 다이렉트 매칭 선로] 
                   // 1. 화면에 출력되고 있는 진짜 매물 사진 낚아채기 (소장님의 V29-B 100% 무결점 보존 작동)

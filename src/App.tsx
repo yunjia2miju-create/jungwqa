@@ -135,6 +135,11 @@ export default function App() {
 
     // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
     useEffect(() => {
+        // [수집 로봇 세이프 모드] 카카오 수집 로봇 등이 진입했을 경우, 주소를 세척하지 않고 상세 ID와 파라미터를 그대로 보존함
+        if ((window as any).KakaotalkPreviewSafeMode) {
+            console.log("🤖 [수집 로봇 모드 작동] 주소창 세척 우회 선로 개통");
+            return;
+        }
         const params = new URLSearchParams(window.location.search);
         const currentId = params.get('id') || params.get('postId');
         if (selectedPostId) {

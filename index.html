@@ -34,14 +34,14 @@
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
     <meta name="description" content="[공간 실감 360° 현장 VR 투어] 구미 전지역 원룸, 투룸, 오피스텔 실시간 공실 현황 및 프리미엄 책임 중개 전문 태왕공인중개사사무소입니다." />
     
-    <meta property="og:title" content="구미 태왕공인중개사사무소">
-    <meta property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보 상세 보기">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
-    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg">
-    <meta property="og:image:width" content="800">
-    <meta property="og:image:height" content="400">
-    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
+    <meta id="ogTitle" property="og:title" content="구미 태왕공인중개사사무소" />
+    <meta id="ogDesc" property="og:description" content="공간 실감 360도 현장 VR 투어 | 매물 정보 상세 보기" />
+    <meta id="ogType" property="og:type" content="article" />
+    <meta id="ogUrl" property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
+    <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg" />
+    <meta property="og:image:width" content="800" />
+    <meta property="og:image:height" content="400" />
+    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
 
     <!-- [최상단 가동] 어떤 플랫폼의 링크 공유창이든 0.1초 만에 타격하여 이미지를 고정하고, 튕김 현상을 원천 차단하는 자바스크립트 요격 엔진 -->
     <script type="text/javascript">
@@ -55,29 +55,31 @@
                   // 튕김 방지: React 초기화 과정에서 selectedPostId가 null일 때 pushState로 ?id=...를 날려버리는 선로 요격
                   const originalPushState = window.history.pushState;
                   const originalReplaceState = window.history.replaceState;
-
+ 
                   window.history.pushState = function(state, title, url) {
                       if (url && typeof url === 'string') {
-                          const newParams = new URLSearchParams(url.split('?')[1] || '');
+                          const parts = url.split('?');
+                          const newParams = new URLSearchParams(parts[1] || '');
                           if (!newParams.get('id') && !newParams.get('postId')) {
                               console.warn("⚠️ [요격 엔진] pushState 주소창 세척 차단 및 상세 ID 복원 완료");
-                              const separator = url.includes('?') ? '&' : '?';
-                              url = url + separator + "id=" + encodeURIComponent(itemId);
+                              newParams.set("id", itemId);
+                              url = parts[0] + "?" + newParams.toString();
                           }
                       }
-                      return originalPushState.call(this, state, title, url);
+                      return originalPushState.call(window.history, state, title, url);
                   };
 
                   window.history.replaceState = function(state, title, url) {
                       if (url && typeof url === 'string') {
-                          const newParams = new URLSearchParams(url.split('?')[1] || '');
+                          const parts = url.split('?');
+                          const newParams = new URLSearchParams(parts[1] || '');
                           if (!newParams.get('id') && !newParams.get('postId')) {
                               console.warn("⚠️ [요격 엔진] replaceState 주소창 세척 차단 및 상세 ID 복원 완료");
-                              const separator = url.includes('?') ? '&' : '?';
-                              url = url + separator + "id=" + encodeURIComponent(itemId);
+                              newParams.set("id", itemId);
+                              url = parts[0] + "?" + newParams.toString();
                           }
                       }
-                      return originalReplaceState.call(this, state, title, url);
+                      return originalReplaceState.call(window.history, state, title, url);
                   };
                   
                   console.log("🎯 [요격 엔진] 봇 및 일반 공유 유입 상세 주소 철통 보존 완료.");
@@ -111,74 +113,102 @@
               
               if (itemId) {
                   // 소장님이 바둑판 격자에서 누른 데이터 실시간 매칭 (V25 연동)
-                  const dong = document.getElementById('selectedDong')?.value || "구미"; 
-                  const building = document.getElementById('buildingName')?.value || "추천 매물";
-                  const type = document.querySelector('.btn-item.active')?.innerText || "매물";
+                  const selectedDongEl = document.getElementById('selectedDong');
+                  const buildingNameEl = document.getElementById('buildingName');
+                  const activeBtnEl = document.querySelector('.btn-item.active');
+                  
+                  const dong = (selectedDongEl && selectedDongEl.value) || "구미"; 
+                  const building = (buildingNameEl && buildingNameEl.value) || "추천 매물";
+                  const type = (activeBtnEl && activeBtnEl.innerText) || "매물";
                   
                   // 카카오톡, 페이스북, 네이버 밴드 카드에 박힐 알맹이 간판 조립
                   const dynamicTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
                   const dynamicDesc = "실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.";
                   
                   // 외부 로봇들의 눈에 보이는 간판 정보를 실시간 강제 용접
-                  const ogTitleEl = document.querySelector('meta[property="og:title"]');
-                  if (ogTitleEl) ogTitleEl.setAttribute('content', dynamicTitle);
+                  const ogTitleEl = document.getElementById('ogTitle') || document.querySelector('meta[property="og:title"]');
+                  if (ogTitleEl) {
+                      ogTitleEl.setAttribute('content', dynamicTitle);
+                  }
                   
-                  const ogDescEl = document.querySelector('meta[property="og:description"]');
-                  if (ogDescEl) ogDescEl.setAttribute('content', dynamicDesc);
+                  const ogDescEl = document.getElementById('ogDesc') || document.querySelector('meta[property="og:description"]');
+                  if (ogDescEl) {
+                      ogDescEl.setAttribute('content', dynamicDesc);
+                  }
                   
-                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
-                  if (ogUrlEl) ogUrlEl.setAttribute('content', currentUrl);
+                  const ogUrlEl = document.getElementById('ogUrl') || document.querySelector('meta[property="og:url"]');
+                  if (ogUrlEl) {
+                      ogUrlEl.setAttribute('content', currentUrl);
+                  }
                   
-                  const ogTypeEl = document.querySelector('meta[property="og:type"]');
+                  const ogTypeEl = document.getElementById('ogType') || document.querySelector('meta[property="og:type"]');
                   if (ogTypeEl) {
                       ogTypeEl.setAttribute('content', 'article');
                   }
                   
                   // 🌟 [실제 화면 이미지 다이렉트 매칭 그물망 코드]
-                  const imgEl = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img') || document.querySelector('img[alt="매물 대표 사진"]');
+                  const imgEl = document.querySelector('.main-preview-img') || 
+                                document.querySelector('#detailMainImg') || 
+                                document.querySelector('#mainImage') || 
+                                document.querySelector('.property-img') || 
+                                document.querySelector('img[alt="매물 대표 사진"]');
                   let realWebImage = "";
                   if (imgEl && imgEl.src) {
                       realWebImage = imgEl.src;
-                      if (realWebImage.startsWith('/')) { realWebImage = window.location.origin + realWebImage; }
+                      if (realWebImage.startsWith('/')) { 
+                          realWebImage = window.location.origin + realWebImage; 
+                      }
                   }
-                  if (realWebImage && (realWebImage.startsWith('http://') || realWebImage.startsWith('https://'))) {
-                      document.getElementById('ogImage').setAttribute('content', realWebImage);
-                  } else {
-                      document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
+                  
+                  const ogImageEl = document.getElementById('ogImage');
+                  if (ogImageEl) {
+                      if (realWebImage && (realWebImage.startsWith('http://') || realWebImage.startsWith('https://'))) {
+                          ogImageEl.setAttribute('content', realWebImage);
+                      } else {
+                          ogImageEl.setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
+                      }
                   }
                   
                   // 만약 아직 렌더링되지 않았을 경우, 백그라운드 API를 타서 보완
                   fetch('/api/posts')
-                      .then(res => res.json())
-                      .then(posts => {
-                          const foundPost = posts.find(p => p.id === itemId);
+                      .then(function(res) { return res.json(); })
+                      .then(function(posts) {
+                          const foundPost = posts.find(function(p) { return p.id === itemId; });
                           if (foundPost) {
-                              let fetchedImg = foundPost.spatial1Url || foundPost.thumbnailUrl || foundPost.images?.[0];
+                              let fetchedImg = foundPost.spatial1Url || foundPost.thumbnailUrl || (foundPost.images && foundPost.images[0]);
                               if (fetchedImg) {
                                   if (fetchedImg.startsWith('/')) {
                                       fetchedImg = window.location.origin + fetchedImg;
                                   }
-                                  const currentOgImg = document.getElementById('ogImage')?.getAttribute('content');
-                                  if (!currentOgImg || currentOgImg.includes('default_thumb.jpg')) {
-                                      document.getElementById('ogImage').setAttribute('content', fetchedImg);
+                                  const currentOgImgEl = document.getElementById('ogImage');
+                                  const currentOgImg = currentOgImgEl ? currentOgImgEl.getAttribute('content') : '';
+                                  if (currentOgImgEl && (!currentOgImg || currentOgImg.indexOf('default_thumb.jpg') !== -1)) {
+                                      currentOgImgEl.setAttribute('content', fetchedImg);
                                   }
                               }
                               
                               const dbDong = foundPost.dong || dong;
                               const dbBuilding = foundPost.building || building;
                               const dbType = foundPost.category || type;
-                              const ogTitleEl = document.querySelector('meta[property="og:title"]');
-                              if (ogTitleEl) ogTitleEl.setAttribute('content', `태왕공인중개사사무소 - [${dbDong} ${dbBuilding} ${dbType}]`);
+                              const currentOgTitleEl = document.getElementById('ogTitle') || document.querySelector('meta[property="og:title"]');
+                              if (currentOgTitleEl) {
+                                  currentOgTitleEl.setAttribute('content', `태왕공인중개사사무소 - [${dbDong} ${dbBuilding} ${dbType}]`);
+                              }
                           }
                       })
-                      .catch(err => console.error("비동기 보정 엔진 폴백 작동:", err));
+                      .catch(function(err) { console.error("비동기 보정 엔진 폴백 작동:", err); });
                   
                   console.log("🎯 [전산실 마감] 실제 화면 이미지 다이렉트 매칭 완공");
               } else {
                   // ID가 없을 경우 standard default_thumb.jpg 철컥 고정
-                  document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
-                  const ogUrlEl = document.querySelector('meta[property="og:url"]');
-                  if (ogUrlEl) ogUrlEl.setAttribute('content', currentUrl);
+                  const ogImageEl = document.getElementById('ogImage');
+                  if (ogImageEl) {
+                      ogImageEl.setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
+                  }
+                  const ogUrlEl = document.getElementById('ogUrl') || document.querySelector('meta[property="og:url"]');
+                  if (ogUrlEl) {
+                      ogUrlEl.setAttribute('content', currentUrl);
+                  }
               }
           } catch (e) {
               console.error('Dynamic card engine error:', e);
@@ -426,4 +456,3 @@
     </script>
   </body>
 </html>
-

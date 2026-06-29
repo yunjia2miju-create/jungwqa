@@ -37,6 +37,18 @@ export const DetailTab = ({
     }, [selectedPostId]);
 
     const p = posts.find(post => post.id === selectedPostId);
+    
+    React.useEffect(() => {
+        if (!p && selectedPostId) {
+            // Only redirect if we are sure it's not just a loading phase
+            const timer = setTimeout(() => {
+                if (!p && selectedPostId) {
+                    setActiveSection('main');
+                }
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [p, selectedPostId, setActiveSection]);
 
     if (!selectedPostId) return null;
 

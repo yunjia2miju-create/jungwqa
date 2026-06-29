@@ -17,6 +17,9 @@
     <meta property="og:image:width" content="800" />
     <meta property="og:image:height" content="400" />
 
+    <!-- 🌟 보안 신뢰도를 극대화하는 표준 Canonical URL 선로 영구 용접 -->
+    <link rel="canonical" id="canonicalUrl" href="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/" />
+
     <!-- [최상단 가동] 카카오톡, 네이버, 문자 로봇용 실시간 메타 정보 주입 엔진 -->
     <script type="text/javascript">
       // 카카오톡, 네이버, 문자 로봇이 주소(?id=local-...)를 긁어갈 때 실시간 변환하는 엔진
@@ -25,6 +28,17 @@
               // 1. 주소창 뒤의 고유 매물 ID(?id=local-1782481745054)를 추출합니다.
               const urlParams = new URLSearchParams(window.location.search);
               const itemId = urlParams.get('id') || urlParams.get('postId'); 
+              
+              // 🌟 문자 및 카카오 로봇에게 보안 주소 검증 도장을 찍어주기 위해 현재 상세 주소 정제 (punycode 자동 호환)
+              let canonicalUrl = window.location.href;
+              if (canonicalUrl.includes('태왕공인중개사사무소.com')) {
+                  canonicalUrl = canonicalUrl.replace('태왕공인중개사사무소.com', 'xn--h49a2pelq49bcrfloji4br3e56y.com');
+              }
+              
+              const canonicalEl = document.getElementById('canonicalUrl');
+              if (canonicalEl) {
+                  canonicalEl.setAttribute('href', canonicalUrl);
+              }
               
               if (itemId) {
                   // 2. 현재 입력창이나 장부에 기록된 뼈대 데이터(법정동, 건물명, 매물종류 등)를 수집합니다.
@@ -39,12 +53,6 @@
                   // 3. 외부 로봇들 눈에 보이는 간판 태그를 즉시 교체합니다.
                   document.getElementById('ogTitle').setAttribute('content', newTitle);
                   document.getElementById('ogDesc').setAttribute('content', newDesc);
-                  
-                  // 카카오톡 로봇 등에서 한글 도메인 이슈가 생기지 않도록, og:url도 표준 punycode 도메인 선로 기반으로 동적 변환
-                  let canonicalUrl = window.location.href;
-                  if (canonicalUrl.includes('태왕공인중개사사무소.com')) {
-                      canonicalUrl = canonicalUrl.replace('태왕공인중개사사무소.com', 'xn--h49a2pelq49bcrfloji4br3e56y.com');
-                  }
                   document.getElementById('ogUrl').setAttribute('content', canonicalUrl);
 
                   // 🌟 [매물별 동적 이미지 매칭 선로] 
@@ -54,6 +62,7 @@
               } else {
                   // ID가 없을 경우 standard default_thumb.jpg 철컥 고정
                   document.getElementById('ogImage').setAttribute('content', 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg');
+                  document.getElementById('ogUrl').setAttribute('content', canonicalUrl);
               }
           } catch (e) {
               console.error('Dynamic card engine error:', e);

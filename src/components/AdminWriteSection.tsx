@@ -246,7 +246,9 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             panoramas: data.panoramas || '',
             video: data.video || '',
             address: data.address || '',
-            isRecommended: data.isRecommended === true || String(data.isRecommended) === 'true'
+            isRecommended: data.isRecommended === true || String(data.isRecommended) === 'true',
+            fontFamily: data.fontFamily || '나눔고딕',
+            fontSize: data.fontSize || '15px'
         };
 
         try {

@@ -758,14 +758,14 @@
         }
         /* [드래그 감지 플로팅 툴바 전용 CSS 용접] */
         #editor-floating-toolbar {
-            position: absolute !important;
+            position: fixed !important;
             display: none; /* 평소 숨김, 드래그 시 flex 변환 */
             background: #ffffff !important;
             border: 1px solid #cbd5e1 !important;
             border-radius: 8px !important;
             padding: 6px 12px !important;
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18) !important;
-            z-index: 2100000000 !important;
+            z-index: 2147483647 !important; /* 전산 최고 등급 절대 자석 수치 */
             align-items: center !important;
             gap: 12px !important; /* 각 기능 간의 숨통 공간 */
         }
@@ -4770,7 +4770,13 @@
             function checkAndShowFloatingToolbar() {
                 const selection = window.getSelection();
                 if (!selection || !selection.rangeCount || selection.isCollapsed) {
-                    floatingToolbar.style.setProperty('display', 'none', 'important');
+                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = setTimeout(() => {
+                        const currentSelection = window.getSelection();
+                        if (!currentSelection || !currentSelection.rangeCount || currentSelection.isCollapsed) {
+                            floatingToolbar.style.setProperty('display', 'none', 'important');
+                        }
+                    }, 200);
                     return;
                 }
                 
@@ -4787,7 +4793,13 @@
                 }
                 
                 if (!isInsideEditor) {
-                    floatingToolbar.style.setProperty('display', 'none', 'important');
+                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = setTimeout(() => {
+                        const currentSelection = window.getSelection();
+                        if (!currentSelection || currentSelection.isCollapsed) {
+                            floatingToolbar.style.setProperty('display', 'none', 'important');
+                        }
+                    }, 200);
                     return;
                 }
                 
@@ -4795,29 +4807,38 @@
                 const rect = range.getBoundingClientRect();
                 
                 if (rect.width === 0 || rect.height === 0) {
-                    floatingToolbar.style.setProperty('display', 'none', 'important');
+                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = setTimeout(() => {
+                        const currentSelection = window.getSelection();
+                        if (!currentSelection || currentSelection.isCollapsed) {
+                            floatingToolbar.style.setProperty('display', 'none', 'important');
+                        }
+                    }, 200);
                     return;
+                }
+
+                if (floatingToolbarHideTimeout) {
+                    clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = null;
                 }
                 
                 // 툴바 렌더링 (크기 계산을 위해 먼저 flex로 노출)
+                floatingToolbar.style.setProperty('z-index', '2147483647', 'important');
                 floatingToolbar.style.setProperty('display', 'flex', 'important');
                 
                 let toolbarWidth = floatingToolbar.offsetWidth;
                 let toolbarHeight = floatingToolbar.offsetHeight;
                 
-                // 드래그한 글자 중앙 윗선 약 40px 위쪽
-                let topPos = rect.top + window.scrollY - toolbarHeight - 15;
-                let leftPos = rect.left + window.scrollX + (rect.width / 2) - (toolbarWidth / 2);
+                // 드래그한 글자 중앙 윗선 (fixed 기준이므로 scroll 무관)
+                let topPos = rect.top - toolbarHeight - 12;
+                let leftPos = rect.left + (rect.width / 2) - (toolbarWidth / 2);
                 
                 // 화면 밖으로 벗어남 방지 알고리즘
-                if (topPos < window.scrollY) {
-                    topPos = rect.bottom + window.scrollY + 10;
-                }
-                if (leftPos < 0) leftPos = 10;
-                if (leftPos + toolbarWidth > window.innerWidth) leftPos = window.innerWidth - toolbarWidth - 10;
+                let finalLeft = Math.max(10, Math.min(leftPos, window.innerWidth - toolbarWidth - 10));
+                let finalTop = Math.max(10, topPos); // 화면 상단 고정벽을 완전히 뚫고 딱 붙어있게 처리
                 
-                floatingToolbar.style.setProperty('top', `${topPos}px`, 'important');
-                floatingToolbar.style.setProperty('left', `${leftPos}px`, 'important');
+                floatingToolbar.style.setProperty('top', `${finalTop}px`, 'important');
+                floatingToolbar.style.setProperty('left', `${finalLeft}px`, 'important');
                 
                 // 현재 선택된 서식 상태를 툴바 셀렉트 박스에 반영 (가능한 경우)
                 try {
@@ -4837,14 +4858,15 @@
             
             document.addEventListener('mouseup', (e) => {
                 if (floatingToolbar.contains(e.target)) return;
-                // 선택 영역 업데이트 대기 후 센서 가동
-                clearTimeout(floatingToolbarHideTimeout);
                 setTimeout(checkAndShowFloatingToolbar, 10);
             });
             
             document.addEventListener('touchend', (e) => {
                 if (floatingToolbar.contains(e.target)) return;
-                clearTimeout(floatingToolbarHideTimeout);
+                setTimeout(checkAndShowFloatingToolbar, 10);
+            });
+
+            document.addEventListener('selectionchange', () => {
                 setTimeout(checkAndShowFloatingToolbar, 10);
             });
             
@@ -4852,15 +4874,12 @@
                 if (e.key === 'Shift' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
                     setTimeout(checkAndShowFloatingToolbar, 10);
                 } else {
-                    const selection = window.getSelection();
-                    if (!selection || selection.isCollapsed) {
-                        floatingToolbar.style.setProperty('display', 'none', 'important');
-                    }
+                    setTimeout(checkAndShowFloatingToolbar, 10);
                 }
             });
             
             document.addEventListener('scroll', () => {
-                floatingToolbar.style.setProperty('display', 'none', 'important');
+                checkAndShowFloatingToolbar();
             }, { passive: true });
         });
     </script>

@@ -196,7 +196,7 @@
          [🔥 V36-v28 완공] 인라인 플로팅 하이브리드 대형 편집 툴바 CSS
          ========================================== */
       #editor-floating-toolbar {
-          position: absolute !important;
+          position: fixed !important;
           display: none; /* 평소 숨김, 드래그 블록 지정 시 자바스크립트로 출력 */
           flex-direction: row;
           background: #ffffff !important;
@@ -204,7 +204,7 @@
           border-radius: 8px !important;
           padding: 6px 12px !important;
           box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18) !important;
-          z-index: 2100000000 !important;
+          z-index: 2147483647 !important; /* 전산 최고 등급 절대 자석 수치 */
           align-items: center !important;
           gap: 12px !important;
           box-sizing: border-box !important;
@@ -335,22 +335,18 @@
               // 모바일 터치 및 실시간 드래그 범위 변화 센서 추가 결합
               document.addEventListener('touchend', handleTextSelection);
               document.addEventListener('selectionchange', handleTextSelection);
+              // 화면 스크롤 시에도 툴바가 가려지거나 사라지지 않고 위치를 실시간 자석 추적하도록 이벤트 결합
+              window.addEventListener('scroll', handleTextSelection, { passive: true });
           }
  
           function handleTextSelection() {
               const selection = window.getSelection();
-              if (!selection || selection.rangeCount === 0) {
-                  toolbar.style.display = 'none';
-                  return;
-              }
- 
-              // selection.isCollapsed(선택 해제) 센서 작동 타이밍에 200ms(밀리초) 미세 지연 예외 처리 선로 매립
-              if (selection.isCollapsed) {
+              if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
                   if (selectionTimeout) clearTimeout(selectionTimeout);
                   selectionTimeout = setTimeout(() => {
                       const currentSelection = window.getSelection();
-                      if (!currentSelection || currentSelection.isCollapsed) {
-                          toolbar.style.display = 'none';
+                      if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+                          toolbar.style.setProperty('display', 'none', 'important');
                       }
                   }, 200);
                   return;
@@ -370,14 +366,26 @@
                   : (commonAncestor.parentElement ? commonAncestor.parentElement.closest('.note-editable, [contenteditable="true"]') : null);
               
               if (!editableParent) {
-                  toolbar.style.display = 'none';
+                  if (selectionTimeout) clearTimeout(selectionTimeout);
+                  selectionTimeout = setTimeout(() => {
+                      const currentSelection = window.getSelection();
+                      if (!currentSelection || currentSelection.isCollapsed) {
+                          toolbar.style.setProperty('display', 'none', 'important');
+                      }
+                  }, 200);
                   return;
               }
  
               // 드래그 글자의 물리적 위치 좌표 연산
               const rect = range.getBoundingClientRect();
               if (rect.width === 0 || rect.height === 0) {
-                  toolbar.style.display = 'none';
+                  if (selectionTimeout) clearTimeout(selectionTimeout);
+                  selectionTimeout = setTimeout(() => {
+                      const currentSelection = window.getSelection();
+                      if (!currentSelection || currentSelection.isCollapsed) {
+                          toolbar.style.setProperty('display', 'none', 'important');
+                      }
+                  }, 200);
                   return;
               }
  
@@ -385,19 +393,16 @@
               toolbar.style.setProperty('z-index', '2147483647', 'important');
               toolbar.style.setProperty('display', 'flex', 'important');
               
-              // 글자를 가리지 않도록 중앙 상단에 칼날 정착 계산 (기기 가상 스크린 레이어 좌표 실시간 추적)
+              // 글자를 가리지 않도록 중앙 상단에 칼날 정착 계산 (fixed 기준이므로 scrollX, scrollY 배제)
               const toolbarWidth = toolbar.offsetWidth;
               const toolbarHeight = toolbar.offsetHeight;
               
-              const scrollX = window.pageXOffset || window.scrollX || 0;
-              const scrollY = window.pageYOffset || window.scrollY || 0;
-              
-              const leftPos = rect.left + (rect.width / 2) - (toolbarWidth / 2) + scrollX;
-              const topPos = rect.top - toolbarHeight - 12 + scrollY;
+              const leftPos = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+              const topPos = rect.top - toolbarHeight - 12;
  
               // 모바일 환경에서 툴바가 가상 스크린 경계선 밖으로 탈출하거나 찌그러지지 않도록 안전 바운더리 보호 한계 좌표 세부 조율
               const finalLeft = Math.max(10, Math.min(leftPos, window.innerWidth - toolbarWidth - 10));
-              const finalTop = Math.max(10, topPos);
+              const finalTop = Math.max(10, topPos); // 화면 상단 고정벽을 완전히 뚫고 딱 붙어있게 처리
  
               toolbar.style.left = finalLeft + 'px';
               toolbar.style.top = finalTop + 'px';
@@ -410,7 +415,7 @@
                   setTimeout(() => {
                       const sel = window.getSelection();
                       if(!sel || sel.isCollapsed) {
-                          toolbar.style.display = 'none';
+                          toolbar.style.setProperty('display', 'none', 'important');
                       }
                   }, 200);
               }

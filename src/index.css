@@ -6,9 +6,9 @@
 @import "tailwindcss";
 
 /* ==========================================
-   소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격
+   소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격 (html, body 제외)
    ========================================== */
-html, body, div, span {
+div:not(#mobile-bottom-bar), span {
     transform: translate3d(0, 0, 0);
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
@@ -41,9 +41,9 @@ body {
 }
 
 /* ==========================================
-   소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단
+   소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단 (fixed 엘리먼트 제외)
    ========================================== */
-div, section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
+div:not(#mobile-bottom-bar), section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
     transform-style: preserve-3d !important;
     backface-visibility: hidden !important;
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppStore } from './store';
 import { MainTab } from './components/MainTab';
 import { DetailTab } from './components/DetailTab';
@@ -16,6 +17,7 @@ export const ToastContext = React.createContext<{ showToast: (msg: string, type?
 
 export default function App() {
     const { 
+        posts,
         isAdminLoggedIn, 
         setIsAdminLoggedIn, 
         isMemberLoggedIn,
@@ -115,6 +117,90 @@ export default function App() {
         showToast("회원 로그아웃이 완료되었습니다. 웹 전용 탐색 모드로 전환되었습니다.", "success");
     };
 
+    const renderBottomBarContents = () => {
+        return (
+            <div className="w-full h-full flex items-center justify-around px-3">
+                {isAdminLoggedIn ? (
+                    /* ================== 2번 관리자 화면 ================== */
+                    <div className="grid grid-cols-2 gap-3 w-full max-w-md mx-auto items-center">
+                        {/* [버튼 1]: 📱 상담 모바일 (010-7590-0111) 연결 */}
+                        <a 
+                            href="tel:010-7590-0111"
+                            className="flex items-center justify-center gap-1.5 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-black transition-all shadow-sm cursor-pointer border border-emerald-500"
+                        >
+                            <i className="fa-solid fa-mobile-screen text-xs animate-bounce"></i>
+                            <span className="break-keep">📱 소장님 상담 연결</span>
+                        </a>
+                        {/* [버튼 2]: 🔑 [관리자 전용] 임대인 공급자 연락망 직통 걸기 */}
+                        {(() => {
+                            const activePost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
+                            const ownerPhone = activePost?.ownerPhone || '';
+                            if (ownerPhone) {
+                                return (
+                                    <a 
+                                        href={`tel:${ownerPhone}`}
+                                        onClick={() => showToast(`임대인 직통 연락망(${ownerPhone})으로 전화를 연결합니다.`, "success")}
+                                        className="flex items-center justify-center gap-1.5 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white text-xs font-black transition-all shadow-md cursor-pointer border border-amber-400 animate-pulse"
+                                    >
+                                        <i className="fa-solid fa-key text-xs"></i>
+                                        <span className="break-keep">🔑 임대인 직통 ({ownerPhone})</span>
+                                    </a>
+                                );
+                            } else {
+                                return (
+                                    <button 
+                                        onClick={() => showToast("상세페이지에서 임대인 연락처가 기재된 매물을 선택하시면 즉시 연결됩니다.", "error")}
+                                        className="flex items-center justify-center gap-1.5 h-12 rounded-xl bg-slate-200 text-slate-400 text-[11px] font-black transition-all cursor-not-allowed border border-slate-300"
+                                    >
+                                        <i className="fa-solid fa-lock text-xs"></i>
+                                        <span className="break-keep">🔑 임대인 직통 (대기)</span>
+                                    </button>
+                                );
+                            }
+                        })()}
+                    </div>
+                ) : (
+                    /* ================== 1번 고객 화면 ================== */
+                    <div className="grid grid-cols-3 gap-2 w-full max-w-md mx-auto items-center">
+                        {/* [버튼 1]: 📱 모바일 연결 -> 소장님 번호 (tel:010-7590-0111) */}
+                        <a 
+                            href="tel:010-7590-0111"
+                            className="flex items-center justify-center gap-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-emerald-500"
+                        >
+                            <i className="fa-solid fa-mobile-screen text-xs"></i>
+                            <span className="break-keep">📱 모바일</span>
+                        </a>
+                        {/* [버튼 2]: 📞 유선전화 연결 -> 사무실 대표번호 (tel:054-455-6789) */}
+                        <a 
+                            href="tel:054-455-6789"
+                            className="flex items-center justify-center gap-1 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-slate-700"
+                        >
+                            <i className="fa-solid fa-phone text-xs"></i>
+                            <span className="break-keep">📞 유선전화</span>
+                        </a>
+                        {/* [버튼 3]: ✍️ 의뢰하기 -> 매물 등록 의뢰 페이지 연동 */}
+                        <button 
+                            onClick={() => {
+                                setActiveSection('main');
+                                showToast("중개 상담 및 의뢰 접수 화면으로 이동합니다.", "success");
+                                setTimeout(() => {
+                                    const el = document.getElementById('quick-inquiry');
+                                    if (el) {
+                                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                }, 200);
+                            }}
+                            className="flex items-center justify-center gap-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-amber-400"
+                        >
+                            <i className="fa-solid fa-pen-to-square text-xs"></i>
+                            <span className="break-keep">✍️ 의뢰하기</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     useEffect(() => {
         if (activeSection === 'admin-write') {
             document.body.style.overflow = 'hidden';
@@ -169,8 +255,8 @@ export default function App() {
     }, []);
 
     const mainWrapperClass = isMobileSimulationMode
-        ? "flex-grow flex flex-col transition-all duration-300 w-full max-w-[430px] border-x-8 border-slate-950 shadow-2xl mx-auto bg-white rounded-[36px] my-6 relative overflow-hidden"
-        : "flex-grow flex flex-col transition-all duration-300 w-full structural-border";
+        ? "flex-grow flex flex-col transition-all duration-300 w-full max-w-[430px] border-x-8 border-slate-950 shadow-2xl mx-auto bg-white rounded-[36px] my-6 relative overflow-hidden pb-[72px]"
+        : "flex-grow flex flex-col transition-all duration-300 w-full structural-border pb-0";
 
     return (
         <ToastContext.Provider value={{ showToast }}>
@@ -304,7 +390,25 @@ export default function App() {
                         </div>
                     </footer>
                 )}
+
+                {/* 
+                  [V40] 모바일 및 태블릿 전용 동적 분리형 하단 고정 바 (z-index: 99999999) 
+                  PC 화면(width > 768px) 및 시뮬레이터 미작동 시에는 Portal 또는 display: none 처리 
+                */}
+                {isMobileSimulationMode && (
+                    <div 
+                        id="mobile-bottom-bar-sim" 
+                        className="absolute bottom-0 left-0 right-0 w-full h-[65px] bg-[#0f172a] border-t border-slate-800 flex items-center justify-around px-3 z-[99999999] shadow-[0_-4px_16px_rgba(15,23,42,0.08)]"
+                    >
+                        {renderBottomBarContents()}
+                    </div>
+                )}
             </div>
+
+            {!isMobileSimulationMode && typeof document !== 'undefined' && document.getElementById('mobile-bottom-bar') && createPortal(
+                renderBottomBarContents(),
+                document.getElementById('mobile-bottom-bar')!
+            )}
 
             <Modals
                 showToast={showToast}

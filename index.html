@@ -371,9 +371,9 @@
       }
 
       /* ==========================================
-         소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격
+         소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격 (html, body 제외하여 fixed 고정 버그 차단)
          ========================================== */
-      html, body, div, span {
+      div:not(#mobile-bottom-bar), span {
         transform: translate3d(0, 0, 0);
         -webkit-font-smoothing: antialiased !important;
         -moz-osx-font-smoothing: grayscale !important;
@@ -403,9 +403,9 @@
       }
 
       /* ==========================================
-         소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단
+         소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단 (fixed 엘리먼트가 갇히지 않도록 최상위 방어)
          ========================================== */
-      div, section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
+      div:not(#mobile-bottom-bar), section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
         transform-style: preserve-3d !important;
         backface-visibility: hidden !important;
       }
@@ -418,6 +418,47 @@
         -webkit-text-stroke: 0px !important;
         -webkit-text-size-adjust: 100% !important;
         text-shadow: 0 0 0 transparent !important;
+      }
+
+      /* ==========================================
+         [V40] 모바일 동적 분리형 하단 고정 바 (Bottom Bar) 전용 하이브리드 미디어 쿼리
+         ========================================== */
+      /* PC 화면 방어막: 768px 초과하는 데스크톱 브라우저에서는 100% 원천 차단 */
+      @media (min-width: 769px) {
+        #mobile-bottom-bar, #mobile-floating-bar {
+          display: none !important;
+        }
+      }
+
+      /* 홈페이지 스타일시트(CSS) 구역에 하단 바의 초기 상태를 아래 숨김 규격으로 셋업하십시오 */
+      #mobile-bottom-bar {
+         display: none !important; /* 메인 목록 화면 숨김 */
+         position: fixed !important; /* 화면 액정 자체를 기준으로 절대 고정 */
+         bottom: 0 !important; /* 스마트폰 물리 액정 화면 바닥 0cm 지점에 완벽 밀착 */
+         left: 0 !important;
+         width: 100% !important; /* 가로 폭 전체 빈틈없이 장악 */
+         height: 65px !important;
+         z-index: 999999999 !important; /* 본문 글자, 푸터, 지도, 해시태그 박스보다 무조건 가장 최상위에 투명하게 둥둥 뜨도록 처리 */
+         margin: 0 !important;
+         padding: 0 !important;
+         backface-visibility: hidden;
+         -webkit-transform: translate3d(0,0,0); /* 모바일 그래픽 가속을 켜서 스크롤 시 밀리는 현상 차단 */
+         background: #0f172a !important; /* 고급스러운 다크 네이비 배경색 유지 */
+         box-sizing: border-box !important;
+         align-items: center !important;
+         justify-content: space-around !important;
+         backdrop-filter: blur(12px) !important;
+         -webkit-backdrop-filter: blur(12px) !important;
+         border-top: 1.5px solid #E2E8F0 !important;
+         box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.12) !important;
+      }
+
+      /* 모바일 & 태블릿 화면 (768px 이하) 정밀 타깃팅 */
+      @media (max-width: 768px) {
+        /* 콘텐츠 가림 방지 완충 지대 강제 주입 */
+        #main-simulation-wrapper {
+          padding-bottom: 0px !important; /* 기본 메인 화면에서는 완충 지대 제거 */
+        }
       }
 
     </style>
@@ -434,7 +475,24 @@
             var rect = header.getBoundingClientRect();
             main.style.setProperty('margin-top', rect.height + 'px', 'important');
           }
+          controlMobileBottomBar();
         }
+
+        function controlMobileBottomBar() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const itemId = urlParams.get('id');
+          const bottomBar = document.getElementById('mobile-bottom-bar') || document.getElementById('mobile-floating-bar');
+
+          /* 모바일/태블릿 가로 크기이면서 주소창에 매물 번호(?id=...)가 있는 상세페이지 상태일 때만 하단 바를 출격시킵니다 */
+          if (window.innerWidth <= 768 && itemId) {
+              if (bottomBar) { bottomBar.style.setProperty('display', 'flex', 'important'); }
+              document.body.style.setProperty('padding-bottom', '65px', 'important'); /* 본문 맨 밑 글자가 하단 바에 가려지지 않게 밀어주는 완충 공간 */
+          } else {
+              if (bottomBar) { bottomBar.style.setProperty('display', 'none', 'important'); }
+              document.body.style.setProperty('padding-bottom', '0px', 'important');
+          }
+        }
+
         window.addEventListener('load', adjustLayout);
         window.addEventListener('resize', adjustLayout);
         var observer = new MutationObserver(adjustLayout);
@@ -448,6 +506,7 @@
         setInterval(adjustLayout, 1000);
       })();
     </script>
+    <div id="mobile-bottom-bar"></div>
   </body>
 </html>
 

@@ -370,8 +370,68 @@
           function handleTextSelection() {
               const selection = window.getSelection();
               if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+                  if (toolbar) {
+                      toolbar.style.removeProperty('position');
+                      toolbar.style.removeProperty('top');
+                      toolbar.style.removeProperty('left');
+                      toolbar.style.removeProperty('width');
+                      toolbar.style.removeProperty('max-width');
+                      toolbar.style.removeProperty('box-shadow');
+                      toolbar.style.removeProperty('border-radius');
+                  }
                   return; // 고정 바로 고정되었으므로 해제 시 창을 소멸시키지 않고 뼈대 유지
               }
+
+              const range = selection.getRangeAt(0);
+              const rect = range.getBoundingClientRect();
+
+              if (rect.width === 0 || rect.height === 0) {
+                  if (toolbar) {
+                      toolbar.style.removeProperty('position');
+                      toolbar.style.removeProperty('top');
+                      toolbar.style.removeProperty('left');
+                      toolbar.style.removeProperty('width');
+                      toolbar.style.removeProperty('max-width');
+                  }
+                  return;
+              }
+
+              // 툴바 렌더링 방식 조정 (절대 좌표 기반 밀착)
+              toolbar.style.setProperty('position', 'absolute', 'important');
+              toolbar.style.setProperty('width', 'auto', 'important');
+
+              if (window.innerWidth <= 768) {
+                  toolbar.style.setProperty('max-width', '340px', 'important');
+              } else {
+                  toolbar.style.setProperty('max-width', 'none', 'important');
+              }
+
+              const toolbarWidth = toolbar.offsetWidth || 340;
+              const toolbarHeight = toolbar.offsetHeight || 50;
+
+              // 실시간 스크롤 오프셋 완벽 계산 선로
+              const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+              const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
+
+              // 글자 블록 바로 윗선으로부터 위쪽으로 15px~20px 정도의 안전 유격 설계 (자석 밀착 공정: 18px 기용)
+              const safetyGap = 18;
+
+              // 드래그 범위의 정중앙 수평 정렬 공식 및 수직 윗선 밀착 공식
+              let leftPos = rect.left + scrollX + (rect.width / 2) - (toolbarWidth / 2);
+              let topPos = rect.top + scrollY - toolbarHeight - safetyGap;
+
+              // 브라우저 좌우 액정 경계선 안쪽으로 안전 수용하기 위한 이중 방어 제한 코드 (Math.max 및 Math.min 처리)
+              const minLeft = 10;
+              const maxLeft = window.innerWidth - toolbarWidth - 10;
+              const finalLeft = Math.max(minLeft, Math.min(leftPos, maxLeft));
+
+              // 상단 영역 이탈 방지 조치 (최소 scrollY + 10px 마지노선 구축)
+              const finalTop = Math.max(scrollY + 10, topPos);
+
+              toolbar.style.setProperty('top', `${finalTop}px`, 'important');
+              toolbar.style.setProperty('left', `${finalLeft}px`, 'important');
+              toolbar.style.setProperty('box-shadow', '0 10px 30px rgba(15, 23, 42, 0.18)', 'important');
+              toolbar.style.setProperty('border-radius', '8px', 'important');
           }
       });
 

@@ -4822,20 +4822,29 @@
                     floatingToolbarHideTimeout = null;
                 }
                 
-                // 툴바 렌더링 (크기 계산을 위해 먼저 flex로 노출)
+                // 툴바 렌더링 방식 조정 (절대 좌표 기반 밀착 및 크기 측정을 위한 임시 flex 노출)
+                floatingToolbar.style.setProperty('position', 'absolute', 'important');
                 floatingToolbar.style.setProperty('z-index', '2147483647', 'important');
                 floatingToolbar.style.setProperty('display', 'flex', 'important');
+                floatingToolbar.style.setProperty('width', 'auto', 'important');
                 
-                let toolbarWidth = floatingToolbar.offsetWidth;
-                let toolbarHeight = floatingToolbar.offsetHeight;
+                let toolbarWidth = floatingToolbar.offsetWidth || 340;
+                let toolbarHeight = floatingToolbar.offsetHeight || 50;
                 
-                // 드래그한 글자 중앙 윗선 (fixed 기준이므로 scroll 무관)
-                let topPos = rect.top - toolbarHeight - 12;
-                let leftPos = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+                // 실시간 스크롤 오프셋 완벽 합산 계산 선로
+                const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+                const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
                 
-                // 화면 밖으로 벗어남 방지 알고리즘
+                // 글자 블록 바로 윗선으로부터 위쪽으로 15px~20px 정도의 안전 유격 설계 (자석 밀착 공정: 18px 기용)
+                const safetyGap = 18;
+                
+                // 드래그한 글자 영역의 정중앙 수평 정렬 공식 및 수직 윗선 밀착 공식
+                let leftPos = rect.left + scrollX + (rect.width / 2) - (toolbarWidth / 2);
+                let topPos = rect.top + scrollY - toolbarHeight - safetyGap;
+                
+                // 브라우저 좌우 액정 경계선 안쪽으로 안전 수용하기 위한 이중 방어 제한 코드 (Math.max 및 Math.min 처리)
                 let finalLeft = Math.max(10, Math.min(leftPos, window.innerWidth - toolbarWidth - 10));
-                let finalTop = Math.max(10, topPos); // 화면 상단 고정벽을 완전히 뚫고 딱 붙어있게 처리
+                let finalTop = Math.max(scrollY + 10, topPos); // 화면 상단 고정벽을 완전히 뚫고 딱 붙어있게 처리
                 
                 floatingToolbar.style.setProperty('top', `${finalTop}px`, 'important');
                 floatingToolbar.style.setProperty('left', `${finalLeft}px`, 'important');

@@ -14,52 +14,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
 
-    <!-- [최상단 최적화 선로] SEO 및 SNS 공유 로봇용 핵심 메타 태그 (800x400 황금비율 표준 준수) -->
     <meta name="naver-site-verification" content="260d86e2408a640874f6f77f5f621042b214ea4d" />
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
     <meta name="description" content="[공간 실감 360° 현장 VR 투어] 구미 전지역 원룸, 투룸, 오피스텔 실시간 공실 현황 및 프리미엄 책임 중개 전문 태왕공인중개사사무소입니다." />
 
-    <!-- [최상단 가동] 카카오톡, 네이버, 문자 로봇용 실시간 메타 정보 주입 엔진 -->
     <script type="text/javascript">
-      // 카카오톡, 네이버, 문자 로봇이 주소(?id=local-...)를 긁어갈 때 실시간 변환하는 엔진
       function runDynamicCardEngine() {
           try {
-              // 1. 주소창 뒤의 고유 매물 ID(?id=local-1782481745054)를 추출합니다.
               const urlParams = new URLSearchParams(window.location.search);
               const itemId = urlParams.get('id') || urlParams.get('postId'); 
               
-              // 🌟 문자 및 카카오 로봇에게 보안 주소 검증 도장을 찍어주기 위해 현재 상세 주소 정제 (punycode 자동 호환)
               let canonicalUrl = window.location.href;
               if (canonicalUrl.includes('태왕공인중개사사무소.com')) {
                   canonicalUrl = canonicalUrl.replace('태왕공인중개사사무소.com', 'xn--h49a2pelq49bcrfloji4br3e56y.com');
               }
               
               const canonicalEl = document.getElementById('canonicalUrl');
-              if (canonicalEl) {
-                  canonicalEl.setAttribute('href', canonicalUrl);
-              }
+              if (canonicalEl) { canonicalEl.setAttribute('href', canonicalUrl); }
               
               const ogUrlEl = document.getElementById('ogUrl');
-              if (ogUrlEl) {
-                  ogUrlEl.setAttribute('content', canonicalUrl);
-              }
+              if (ogUrlEl) { ogUrlEl.setAttribute('content', canonicalUrl); }
               
-              // 🌟 [파이어베이스 스토리지 전용 정밀 센서 구축 (Firebase Storage Precision Sensor)]
-              // 화면 내 모든 이미지 태그를 전수 조사하여 src 주소에 "firebasestorage" 또는 "googleapis"가 포함된 진짜 매물 대표 사진의 보안 토큰 포함 전체 인터넷 절대 경로를 실시간으로 완전히 낚아챔
               let actualScreenImg = '';
               try {
-                  // 1단계: 대표적인 매물 이미지 선택자들을 우선 검출
-                  const selectors = [
-                      '.main-preview-img',
-                      '#detailMainImg',
-                      '#mainImage',
-                      '.property-img',
-                      '.gallery-top img',
-                      'img[alt="매물 대표 사진"]',
-                      'img[alt="VR 대표 실사 썸네일"]',
-                      '#detail-section img',
-                      '#vr-starter-thumbnail-mask img'
-                  ];
+                  const selectors = ['.main-preview-img', '#detailMainImg', '#mainImage', '.property-img', '.gallery-top img', 'img[alt="매물 대표 사진"]', 'img[alt="VR 대표 실사 썸네일"]', '#detail-section img', '#vr-starter-thumbnail-mask img'];
                   for (let i = 0; i < selectors.length; i++) {
                       const img = document.querySelector(selectors[i]);
                       if (img && img.src && (img.src.includes('firebasestorage') || img.src.includes('googleapis'))) {
@@ -67,529 +45,371 @@
                           break;
                       }
                   }
-
-                  // 2단계: 위 선택자로 검출하지 못했거나 일반 이미지인 경우, 화면 내 모든 img 태그를 스캔하여 진짜 파이어베이스 저장소 절대 경로를 낚아챔
                   if (!actualScreenImg) {
                       const allImgs = Array.from(document.querySelectorAll('img'));
-                      // firebasestorage 또는 googleapis가 src에 포함되면서 폰트나 로고가 아닌 것 중 적정 크기(offsetWidth > 100) 우선 탐색
                       const firebaseImg = allImgs.find(img => {
                           const src = img.src || '';
-                          return (src.includes('firebasestorage') || src.includes('googleapis')) && 
-                                 !src.includes('/fonts%2F') && 
-                                 img.offsetWidth > 100 && 
-                                 img.offsetHeight > 100;
+                          return (src.includes('firebasestorage') || src.includes('googleapis')) && !src.includes('/fonts%2F') && img.offsetWidth > 100 && img.offsetHeight > 100;
                       }) || allImgs.find(img => {
                           const src = img.src || '';
                           return (src.includes('firebasestorage') || src.includes('googleapis')) && !src.includes('/fonts%2F');
                       });
-
-                      if (firebaseImg && firebaseImg.src) {
-                          actualScreenImg = firebaseImg.src;
-                      }
+                      if (firebaseImg && firebaseImg.src) { actualScreenImg = firebaseImg.src; }
                   }
-
-                  // 3단계: 그래도 없고 로컬 이미지 선택자가 존재하는 경우 대체재 적용
                   if (!actualScreenImg) {
-                      const targetImg = document.querySelector('.main-preview-img') || 
-                                        document.querySelector('#detailMainImg') || 
-                                        document.querySelector('#mainImage') || 
-                                        document.querySelector('.property-img') ||
-                                        document.querySelector('.gallery-top img') || 
-                                        document.querySelector('img[alt="매물 대표 사진"]') ||
-                                        document.querySelector('img[alt="VR 대표 실사 썸네일"]') || 
-                                        document.querySelector('#detail-section img') || 
-                                        document.querySelector('#vr-starter-thumbnail-mask img') ||
-                                        document.querySelector('img[src*="/images/"]');
-                      if (targetImg && targetImg.src) {
-                          actualScreenImg = targetImg.src;
-                      }
+                      const targetImg = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img') || document.querySelector('.gallery-top img') || document.querySelector('img[alt="매물 대표 사진"]') || document.querySelector('img[alt="VR 대표 실사 썸네일"]') || document.querySelector('#detail-section img') || document.querySelector('#vr-starter-thumbnail-mask img') || document.querySelector('img[src*="/images/"]');
+                      if (targetImg && targetImg.src) { actualScreenImg = targetImg.src; }
                   }
-
-                  if (actualScreenImg && actualScreenImg.startsWith('/')) { 
-                      actualScreenImg = window.location.origin + actualScreenImg; 
-                  }
-              } catch (imgErr) {
-                  console.error('Firebase storage sensor error:', imgErr);
-              }
+                  if (actualScreenImg && actualScreenImg.startsWith('/')) { actualScreenImg = window.location.origin + actualScreenImg; }
+              } catch (imgErr) { console.error('Firebase storage sensor error:', imgErr); }
 
               if (itemId) {
-                  // 2. 현재 입력창이나 장부에 기록된 뼈대 데이터(법정동, 건물명, 매물종류 등)를 수집합니다.
                   const dong = document.getElementById('selectedDong')?.value || "구미"; 
                   const building = document.getElementById('buildingName')?.value || "추천 매물";
                   const type = document.querySelector('.btn-item.active')?.innerText || "매물";
-                  
-                  // 🌟 유튜브처럼 실시간으로 알맹이 정보 카드 레이아웃 용접
                   const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
                   const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
                   
-                  // 3. 외부 로봇들 눈에 보이는 간판 태그를 즉시 교체합니다.
                   const ogTitleEl = document.getElementById('ogTitle');
-                  if (ogTitleEl) {
-                      ogTitleEl.setAttribute('content', newTitle);
-                  }
-                  
+                  if (ogTitleEl) { ogTitleEl.setAttribute('content', newTitle); }
                   const ogDescEl = document.getElementById('ogDesc');
-                  if (ogDescEl) {
-                      ogDescEl.setAttribute('content', newDesc);
-                  }
-
-                  // 🌟 [매물별 동적 이미지 매칭 선로] 
-                  // 소장님이 인스타360으로 찍어 올리신 해당 매물의 메인 대표 사진 주소 혹은 실제 화면 이미지로 실시간 교체하여 기계에게 주입
-                  // 만에 하나 사진이 없는 매물일 때만 예비용으로 default_thumb.jpg가 작동하도록 이중 안전망을 구축하십시오.
+                  if (ogDescEl) { ogDescEl.setAttribute('content', newDesc); }
                   const itemImage = actualScreenImg || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg`;
                   const ogImageEl = document.getElementById('ogImage');
-                  if (ogImageEl) {
-                      ogImageEl.setAttribute('content', itemImage);
-                  }
+                  if (ogImageEl) { ogImageEl.setAttribute('content', itemImage); }
               } else {
-                  // ID가 없을 경우 실제 화면에 잡히는 이미지가 있으면 그걸 쓰고, 없으면 standard default_thumb.jpg 철컥 고정
                   const itemImage = actualScreenImg || 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/images/default_thumb.jpg';
                   const ogImageEl = document.getElementById('ogImage');
-                  if (ogImageEl) {
-                      ogImageEl.setAttribute('content', itemImage);
-                  }
+                  if (ogImageEl) { ogImageEl.setAttribute('content', itemImage); }
               }
-          } catch (e) {
-              console.error('Dynamic card engine error:', e);
-          }
+          } catch (e) { console.error('Dynamic card engine error:', e); }
       }
-
-      // 화면 로딩과 동시에 엔진 즉시 1차 강제 동기화 (HTML 파싱 중에도 즉시 타격)
-      try {
-          runDynamicCardEngine();
-      } catch (err) {}
-
-      // 화면 로딩의 각 이정표마다 촘촘하게 동기화 가동
+      try { runDynamicCardEngine(); } catch (err) {}
       window.addEventListener('DOMContentLoaded', function() {
           runDynamicCardEngine();
-          
           const currentUrl = window.location.href;
           if (currentUrl.includes('id=')) {
               document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
               document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
-              
-              // 🌟 [파이어베이스 스토리지 전용 정밀 센서 적용]
               const allImgs = Array.from(document.querySelectorAll('img'));
               const firebaseImg = allImgs.find(img => img.src && (img.src.includes('firebasestorage') || img.src.includes('googleapis')));
               let realImg = '';
-              if (firebaseImg && firebaseImg.src) {
-                  realImg = firebaseImg.src;
-              } else {
-                  const imgEl = document.querySelector('.main-preview-img') || 
-                                document.querySelector('#detailMainImg') || 
-                                document.querySelector('#mainImage') || 
-                                document.querySelector('.property-img') ||
-                                document.querySelector('.gallery-top img') ||
-                                document.querySelector('img[alt="매물 대표 사진"]');
-                  if (imgEl && imgEl.src) {
-                      realImg = imgEl.src;
-                  }
+              if (firebaseImg && firebaseImg.src) { realImg = firebaseImg.src; }
+              else {
+                  const imgEl = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img') || document.querySelector('.gallery-top img') || document.querySelector('img[alt="매물 대표 사진"]');
+                  if (imgEl && imgEl.src) { realImg = imgEl.src; }
               }
               if (realImg) {
                   if (realImg.startsWith('/')) { realImg = window.location.origin + realImg; }
                   document.getElementById('ogImage')?.setAttribute('content', realImg);
-                  console.log("🎯 [전산실 완공] 파이어베이스 스토리지 진짜 대표 사진 실시간 다이렉트 매칭 성공:", realImg);
               }
           }
       });
-      // React 마운트 후 및 상태 변경 시 지속적인 실시간 동기화를 위한 추가 감시 장치
       window.addEventListener('load', function() {
           runDynamicCardEngine();
-          // 옵저버를 통해 DOM의 변화가 생겼을 때 실시간으로 메타 태그를 다시 정렬합니다.
           var observer = new MutationObserver(runDynamicCardEngine);
           var targetNode = document.getElementById('root');
-          if (targetNode) {
-              observer.observe(targetNode, { childList: true, subtree: true });
-          }
+          if (targetNode) { observer.observe(targetNode, { childList: true, subtree: true }); }
       });
     </script>
 
-    <!-- Font Awesome 6.5.1 CDN Force Injected (Dual CDN for absolute reliability) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 
-    <!-- Global Script Error Shield -->
-    <script type="text/javascript">
-      (function() {
-        var muteHandler = function(e) {
-          if (!e) return;
-          var msg = e.message || '';
-          if (msg.indexOf('Script error') > -1 || msg === 'Script error.' || !e.filename) {
-            try {
-              e.stopImmediatePropagation();
-              e.preventDefault();
-            } catch(err) {}
-            return true;
-          }
-        };
-        window.addEventListener('error', muteHandler, true);
-        window.addEventListener('unhandledrejection', function(e) {
-          var reason = e.reason;
-          if (!reason || (reason.message && reason.message.indexOf('Script error') > -1)) {
-            try {
-              e.stopImmediatePropagation();
-              e.preventDefault();
-            } catch(err) {}
-          }
-        }, true);
-        window.onerror = function(message, source, lineno, colno, error) {
-          if (message === 'Script error.' || !source) {
-            return true;
-          }
-        };
-      })();
-    </script>
-
-    <!-- Google Fonts for Nanum Gothic -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" />
-
-    <!-- Pannellum for 360 viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" crossorigin="anonymous" />
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" crossorigin="anonymous"></script>
     
     <style type="text/css">
-      /* ==========================================
-         [전역 웹 폰트 시스템] 8대 명품 글꼴 패밀리 고속 정의
-         ========================================== */
-
-      /* [1번] 마루부리 */
+      /* [전역 명품 폰트 셋업] */
       @font-face {
         font-family: 'MaruBuri';
         src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Regular.ttf?alt=media&token=2b69fbc0-96a8-46c0-ba6a-a6ead4b64671') format('truetype');
-        font-weight: 400;
-        font-display: swap;
+        font-weight: 400; font-display: swap;
       }
       @font-face {
         font-family: 'MaruBuri';
         src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Bold.ttf?alt=media&token=47ef75d2-75c0-416d-9b0d-df37bb35f257') format('truetype');
-        font-weight: 700;
-        font-display: swap;
+        font-weight: 700; font-display: swap;
       }
-
-      /* [2번] 나눔바른고딕 */
-      @font-face {
-        font-family: 'NanumBarunGothic';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothic.ttf?alt=media&token=28fda42d-0f43-4e1c-8d04-6b75b29ea960') format('truetype');
-        font-weight: 400;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'NanumBarunGothic';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothicBold.ttf?alt=media&token=ed8e7704-8fb3-4a28-84db-a5607a388cce') format('truetype');
-        font-weight: 700;
-        font-display: swap;
-      }
-
-      /* [3번] 나눔고딕 */
-      @font-face {
-        font-family: 'NanumGothic';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothic.ttf?alt=media&token=b7438dca-9864-4e9d-9f2f-fa3b963bd149') format('truetype');
-        font-weight: 400;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'NanumGothic';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothicBold.ttf?alt=media&token=860a8c44-e0dc-41e2-9493-9af1ff139059') format('truetype');
-        font-weight: 700;
-        font-display: swap;
-      }
-
-      /* [4번] 나눔스퀘어 */
       @font-face {
         font-family: 'NanumSquare';
         src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acR.ttf?alt=media&token=ebed2d9c-9797-4c0f-8d12-1897caa33a82') format('truetype');
-        font-weight: 400;
-        font-display: swap;
+        font-weight: 400; font-display: swap;
       }
       @font-face {
         font-family: 'NanumSquare';
         src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acB.ttf?alt=media&token=ba37a539-ded4-49eb-9d05-c8d97d737ab3') format('truetype');
-        font-weight: 700;
-        font-display: swap;
+        font-weight: 700; font-display: swap;
       }
 
-      /* [5번] 나눔명조 */
-      @font-face {
-        font-family: 'NanumMyeongjo';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjo.ttf?alt=media&token=cc825be5-1c1f-4456-a610-04d280ddc7d2') format('truetype');
-        font-weight: 400;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'NanumMyeongjo';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjoBold.ttf?alt=media&token=c21aacaf-c99b-4043-a110-235f4a7338dc') format('truetype');
-        font-weight: 700;
-        font-display: swap;
-      }
-
-      /* [6번] 다시시작해 */
-      @font-face {
-        font-family: 'DasiSijakhae';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%8B%A4%EC%8B%9C_%EC%8B%9C%EC%9E%91%ED%95%B4%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%8B%A4%EC%8B%9C%20%EC%8B%9C%EC%9E%91%ED%95%B4.ttf?alt=media&token=0c5041e8-3cb6-488b-abb9-4118b0a3a6ff') format('truetype');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'DasiSijakhae';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%8B%A4%EC%8B%9C_%EC%8B%9C%EC%9E%91%ED%95%B4%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%8B%A4%EC%8B%9C%20%EC%8B%9C%EC%9E%91%ED%95%B4.ttf?alt=media&token=0c5041e8-3cb6-488b-abb9-4118b0a3a6ff') format('truetype');
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-      }
-
-      /* [7번] 바른히피 */
-      @font-face {
-        font-family: 'BareunHippie';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC.ttf?alt=media&token=4bd0adcb-798f-4c5a-b55e-ad1a43c58f62') format('truetype');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'BareunHippie';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EB%B0%94%EB%A5%B8%ED%9E%88%ED%94%BC.ttf?alt=media&token=4bd0adcb-798f-4c5a-b55e-ad1a43c58f62') format('truetype');
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-      }
-
-      /* [8번] 우리딸손글씨 */
-      @font-face {
-        font-family: 'UriTtal';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EC%9A%B0%EB%A6%AC%EB%94%B8_%EC%86%90%EA%B8%80%EC%94%A8%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EC%9A%B0%EB%A6%AC%EB%94%B8%20%EC%86%90%EA%B8%80%EC%94%A8.ttf?alt=media&token=b5a276f5-7f01-4f4e-8533-0f928bb6527f') format('truetype');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'UriTtal';
-        src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2F%EC%9A%B0%EB%A6%AC%EB%94%B8_%EC%86%90%EA%B8%80%EC%94%A8%2F%EB%82%98%EB%88%94%EC%86%90%EA%B8%80%EC%94%A8%20%EC%9A%B0%EB%A6%AC%EB%94%B8%20%EC%86%90%EA%B8%80%EC%94%A8.ttf?alt=media&token=b5a276f5-7f01-4f4e-8533-0f928bb6527f') format('truetype');
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-      }
-
-      /* ==========================================
-         소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격 (html, body 제외하여 fixed 고정 버그 차단)
-         ========================================== */
-      div:not(#mobile-bottom-bar), span {
-        transform: translate3d(0, 0, 0);
-        -webkit-font-smoothing: antialiased !important;
-        -moz-osx-font-smoothing: grayscale !important;
-        text-rendering: optimizeLegibility !important;
-      }
-
-      /* ==========================================
-         상단 메뉴바 상시 완전 고정 (Sticky Fix)
-         ========================================== */
       header {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        z-index: 9999 !important;
-        background: #FFFFFF !important;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+        position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important;
+        z-index: 9999 !important; background: #FFFFFF !important; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
       }
 
-      /* ==========================================
-         글자 외곽선 선명도(Anti-aliasing) 최적화 규칙 주입
-         ========================================== */
-      * {
-        -webkit-font-smoothing: antialiased !important;
-        -moz-osx-font-smoothing: grayscale !important;
-        text-rendering: optimizeLegibility !important;
-      }
-
-      /* ==========================================
-         소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단 (fixed 엘리먼트가 갇히지 않도록 최상위 방어)
-         ========================================== */
-      div:not(#mobile-bottom-bar), section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
-        transform-style: preserve-3d !important;
-        backface-visibility: hidden !important;
-      }
-
-      /* ==========================================
-         하드웨어 폰트 렌더링 속성 정돈
-         ========================================== */
-      html, body, button, input, select, textarea, p, span, h1, h2, h3, h4, h5, h6 {
-        font-synthesis: none !important;
-        -webkit-text-stroke: 0px !important;
-        -webkit-text-size-adjust: 100% !important;
-        text-shadow: 0 0 0 transparent !important;
-      }
-
-      /* ==========================================
-         [V40] 모바일 동적 분리형 하단 고정 바 (Bottom Bar) 전용 하이브리드 미디어 쿼리
-         ========================================== */
-      /* PC 화면 방어막: 768px 초과하는 데스크톱 브라우저에서는 100% 원천 차단 */
-      @media (min-width: 769px) {
-        #mobile-bottom-bar, #mobile-floating-bar {
-          display: none !important;
-        }
-      }
-
-      /* 홈페이지 스타일시트(CSS) 구역에 하단 바의 초기 상태를 아래 숨김 규격으로 셋업하십시오 */
       #mobile-bottom-bar {
-         display: none !important; /* 메인 목록 화면 숨김 */
-         position: fixed !important; /* 화면 액정 자체를 기준으로 절대 고정 */
-         bottom: 0 !important; /* 스마트폰 물리 액정 화면 바닥 0cm 지점에 완벽 밀착 */
-         left: 0 !important;
-         width: 100% !important; /* 가로 폭 전체 빈틈없이 장악 */
-         height: 65px !important;
-         z-index: 999999999 !important; /* 본문 글자, 푸터, 지도, 해시태그 박스보다 무조건 가장 최상위에 투명하게 둥둥 뜨도록 처리 */
-         margin: 0 !important;
-         padding: 0 !important;
-         backface-visibility: hidden;
-         -webkit-transform: translate3d(0,0,0); /* 모바일 그래픽 가속을 켜서 스크롤 시 밀리는 현상 차단 */
-         background: #0f172a !important; /* 고급스러운 다크 네이비 배경색 유지 */
-         box-sizing: border-box !important;
-         align-items: center !important;
-         justify-content: space-around !important;
-         backdrop-filter: blur(12px) !important;
-         -webkit-backdrop-filter: blur(12px) !important;
-         border-top: 1.5px solid #E2E8F0 !important;
-         box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.12) !important;
+         display: none !important; position: fixed !important; bottom: 0 !important; left: 0 !important;
+         width: 100% !important; height: 65px !important; z-index: 999999999 !important; margin: 0 !important; padding: 0 !important;
+         background: #0f172a !important; box-sizing: border-box !important; align-items: center !important; justify-content: space-around !important;
+         border-top: 1.5px solid #E2E8F0 !important; box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.12) !important;
       }
 
-      /* 모바일 & 태블릿 화면 (768px 이하) 정밀 타깃팅 */
-      @media (max-width: 768px) {
-        /* 콘텐츠 가림 방지 완충 지대 강제 주입 */
-        #main-simulation-wrapper {
-          padding-bottom: 0px !important; /* 기본 메인 화면에서는 완충 지대 제거 */
-        }
-      }
+      @media (min-width: 769px) { #mobile-bottom-bar { display: none !important; } }
 
-      /* [스크롤 고정 및 최상위 레이어 CSS 용접] - 의뢰 팝업창 */
+      /* [직통 의뢰 모달] */
       #request-modal {
-          display: none; /* 평소에는 완벽 숨김 */
-          position: fixed !important;
-          top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(0, 0, 0, 0.6) !important; /* 뒤 본문을 고급스럽게 어둡게 차단하는 암막 효과 */
-          z-index: 1000000000 !important; /* 하단 바보다 더 위에 뜨도록 최상위 등급 부여 */
-          justify-content: center; align-items: center;
+          display: none; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0, 0, 0, 0.6) !important; z-index: 1000000000 !important; justify-content: center; align-items: center;
       }
       .modal-content {
-          background: #ffffff !important;
-          width: 85% !important; max-width: 450px;
-          border-radius: 12px !important; padding: 20px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-          position: relative;
-          font-family: 'NanumSquare', 'NanumGothic', sans-serif;
+          background: #ffffff !important; width: 85% !important; max-width: 450px; border-radius: 12px !important; padding: 20px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; font-family: 'NanumSquare', sans-serif;
       }
-      .modal-header {
-          display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 15px;
+      .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 15px; }
+      .modal-body { display: flex; flex-direction: column; gap: 12px; }
+      .modal-form-group { display: flex; flex-direction: column; gap: 6px; }
+      .modal-form-group input, .modal-form-group select, .modal-form-group textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; }
+      .modal-footer { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+      .modal-btn-submit { flex: 1; background: #f59e0b; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+      .modal-btn-close { flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
+      /* [에디터 및 웹 내부 이미지 테두리 완벽 철거] */
+      .editor-content div, .editor-content p, .editor-content figure, .property-details div, .property-details p, .property-details figure, .note-editable div, .note-editable p, .note-editable figure, .editor-area div, .editor-area p, .editor-area figure, [contenteditable="true"] div, [contenteditable="true"] p, [contenteditable="true"] figure {
+          background: transparent !important; background-color: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 auto !important; max-width: 100% !important;
       }
-      .modal-header h2 {
-          margin: 0; font-size: 1.15rem; font-weight: 800; color: #1e293b;
+      .editor-content img, .property-details img, #property-description img {
+          display: block !important; width: auto !important; max-width: 100% !important; height: auto !important; max-height: 70vh !important; margin: 20px auto !important; border: none !important; box-shadow: none !important;
       }
-      .modal-close-btn {
-          background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; padding: 0; line-height: 1;
+      .note-editable *, .editor-area *, [contenteditable="true"] *, .note-editor * { padding-left: 0px !important; padding-right: 0px !important; margin-left: 0px !important; margin-right: 0px !important; background-color: transparent !important; border: none !important; box-shadow: none !important; }
+      .note-editable img, .editor-area img, [contenteditable="true"] img, .note-editor img { display: block !important; width: auto !important; max-width: 100% !important; height: auto !important; padding: 0px !important; margin: 15px 0px !important; border: none !important; outline: none !important; }
+
+      /* [네이버 블로그 도우미 마스터 창 2배 시원 확장 선로] */
+      #naver-blog-master-window {
+          position: relative !important; width: 100% !important; height: 850px !important; max-height: 85vh !important; margin-top: 12px !important;
+          box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08) !important; display: none; z-index: 99999 !important; overflow-y: auto !important;
+          background: #ffffff !important; border: 1.5px solid #cbd5e1 !important; border-radius: 12px !important; padding: 15px !important; box-sizing: border-box !important;
       }
-      .modal-body {
-          display: flex; flex-direction: column; gap: 12px;
-      }
-      .modal-form-group {
-          display: flex; flex-direction: column; gap: 6px;
-      }
-      .modal-form-group label {
-          font-size: 0.85rem; font-weight: 700; color: #475569;
-      }
-      .modal-form-group input, .modal-form-group select, .modal-form-group textarea {
-          padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; background: #f8fafc;
-      }
-      .modal-form-group textarea {
-          resize: vertical; min-height: 80px;
-      }
-      .modal-footer {
-          margin-top: 20px; display: flex; gap: 10px; justify-content: center;
-      }
-      .modal-btn-submit {
-          flex: 1; background: #f59e0b; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: background 0.2s;
-      }
-      .modal-btn-submit:hover { background: #d97706; }
-      .modal-btn-close {
-          flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: background 0.2s;
-      }
-      .modal-btn-close:hover { background: #cbd5e1; }
+      #naver-blog-master-window textarea { height: 500px !important; min-height: 450px !important; overflow-y: auto !important; background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 12px !important; }
 
       /* ==========================================
-         [🎯 전산실 특급 패치] 에디터 및 웹 내부 이미지/부모 테두리 완벽 압착 철거 엔진
+         [🔥 V36-v28 완공] 인라인 플로팅 하이브리드 대형 편집 툴바 CSS
          ========================================== */
-      /* 에디터창 및 본문 안의 모든 div, p, figure 등 부모 액자 껍데기의 회색 테두리와 불필요한 가상 여백을 강제 파괴 */
-      .editor-content div:has(img), .editor-content p:has(img), .editor-content figure:has(img),
-      .property-details div:has(img), .property-details p:has(img), .property-details figure:has(img),
-      .note-editable div:has(img), .note-editable p:has(img), .note-editable figure:has(img),
-      .editor-area div:has(img), .editor-area p:has(img), .editor-area figure:has(img),
-      [contenteditable="true"] div:has(img), [contenteditable="true"] p:has(img), [contenteditable="true"] figure:has(img) {
-          background: transparent !important;
-          background-color: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          padding: 0 !important;
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
-          max-width: 100% !important;
+      #editor-floating-toolbar {
+          position: absolute !important;
+          display: none; /* 평소 숨김, 드래그 블록 지정 시 자바스크립트로 출력 */
+          flex-direction: row;
+          background: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          border-radius: 8px !important;
+          padding: 6px 12px !important;
+          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18) !important;
+          z-index: 2100000000 !important;
+          align-items: center !important;
+          gap: 12px !important;
+          box-sizing: border-box !important;
       }
 
-      /* 일반 웹 상세페이지 이미지 절대 정렬 규격 */
-      .editor-content img, .property-details img, #property-description img,
-      .editor-canvas img, .style-rich-body img, .style-rich-intro img, .markdown-content img {
-          display: block !important;
-          width: auto !important;
-          max-width: 100% !important;
-          height: auto !important;
-          max-height: 70vh !important;
-          margin: 20px auto !important;
-          background: transparent !important;
-          background-color: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          padding: 0 !important;
+      /* 내부 기능 제어 버튼 스케일 압착 */
+      #editor-floating-toolbar select, #editor-floating-toolbar button {
+          font-size: 0.85rem !important;
+          padding: 4px 6px !important;
+          border: 1px solid #cbd5e1 !important;
+          border-radius: 4px !important;
+          background: #ffffff !important;
+          color: #334155 !important;
+          cursor: pointer !important;
+      }
+      #editor-floating-toolbar button.active {
+          background: #e2e8f0 !important;
+          font-weight: bold !important;
       }
 
-      /* [1] 관리자 에디터 내장 가상 프레임 및 강제 마진 패딩 선로 전면 리셋 */
-      .note-editable *:has(img), .editor-area *:has(img), [contenteditable="true"] *:has(img), .note-editor *:has(img) {
-          padding: 0px !important;
-          padding-top: 0px !important;
-          padding-bottom: 0px !important;
-          padding-left: 0px !important;
-          padding-right: 0px !important;
-          margin: 0px !important;
-          margin-left: 0px !important;
-          margin-right: 0px !important;
-          background-color: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
+      /* 우측 소장님 명품 단축 날개 그룹 (즐겨찾기 결합 공간) */
+      .toolbar-inline-shortcuts {
+          display: flex !important;
+          align-items: center !important;
+          gap: 6px !important;
+          border-left: 1.5px solid #e2e8f0 !important; /* 분리 가로선 */
+          padding-left: 10px !important;
+      }
+      .toolbar-inline-shortcuts button {
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          color: #475569 !important;
+          font-size: 0.9rem !important;
+          padding: 4px 8px !important;
+          transition: all 0.15s !important;
+      }
+      .toolbar-inline-shortcuts button:hover {
+          background: #e2e8f0 !important;
+          color: #0f172a !important;
       }
 
-      /* [2] 🔥 관리자 에디터 창 내부 이미지 및 가상 투명 테두리(클릭 영역 박스) 칼날 박멸 */
-      .note-editable img, .editor-area img, [contenteditable="true"] img, .note-editor img, .note-control-selection-box {
-          display: block !important;
-          width: auto !important;
-          max-width: 100% !important;
-          height: auto !important;
-          padding: 0px !important;
-          padding-left: 0px !important;
-          padding-right: 0px !important;
-          margin-left: 0px !important; 
-          margin-right: 0px !important;
-          margin-top: 15px !important;
-          margin-bottom: 15px !important;
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-          float: none !important;
+      /* 📱 모바일 및 태블릿 환경 반응형 2층 압착 회로 구축 */
+      @media (max-width: 768px) {
+          #editor-floating-toolbar {
+              flex-direction: column !important; /* 가로에서 상하 2층식 구조 대수술 */
+              width: 92% !important;
+              max-width: 340px !important;
+              padding: 8px !important;
+              gap: 8px !important;
+          }
+          /* 1층: 글자 제어 도구 */
+          .toolbar-text-tools {
+              display: flex !important;
+              flex-wrap: wrap !important;
+              gap: 4px !important;
+              justify-content: center !important;
+              width: 100% !important;
+          }
+          /* 2층: 컴포넌트 단축 날개 */
+          .toolbar-inline-shortcuts {
+              border-left: none !important;
+              border-top: 1px solid #e2e8f0 !important; /* 상하 분리선 */
+              padding-left: 0 !important;
+              padding-top: 8px !important;
+              width: 100% !important;
+              justify-content: center !important;
+          }
+          .toolbar-inline-shortcuts button {
+              padding: 6px 10px !important; /* 터치 미스 방지 엣지 스케일 */
+          }
       }
     </style>
   </head>
   <body class="text-slate-800 antialiased min-h-screen flex flex-col w-full overflow-hidden bg-[#F0F0F0]" style="overflow: hidden;">
     <div id="root" class="w-full flex-grow flex flex-col"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <div id="editor-floating-toolbar">
+      <div class="toolbar-text-tools" style="display: flex; align-items: center; gap: 6px;">
+        <select id="fb-font-family" onchange="applyFloatingStyle('fontName', this.value)">
+          <option value="기본서체">기본서체</option>
+          <option value="NanumGothic">나눔고딕</option>
+          <option value="MaruBuri">마루부리</option>
+          <option value="NanumSquare">나눔스퀘어</option>
+        </select>
+        
+        <select id="fb-font-size" onchange="applyFloatingSize(this.value)">
+          <option value="11">11</option>
+          <option value="13">13</option>
+          <option value="15" selected>15</option>
+          <option value="16">16</option>
+          <option value="19">19</option>
+          <option value="24">24</option>
+          <option value="28">28</option>
+          <option value="30">30</option>
+          <option value="34">34</option>
+        </select>
+        
+        <button onclick="applyFloatingStyle('bold')"><i class="fa-solid fa-bold"></i></button>
+        <button onclick="applyFloatingStyle('italic')"><i class="fa-solid fa-italic"></i></button>
+        <button onclick="applyFloatingStyle('underline')"><i class="fa-solid fa-underline"></i></button>
+        <button onclick="applyFloatingStyle('strikeThrough')"><i class="fa-solid fa-strikethrough"></i></button>
+        <button onclick="applyFloatingStyle('justifyLeft')"><i class="fa-solid fa-align-left"></i></button>
+        <button onclick="applyFloatingStyle('justifyCenter')"><i class="fa-solid fa-align-center"></i></button>
+        <button onclick="applyFloatingStyle('justifyRight')"><i class="fa-solid fa-align-right"></i></button>
+      </div>
+      
+      <div class="toolbar-inline-shortcuts">
+        <button onclick="triggerSidebarAction('photoTemplate')" title="즐겨찾기 사진 템플릿"><i class="fa-solid fa-star"></i></button>
+        <button onclick="triggerSidebarAction('insertImage')" title="사진 업로드"><i class="fa-solid fa-image"></i></button>
+        <button onclick="triggerSidebarAction('insertEmoji')" title="스티커 이모지"><i class="fa-solid fa-face-smile"></i></button>
+        <button onclick="triggerSidebarAction('insertQuote')" title="명품 인용구 상자"><i class="fa-solid fa-quote-left"></i></button>
+        <button onclick="triggerSidebarAction('insertLine')" title="구분 실선"><i class="fa-solid fa-grip-lines"></i></button>
+      </div>
+    </div>
+
     <script type="text/javascript">
+      /* [자바스크립트 드래그 범위 연산 및 툴바 정렬 제어 엔진] */
+      document.addEventListener('DOMContentLoaded', function() {
+          const editorArea = document.getElementById('root');
+          const toolbar = document.getElementById('editor-floating-toolbar');
+          
+          if (editorArea && toolbar) {
+              // 마우스 드래그가 끝났을 때(mouseup) 또는 터치가 끝났을 때(mouseup 대체 호환)
+              document.addEventListener('mouseup', handleTextSelection);
+              document.addEventListener('keyup', handleTextSelection);
+          }
+
+          function handleTextSelection() {
+              const selection = window.getSelection();
+              if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+                  toolbar.style.display = 'none';
+                  return;
+              }
+              
+              const range = selection.getRangeAt(0);
+              // 드래그된 텍스트가 실제 에디터 편집창 내부인지 보안 센서 검증
+              const editableParent = range.commonAncestorContainer.parentElement.closest('.note-editable, [contenteditable="true"]');
+              if (!editableParent) {
+                  toolbar.style.display = 'none';
+                  return;
+              }
+
+              // 드래그 글자의 물리적 위치 좌표 연산
+              const rect = range.getBoundingClientRect();
+              if (rect.width === 0 || rect.height === 0) {
+                  toolbar.style.display = 'none';
+                  return;
+              }
+
+              toolbar.style.setProperty('display', 'flex', 'important');
+              
+              // 글자를 가리지 않도록 중앙 상단에 칼날 정착 계산
+              const toolbarWidth = toolbar.offsetWidth;
+              const leftPos = rect.left + (rect.width / 2) - (toolbarWidth / 2) + window.scrollX;
+              const topPos = rect.top - toolbar.offsetHeight - 12 + window.scrollY;
+
+              toolbar.style.left = Math.max(10, leftPos) + 'px';
+              toolbar.style.top = Math.max(10, topPos) + 'px';
+          }
+
+          // 에디터 외부의 빈 공간을 누르면 플로팅 툴바 즉시 소멸
+          document.addEventListener('mousedown', function(e) {
+              if (toolbar && !toolbar.contains(e.target) && !window.getSelection().isCollapsed) {
+                  // 컴포넌트 클릭 동작 확보를 위해 미세 시간 지연 후 숨김
+                  setTimeout(() => {
+                      if(window.getSelection().isCollapsed) toolbar.style.display = 'none';
+                  }, 180);
+              }
+          });
+      });
+
+      /* 플로팅 툴바 전용 명령어 브릿지 회로 */
+      function applyFloatingStyle(command, value = null) {
+          document.execCommand(command, false, value);
+      }
+
+      /* 🎯 대표님이 명하신 9대 커스텀 글자 크기 강제 인라인 치환 엔진 */
+      function applyFloatingSize(pxValue) {
+          // 브라우저 기본 execCommand('fontSize')의 1~7 제한을 돌파하여 모든 다중 블록(P 태그 등)을 완벽히 포괄하는 span 강제 치환 엔진
+          const selection = window.getSelection();
+          if (!selection || selection.isCollapsed) return;
+          
+          // 시스템 내장 폰트 사이즈 7로 임시 각인
+          document.execCommand('fontSize', false, '7');
+          
+          // 임시 각인된 font 태그들을 전수 추적하여 정확한 px 수치를 담은 span 태그로 완전 교체 매립
+          const fontTags = document.querySelectorAll('font[size="7"]');
+          fontTags.forEach(font => {
+              const span = document.createElement('span');
+              span.style.fontSize = pxValue + 'px';
+              span.style.lineHeight = '1.6';
+              span.innerHTML = font.innerHTML;
+              font.parentNode.replaceChild(span, font);
+          });
+      }
+
+      /* 우측 단축 날개 클릭 시 기존 좌측 고정 사이드바의 자바스크립트 함수를 다이렉트로 호출하는 선로 */
+      function triggerSidebarAction(actionType) {
+          // 현재 드래그된 커서 위치를 보존한 채 메인 React 앱 액션 커맨드로 패스
+          var event = new CustomEvent('triggerSidebarComponent', { detail: { type: actionType } });
+          window.dispatchEvent(event);
+      }
+
+      /* [기존 상세페이지 제어 로직 보존 선로] */
       (function() {
         function adjustLayout() {
           var header = document.querySelector('header');
@@ -605,76 +425,36 @@
           const urlParams = new URLSearchParams(window.location.search);
           const itemId = urlParams.get('id');
           const bottomBar = document.getElementById('mobile-bottom-bar') || document.getElementById('mobile-floating-bar');
-
-          /* 모바일/태블릿 가로 크기이면서 주소창에 매물 번호(?id=...)가 있는 상세페이지 상태일 때만 하단 바를 출격시킵니다 */
           if (window.innerWidth <= 768 && itemId) {
               if (bottomBar) { bottomBar.style.setProperty('display', 'flex', 'important'); }
-              document.body.style.setProperty('padding-bottom', '65px', 'important'); /* 본문 맨 밑 글자가 하단 바에 가려지지 않게 밀어주는 완충 공간 */
+              document.body.style.setProperty('padding-bottom', '65px', 'important');
           } else {
               if (bottomBar) { bottomBar.style.setProperty('display', 'none', 'important'); }
               document.body.style.setProperty('padding-bottom', '0px', 'important');
           }
         }
-
         window.addEventListener('load', adjustLayout);
         window.addEventListener('resize', adjustLayout);
         var observer = new MutationObserver(adjustLayout);
         document.addEventListener('DOMContentLoaded', function() {
           adjustLayout();
           var targetNode = document.getElementById('root');
-          if (targetNode) {
-            observer.observe(targetNode, { childList: true, subtree: true });
-          }
+          if (targetNode) { observer.observe(targetNode, { childList: true, subtree: true }); }
         });
         setInterval(adjustLayout, 1000);
       })();
 
-      // [직통 의뢰 모달 팝업] 자바스크립트 오픈/제출 선로 연결
       function openRequestModal() {
           var modal = document.getElementById('request-modal');
-          if (modal) {
-              modal.style.setProperty('display', 'flex', 'important');
-          }
+          if (modal) { modal.style.setProperty('display', 'flex', 'important'); }
       }
-
       function closeRequestModal() {
           var modal = document.getElementById('request-modal');
-          if (modal) {
-              modal.style.setProperty('display', 'none', 'important');
-          }
-          // 폼 초기화
-          document.getElementById('modal-req-name').value = '';
-          document.getElementById('modal-req-phone').value = '';
-          document.getElementById('modal-req-type').value = '원룸';
-          document.getElementById('modal-req-address').value = '';
-          document.getElementById('modal-req-details').value = '';
-      }
-
-      function submitRequestModal() {
-          var name = document.getElementById('modal-req-name').value.trim();
-          var phone = document.getElementById('modal-req-phone').value.trim();
-          var type = document.getElementById('modal-req-type').value;
-          var address = document.getElementById('modal-req-address').value.trim();
-          var details = document.getElementById('modal-req-details').value.trim();
-
-          if (!name || !phone || !address) {
-              alert("성함, 연락처, 상세 주소를 입력해주세요.");
-              return;
-          }
-
-          // 파이어베이스 DB 전송 선로 마감 (React App 측에서 리스너로 받아 처리)
-          var event = new CustomEvent('submitDirectInquiry', {
-              detail: { name: name, phone: phone, type: type, address: address, details: details }
-          });
-          window.dispatchEvent(event);
-
-          alert("의뢰가 성공적으로 접수되었습니다. 소장님이 곧 연락드립니다.");
-          closeRequestModal();
+          if (modal) { modal.style.setProperty('display', 'none', 'important'); }
       }
     </script>
     <div id="mobile-bottom-bar"></div>
 
-    <!-- [최상위 루트에 의뢰 팝업창(Modal) HTML 신설] -->
     <div id="request-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -682,14 +462,8 @@
                 <button class="modal-close-btn" onclick="closeRequestModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="modal-form-group">
-                    <label>의뢰인 성함</label>
-                    <input type="text" id="modal-req-name" placeholder="홍길동" />
-                </div>
-                <div class="modal-form-group">
-                    <label>연락처</label>
-                    <input type="tel" id="modal-req-phone" placeholder="010-1234-5678" />
-                </div>
+                <div class="modal-form-group"><label>의뢰인 성함</label><input type="text" id="modal-req-name" placeholder="홍길동" /></div>
+                <div class="modal-form-group"><label>연락처</label><input type="tel" id="modal-req-phone" placeholder="010-1234-5678" /></div>
                 <div class="modal-form-group">
                     <label>매물 종류</label>
                     <select id="modal-req-type">
@@ -700,14 +474,8 @@
                         <option value="기타">기타 매물</option>
                     </select>
                 </div>
-                <div class="modal-form-group">
-                    <label>상세 주소 및 호수</label>
-                    <input type="text" id="modal-req-address" placeholder="송정대로 6길18, 301호" />
-                </div>
-                <div class="modal-form-group">
-                    <label>요청사항</label>
-                    <textarea id="modal-req-details" placeholder="이사 예정일, 희망 가격, 기타 문의사항 등 남겨주세요."></textarea>
-                </div>
+                <div class="modal-form-group"><label>상세 주소 및 호수</label><input type="text" id="modal-req-address" placeholder="송정대로 6길18, 301호" /></div>
+                <div class="modal-form-group"><label>요청사항</label><textarea id="modal-req-details" placeholder="이사 예정일, 희망 가격, 기타 문의사항 등 남겨주세요."></textarea></div>
             </div>
             <div class="modal-footer">
                 <button class="modal-btn-submit" onclick="submitRequestModal()">제출하기</button>
@@ -717,4 +485,3 @@
     </div>
   </body>
 </html>
-

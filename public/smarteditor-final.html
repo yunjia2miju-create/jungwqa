@@ -756,6 +756,88 @@
             display: block !important;
             margin: 15px auto !important; /* 여백 없이 사진 알맹이만 깔끔하게 중앙 정렬 */
         }
+        /* [드래그 감지 플로팅 툴바 전용 CSS 용접] */
+        #editor-floating-toolbar {
+            position: absolute !important;
+            display: none; /* 평소 숨김, 드래그 시 flex 변환 */
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            padding: 6px 12px !important;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18) !important;
+            z-index: 2100000000 !important;
+            align-items: center !important;
+            gap: 12px !important; /* 각 기능 간의 숨통 공간 */
+        }
+        #editor-floating-toolbar > div:first-child {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .toolbar-inline-shortcuts {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            border-left: 1.5px solid #e2e8f0 !important; /* 글자 편집 도구와 컴포넌트 도구 사이를 가르는 정돈된 분리선 */
+            padding-left: 10px !important;
+        }
+        .toolbar-inline-shortcuts button {
+            background: #f1f5f9 !important; border: none !important;
+            padding: 5px 8px !important; border-radius: 4px !important;
+            cursor: pointer !important; color: #475569 !important;
+            transition: all 0.15s !important;
+        }
+        .toolbar-inline-shortcuts button:hover { background: #e2e8f0 !important; color: #0f172a !important; }
+        
+        /* 내부 선택창 및 버튼들을 한 줄로 이쁘게 압착 */
+        #editor-floating-toolbar select, #editor-floating-toolbar > div:first-child > button {
+            font-size: 0.85rem !important; padding: 4px 6px !important; border-radius: 4px !important;
+            background: transparent; border: none; cursor: pointer; color: #334155;
+            transition: background 0.15s ease;
+        }
+        #editor-floating-toolbar select {
+            border: 1px solid #cbd5e1 !important;
+            background: #f8fafc;
+            outline: none;
+        }
+        #editor-floating-toolbar > div:first-child > button:hover {
+            background: #f1f5f9;
+        }
+        #editor-floating-toolbar .divider {
+            width: 1px; height: 18px; background-color: #cbd5e1; margin: 0 4px;
+        }
+
+        /* [모바일/태블릿 스마트 센서 미디어 쿼리 주입] */
+        @media (max-width: 768px) {
+            #editor-floating-toolbar {
+                flex-direction: column !important; /* 상하 2층 구조로 변환 */
+                width: 90% !important; /* 스마트폰 액정 폭 안으로 쏙 수용 */
+                max-width: 340px !important; /* 양 옆으로 삐져나가지 않게 마지노선 구축 */
+                padding: 8px !important;
+                gap: 6px !important;
+            }
+            /* 1층: 글자 크기, 글꼴, 기본 스타일 버튼 압착 */
+            #editor-floating-toolbar > div:first-child {
+                display: flex !important;
+                flex-wrap: wrap !important; /* 버튼이 많으면 아래로 자연스럽게 정렬 */
+                gap: 4px !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            /* 2층: 소장님의 명품 즐겨찾기 컴포넌트 단축 날개 그룹 */
+            .toolbar-inline-shortcuts {
+                border-left: none !important; /* 왼쪽 가름선 제거 */
+                border-top: 1px solid #e2e8f0 !important; /* 위아래를 가르는 고급스러운 가로 구분선 신설 */
+                padding-left: 0 !important;
+                padding-top: 6px !important; /* 1층과의 간격 확보 */
+                width: 100% !important;
+                justify-content: center !important; /* 모바일 액정 한가운데로 이쁘게 정렬 */
+            }
+            /* 태블릿 터치 스케일 보정 */
+            .toolbar-inline-shortcuts button {
+                padding: 6px 10px !important;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col text-slate-800 antialiased h-screen w-screen overflow-hidden">
@@ -810,14 +892,13 @@
                     <select id="font-size-selector" onchange="applyFontSize(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
                         <option value="11px">11</option>
                         <option value="13px">13</option>
-                        <option value="15px">15</option>
-                        <option value="16px" selected>16</option>
+                        <option value="15px" selected>15</option>
+                        <option value="16px">16</option>
                         <option value="19px">19</option>
                         <option value="24px">24</option>
                         <option value="28px">28</option>
                         <option value="30px">30</option>
                         <option value="34px">34</option>
-                        <option value="38px">38</option>
                     </select>
                 </div>
 
@@ -2721,8 +2802,11 @@
                     const fonts = Array.from(el.getElementsByTagName('font'));
                     fonts.forEach(font => {
                         if (font.getAttribute('size') === '7' || font.size === '7') {
-                            font.removeAttribute('size');
-                            font.style.fontSize = size;
+                            const span = document.createElement('span');
+                            span.style.fontSize = size;
+                            span.style.lineHeight = '1.6';
+                            span.innerHTML = font.innerHTML;
+                            font.parentNode.replaceChild(span, font);
                         }
                     });
                 }
@@ -4668,7 +4752,185 @@
 
             // Notify parent
             window.parent.postMessage({ type: 'EDITOR_READY' }, '*');
+
+            // ==========================================
+            // [드래그 감지 플로팅 툴바 센서 및 배선 구축]
+            // ==========================================
+            const floatingToolbar = document.getElementById('editor-floating-toolbar');
+            
+            // 드래그 선택이 풀리지 않도록 툴바 클릭 시 포커스 강탈 방지
+            floatingToolbar.addEventListener('mousedown', (e) => {
+                if(e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
+                    e.preventDefault();
+                }
+            });
+            
+            let floatingToolbarHideTimeout = null;
+            
+            function checkAndShowFloatingToolbar() {
+                const selection = window.getSelection();
+                if (!selection || !selection.rangeCount || selection.isCollapsed) {
+                    floatingToolbar.style.setProperty('display', 'none', 'important');
+                    return;
+                }
+                
+                // 에디터 영역(contenteditable="true" 또는 .editor-canvas) 내부인지 검증
+                let focusNode = selection.focusNode;
+                let isInsideEditor = false;
+                while (focusNode) {
+                    if (focusNode.nodeType === Node.ELEMENT_NODE && 
+                        (focusNode.getAttribute('contenteditable') === 'true' || focusNode.classList.contains('editor-canvas'))) {
+                        isInsideEditor = true;
+                        break;
+                    }
+                    focusNode = focusNode.parentNode;
+                }
+                
+                if (!isInsideEditor) {
+                    floatingToolbar.style.setProperty('display', 'none', 'important');
+                    return;
+                }
+                
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                if (rect.width === 0 || rect.height === 0) {
+                    floatingToolbar.style.setProperty('display', 'none', 'important');
+                    return;
+                }
+                
+                // 툴바 렌더링 (크기 계산을 위해 먼저 flex로 노출)
+                floatingToolbar.style.setProperty('display', 'flex', 'important');
+                
+                let toolbarWidth = floatingToolbar.offsetWidth;
+                let toolbarHeight = floatingToolbar.offsetHeight;
+                
+                // 드래그한 글자 중앙 윗선 약 40px 위쪽
+                let topPos = rect.top + window.scrollY - toolbarHeight - 15;
+                let leftPos = rect.left + window.scrollX + (rect.width / 2) - (toolbarWidth / 2);
+                
+                // 화면 밖으로 벗어남 방지 알고리즘
+                if (topPos < window.scrollY) {
+                    topPos = rect.bottom + window.scrollY + 10;
+                }
+                if (leftPos < 0) leftPos = 10;
+                if (leftPos + toolbarWidth > window.innerWidth) leftPos = window.innerWidth - toolbarWidth - 10;
+                
+                floatingToolbar.style.setProperty('top', `${topPos}px`, 'important');
+                floatingToolbar.style.setProperty('left', `${leftPos}px`, 'important');
+                
+                // 현재 선택된 서식 상태를 툴바 셀렉트 박스에 반영 (가능한 경우)
+                try {
+                    const fontName = document.queryCommandValue('fontName') || 'inherit';
+                    const fontSelect = document.getElementById('floating-font-family');
+                    if (fontSelect && fontName) {
+                        let cleanedFontName = fontName.replace(/['"]/g, '');
+                        for (let i = 0; i < fontSelect.options.length; i++) {
+                            if (fontSelect.options[i].value === cleanedFontName || fontSelect.options[i].value.includes(cleanedFontName)) {
+                                fontSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+            
+            document.addEventListener('mouseup', (e) => {
+                if (floatingToolbar.contains(e.target)) return;
+                // 선택 영역 업데이트 대기 후 센서 가동
+                clearTimeout(floatingToolbarHideTimeout);
+                setTimeout(checkAndShowFloatingToolbar, 10);
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                if (floatingToolbar.contains(e.target)) return;
+                clearTimeout(floatingToolbarHideTimeout);
+                setTimeout(checkAndShowFloatingToolbar, 10);
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                if (e.key === 'Shift' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
+                    setTimeout(checkAndShowFloatingToolbar, 10);
+                } else {
+                    const selection = window.getSelection();
+                    if (!selection || selection.isCollapsed) {
+                        floatingToolbar.style.setProperty('display', 'none', 'important');
+                    }
+                }
+            });
+            
+            document.addEventListener('scroll', () => {
+                floatingToolbar.style.setProperty('display', 'none', 'important');
+            }, { passive: true });
         });
     </script>
+    
+    <!-- [드래그 감지 플로팅 툴바 HTML 레이어 신설] -->
+    <div id="editor-floating-toolbar">
+        <div>
+            <!-- 글꼴 변경 선택창 -->
+            <select id="floating-font-family" onchange="_applyFontFamilyRaw(this.value); updateCharacterCounts();">
+                <option value="inherit">기본서체</option>
+                <option value="MaruBuri">마루부리</option>
+                <option value="NanumBarunGothic">나눔바른고딕</option>
+                <option value="NanumGothic">나눔고딕</option>
+                <option value="NanumSquare">나눔스퀘어</option>
+                <option value="NanumMyeongjo">나눔명조</option>
+                <option value="DasiSijakhae">다시시작해</option>
+                <option value="BareunHippie">바른히피</option>
+                <option value="UriTtal">우리딸손글씨</option>
+            </select>
+            
+            <!-- 글자 크기 선택창 -->
+            <select id="floating-font-size" onchange="_applyFontSizeRaw(this.value); updateCharacterCounts();">
+                <option value="11px">11</option>
+                <option value="13px">13</option>
+                <option value="15px" selected>15</option>
+                <option value="16px">16</option>
+                <option value="19px">19</option>
+                <option value="24px">24</option>
+                <option value="28px">28</option>
+                <option value="30px">30</option>
+                <option value="34px">34</option>
+            </select>
+            
+            <div class="divider"></div>
+            
+            <!-- 스타일 버클들 -->
+            <button type="button" onclick="document.execCommand('bold', false, null); updateCharacterCounts();" title="굵게" style="font-weight: 900;">B</button>
+            <button type="button" onclick="document.execCommand('italic', false, null); updateCharacterCounts();" title="기울임" style="font-style: italic; font-weight: 900; font-family: serif;">I</button>
+            <button type="button" onclick="document.execCommand('underline', false, null); updateCharacterCounts();" title="밑줄" style="text-decoration: underline; font-weight: 900;">U</button>
+            <button type="button" onclick="document.execCommand('strikeThrough', false, null); updateCharacterCounts();" title="취소선" style="text-decoration: line-through; font-weight: 900;">S</button>
+            
+            <!-- A 글자색 (Color Picker 연결) -->
+            <button type="button" onclick="toggleTextColorPicker(event)" title="글자색" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <span style="font-weight: 900; line-height: 1;">A</span>
+                <div style="width: 12px; height: 3px; background: #000; margin-top: 1px;"></div>
+            </button>
+            
+            <!-- T 형광펜 배경색 (Background Color Picker 연결) -->
+            <button type="button" onclick="toggleBgColorPicker(event)" title="형광펜 배경색" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <span style="font-weight: 900; line-height: 1;">T</span>
+                <div style="width: 12px; height: 3px; background: #fef08a; margin-top: 1px;"></div>
+            </button>
+            
+            <div class="divider"></div>
+            
+            <!-- 정렬 버튼 3종 -->
+            <button type="button" onclick="document.execCommand('justifyLeft', false, null); updateCharacterCounts();" title="왼쪽 정렬"><i class="fa-solid fa-align-left"></i></button>
+            <button type="button" onclick="document.execCommand('justifyCenter', false, null); updateCharacterCounts();" title="가운데 정렬"><i class="fa-solid fa-align-center"></i></button>
+            <button type="button" onclick="document.execCommand('justifyRight', false, null); updateCharacterCounts();" title="오른쪽 정렬"><i class="fa-solid fa-align-right"></i></button>
+        </div>
+        
+        <!-- 우측 결합된 미니 컴포넌트 버튼 그룹 (Inline Shortcuts) -->
+        <div class="toolbar-inline-shortcuts">
+            <button type="button" onclick="switchControlTab(1)" title="즐겨찾기 사진 템플릿">⭐</button>
+            <button type="button" onclick="triggerPhotoUpload()" title="본문 사진 삽입">🖼️</button>
+            <button type="button" onclick="switchControlTab(3)" title="이모지/스티커 삽입">😊</button>
+            <button type="button" onclick="injectFavoriteItem('quote', 'quotes')" title="명품 인용구 상자 즉시 주입">❝ ❞</button>
+            <button type="button" onclick="insertAutoCalculatedDivider('solid')" title="시각적 개방감용 구분 실선 즉시 주입">➖</button>
+            <button type="button" onclick="openLinkDialog()" title="인터넷 상세 주소/링크 매칭">🔗</button>
+        </div>
+    </div>
 </body>
 </html>

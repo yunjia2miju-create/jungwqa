@@ -394,8 +394,12 @@ export const DetailTab = ({
                                 )}
                             </button>
                             <button
-                                onClick={() => setIsBlogModalOpen(true)}
-                                className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm border border-emerald-200 cursor-pointer"
+                                onClick={() => setIsBlogModalOpen(!isBlogModalOpen)}
+                                className={`font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm border cursor-pointer ${
+                                    isBlogModalOpen 
+                                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-emerald-950/25' 
+                                    : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-200'
+                                }`}
                             >
                                 <i className="fa-solid fa-wand-magic-sparkles text-emerald-600"></i>
                                 <span>AI 네이버 등록 도우미 🤖</span>
@@ -416,6 +420,10 @@ export const DetailTab = ({
                             <span>블로그 원고 & AI 등록기 (소장님 전용 🔒)</span>
                         </button>
                     )}
+                </div>
+
+                <div className="w-full mb-6">
+                    <NaverBlogHelperModal post={p} isOpen={isBlogModalOpen} onClose={() => setIsBlogModalOpen(false)} />
                 </div>
 
                 <div 
@@ -462,7 +470,7 @@ export const DetailTab = ({
                             {imgUrls.map((url, i) => (
                                 <div 
                                     key={i} 
-                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-slate-50 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
+                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-emerald-500/30 relative select-none"
                                     onClick={() => {
                                         setActiveZoomUrl(url.trim());
                                     }}
@@ -717,11 +725,15 @@ export const DetailTab = ({
                         </a>
                         <button 
                             onClick={() => { 
-                                setActiveSection('main'); 
-                                setTimeout(() => {
-                                    const el = document.getElementById('quick-inquiry');
-                                    if (el) el.scrollIntoView({behavior: 'smooth'});
-                                }, 150); 
+                                if (typeof (window as any).openRequestModal === 'function') {
+                                    (window as any).openRequestModal();
+                                } else {
+                                    setActiveSection('main'); 
+                                    setTimeout(() => {
+                                        const el = document.getElementById('quick-inquiry');
+                                        if (el) el.scrollIntoView({behavior: 'smooth'});
+                                    }, 150); 
+                                }
                             }} 
                             className="bg-white/10 hover:bg-white/20 border border-white/10 text-white px-6 py-3.5 sm:py-4.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 transition-all w-full select-none cursor-pointer">
                             <i className="fa-solid fa-clipboard-question"></i>
@@ -748,7 +760,7 @@ export const DetailTab = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {matchingRecs.map(rec => (
                             <div key={rec.id} onClick={() => setSelectedPostId(rec.id)} className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group">
-                                <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 watermark-container">
+                                <div className="relative aspect-[16/9] overflow-hidden bg-transparent watermark-container">
                                     <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                     {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
@@ -836,7 +848,7 @@ export const DetailTab = ({
                             <i className="fa-solid fa-xmark text-lg"></i>
                         </button>
 
-                        <div className="relative w-full h-full flex items-center justify-center max-h-[72vh] overflow-hidden rounded-xl bg-slate-50">
+                        <div className="relative w-full h-full flex items-center justify-center max-h-[72vh] overflow-hidden rounded-xl bg-transparent">
                             <img 
                                 src={activeZoomUrl} 
                                 className="max-w-full max-h-[72vh] object-contain rounded-xl select-none cursor-zoom-out" 
@@ -882,8 +894,6 @@ export const DetailTab = ({
                     </div>
                 </div>
             )}
-            
-            <NaverBlogHelperModal post={p} isOpen={isBlogModalOpen} onClose={() => setIsBlogModalOpen(false)} />
         </section>
     );
 };

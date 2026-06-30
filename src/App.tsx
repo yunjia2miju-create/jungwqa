@@ -10,7 +10,7 @@ import { Modals } from './components/Modals';
 import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
-import { doc, getDocFromServer } from 'firebase/firestore';
+import { doc, getDocFromServer, collection, setDoc } from 'firebase/firestore';
 
 // --- Toast Context Helper ---
 export const ToastContext = React.createContext<{ showToast: (msg: string, type?: 'success'|'error') => void } | null>(null);
@@ -40,6 +40,26 @@ export default function App() {
     const [toasts, setToasts] = useState<{id: number, msg: string, type: 'success'|'error'}[]>([]);
 
     useEffect(() => {
+        // [직통 의뢰 모달] 전송 이벤트 리스너 등록
+        const handleDirectInquiry = async (e: Event) => {
+            const customEvent = e as CustomEvent;
+            const payload = customEvent.detail;
+            try {
+                const reqId = Date.now().toString();
+                const docRef = doc(collection(db, 'customer_requests'), reqId);
+                await setDoc(docRef, {
+                    id: reqId,
+                    ...payload,
+                    createdAt: Date.now(),
+                    processed: false
+                });
+                console.log("Customer request successfully saved to customer_requests collection.");
+            } catch (err) {
+                console.error("Failed to save customer request:", err);
+            }
+        };
+        window.addEventListener('submitDirectInquiry', handleDirectInquiry);
+
         // Fetch posts through unified cloud database service
         getPostsService()
             .then(data => {
@@ -88,7 +108,10 @@ export default function App() {
             "color: #059669; font-family: 'Nanum Gothic', sans-serif; font-size: 13px; font-weight: bold; line-height: 1.6;"
         );
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            window.removeEventListener('submitDirectInquiry', handleDirectInquiry);
+        };
     }, []);
 
     const showToast = (msg: string, type: 'success'|'error' = 'success') => {
@@ -181,14 +204,18 @@ export default function App() {
                         {/* [버튼 3]: ✍️ 의뢰하기 -> 매물 등록 의뢰 페이지 연동 */}
                         <button 
                             onClick={() => {
-                                setActiveSection('main');
-                                showToast("중개 상담 및 의뢰 접수 화면으로 이동합니다.", "success");
-                                setTimeout(() => {
-                                    const el = document.getElementById('quick-inquiry');
-                                    if (el) {
-                                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    }
-                                }, 200);
+                                if (typeof (window as any).openRequestModal === 'function') {
+                                    (window as any).openRequestModal();
+                                } else {
+                                    setActiveSection('main');
+                                    showToast("중개 상담 및 의뢰 접수 화면으로 이동합니다.", "success");
+                                    setTimeout(() => {
+                                        const el = document.getElementById('quick-inquiry');
+                                        if (el) {
+                                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }
+                                    }, 200);
+                                }
                             }}
                             className="flex items-center justify-center gap-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-amber-400"
                         >

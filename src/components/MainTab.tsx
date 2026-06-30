@@ -655,7 +655,7 @@ export const MainTab = ({
                                         className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 cursor-pointer text-left w-full overflow-hidden"
                                     >
                                         {/* Thumbnail Section */}
-                                        <div className="order-1 relative shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100 transition-all duration-300 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video xl:w-[320px] xl:h-[180px] self-center lg:self-stretch">
+                                        <div className="order-1 relative shrink-0 overflow-hidden rounded-xl bg-transparent border border-slate-100 transition-all duration-300 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video xl:w-[320px] xl:h-[180px] self-center lg:self-stretch">
                                             {thumbnailImg ? (
                                                 <img 
                                                     src={thumbnailImg} 

@@ -347,6 +347,67 @@ h1, h2, h3, h4, h5, h6 {
     animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ==========================================
+   이미지 부모 상자 무력화 및 순수 사진 단독 표출 칼날 정렬 CSS 용접
+   ========================================== */
+/* [1] 에디터 자체 가상 레이아웃 프레임 파괴 (이미지 부모 요소) */
+.note-editable div:has(img), .editor-area div:has(img), [contenteditable="true"] div:has(img),
+.note-editable p:has(img), .editor-area p:has(img), [contenteditable="true"] p:has(img),
+.note-editable figure:has(img), .editor-area figure:has(img), [contenteditable="true"] figure:has(img),
+.note-editable a:has(img), .editor-area a:has(img), [contenteditable="true"] a:has(img),
+.note-editable span:has(img), .editor-area span:has(img), [contenteditable="true"] span:has(img),
+.editor-content div:has(img), .editor-content p:has(img), .editor-content figure:has(img), .editor-content a:has(img), .editor-content span:has(img),
+.property-details div:has(img), .property-details p:has(img), .property-details figure:has(img), .property-details a:has(img), .property-details span:has(img),
+.style-rich-body div:has(img), .style-rich-body p:has(img), .style-rich-body figure:has(img), .style-rich-body a:has(img), .style-rich-body span:has(img) {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0px !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    margin: 0px !important;
+    margin-left: 0px !important;
+    margin-right: 0px !important;
+    max-width: 100% !important;
+    width: auto !important;
+}
+
+/* [2] 에디터 순수 이미지 단독 밀착 CSS 용접 */
+.note-editable img, .editor-area img, [contenteditable="true"] img {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important; /* 에디터 가로 폭 안에서 꽉 차게 방어 */
+    height: auto !important;
+    padding: 0px !important; /* 이미지 자체의 안쪽 가상 투명 테두리 완전 삭제 */
+    padding-left: 0px !important; /* 좌우 투명 여백 절대 차단 */
+    padding-right: 0px !important;
+    margin-left: 0px !important; /* 왼쪽 벽에 바짝 밀착 */
+    margin-right: 0px !important; /* 오른쪽 벽에 바짝 밀착 */
+    margin-top: 15px !important; /* 위아래 글자와의 최소 간격만 유지 */
+    margin-bottom: 15px !important;
+    border: none !important;
+    outline: none !important; /* 마우스 클릭 시 생기는 가상 테두리선까지 전면 무력화 */
+    box-shadow: none !important;
+}
+
+/* [3] 일반 뷰어 이미지 셋업 */
+.editor-content img, .property-details img, #property-description img,
+.style-rich-body img, .editor-canvas img {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 70vh !important;
+    margin: 20px auto !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
 
 
 

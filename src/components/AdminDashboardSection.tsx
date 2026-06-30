@@ -411,7 +411,8 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     {filteredPosts.length > 0 ? (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             {filteredPosts.map(p => (
-                                <div key={p.id} className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all min-w-0">
+                                <React.Fragment key={p.id}>
+                                <div className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all min-w-0">
                                     <div className="flex items-start sm:items-center gap-4 text-left min-w-0 flex-1">
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200">
                                             <img src={p.thumbnail} alt={p.building} className="w-full h-full object-cover" />
@@ -430,10 +431,18 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                     <div className="flex items-center justify-end gap-2 shrink-0 border-t border-slate-200/60 pt-3 sm:pt-0 sm:border-0 sm:pl-2">
                                         <button 
                                             onClick={() => {
-                                                setSelectedBlogPost(p);
-                                                setIsBlogModalOpen(true);
+                                                if (selectedBlogPost?.id === p.id && isBlogModalOpen) {
+                                                    setIsBlogModalOpen(false);
+                                                } else {
+                                                    setSelectedBlogPost(p);
+                                                    setIsBlogModalOpen(true);
+                                                }
                                             }} 
-                                            className="text-emerald-700 hover:text-white bg-emerald-100 hover:bg-emerald-600 border border-emerald-200 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0"
+                                            className={`border p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0 ${
+                                                selectedBlogPost?.id === p.id && isBlogModalOpen 
+                                                ? 'bg-emerald-600 text-white border-emerald-700 shadow-emerald-950/25' 
+                                                : 'text-emerald-700 hover:text-white bg-emerald-100 hover:bg-emerald-600 border-emerald-200'
+                                            }`}
                                             title="AI 네이버 블로그 원고 자동 생성 및 등록 도우미"
                                         >
                                             <i className="fa-solid fa-wand-magic-sparkles"></i>
@@ -461,6 +470,12 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                         </button>
                                     </div>
                                 </div>
+                                {selectedBlogPost?.id === p.id && isBlogModalOpen && (
+                                    <div className="col-span-1 xl:col-span-2 -mt-4 mb-4 z-10 w-full animate-fade-in">
+                                        <NaverBlogHelperModal post={p} isOpen={true} onClose={() => setIsBlogModalOpen(false)} />
+                                    </div>
+                                )}
+                                </React.Fragment>
                             ))}
                         </div>
                     ) : (
@@ -564,8 +579,6 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                     </div>
                 </div>
             )}
-            
-            <NaverBlogHelperModal post={selectedBlogPost} isOpen={isBlogModalOpen} onClose={() => setIsBlogModalOpen(false)} />
         </div>
     );
 }

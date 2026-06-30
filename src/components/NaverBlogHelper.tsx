@@ -897,8 +897,35 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
     if (!isOpen || !post) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs animate-fade-in">
-            <div className="relative w-full max-w-7xl bg-white rounded-3xl shadow-2xl flex flex-col h-[92vh] overflow-hidden border border-slate-100 transition-all transform scale-100">
+        <div 
+            id="naver-blog-master-window" 
+            className="animate-fade-in"
+            style={{
+                position: 'relative',
+                display: 'block',
+                width: '100%',
+                marginTop: '10px',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+                zIndex: 999,
+                height: '850px',
+                minHeight: '850px',
+                overflowY: 'auto'
+            }}
+        >
+            <style>{`
+                #naver-blog-master-window {
+                    position: relative !important;
+                    display: block !important;
+                    height: 850px !important;
+                    min-height: 850px !important;
+                }
+                .ai-blog-helper-textarea,
+                .ai-blog-helper-preview {
+                    height: 500px !important;
+                    min-height: 500px !important;
+                }
+            `}</style>
+            <div className="relative w-full bg-white rounded-2xl flex flex-col border border-slate-200 transition-all transform scale-100 min-h-[850px] h-full">
                 
                 {/* Header Mocking Naver Blog Writer */}
                 <div className="bg-emerald-600 px-6 py-4 flex items-center justify-between text-white shrink-0">
@@ -1297,7 +1324,8 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                         setContent(e.target.value);
                                     }
                                 }}
-                                className={`flex-1 w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none outline-none overflow-y-auto ${isHtmlMode ? 'font-mono text-xs text-emerald-800 bg-slate-50/50' : 'font-semibold text-slate-700'}`}
+                                style={{ minHeight: '500px', height: '500px' }}
+                                className={`ai-blog-helper-textarea flex-1 w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none outline-none overflow-y-auto ${isHtmlMode ? 'font-mono text-xs text-emerald-800 bg-slate-50/50' : 'font-semibold text-slate-700'}`}
                                 placeholder={isHtmlMode ? "Raw HTML 소스..." : "Editor 4의 원본 매물설명이 보존되고 있습니다..."}
                             />
                         </div>
@@ -1377,7 +1405,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                 </div>
 
                                 {/* Mockup Rendering exactly what gets copied (Sequencing verified!) */}
-                                <div className="bg-white border border-slate-200 rounded-2xl shadow-inner p-6 overflow-y-auto max-h-[500px]">
+                                <div className="ai-blog-helper-preview bg-white border border-slate-200 rounded-2xl shadow-inner p-6 overflow-y-auto flex-1" style={{ minHeight: '500px', height: '500px' }}>
                                     
                                     {/* 1) Representative Image */}
                                     {repImgUrl ? (

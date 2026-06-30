@@ -461,6 +461,129 @@
         }
       }
 
+      /* [스크롤 고정 및 최상위 레이어 CSS 용접] - 의뢰 팝업창 */
+      #request-modal {
+          display: none; /* 평소에는 완벽 숨김 */
+          position: fixed !important;
+          top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0, 0, 0, 0.6) !important; /* 뒤 본문을 고급스럽게 어둡게 차단하는 암막 효과 */
+          z-index: 1000000000 !important; /* 하단 바보다 더 위에 뜨도록 최상위 등급 부여 */
+          justify-content: center; align-items: center;
+      }
+      .modal-content {
+          background: #ffffff !important;
+          width: 85% !important; max-width: 450px;
+          border-radius: 12px !important; padding: 20px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          position: relative;
+          font-family: 'NanumSquare', 'NanumGothic', sans-serif;
+      }
+      .modal-header {
+          display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 15px;
+      }
+      .modal-header h2 {
+          margin: 0; font-size: 1.15rem; font-weight: 800; color: #1e293b;
+      }
+      .modal-close-btn {
+          background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; padding: 0; line-height: 1;
+      }
+      .modal-body {
+          display: flex; flex-direction: column; gap: 12px;
+      }
+      .modal-form-group {
+          display: flex; flex-direction: column; gap: 6px;
+      }
+      .modal-form-group label {
+          font-size: 0.85rem; font-weight: 700; color: #475569;
+      }
+      .modal-form-group input, .modal-form-group select, .modal-form-group textarea {
+          padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; background: #f8fafc;
+      }
+      .modal-form-group textarea {
+          resize: vertical; min-height: 80px;
+      }
+      .modal-footer {
+          margin-top: 20px; display: flex; gap: 10px; justify-content: center;
+      }
+      .modal-btn-submit {
+          flex: 1; background: #f59e0b; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: background 0.2s;
+      }
+      .modal-btn-submit:hover { background: #d97706; }
+      .modal-btn-close {
+          flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: background 0.2s;
+      }
+      .modal-btn-close:hover { background: #cbd5e1; }
+
+      /* ==========================================
+         [🎯 전산실 특급 패치] 에디터 및 웹 내부 이미지/부모 테두리 완벽 압착 철거 엔진
+         ========================================== */
+      /* 에디터창 및 본문 안의 모든 div, p, figure 등 부모 액자 껍데기의 회색 테두리와 불필요한 가상 여백을 강제 파괴 */
+      .editor-content div:has(img), .editor-content p:has(img), .editor-content figure:has(img),
+      .property-details div:has(img), .property-details p:has(img), .property-details figure:has(img),
+      .note-editable div:has(img), .note-editable p:has(img), .note-editable figure:has(img),
+      .editor-area div:has(img), .editor-area p:has(img), .editor-area figure:has(img),
+      [contenteditable="true"] div:has(img), [contenteditable="true"] p:has(img), [contenteditable="true"] figure:has(img) {
+          background: transparent !important;
+          background-color: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          max-width: 100% !important;
+      }
+
+      /* 일반 웹 상세페이지 이미지 절대 정렬 규격 */
+      .editor-content img, .property-details img, #property-description img,
+      .editor-canvas img, .style-rich-body img, .style-rich-intro img, .markdown-content img {
+          display: block !important;
+          width: auto !important;
+          max-width: 100% !important;
+          height: auto !important;
+          max-height: 70vh !important;
+          margin: 20px auto !important;
+          background: transparent !important;
+          background-color: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+      }
+
+      /* [1] 관리자 에디터 내장 가상 프레임 및 강제 마진 패딩 선로 전면 리셋 */
+      .note-editable *:has(img), .editor-area *:has(img), [contenteditable="true"] *:has(img), .note-editor *:has(img) {
+          padding: 0px !important;
+          padding-top: 0px !important;
+          padding-bottom: 0px !important;
+          padding-left: 0px !important;
+          padding-right: 0px !important;
+          margin: 0px !important;
+          margin-left: 0px !important;
+          margin-right: 0px !important;
+          background-color: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+      }
+
+      /* [2] 🔥 관리자 에디터 창 내부 이미지 및 가상 투명 테두리(클릭 영역 박스) 칼날 박멸 */
+      .note-editable img, .editor-area img, [contenteditable="true"] img, .note-editor img, .note-control-selection-box {
+          display: block !important;
+          width: auto !important;
+          max-width: 100% !important;
+          height: auto !important;
+          padding: 0px !important;
+          padding-left: 0px !important;
+          padding-right: 0px !important;
+          margin-left: 0px !important; 
+          margin-right: 0px !important;
+          margin-top: 15px !important;
+          margin-bottom: 15px !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          float: none !important;
+      }
     </style>
   </head>
   <body class="text-slate-800 antialiased min-h-screen flex flex-col w-full overflow-hidden bg-[#F0F0F0]" style="overflow: hidden;">
@@ -505,8 +628,93 @@
         });
         setInterval(adjustLayout, 1000);
       })();
+
+      // [직통 의뢰 모달 팝업] 자바스크립트 오픈/제출 선로 연결
+      function openRequestModal() {
+          var modal = document.getElementById('request-modal');
+          if (modal) {
+              modal.style.setProperty('display', 'flex', 'important');
+          }
+      }
+
+      function closeRequestModal() {
+          var modal = document.getElementById('request-modal');
+          if (modal) {
+              modal.style.setProperty('display', 'none', 'important');
+          }
+          // 폼 초기화
+          document.getElementById('modal-req-name').value = '';
+          document.getElementById('modal-req-phone').value = '';
+          document.getElementById('modal-req-type').value = '원룸';
+          document.getElementById('modal-req-address').value = '';
+          document.getElementById('modal-req-details').value = '';
+      }
+
+      function submitRequestModal() {
+          var name = document.getElementById('modal-req-name').value.trim();
+          var phone = document.getElementById('modal-req-phone').value.trim();
+          var type = document.getElementById('modal-req-type').value;
+          var address = document.getElementById('modal-req-address').value.trim();
+          var details = document.getElementById('modal-req-details').value.trim();
+
+          if (!name || !phone || !address) {
+              alert("성함, 연락처, 상세 주소를 입력해주세요.");
+              return;
+          }
+
+          // 파이어베이스 DB 전송 선로 마감 (React App 측에서 리스너로 받아 처리)
+          var event = new CustomEvent('submitDirectInquiry', {
+              detail: { name: name, phone: phone, type: type, address: address, details: details }
+          });
+          window.dispatchEvent(event);
+
+          alert("의뢰가 성공적으로 접수되었습니다. 소장님이 곧 연락드립니다.");
+          closeRequestModal();
+      }
     </script>
     <div id="mobile-bottom-bar"></div>
+
+    <!-- [최상위 루트에 의뢰 팝업창(Modal) HTML 신설] -->
+    <div id="request-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✍️ 매물 내놓기 / 문의 의뢰</h2>
+                <button class="modal-close-btn" onclick="closeRequestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-group">
+                    <label>의뢰인 성함</label>
+                    <input type="text" id="modal-req-name" placeholder="홍길동" />
+                </div>
+                <div class="modal-form-group">
+                    <label>연락처</label>
+                    <input type="tel" id="modal-req-phone" placeholder="010-1234-5678" />
+                </div>
+                <div class="modal-form-group">
+                    <label>매물 종류</label>
+                    <select id="modal-req-type">
+                        <option value="원룸">원룸</option>
+                        <option value="투룸">투룸 (미투/쓰리룸)</option>
+                        <option value="오피스텔/아파트">오피스텔 / 아파트</option>
+                        <option value="상가/사무실">상가 / 사무실</option>
+                        <option value="기타">기타 매물</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>상세 주소 및 호수</label>
+                    <input type="text" id="modal-req-address" placeholder="송정대로 6길18, 301호" />
+                </div>
+                <div class="modal-form-group">
+                    <label>요청사항</label>
+                    <textarea id="modal-req-details" placeholder="이사 예정일, 희망 가격, 기타 문의사항 등 남겨주세요."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn-submit" onclick="submitRequestModal()">제출하기</button>
+                <button class="modal-btn-close" onclick="closeRequestModal()">닫기 X</button>
+            </div>
+        </div>
+    </div>
   </body>
 </html>
 

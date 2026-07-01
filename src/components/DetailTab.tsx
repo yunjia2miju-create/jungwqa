@@ -36,7 +36,7 @@ export const DetailTab = ({
 
     const [isFetchingDetail, setIsFetchingDetail] = React.useState(true);
     const [copied, setCopied] = React.useState(false);
-    const [activeZoomUrl, setActiveZoomUrl] = React.useState<string | null>(null);
+    const [zoomedImageId, setZoomedImageId] = React.useState<string | null>(null);
     const [isHovered, setIsHovered] = React.useState<string | null>(null);
     const [isBlogModalOpen, setIsBlogModalOpen] = React.useState(false);
 
@@ -441,9 +441,14 @@ export const DetailTab = ({
                 </div>
 
                 <div 
-                    className="aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-[#0B2545]/30 relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full"
+                    className={`aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full ${zoomedImageId === 'thumbnail' ? 'cursor-zoom-out shadow-2xl' : 'cursor-zoom-in hover:shadow-xl hover:border-[#0B2545]/30'}`}
+                    style={{ 
+                        transform: zoomedImageId === 'thumbnail' ? 'scale(2)' : 'scale(1)', 
+                        zIndex: zoomedImageId === 'thumbnail' ? 999 : 1, 
+                        transition: 'transform 0.25s ease-in-out' 
+                    }}
                     onClick={() => {
-                        setActiveZoomUrl(p.thumbnail || defaultImg);
+                        setZoomedImageId(prev => prev === 'thumbnail' ? null : 'thumbnail');
                     }}
                 >
                     {/* Unique [녹색 라운드 사각 뱃지] for 대표사진 */}
@@ -453,7 +458,7 @@ export const DetailTab = ({
 
                     <img 
                         src={p.thumbnail} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        className={`w-full h-full object-cover transition-transform duration-500 ${zoomedImageId === 'thumbnail' ? '' : 'group-hover:scale-105'}`} 
                         alt="매물 대표 사진"
                         loading="lazy"
                     />
@@ -468,7 +473,7 @@ export const DetailTab = ({
                         ></i>
                     </div>
                     {/* Hover status tip */}
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-20">
+                    <div className={`absolute top-4 right-4 sm:top-5 sm:right-5 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full transition-opacity flex items-center gap-1 z-20 ${zoomedImageId === 'thumbnail' ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
                         <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
                         <span>크게 보기 (클릭)</span>
                     </div>
@@ -484,15 +489,20 @@ export const DetailTab = ({
                             {imgUrls.map((url, i) => (
                                 <div 
                                     key={i} 
-                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-[#0B2545]/30 relative select-none"
+                                    className={`aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group relative select-none ${zoomedImageId === `img-${i}` ? 'cursor-zoom-out shadow-2xl' : 'cursor-zoom-in hover:shadow-xl hover:border-[#0B2545]/30'}`}
+                                    style={{ 
+                                        transform: zoomedImageId === `img-${i}` ? 'scale(2)' : 'scale(1)', 
+                                        zIndex: zoomedImageId === `img-${i}` ? 999 : 1, 
+                                        transition: 'transform 0.25s ease-in-out' 
+                                    }}
                                     onClick={() => {
-                                        setActiveZoomUrl(url.trim());
+                                        setZoomedImageId(prev => prev === `img-${i}` ? null : `img-${i}`);
                                     }}
                                 >
                                     <img 
                                         src={url.trim()} 
                                         onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} 
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                        className={`w-full h-full object-cover transition-transform duration-500 ${zoomedImageId === `img-${i}` ? '' : 'group-hover:scale-105'}`} 
                                         alt={`실사 추가 사진 ${i+1}`}
                                         loading="lazy"
                                     />
@@ -507,7 +517,7 @@ export const DetailTab = ({
                                         ></i>
                                     </div>
                                     {/* Hover status tip */}
-                                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <div className={`absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full transition-opacity flex items-center gap-1 ${zoomedImageId === `img-${i}` ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
                                         <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
                                         <span>크게 보기 (클릭)</span>
                                     </div>
@@ -845,70 +855,7 @@ export const DetailTab = ({
                 </button>
             </div>
 
-            {/* 2. Interactive Fullscreen Lightbox (for both PC, Tablet, and Mobile to view complete detail with custom dismiss UI) */}
-            {activeZoomUrl && (
-                <div 
-                    className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-8 bg-slate-950/90 backdrop-blur-md transition-all duration-300 select-none animate-fadeIn"
-                    onClick={() => setActiveZoomUrl(null)}
-                >
-                    <div 
-                        className="relative w-full max-w-4xl max-h-[85vh] bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-2xl border border-white/10 flex flex-col items-center justify-center animate-zoomIn"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button 
-                            onClick={() => setActiveZoomUrl(null)}
-                            className="absolute -top-12 sm:top-4 right-1 sm:right-4 bg-white hover:bg-slate-100 text-slate-900 rounded-full w-10 h-10 flex items-center justify-center shadow-lg cursor-pointer transition-transform duration-350 hover:rotate-90 z-20"
-                            title="확대창 닫기"
-                        >
-                            <i className="fa-solid fa-xmark text-lg"></i>
-                        </button>
 
-                        <div className="relative w-full h-full flex items-center justify-center max-h-[72vh] overflow-hidden rounded-xl bg-transparent">
-                            <img 
-                                src={activeZoomUrl} 
-                                className="max-w-full max-h-[72vh] object-contain rounded-xl select-none cursor-zoom-out" 
-                                alt="매물 고화질 실사"
-                                onClick={() => setActiveZoomUrl(null)}
-                                loading="lazy"
-                            />
-                            
-                            {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10 w-full h-full">
-                                <i 
-                                    className="fa-solid fa-house select-none pointer-events-none text-6xl sm:text-8xl"
-                                    style={{ 
-                                        color: '#FFFFFF',
-                                        opacity: 0.18,
-                                    }}
-                                ></i>
-                            </div>
-                        </div>
-
-                        <div className="w-full flex flex-col sm:flex-row items-center justify-between mt-3 px-1 gap-2 border-t border-slate-100 pt-3">
-                            <div className="flex items-center gap-2 text-slate-700 w-full justify-start">
-                                <div className="bg-emerald-50 px-2.5 py-1 rounded-md text-emerald-750 text-[10px] sm:text-xs font-black flex items-center gap-1 shrink-0">
-                                    <i className="fa-solid fa-image"></i>
-                                    <span>실사 현장 사진</span>
-                                </div>
-                                <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs">{stripHtml(p.title)}</span>
-                            </div>
-                            <button 
-                                onClick={() => setActiveZoomUrl(null)}
-                                className="bg-slate-900 hover:bg-slate-800 text-white font-black rounded-lg px-4 py-1.5 text-xs tracking-tight transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
-                            >
-                                <i className="fa-solid fa-circle-check text-emerald-400"></i>
-                                <span>원본으로 사진 접기</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    {/* Mobile Tap / Swipe Info */}
-                    <div className="mt-4 text-center text-xs text-slate-300 font-black flex items-center gap-1.5 justify-center opacity-90">
-                        <i className="fa-solid fa-circle-info text-emerald-400"></i>
-                        <span>바깥 검은 여백을 터치하거나 우측 상단 X 아이콘을 누르면 원래 크기로 복귀합니다.</span>
-                    </div>
-                </div>
-            )}
         </section>
     );
 };

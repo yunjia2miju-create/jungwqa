@@ -6,23 +6,23 @@
 @import "tailwindcss";
 
 /* ==========================================
-   Deep Kings Navy (#0B2545) Override
+   Deep Kings Navy (#0D4C3C) Override
    ========================================== */
 #hero-desktop-wrapper, #hero-mobile-wrapper {
-    background: #0B2545 !important;
-    background-color: #0B2545 !important;
+    background: #0D4C3C !important;
+    background-color: #0D4C3C !important;
 }
 
 .search-home-icon {
-    background: #0B2545 !important;
-    background-color: #0B2545 !important;
-    border-color: #0B2545 !important;
+    background: #0D4C3C !important;
+    background-color: #0D4C3C !important;
+    border-color: #0D4C3C !important;
 }
 
 .category-tab.active {
-    background: #0B2545 !important;
-    background-color: #0B2545 !important;
-    border-color: #0B2545 !important;
+    background: #0D4C3C !important;
+    background-color: #0D4C3C !important;
+    border-color: #0D4C3C !important;
     color: #ffffff !important;
     box-shadow: 0 6px 20px rgba(11, 37, 69, 0.4) !important;
     --tw-ring-color: rgba(11, 37, 69, 0.2) !important;

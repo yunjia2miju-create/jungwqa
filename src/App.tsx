@@ -304,7 +304,7 @@ export default function App() {
                 )}
 
                 {activeSection !== 'admin-write' && (
-                    <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium shadow-sm w-full">
+                    <div className="bg-[#0D4C3C] text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium shadow-sm w-full" style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important' }}>
                         <i className="fa-solid fa-bullhorn mr-1"></i> 정직한 발걸음과 생생한 관찰 기록, 구미태왕공인중개사가 전문적인 중개를 약속합니다.
                     </div>
                 )}
@@ -316,7 +316,7 @@ export default function App() {
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
                             <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
                                 <div className="flex items-center space-x-2 group">
-                                    <span className="bg-emerald-600 text-white p-2 sm:p-2.5 rounded-xl shadow-md shadow-emerald-600/20 group-hover:bg-emerald-700 transition-colors">
+                                    <span className="text-white p-2 sm:p-2.5 rounded-xl shadow-md shadow-[#0D4C3C]/20 group-hover:bg-[#113866] transition-colors" style={{ backgroundColor: '#0D4C3C !important' }}>
                                         <i className="fa-solid fa-house-chimney text-lg sm:text-xl"></i>
                                     </span>
                                     <div className="flex items-center gap-2.5 sm:gap-4 ml-1">
@@ -335,8 +335,8 @@ export default function App() {
 
                                         {/* Right brand column: Name / English */}
                                         <div className="flex flex-col justify-center">
-                                            <span className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-none mb-1">
-                                                태왕<span className="text-emerald-600">공인중개사사무소</span>
+                                            <span className="text-base sm:text-lg md:text-xl font-black tracking-tight leading-none mb-1" style={{ color: '#0D4C3C !important' }}>
+                                                태왕공인중개사사무소
                                             </span>
                                             <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
                                                 TAEWANG REAL ESTATE
@@ -368,7 +368,7 @@ export default function App() {
                 </main>
 
                 {activeSection !== 'admin-write' && (
-                    <footer className="bg-slate-950 text-slate-500 py-12 border-t border-slate-900 w-full font-medium mt-auto">
+                    <footer className="!bg-[#0D4C3C] text-slate-500 py-12 border-t border-[#113866] w-full font-medium mt-auto" style={{ background: '#0D4C3C', backgroundColor: '#0D4C3C', backgroundImage: 'none' }}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left w-full">
                             <div className="space-y-2">
                                 <p className="text-base font-black text-slate-300">태왕공인중개사사무소</p>

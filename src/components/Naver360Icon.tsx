@@ -28,11 +28,10 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
         >
             {/* Defs containing rich gradients and smooth shadow filters */}
             <defs>
-                {/* Under Director's request: Deep, highly luxurious dark emerald/royal green gradient */}
+                {/* Under Director's request: Deep Kings Navy solid color */}
                 <linearGradient id="luxury-emerald-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00b074" />
-                    <stop offset="50%" stopColor="#057850" />
-                    <stop offset="100%" stopColor="#092921" />
+                    <stop offset="0%" stopColor="#0D4C3C" />
+                    <stop offset="100%" stopColor="#0D4C3C" />
                 </linearGradient>
                 <filter id="premium-house-shadow" x="-10%" y="-10%" width="120%" height="120%">
                     <feDropShadow dx="0" dy="5" stdDeviation="6" floodColor="#000000" floodOpacity="0.28" />
@@ -54,7 +53,7 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
             {/* House Shape Group: Cute, adorable house symbol with a neat chimney on the right sloped roof */}
             <g>
                 {/* Chimney placed on the right side of the roof intersecting perfectly */}
-                <rect x="63" y="27" width="8" height="15" fill="#1ce98c" rx="1.5" />
+                <rect x="63" y="27" width="8" height="15" fill="#ffffff" rx="1.5" />
                 
                 {/* Unified path for roof overhang and main house body */}
                 <path 
@@ -68,7 +67,7 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
                        L 78,46 
                        L 84,46 
                        Z" 
-                    fill="#1ce98c"
+                    fill="#ffffff"
                 />
             </g>
 
@@ -76,7 +75,7 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
             <text 
                 x="50" 
                 y="63" 
-                fill="#FFFFFF" 
+                fill="#0D4C3C" 
                 fontSize="18.5" 
                 fontWeight="900" 
                 fontFamily="'Inter', 'Space Grotesk', 'JetBrains Mono', 'Noto Sans KR', -apple-system, sans-serif" 

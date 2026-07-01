@@ -1271,7 +1271,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                                 {/* Dynamic continuous high-speed double ring animation */}
                                 <div className="absolute inset-0 rounded-full border-[3px] border-emerald-500/15 border-t-emerald-500 border-r-emerald-500 animate-spin"></div>
                                 <div className="absolute inset-2 rounded-full border-2 border-emerald-400/20 border-b-cyan-400 animate-spin-reverse"></div>
-                                <Naver360Icon size={24} className="text-emerald-400 animate-pulse" />
+                                <Naver360Icon size={24} className="text-[#0D4C3C] animate-pulse" />
                             </div>
                             <div className="space-y-1 select-none">
                                 <h4 className="text-white font-black text-sm tracking-tight flex items-center justify-center gap-1.5">
@@ -1499,7 +1499,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                         <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4 max-w-7xl w-full mx-auto">
                             <div className="flex items-center gap-3">
                                 <span className="bg-emerald-600 text-white p-2 sm:p-2.5 rounded-2xl shadow-xl shadow-emerald-500/10 flex items-center justify-center">
-                                    <Naver360Icon size={32} className="text-white animate-pulse" />
+                                    <Home size={32} className="text-white animate-pulse" strokeWidth={1.8} />
                                 </span>
                                 <div className="flex flex-col text-left">
                                     <h3 className="text-sm sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
@@ -1736,7 +1736,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                 >
                     {/* 1번 영역 - 집 모양 녹색 사각 심볼 확장 및 내부 문자열 강제 결합 */}
                     <div
-                        className="relative flex flex-col items-center justify-center w-[130px] h-[130px] sm:w-[150px] sm:h-[150px] rounded-[24px] sm:rounded-[32px] bg-[#00925c] border-2 border-white/20 shadow-[0_12px_36px_rgba(0,146,92,0.35)] hover:scale-105 active:scale-95 hover:bg-[#008151] transition-all duration-300 cursor-pointer"
+                        className="relative flex flex-col items-center justify-center w-[130px] h-[130px] sm:w-[150px] sm:h-[150px] rounded-[24px] sm:rounded-[32px] bg-[#0D4C3C] border-2 border-white/20 shadow-[0_12px_36px_rgba(11,37,69,0.35)] hover:scale-105 active:scale-95 hover:bg-[#113866] transition-all duration-300 cursor-pointer"
                         id="vr-starter-green-box-btn"
                     >
                         <div className="flex flex-col items-center justify-center gap-2 font-sans text-center">
@@ -1751,7 +1751,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
 
                     {/* 2번 영역 - 매물 정보 명찰 박스 일체형 심볼 바로 밑 정중앙 이동 및 다운사이징 */}
                     <div className="bg-slate-950/75 border border-white/10 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col items-center text-center max-w-[85vw] w-auto">
-                        <span className="text-[8px] sm:text-[9px] font-black bg-[#00925c] text-white px-2 py-0.5 rounded inline-block mb-1 shadow-sm uppercase tracking-wider select-none">
+                        <span className="text-[8px] sm:text-[9px] font-black bg-[#0D4C3C] text-white px-2 py-0.5 rounded inline-block mb-1 shadow-sm uppercase tracking-wider select-none">
                             360° VR 투어 지원
                         </span>
                         <h3 className="text-white font-extrabold text-[11px] sm:text-xs md:text-sm leading-tight tracking-tight select-none text-center" style={{ wordBreak: 'keep-all' }}>

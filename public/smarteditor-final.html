@@ -198,11 +198,15 @@
             transition: all 0.15s ease-in-out;
             font-family: 'Nanum Gothic', sans-serif;
             font-size: 16px;
-            font-weight: 400 !important;
-            line-height: 1.8 !important;
-            color: #1E293B !important;
+            font-weight: 500 !important;
+            line-height: 1.618 !important;
+            letter-spacing: -0.02em !important;
+            color: #111111 !important;
             word-break: break-all;
             background-color: #FFFFFF;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+            text-rendering: optimizeLegibility !important;
         }
         .editor-canvas:focus {
             background-color: #FFFFFF;
@@ -589,7 +593,13 @@
             /* 스코프 제한: 실제 블로그 본문 및 에디터 캔버스 자체의 기본값만 제어하고 개별 요소 스타일은 해방 */
             .editor-canvas {
                 font-size: 16px;
-                font-weight: 400;
+                font-weight: 500 !important;
+                color: #111111 !important;
+                line-height: 1.618 !important;
+                letter-spacing: -0.02em !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+                text-rendering: optimizeLegibility !important;
             }
 
             /* [고대비 외곽선 및 시인성 극대화]: 진한 Slate 계열(#94a3b8)의 2.0px 외곽선 세우기 */

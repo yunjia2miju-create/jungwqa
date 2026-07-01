@@ -13,6 +13,18 @@ const cleanNbsp = (text: string | null | undefined): string => {
     return String(text).replace(/&nbsp;/gi, ' ');
 };
 
+const stripHtml = (text: string | null | undefined): string => {
+    if (!text) return '\u00A0';
+    const stripped = String(text)
+        .replace(/<[^>]*>?/gm, '')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .trim();
+    return stripped || '\u00A0';
+};
+
 export const DetailTab = ({ 
     openPhoneSelectModal,
     showToast
@@ -809,8 +821,8 @@ export const DetailTab = ({
                                                 </span>
                                             )}
                                         </h4>
-                                        <p className="text-slate-500 text-[11px] line-clamp-1">
-                                            {cleanNbsp(rec.title)}
+                                        <p className="text-slate-500 text-[11px] line-clamp-1 min-h-[1.25rem]">
+                                            {stripHtml(rec.title)}
                                         </p>
                                     </div>
                                     <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60">
@@ -878,7 +890,7 @@ export const DetailTab = ({
                                     <i className="fa-solid fa-image"></i>
                                     <span>실사 현장 사진</span>
                                 </div>
-                                <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs">{cleanNbsp(p.title)}</span>
+                                <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs">{stripHtml(p.title)}</span>
                             </div>
                             <button 
                                 onClick={() => setActiveZoomUrl(null)}

@@ -324,10 +324,26 @@ h1, h2, h3, h4, h5, h6 {
     transform-origin: center;
 }
 
+/* ==========================================
+   에디터 및 본문 텍스트 선명도 가속화 (요구사항 1, 2, 3)
+   ========================================== */
+.note-editable, .editor-area, [contenteditable="true"], .editor-content, .property-details, .style-rich-body, .style-rich-intro, #property-description, .markdown-content,
+.note-editable p, .editor-area p, [contenteditable="true"] p, .editor-content p, .property-details p, .style-rich-body p, .style-rich-intro p, #property-description p, .markdown-content p,
+.note-editable span, .editor-area span, [contenteditable="true"] span, .editor-content span, .property-details span, .style-rich-body span, .style-rich-intro span, #property-description span, .markdown-content span,
+.note-editable div, .editor-area div, [contenteditable="true"] div, .editor-content div, .property-details div, .style-rich-body div, .style-rich-intro div, #property-description div, .markdown-content div {
+    color: #111111 !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.618 !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+}
+
 /* Rich text styled rendered contents */
 .style-rich-intro p, .style-rich-body p {
     margin-bottom: 0.75rem;
-    line-height: 1.75;
+    line-height: 1.618 !important;
 }
 
 .style-rich-intro blockquote, .style-rich-body blockquote {

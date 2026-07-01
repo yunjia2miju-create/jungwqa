@@ -76,11 +76,24 @@ export const MainTab = ({
 
     const stripHtml = (htmlText: string | undefined | null) => {
         if (!htmlText) return '';
-        return String(htmlText)
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/&nbsp;/gi, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
+        
+        let text = String(htmlText);
+        
+        try {
+            // 1차: DOM 임시 객체를 통한 완벽한 태그 및 엔티티 디코딩
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+            text = tempDiv.textContent || tempDiv.innerText || '';
+        } catch (e) {
+            // fallback: 정규식 세척
+            text = text.replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+            text = text.replace(/<[^>]*>/g, ' ');
+        }
+        
+        // 2차: 공백 및 줄바꿈 예외 처리
+        text = text.replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+        
+        return text;
     };
 
     const formatDisplayAddress = (addr: string | undefined | null) => {

@@ -7,15 +7,16 @@ import { Post } from '../data';
 // Strips HTML tags for clean textual display
 function stripHtml(htmlStr: string | undefined): string {
     if (!htmlStr) return '';
-    let text = htmlStr.replace(/<[^>]*>/g, ' ');
-    text = text
-        .replace(/&nbsp;/gi, ' ')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'");
-    return text.replace(/\s+/g, ' ').trim();
+    let text = String(htmlStr);
+    try {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = text;
+        text = tempDiv.textContent || tempDiv.innerText || '';
+    } catch (e) {
+        text = text.replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+        text = text.replace(/<[^>]*>/g, ' ');
+    }
+    return text.replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
 }
 
 interface AdminDashboardSectionProps {

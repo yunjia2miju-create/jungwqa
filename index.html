@@ -14,6 +14,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>태왕공인중개사사무소</title>
 
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" />
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
+
+    <style>
+        /* 0.4초 페이드인 스르륵 로딩 */
+        body {
+            animation: fadeIn 0.4s ease-out forwards;
+            opacity: 0;
+            background-color: #f8fafc;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+
     <meta name="naver-site-verification" content="260d86e2408a640874f6f77f5f621042b214ea4d" />
     <meta name="google-site-verification" content="xZ2k8QMduYLRIaY4qQnsu6CgoplDg2T5TUEhI9-V6E8" />
     <meta name="description" content="[공간 실감 360° 현장 VR 투어] 구미 전지역 원룸, 투룸, 오피스텔 실시간 공실 현황 및 프리미엄 책임 중개 전문 태왕공인중개사사무소입니다." />
@@ -305,7 +321,7 @@
     <div id="request-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>✍️ 매물 내놓기 / 문의 의뢰</h2>
+                <h2>매물 내놓기 / 문의 의뢰</h2>
                 <button class="modal-close-btn" onclick="closeRequestModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -333,7 +349,7 @@
 
     <!-- ==================== [모바일 하부 팝업 패널 시스템] ==================== -->
     <div id="panel-favorite" class="mobile-sub-panel">
-        <h3 class="text-sm font-bold text-slate-800 mb-2">⭐️ 즐겨찾기 템플릿</h3>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">즐겨찾기 템플릿</h3>
         <div class="flex flex-col gap-2">
             <button onclick="injectFavoriteItem('template', 'exterior')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">원룸 건물 외관 사진 템플릿</button>
             <button onclick="injectFavoriteItem('template', 'water-pressure')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">특별 수압 테스트 통과 세대</button>
@@ -342,7 +358,7 @@
     </div>
 
     <div id="panel-image" class="mobile-sub-panel">
-        <h3 class="text-sm font-bold text-slate-800 mb-2">📷 이미지 첨부</h3>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">이미지 첨부</h3>
         <button onclick="triggerPhotoUpload()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg shadow-sm mb-3">초록색 사진 파일 선택 버튼</button>
         <div class="grid grid-cols-3 gap-2">
             <button onclick="injectFavoriteItem('image', 'kitchen')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">내부 주방</button>
@@ -352,17 +368,17 @@
     </div>
 
     <div id="panel-sticker" class="mobile-sub-panel">
-        <h3 class="text-sm font-bold text-slate-800 mb-2">😀 스티커 (쥐돌이)</h3>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">스티커 (쥐돌이)</h3>
         <div class="grid grid-cols-4 gap-2">
-            <button onclick="document.execCommand('insertText', false, '🐭')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐭</button>
-            <button onclick="document.execCommand('insertText', false, '🐹')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐹</button>
-            <button onclick="document.execCommand('insertText', false, '🧀')" class="p-2 text-2xl hover:bg-slate-100 rounded">🧀</button>
-            <button onclick="document.execCommand('insertText', false, '🐁')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐁</button>
+            <button onclick="document.execCommand('insertText', false, '(쥐)')" class="p-2 text-xl hover:bg-slate-100 rounded">(쥐)</button>
+            <button onclick="document.execCommand('insertText', false, '(햄스터)')" class="p-2 text-xl hover:bg-slate-100 rounded">(햄스터)</button>
+            <button onclick="document.execCommand('insertText', false, '(치즈)')" class="p-2 text-xl hover:bg-slate-100 rounded">(치즈)</button>
+            <button onclick="document.execCommand('insertText', false, '(생쥐)')" class="p-2 text-xl hover:bg-slate-100 rounded">(생쥐)</button>
         </div>
     </div>
 
     <div id="panel-quote" class="mobile-sub-panel">
-        <h3 class="text-sm font-bold text-slate-800 mb-2">❝ 인용구 및 ↔ 구분선</h3>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">인용구 및 ↔ 구분선</h3>
         <div class="flex flex-col gap-3">
             <div>
                 <span class="text-xs text-slate-500 mb-1 block">에디토리얼 인용 블록 4종</span>
@@ -386,7 +402,7 @@
     </div>
 
     <div id="panel-dice" class="mobile-sub-panel">
-        <h3 class="text-sm font-bold text-slate-800 mb-2">🎲 주사위 마스터 전산 장부</h3>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">주사위 마스터 전산 장부</h3>
         <button onclick="alert('무한 조합 주사위 가동!')" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-sm mb-2">무한 조합 주사위 가동!</button>
         <div class="p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600">
             전산 장부 연동 데이터 레이아웃 탑재 완료.

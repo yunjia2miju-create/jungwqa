@@ -91,8 +91,20 @@ export const MainTab = ({
             .trim();
     };
 
+    const [searchInput, setSearchInput] = React.useState(searchVal);
+    const [isSearching, setIsSearching] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsSearching(true);
+        const t = setTimeout(() => {
+            setSearchVal(searchInput.toLowerCase().trim());
+            setIsSearching(false);
+        }, 300);
+        return () => clearTimeout(t);
+    }, [searchInput, setSearchVal]);
+
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchVal(e.target.value.toLowerCase().trim());
+        setSearchInput(e.target.value);
     };
 
     let filtered = posts.filter(p => {
@@ -165,8 +177,7 @@ export const MainTab = ({
         <section id="main-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-opacity duration-300 w-full">
             {/* Desktop Hero */}
             {!isMobile && (
-                <div id="hero-desktop-wrapper" className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full hidden lg:block">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)] pointer-events-none"></div>
+                <div id="hero-desktop-wrapper" className="bg-[#0B2545] rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full hidden lg:block" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important' } as React.CSSProperties}>
                     <div className="space-y-4 text-left relative z-10 w-full max-w-4xl">
                         <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-widest inline-block">태왕 오리지널 현장 브리핑</span>
                         <h1 className="text-3xl lg:text-5xl font-black leading-tight tracking-tight">
@@ -234,8 +245,7 @@ export const MainTab = ({
 
             {/* Mobile Hero */}
             {isMobile && (
-                <div id="hero-mobile-wrapper" className="block bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-2xl p-5 text-white mb-8 shadow-xl relative overflow-hidden w-full lg:hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_50%)] pointer-events-none"></div>
+                <div id="hero-mobile-wrapper" className="block bg-[#0B2545] rounded-2xl p-5 text-white mb-8 shadow-xl relative overflow-hidden w-full lg:hidden" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important' } as React.CSSProperties}>
                     <div className="relative z-10 flex flex-col space-y-4">
                         <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-left">
                             발로 뛰어 검증한 <br/>정직한 지역 가치와 현장 답사기
@@ -384,7 +394,7 @@ export const MainTab = ({
                 <div id="property-search-title" className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 select-none w-full bg-slate-50 border border-slate-200/80 p-5 rounded-2xl shadow-sm mt-2">
                     <div className="flex items-center gap-4">
                         {/* 눈에 확 띄는 큼직한 집 모양 아이콘 */}
-                        <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-600 to-indigo-950 text-white rounded-xl sm:rounded-2xl shadow-md shrink-0 border border-emerald-400">
+                        <div className="search-home-icon flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#0B2545] text-white rounded-xl sm:rounded-2xl shadow-md shrink-0 border border-[#0B2545]" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important' } as React.CSSProperties}>
                             <i className="fa-solid fa-house-chimney text-2xl sm:text-3xl text-emerald-300 drop-shadow-[0_2px_8px_rgba(52,211,153,0.4)] animate-pulse-slow"></i>
                         </div>
                         <div>
@@ -414,8 +424,8 @@ export const MainTab = ({
                                     onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} 
                                     className={`category-tab select-none cursor-pointer flex items-center justify-center text-center whitespace-nowrap transition-all duration-200 ease-out rounded-2xl py-3.5 sm:py-4.5 px-2.5 font-black text-sm sm:text-base border-2 shadow-[0_4px_10px_rgba(15,23,42,0.08)] ${
                                         isSelected 
-                                            ? 'active bg-gradient-to-br from-emerald-600 to-teal-700 text-white border-emerald-500 scale-[1.03] shadow-[0_6px_20px_rgba(16,185,129,0.35)] ring-2 ring-emerald-400/20' 
-                                            : 'bg-white text-slate-800 border-slate-200 hover:bg-emerald-50/50 hover:text-emerald-700 hover:border-emerald-500 hover:scale-[1.04] hover:shadow-[0_8px_16px_rgba(16,185,129,0.15)] active:scale-95'
+                                            ? 'active bg-[#0B2545] text-white border-[#0B2545] scale-[1.03] shadow-[0_6px_20px_rgba(11,37,69,0.35)] ring-2 ring-[#0B2545]/20' 
+                                            : 'bg-white text-slate-800 border-slate-200 hover:bg-[#0B2545]/10 hover:text-[#0B2545] hover:border-[#0B2545]/50 hover:scale-[1.04] hover:shadow-[0_8px_16px_rgba(11,37,69,0.15)] active:scale-95'
                                     }`}
                                 >
                                     {cat === 'all' ? '전체' : cat}
@@ -472,7 +482,7 @@ export const MainTab = ({
                         </span>
                         <input 
                             type="text" 
-                            value={searchVal} 
+                            value={searchInput} 
                             onChange={handleSearch} 
                             placeholder="건물명 또는 주소 검색..." 
                             className="w-full bg-emerald-50/80 border-2 border-emerald-300/80 text-emerald-950 font-extrabold rounded-2xl pl-11 sm:pl-12 pr-4 sm:pr-5 py-4 sm:py-4.5 text-sm focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15 transition-all placeholder-emerald-700/60 shadow-inner" 
@@ -501,7 +511,7 @@ export const MainTab = ({
                 </div>
             )}
 
-            {totalItems === 0 && !isFetching && (
+            {totalItems === 0 && !(isFetching || isSearching) && (
                 <div className="text-center py-16 sm:py-20 w-full">
                     <div className="bg-slate-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-slate-400">
                         <i className="fa-solid fa-folder-open text-xl sm:text-2xl"></i>
@@ -513,7 +523,7 @@ export const MainTab = ({
 
 
             {/* Notice Message Above List */}
-            {['all', '원룸', '미투', '투룸', '쓰리룸'].includes(activeCategory) && (totalItems > 0 || isFetching) && (
+            {['all', '원룸', '미투', '투룸', '쓰리룸'].includes(activeCategory) && (totalItems > 0 || (isFetching || isSearching)) && (
                 <div className="w-full bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 shadow-sm flex items-center gap-2.5">
                     <i className="fa-solid fa-circle-exclamation text-red-500"></i>
                     <p className="text-red-500 font-black text-xs sm:text-sm">
@@ -523,7 +533,7 @@ export const MainTab = ({
             )}
 
             {/* Desktop Table View */}
-            {false && (totalItems > 0 || isFetching) && (
+            {false && (totalItems > 0 || (isFetching || isSearching)) && (
                 <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm w-full hidden lg:block">
                     <table className="w-full text-center text-xs sm:text-sm border-collapse min-w-[1000px]">
                         <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
@@ -539,7 +549,7 @@ export const MainTab = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
-                            {isFetching ? (
+                            {(isFetching || isSearching) ? (
                                 Array.from({length: 5}).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td className="p-4"><div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse"></div></td>
@@ -614,10 +624,10 @@ export const MainTab = ({
             )}
 
             {/* Properties List View (Responsive Cards) */}
-            {(totalItems > 0 || isFetching) && (
+            {(totalItems > 0 || (isFetching || isSearching)) && (
                 <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
                     <div className="flex flex-col">
-                        {isFetching ? (
+                        {(isFetching || isSearching) ? (
                             Array.from({length: 5}).map((_, i) => (
                                 <div key={i} className="p-4.5 sm:p-5 border-b border-slate-100 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 w-full animate-pulse">
                                     {/* Thumbnail Skeleton */}

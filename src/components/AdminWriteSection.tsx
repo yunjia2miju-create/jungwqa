@@ -75,9 +75,12 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             } else if (e.data.type === 'UPLOAD_FILE') {
                 const { fileData, fileName, uploadType } = e.data.payload;
                 try {
-                    setIsUploading(true);
-                    setUploadProgress(`${fileName} 사진 파이어베이스에 업로드 중...`);
-                    const prefix = uploadType === 'images' ? 'gallery' : 'panoramas';
+                    // Do not block UI for background uploads unless it's thumbnail
+                    if (uploadType === 'thumbnail') {
+                        setIsUploading(true);
+                        setUploadProgress(`대표사진 캡처 및 파이어베이스 전송 중...`);
+                    }
+                    const prefix = uploadType === 'images' ? 'gallery' : uploadType === 'thumbnail' ? 'thumbnails' : 'panoramas';
                     const downloadURL = await uploadResizedBlobToStorage(fileData, fileName, prefix);
                     if (iframeRef.current && iframeRef.current.contentWindow) {
                         iframeRef.current.contentWindow.postMessage({
@@ -88,7 +91,9 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             }
                         }, '*');
                     }
-                    showToast("스토리지에 성공적으로 업로드되었습니다.", "success");
+                    if (uploadType === 'thumbnail') {
+                        showToast("대표사진이 성공적으로 캡처 및 저장되었습니다.", "success");
+                    }
                 } catch (err: any) {
                     console.error("Iframe remote upload error:", err);
                     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -102,8 +107,10 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     }
                     showToast("스토리지 저장에 실패했습니다.", "error");
                 } finally {
-                    setIsUploading(false);
-                    setUploadProgress('');
+                    if (uploadType === 'thumbnail') {
+                        setIsUploading(false);
+                        setUploadProgress('');
+                    }
                 }
             } else if (e.data.type === 'SUBMIT_POST') {
                 await handlePostSubmitDirect(e.data.payload);
@@ -220,7 +227,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         
         // Pick dynamic thumbnail from the images array or default fallback image
         const imgList = data.images ? data.images.split('|').filter(Boolean) : [];
-        const finalThumbnail = imgList.length > 0 ? imgList[0] : defaultImg;
+        const finalThumbnail = data.thumbnail || (imgList.length > 0 ? imgList[0] : defaultImg);
 
         const newPost: Post = {
             id: editingPostId || ('local-' + Date.now()),

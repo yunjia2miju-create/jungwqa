@@ -1363,17 +1363,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
               const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
-              html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              if (html.includes('id="ogUrl"')) {
-                html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogUrl" property="og:url" content="${newUrl}" />\n</head>`);
-              }
-              html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
               
-              if (html.includes('id="ogImage"')) {
-                html = html.replace(/<meta id="ogImage" property="og:image" content="[^"]*"\s*\/?>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              if (html.includes('property="og:image"')) {
+                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
               } else {
                 html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
@@ -1410,17 +1406,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
               const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
-              html = html.replace(/<meta id="ogTitle" property="og:title" content="[^"]*"\s*\/?>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta id="ogDesc" property="og:description" content="[^"]*"\s*\/?>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              if (html.includes('id="ogUrl"')) {
-                html = html.replace(/<meta id="ogUrl" property="og:url" content="[^"]*"\s*\/?>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogUrl" property="og:url" content="${newUrl}" />\n</head>`);
-              }
-              html = html.replace(/<meta name="description" content="[^"]*"\s*\/?>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
               
-              if (html.includes('id="ogImage"')) {
-                html = html.replace(/<meta id="ogImage" property="og:image" content="[^"]*"\s*\/?>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              if (html.includes('property="og:image"')) {
+                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
               } else {
                 html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }

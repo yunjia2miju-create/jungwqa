@@ -199,7 +199,7 @@ export default function App() {
                             className="flex items-center justify-center gap-1 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-slate-700"
                         >
                             <i className="fa-solid fa-phone text-xs"></i>
-                            <span className="break-keep">📞 유선전화</span>
+                            <span className="break-keep">유선전화</span>
                         </a>
                         {/* [버튼 3]: ✍️ 의뢰하기 -> 매물 등록 의뢰 페이지 연동 */}
                         <button 
@@ -220,7 +220,7 @@ export default function App() {
                             className="flex items-center justify-center gap-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-amber-400"
                         >
                             <i className="fa-solid fa-pen-to-square text-xs"></i>
-                            <span className="break-keep">✍️ 의뢰하기</span>
+                            <span className="break-keep">의뢰하기</span>
                         </button>
                     </div>
                 )}
@@ -378,7 +378,7 @@ export default function App() {
                                     <p>연락처 : <a href="tel:054-455-6789" className="hover:text-emerald-500 transition-colors">054-455-6789</a>, <a href="tel:010-7590-0111" className="hover:text-emerald-500 transition-colors">010-7590-0111</a></p>
                                 </div>
                                 <p className="text-[11px] sm:text-xs text-slate-400 font-normal leading-relaxed pt-1.5 break-keep max-w-2xl">
-                                    💡 본 사이트에 게시된 모든 매물 사진 및 360° 파노라마 VR 이미지 등 일체의 콘텐츠는 태왕공인중개사사무소의 고유 자산이며, 저작권법의 보호를 받습니다. 서면 동의 없는 임의 도용, 무단 전재 및 재배포를 엄격히 금지합니다.
+                                    본 사이트에 게시된 모든 매물 사진 및 360° 파노라마 VR 이미지 등 일체의 콘텐츠는 태왕공인중개사사무소의 고유 자산이며, 저작권법의 보호를 받습니다. 서면 동의 없는 임의 도용, 무단 전재 및 재배포를 엄격히 금지합니다.
                                 </p>
                                 <p className="text-[11px] text-slate-700 pt-1">© 2026 Gumi Taewang Real Estate. All rights reserved.</p>
                             </div>

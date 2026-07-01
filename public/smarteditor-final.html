@@ -2054,6 +2054,7 @@
                 body: document.getElementById('guide-canvas').innerHTML,
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
+                thumbnail: representativeThumbnailUrl,
                 isRecommended: document.getElementById('post-isRecommended').checked,
                 fontFamily: document.getElementById('fb-font-family') ? document.getElementById('fb-font-family').value : 'NanumGothic',
                 fontSize: document.getElementById('font-size-selector') ? document.getElementById('font-size-selector').value : '15px'
@@ -2179,19 +2180,58 @@
             e.target.value = '';
         }
 
+        function processImage(file, callback) {
+            const isSmallSize = file.size <= 1024 * 1024;
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                if (img.width <= 1920 || isSmallSize) {
+                    const reader = new FileReader();
+                    reader.onload = e => callback(e.target.result, file.name);
+                    reader.readAsDataURL(file);
+                } else {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const scale = 1920 / img.width;
+                    canvas.width = 1920;
+                    canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    callback(dataUrl, file.name);
+                }
+            };
+            img.onerror = () => {
+                const reader = new FileReader();
+                reader.onload = e => callback(e.target.result, file.name);
+                reader.readAsDataURL(file);
+            };
+            img.src = url;
+        }
+
         async function uploadBatch(files, type, isMain = false) {
+            hideLoader();
+            let queueToast = document.getElementById('upload-queue-toast');
+            if (!queueToast) {
+                queueToast = document.createElement('div');
+                queueToast.id = 'upload-queue-toast';
+                queueToast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl text-sm font-bold z-[999999] transition-all';
+                document.body.appendChild(queueToast);
+            }
+            
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                showLoader(`사진 파일 업로드 중입니다 (${i + 1}/${files.length})`);
-                await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
+                queueToast.style.display = 'block';
+                queueToast.innerText = `사진 파일 고속 압착 및 백그라운드 전송 중... (${i + 1}/${files.length})`;
+                
+                await new Promise((resolve) => {
+                    processImage(file, (dataUrl, fileName) => {
                         if (window.self !== window.top) {
                             window.parent.postMessage({
                                 type: 'UPLOAD_FILE',
                                 payload: {
-                                    fileData: evt.target.result,
-                                    fileName: file.name,
+                                    fileData: dataUrl,
+                                    fileName: fileName,
                                     uploadType: type
                                 }
                             }, '*');
@@ -2201,22 +2241,21 @@
                                 if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === type) {
                                     if (type === 'images') {
                                         if (isMain) {
-                                            if (generalPhotos.length > 0) {
-                                                generalPhotos[0] = msgEvent.data.payload.url;
-                                            } else {
-                                                generalPhotos.push(msgEvent.data.payload.url);
-                                            }
+                                            if (generalPhotos.length > 0) generalPhotos[0] = msgEvent.data.payload.url;
+                                            else generalPhotos.push(msgEvent.data.payload.url);
                                         } else {
                                             generalPhotos.push(msgEvent.data.payload.url);
                                         }
+                                        renderGeneralPhotos();
                                     } else if (type === 'pano') {
                                         panoramaPhotos.push(msgEvent.data.payload.url);
+                                        renderPanoramaPhotos();
                                     }
                                     window.removeEventListener('message', handler);
                                     resolve();
                                 } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === type) {
                                     window.removeEventListener('message', handler);
-                                    reject(new Error(msgEvent.data.payload.message));
+                                    resolve();
                                 }
                             };
                             window.addEventListener('message', handler);
@@ -2224,28 +2263,22 @@
                             const objUrl = URL.createObjectURL(file);
                             if (type === 'images') {
                                 if (isMain) {
-                                    if (generalPhotos.length > 0) {
-                                        generalPhotos[0] = objUrl;
-                                    } else {
-                                        generalPhotos.push(objUrl);
-                                    }
+                                    if (generalPhotos.length > 0) generalPhotos[0] = objUrl;
+                                    else generalPhotos.push(objUrl);
                                 } else {
                                     generalPhotos.push(objUrl);
                                 }
+                                renderGeneralPhotos();
                             } else if (type === 'pano') {
                                 panoramaPhotos.push(objUrl);
+                                renderPanoramaPhotos();
                             }
                             resolve();
                         }
-                    };
-                    reader.readAsDataURL(file);
-                }).catch(err => {
-                    alert('실패: ' + err.message);
+                    });
                 });
             }
-            hideLoader();
-            if (type === 'images') renderGeneralPhotos();
-            if (type === 'pano') renderPanoramaPhotos();
+            queueToast.style.display = 'none';
             notifyParent();
         }
 
@@ -2316,6 +2349,10 @@
                                     </button>
                                 </div>
                                 <div class="flex items-center gap-1">
+                                    <!-- Representative Photo Button -->
+                                    <button onclick="setRepresentativePhoto('general', ${actualIdx})" type="button" class="text-amber-400 hover:text-amber-500 rounded flex items-center justify-center cursor-pointer transition-all" style="padding: 0 !important; width: 15px !important; height: 15px !important; margin-right: 2px !important;" title="대표사진 지정">
+                                        <i class="fa-solid fa-star" style="font-size: 10px !important;"></i>
+                                    </button>
                                     <!-- Drag Handle symbol (↕) -->
                                     <span class="text-slate-400 font-bold select-none cursor-grab" style="font-size: 10px !important; margin: 0 1px !important;" title="순서 변경">↕</span>
                                     <!-- Delete Button (70% Compact Scale) -->
@@ -2327,6 +2364,7 @@
                             <!-- 16:9 Image Area with absolute order indicator badge -->
                             <div class="relative w-full aspect-video overflow-hidden" style="aspect-ratio: 16 / 9 !important;">
                                 <img data-src="${url}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'><rect width='100%' height='100%' fill='%23cbd5e1'/></svg>" class="w-full h-full object-cover lazy-load-img" loading="lazy">
+                                <div contenteditable="true" class="rep-overlay-layer absolute inset-0 m-2 flex items-center justify-center text-white font-black text-center text-lg bg-black/30 rounded-lg border-2 border-dashed border-white/50 focus:border-solid focus:border-amber-400 focus:bg-black/50 outline-none transition-all" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);" placeholder="여기에 대표 글자 입력"></div>
                                 <div class="absolute top-1 left-1 bg-black/75 text-white font-black rounded backdrop-blur-xs select-none border border-white/10 shadow-sm" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important;">
                                     [${idx + 1}]
                                 </div>
@@ -2376,12 +2414,18 @@
                 item.style.aspectRatio = "16 / 9";
                 item.onclick = (e) => {
                     if (e.target.closest('button')) return;
+                    if (e.target.closest('.rep-overlay-layer')) return;
                     loadPanoramaInViewer(url);
                 };
                 item.innerHTML = `
                     <img data-src="${url}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'><rect width='100%' height='100%' fill='%23cbd5e1'/></svg>" class="w-full h-full object-cover lazy-load-img" loading="lazy">
+                    <div contenteditable="true" class="rep-overlay-layer absolute inset-0 m-2 flex items-center justify-center text-white font-black text-center text-lg bg-black/30 rounded-lg border-2 border-dashed border-white/50 focus:border-solid focus:border-amber-400 focus:bg-black/50 outline-none transition-all" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);" placeholder="여기에 대표 글자 입력"></div>
                     <!-- Diet/Minimal VR Label Badge (70% Compact Scale) -->
                     <div class="absolute top-1 left-1 bg-emerald-600/90 text-white font-bold rounded shadow-xs select-none" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important; border: 1px solid rgba(16, 185, 129, 0.2);">VR 360 파노라마 실사</div>
+                    <!-- Representative Photo Button -->
+                    <div class="absolute top-1 right-1">
+                        <button onclick="setRepresentativePhoto('pano', ${idx})" type="button" class="text-amber-400 hover:text-amber-300 rounded flex items-center justify-center cursor-pointer drop-shadow-md" style="padding: 0 !important; width: 18px !important; height: 18px !important;" title="대표사진 지정"><i class="fa-solid fa-star" style="font-size: 14px !important;"></i></button>
+                    </div>
                     <!-- Delete Button (70% Compact Scale) -->
                     <div class="absolute bottom-1 right-1">
                         <button onclick="deletePanoramaPhoto(${idx})" type="button" class="bg-rose-600 text-white hover:bg-rose-500 rounded flex items-center justify-center cursor-pointer shadow-sm" style="width: 15px !important; height: 15px !important; padding: 0 !important;"><i class="fa-solid fa-trash" style="font-size: 8px !important;"></i></button>
@@ -2397,6 +2441,71 @@
             renderPanoramaPhotos();
             document.getElementById('panorama-viewer-container').classList.add('hidden');
             notifyParent();
+        }
+
+        let representativeThumbnailUrl = '';
+
+        function setRepresentativePhoto(type, idx) {
+            let imgUrl = type === 'pano' ? panoramaPhotos[idx] : generalPhotos[idx];
+            if (!imgUrl) return;
+            const containerSelector = type === 'pano' ? '#pano-photos-list > div:nth-child('+(idx+1)+')' : '#additional-photos-stack > div:nth-child('+idx+')';
+            const container = document.querySelector(containerSelector);
+            const overlayLayer = container ? container.querySelector('.rep-overlay-layer') : null;
+            
+            showLoader("대표사진 실시간 캡처 중...");
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                if (overlayLayer && overlayLayer.innerText.trim() !== '') {
+                    // Draw overlay text
+                    const text = overlayLayer.innerText.trim();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold ' + (canvas.height * 0.15) + 'px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 10;
+                    ctx.lineWidth = 5;
+                    ctx.strokeText(text, canvas.width/2, canvas.height/2);
+                    ctx.fillText(text, canvas.width/2, canvas.height/2);
+                }
+                
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                if (window.self !== window.top) {
+                    window.parent.postMessage({
+                        type: 'UPLOAD_FILE',
+                        payload: { fileData: dataUrl, fileName: 'representative_capture.jpg', uploadType: 'thumbnail' }
+                    }, '*');
+
+                    const handler = (msgEvent) => {
+                        if (!msgEvent.data) return;
+                        if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === 'thumbnail') {
+                            representativeThumbnailUrl = msgEvent.data.payload.url;
+                            window.removeEventListener('message', handler);
+                            hideLoader();
+                            alert('대표사진이 성공적으로 지정되었습니다.');
+                        } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === 'thumbnail') {
+                            window.removeEventListener('message', handler);
+                            hideLoader();
+                            alert('캡처 전송 실패');
+                        }
+                    };
+                    window.addEventListener('message', handler);
+                } else {
+                    representativeThumbnailUrl = dataUrl;
+                    hideLoader();
+                }
+            };
+            img.onerror = () => { alert('이미지 캡처 실패'); hideLoader(); };
+            img.src = imgUrl;
         }
 
         let pannellumViewerInstance = null;
@@ -4388,6 +4497,7 @@
                 body: cleanBody,
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
+                thumbnail: representativeThumbnailUrl,
                 isRecommended: document.getElementById('post-isRecommended').checked,
                 fontFamily: document.getElementById('fb-font-family') ? document.getElementById('fb-font-family').value : 'NanumGothic',
                 fontSize: document.getElementById('font-size-selector') ? document.getElementById('font-size-selector').value : '15px'

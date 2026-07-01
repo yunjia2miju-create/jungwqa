@@ -60,30 +60,39 @@ export default function App() {
         };
         window.addEventListener('submitDirectInquiry', handleDirectInquiry);
 
-        // Fetch posts through unified cloud database service
-        getPostsService()
-            .then(data => {
-                setPosts(data);
-                
-                // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
-                const params = new URLSearchParams(window.location.search);
-                const urlPostId = params.get('id') || params.get('postId');
-                if (urlPostId) {
-                    const postExists = data.some(p => p.id === urlPostId);
-                    if (postExists) {
-                        useAppStore.getState().setSelectedPostId(urlPostId);
-                        useAppStore.getState().setActiveSection('detail');
+        // [비동기 지연 로딩 시공] 화면 뼈대(DOM) 선행 노출 후 백그라운드에서 무거운 데이터를 불러옵니다.
+        const fetchData = () => {
+            // Fetch posts through unified cloud database service
+            getPostsService()
+                .then(data => {
+                    setPosts(data);
+                    
+                    // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
+                    const params = new URLSearchParams(window.location.search);
+                    const urlPostId = params.get('id') || params.get('postId');
+                    if (urlPostId) {
+                        const postExists = data.some(p => p.id === urlPostId);
+                        if (postExists) {
+                            useAppStore.getState().setSelectedPostId(urlPostId);
+                            useAppStore.getState().setActiveSection('detail');
+                        }
                     }
-                }
-            })
-            .catch(err => console.error("매물 목록을 불러오는 중 오류 발생:", err));
+                })
+                .catch(err => console.error("매물 목록을 불러오는 중 오류 발생:", err));
 
-        // Fetch inquiries through unified cloud database service
-        getInquiriesService()
-            .then(data => {
-                setInquiries(data);
-            })
-            .catch(err => console.error("의뢰 목록을 불러오는 중 오류 발생:", err));
+            // Fetch inquiries through unified cloud database service
+            getInquiriesService()
+                .then(data => {
+                    setInquiries(data);
+                })
+                .catch(err => console.error("의뢰 목록을 불러오는 중 오류 발생:", err));
+        };
+
+        if (document.readyState === 'complete') {
+            setTimeout(fetchData, 100);
+        } else {
+            window.addEventListener('load', () => setTimeout(fetchData, 100));
+        }
 
         // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active
         const unsubscribe = onAuthStateChanged(auth, (user) => {

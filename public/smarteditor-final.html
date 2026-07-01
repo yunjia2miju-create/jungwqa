@@ -21,8 +21,10 @@
         /* ==========================================
            소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격
            ========================================== */
-        html, body, div, span {
+        div:not(#editor-master-top-panel):not(header), span {
             transform: translate3d(0, 0, 0) !important;
+        }
+        html, body, div, span {
             -webkit-font-smoothing: antialiased !important;
             -moz-osx-font-smoothing: grayscale !important;
             text-rendering: optimizeLegibility !important;
@@ -34,13 +36,13 @@
 
         /* [1번] 마루부리 */
         @font-face {
-            font-family: '마루부리';
+            font-family: 'MaruBuri';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Regular.ttf?alt=media&token=2b69fbc0-96a8-46c0-ba6a-a6ead4b64671') format('truetype');
             font-weight: 400;
             font-display: swap;
         }
         @font-face {
-            font-family: '마루부리';
+            font-family: 'MaruBuri';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FMaruBuriTTF%2FMaruBuri-Bold.ttf?alt=media&token=47ef75d2-75c0-416d-9b0d-df37bb35f257') format('truetype');
             font-weight: 700;
             font-display: swap;
@@ -48,13 +50,13 @@
 
         /* [2번] 나눔바른고딕 */
         @font-face {
-            font-family: '나눔바른고딕';
+            font-family: 'NanumBarunGothic';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothic.ttf?alt=media&token=28fda42d-0f43-4e1c-8d04-6b75b29ea960') format('truetype');
             font-weight: 400;
             font-display: swap;
         }
         @font-face {
-            font-family: '나눔바른고딕';
+            font-family: 'NanumBarunGothic';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_BARUNGOTHIC%2FNanumBarunGothicBold.ttf?alt=media&token=ed8e7704-8fb3-4a28-84db-a5607a388cce') format('truetype');
             font-weight: 700;
             font-display: swap;
@@ -62,13 +64,13 @@
 
         /* [3번] 나눔고딕 */
         @font-face {
-            font-family: '나눔고딕';
+            font-family: 'NanumGothic';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothic.ttf?alt=media&token=b7438dca-9864-4e9d-9f2f-fa3b963bd149') format('truetype');
             font-weight: 400;
             font-display: swap;
         }
         @font-face {
-            font-family: '나눔고딕';
+            font-family: 'NanumGothic';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_GOTHIC%2FNanumGothicBold.ttf?alt=media&token=860a8c44-e0dc-41e2-9493-9af1ff139059') format('truetype');
             font-weight: 700;
             font-display: swap;
@@ -76,13 +78,13 @@
 
         /* [4번] 나눔스퀘어 */
         @font-face {
-            font-family: '나눔스퀘어';
+            font-family: 'NanumSquare';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acR.ttf?alt=media&token=ebed2d9c-9797-4c0f-8d12-1897caa33a82') format('truetype');
             font-weight: 400;
             font-display: swap;
         }
         @font-face {
-            font-family: '나눔스퀘어';
+            font-family: 'NanumSquare';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_SQUARE%2FNanumSquare_acB.ttf?alt=media&token=ba37a539-ded4-49eb-9d05-c8d97d737ab3') format('truetype');
             font-weight: 700;
             font-display: swap;
@@ -90,13 +92,13 @@
 
         /* [5번] 나눔명조 */
         @font-face {
-            font-family: '나눔명조';
+            font-family: 'NanumMyeongjo';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjo.ttf?alt=media&token=cc825be5-1c1f-4456-a610-04d280ddc7d2') format('truetype');
             font-weight: 400;
             font-display: swap;
         }
         @font-face {
-            font-family: '나눔명조';
+            font-family: 'NanumMyeongjo';
             src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2FNanumFontSetup_TTF_MYUNGJO%2FNanumMyeongjoBold.ttf?alt=media&token=c21aacaf-c99b-4043-a110-235f4a7338dc') format('truetype');
             font-weight: 700;
             font-display: swap;
@@ -149,6 +151,11 @@
             font-style: normal;
             font-display: swap;
         }
+        
+        /* [추가 폰트] yunjia2, 3, 4 */
+        @font-face { font-family: 'yunjia2'; src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia2%2Fyunjia2.ttf?alt=media&token=ac563ee5-54f0-4b78-a6fc-89aae9ff4188') format('truetype'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'yunjia3'; src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia3%2Fyunjia3.ttf?alt=media&token=825c35f2-7953-472b-98fb-68d99f2e35bb') format('truetype'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'yunjia4'; src: url('https://firebasestorage.googleapis.com/v0/b/gumi-today-room-tv.firebasestorage.app/o/fonts%2Fyunjia4%2Fyunjia4.ttf?alt=media&token=8dda2df0-6a89-4eec-91b4-dbb318dc98e6') format('truetype'); font-weight: 400; font-display: swap; }
         
         /* ==========================================
            Font Awesome Icon Restoration (10pt 쨍하게 표출)
@@ -378,9 +385,19 @@
         }
 
         /* =======================================================
-           [1. 모바일 화면 전용 레이아웃 대수술 및 V14 디자인 밸런스 유지]
+           [1. 모바일 및 태블릿 화면 전용 레이아웃 대수술 및 V14 디자인 밸런스 유지]
            ======================================================= */
-        @media screen and (max-width: 768px) {
+        @media screen and (max-width: 1024px) {
+            #editor-master-top-panel {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                z-index: 2147483647 !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
             /* [전체 프레임 구조]: 1단 롤링 구조로 유연하게 전환 */
             body, html {
                 overflow-y: auto !important;
@@ -392,23 +409,12 @@
                 flex-direction: column !important;
                 height: auto !important;
                 overflow: visible !important;
-                margin-top: 0 !important;
+                margin-top: 80px !important;
             }
 
-            /* [최상단 고정바 및 스마트 메뉴]: 모바일 상단 메뉴 완전 고정 (Sticky Fix) 적용 */
-            header {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                z-index: 9999 !important;
-                width: 100% !important;
-                height: auto !important;
-                min-height: auto !important;
-                padding-top: 6px !important;
-                padding-bottom: 6px !important;
-                background-color: #ffffff !important;
-                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+            /* 기존 PC용 헤더 완전 숨김 처리 */
+            header#pc-toolbar {
+                display: none !important;
             }
             header > div:first-child {
                 display: none !important; /* 브랜드 명판 숨김 */
@@ -460,17 +466,24 @@
                 border: 1.5px solid #94a3b8 !important;
             }
 
-            /* [하단 좌측 3구역 제어실]: 작업실 맨 아래로 이동하여 결착 */
-            aside {
-                order: 2 !important;
+            /* [모바일 전용 압착 구조] */
+            #desktop-char-counts, #desktop-focus-badge {
+                display: none !important;
+            }
+            #mobile-only-components {
+                display: flex !important;
                 width: 100% !important;
-                max-width: none !important;
-                min-width: 0 !important;
-                height: auto !important;
-                overflow: visible !important;
-                border-right: none !important;
-                border-top: 1.5px solid #94a3b8 !important;
-                background-color: #F8FAFC !important;
+                justify-content: center !important;
+                border-left: none !important;
+                border-top: 1px solid #e2e8f0 !important;
+                padding-left: 0 !important;
+                padding-top: 6px !important;
+                margin-top: 2px !important;
+            }
+
+            /* [하단 좌측 3구역 제어실]: 작업실 맨 아래로 이동하여 결착 (모바일에서는 완전히 숨김) */
+            aside {
+                display: none !important;
             }
             main.w-\[75\%\] {
                 order: 1 !important;
@@ -838,6 +851,35 @@
                 padding: 6px 10px !important;
             }
         }
+        @media (max-width: 1024px) {
+            .mobile-sub-panel {
+                position: fixed !important;
+                top: 85px !important; /* 상단 3층 패널 높이 고려 */
+                left: 0 !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                z-index: 99999 !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+                display: none !important;
+                padding: 15px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+                box-sizing: border-box !important;
+                max-height: calc(100vh - 85px) !important;
+                overflow-y: auto !important;
+            }
+            .mobile-sub-panel.active {
+                display: block !important;
+            }
+        }
+        /* PC Toolbar */
+        @media (min-width: 1025px) {
+            #mobile-sticky-toolbar, #editor-master-top-panel {
+                display: none !important;
+            }
+            .mobile-sub-panel {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col text-slate-800 antialiased h-screen w-screen overflow-hidden">
@@ -855,7 +897,7 @@
     <input type="hidden" id="post-transactionType" value="월세">
 
     <!-- ==================== [TOP FIXED BAR] Master Horizontal Fixed Bar ==================== -->
-    <header class="fixed top-0 left-0 right-0 h-[70px] border-b border-slate-200 bg-white flex flex-row items-center justify-between shrink-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] z-50 select-none">
+    <header id="pc-toolbar" class="fixed top-0 left-0 right-0 h-[70px] border-b border-slate-200 bg-white flex flex-row items-center justify-between shrink-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] z-50 select-none">
         <!-- Left: Brand 명판 (구미 태왕공인중개사사무소) -->
         <div class="w-[25%] h-full px-5 flex items-center border-r border-slate-200 bg-white shrink-0">
             <div class="flex items-center gap-3">
@@ -873,16 +915,15 @@
                 <!-- Font family select -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-400 select-none">글꼴</span>
-                    <select id="font-family-selector" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
-                        <option value="inherit">기본서체</option>
-                        <option value="마루부리">마루부리</option>
-                        <option value="나눔바른고딕">나눔바른고딕</option>
-                        <option value="나눔고딕" selected>나눔고딕</option>
-                        <option value="나눔스퀘어">나눔스퀘어</option>
-                        <option value="나눔명조">나눔명조</option>
-                        <option value="다시시작해">다시시작해</option>
-                        <option value="바른히피">바른히피</option>
-                        <option value="우리딸손글씨">우리딸 손글씨</option>
+                    <select id="fb-font-family" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700">
+                        <option value="NanumGothic" selected>나눔고딕</option>
+                        <option value="MaruBuri">마루부리</option>
+                        <option value="NanumBarunGothic">나눔바른고딕</option>
+                        <option value="NanumMyeongjo">나눔명조</option>
+                        <option value="NanumSquare">나눔스퀘어</option>
+                        <option value="yunjia2">yunjia2</option>
+                        <option value="yunjia3">yunjia3</option>
+                        <option value="yunjia4">yunjia4</option>
                     </select>
                 </div>
 
@@ -1026,8 +1067,36 @@
                     </button>
                 </div>
 
+                <!-- [모바일 전용 2층 컴포넌트 압착 구역] (PC에서는 숨김) -->
+                <div id="mobile-only-components" class="hidden items-center gap-2 border-l border-slate-200 pl-2">
+                    <button onclick="document.execCommand('insertText', false, '★')" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="즐겨찾기">
+                        <i class="fa-solid fa-star" style="color:#fbbf24;"></i>
+                    </button>
+                    <button onclick="const url = prompt('이미지 URL을 입력하세요:'); if (url) document.execCommand('insertImage', false, url);" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="이미지 삽입">
+                        <i class="fa-regular fa-image"></i>
+                    </button>
+                    <button onclick="const emoji = prompt('이모지를 입력하세요 (예: 😊):'); if (emoji) document.execCommand('insertText', false, emoji);" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="이모지">
+                        <span>😀</span>
+                    </button>
+                    <button onclick="document.execCommand('insertText', false, '❝ ')" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all font-bold" title="인용구 시작">
+                        ❝
+                    </button>
+                    <button onclick="document.execCommand('insertText', false, ' ❞')" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all font-bold" title="인용구 끝">
+                        ❞
+                    </button>
+                    <button onclick="document.execCommand('insertHorizontalRule', false, null)" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all font-bold" title="수평선">
+                        ===
+                    </button>
+                    <button onclick="document.execCommand('insertText', false, '----------------------------------------')" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all font-bold" title="마이너스선">
+                        ---
+                    </button>
+                    <button onclick="const url = prompt('링크 주소를 입력하세요 (해제하려면 내용을 비우고 확인):'); if (url) { document.execCommand('createLink', false, url); } else if (url === '') { document.execCommand('unlink'); }" type="button" class="w-8 h-8 hover:bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all" title="링크 삽입/해제">
+                        <i class="fa-solid fa-link"></i>
+                    </button>
+                </div>
+
                 <!-- Character counts -->
-                <div class="flex items-center gap-2 font-bold text-slate-500 text-xs select-none shrink-0">
+                <div id="desktop-char-counts" class="flex items-center gap-2 font-bold text-slate-500 text-xs select-none shrink-0">
                     <span>글자수 <span id="char-count-total" class="text-emerald-600 font-extrabold">0</span>자</span>
                     <div class="text-[10px] text-slate-400 flex items-center gap-1">
                         <span>(한글 <span id="char-count-korean">0</span></span>
@@ -1036,7 +1105,7 @@
                 </div>
 
                 <!-- Focus badge -->
-                <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 select-none shrink-0 ml-1">
+                <div id="desktop-focus-badge" class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 select-none shrink-0 ml-1">
                     <span class="text-[10px] text-slate-400 uppercase font-black">포커스</span>
                     <span id="active-editor-badge" class="text-xs font-black text-slate-700 truncate max-w-[120px]">[책임 소장 한마디]</span>
                 </div>
@@ -1059,6 +1128,65 @@
             </div>
         </div>
     </header>
+
+    <!-- ==================== [MOBILE STICKY BAR] (Max-width: 1024px) ==================== -->
+    <div id="editor-master-top-panel" class="bg-white border-b border-slate-200 shadow-sm select-none w-full">
+        <!-- 1층: 글꼴/크기 -->
+        <div class="flex items-center justify-start px-2 py-1.5 border-b border-slate-100 gap-3">
+            <div class="flex items-center gap-1">
+                <span class="text-[10px] font-bold text-slate-400">글꼴</span>
+                <select id="fb-font-family-mobile" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-md px-1.5 py-1 text-[10px] font-bold focus:outline-none cursor-pointer text-slate-700">
+                    <option value="NanumGothic" selected>나눔고딕</option>
+                    <option value="MaruBuri">마루부리</option>
+                    <option value="NanumBarunGothic">나눔바른고딕</option>
+                    <option value="NanumMyeongjo">나눔명조</option>
+                    <option value="NanumSquare">나눔스퀘어</option>
+                    <option value="yunjia2">yunjia2</option>
+                    <option value="yunjia3">yunjia3</option>
+                    <option value="yunjia4">yunjia4</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-1">
+                <span class="text-[10px] font-bold text-slate-400">크기</span>
+                <select id="font-size-selector-mobile" onchange="applyFontSize(this.value)" class="bg-slate-50 border border-slate-200 rounded-md px-1.5 py-1 text-[10px] font-bold focus:outline-none cursor-pointer text-slate-700">
+                    <option value="11px">11</option>
+                    <option value="13px">13</option>
+                    <option value="15px" selected>15</option>
+                    <option value="16px">16</option>
+                    <option value="19px">19</option>
+                    <option value="24px">24</option>
+                    <option value="28px">28</option>
+                    <option value="30px">30</option>
+                    <option value="34px">34</option>
+                </select>
+            </div>
+        </div>
+        <!-- 2층: B/I/U/S/A/T/정렬 -->
+        <div class="flex items-center justify-between px-2 py-1.5 border-b border-slate-100">
+            <div class="flex items-center gap-1">
+                <button onclick="document.execCommand('bold', false, null); updateCharacterCounts();" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center text-[12px] font-black cursor-pointer">B</button>
+                <button onclick="document.execCommand('italic', false, null); updateCharacterCounts();" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center text-[12px] italic font-black cursor-pointer">I</button>
+                <button onclick="document.execCommand('underline', false, null); updateCharacterCounts();" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center text-[12px] underline font-black cursor-pointer">U</button>
+                <button onclick="document.execCommand('strikeThrough', false, null); updateCharacterCounts();" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center text-[12px] line-through font-black cursor-pointer">S</button>
+                <button onclick="toggleTextColorPicker(event)" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex flex-col items-center justify-center cursor-pointer relative"><span class="text-[12px] font-black leading-none">A</span></button>
+                <button onclick="toggleBgColorPicker(event)" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex flex-col items-center justify-center cursor-pointer relative"><span class="text-[12px] font-black leading-none bg-yellow-200 px-0.5 rounded-xs">T</span></button>
+            </div>
+            <div class="flex items-center gap-1">
+                <button onclick="document.execCommand('justifyLeft', false, null);" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center cursor-pointer"><i class="fa-solid fa-align-left text-[11px]"></i></button>
+                <button onclick="document.execCommand('justifyCenter', false, null);" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center cursor-pointer"><i class="fa-solid fa-align-center text-[11px]"></i></button>
+                <button onclick="document.execCommand('justifyRight', false, null);" type="button" class="w-7 h-7 hover:bg-slate-100 text-slate-700 rounded-md flex items-center justify-center cursor-pointer"><i class="fa-solid fa-align-right text-[11px]"></i></button>
+            </div>
+        </div>
+        <!-- 3층 (v7.0 도구셋 컴팩트) -->
+        <div class="flex items-center justify-start gap-4 px-3 py-1.5 bg-slate-50">
+            <button onclick="toggleMobilePanel('panel-favorite')" type="button" class="w-8 h-8 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all"><i class="fa-solid fa-star" style="color:#fbbf24; font-size:16px;"></i></button>
+            <button onclick="toggleMobilePanel('panel-image')" type="button" class="w-8 h-8 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all"><i class="fa-regular fa-image" style="font-size:16px;"></i></button>
+            <button onclick="toggleMobilePanel('panel-sticker')" type="button" class="w-8 h-8 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all"><i class="fa-regular fa-face-smile" style="font-size:16px;"></i></button>
+            <button onclick="toggleMobilePanel('panel-quote')" type="button" class="w-8 h-8 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all"><i class="fa-solid fa-quote-left" style="font-size:16px;"></i></button>
+            <button onclick="toggleMobilePanel('panel-quote')" type="button" class="w-8 h-8 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all"><i class="fa-solid fa-arrows-left-right" style="font-size:16px;"></i></button>
+            <button onclick="toggleMobilePanel('panel-dice')" type="button" class="w-8 h-8 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center cursor-pointer transition-all"><i class="fa-solid fa-dice" style="color:#9333ea; font-size:16px;"></i></button>
+        </div>
+    </div>
 
     <!-- ==================== [CONTENT BODY] Dual Independent Scrolling Panels ==================== -->
     <div class="flex-1 flex flex-row w-full overflow-hidden h-[calc(100vh-70px)] mt-[70px]">
@@ -1606,6 +1734,19 @@
 
     <!-- Editor Logic -->
     <script type="text/javascript">
+        /* [모바일 상단 아이콘 터치 토글 및 하부 패널 제어] */
+        function toggleMobilePanel(panelId) {
+            if (window.innerWidth > 1024) return;
+            const panels = document.querySelectorAll('.mobile-sub-panel');
+            panels.forEach(p => {
+                if (p.id === panelId) {
+                    p.classList.toggle('active');
+                } else {
+                    p.classList.remove('active');
+                }
+            });
+        }
+
         // Procedural high-fidelity stickers compilation
         const STICKERS = [];
 
@@ -1914,7 +2055,7 @@
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
                 isRecommended: document.getElementById('post-isRecommended').checked,
-                fontFamily: document.getElementById('font-family-selector') ? document.getElementById('font-family-selector').value : '나눔고딕',
+                fontFamily: document.getElementById('fb-font-family') ? document.getElementById('fb-font-family').value : 'NanumGothic',
                 fontSize: document.getElementById('font-size-selector') ? document.getElementById('font-size-selector').value : '15px'
             };
             window.parent.postMessage({
@@ -2429,9 +2570,9 @@
 
                 if (isNaN(sizePx)) return;
 
-                // 에디터 상단 메뉴의 실제 지원 규격 (11px ~ 38px)
-                const targetSizes = [11, 13, 15, 16, 19, 24, 28, 30, 34, 38];
-                let closestSize = 16; // 기본값 16
+                // 에디터 상단 메뉴의 실제 지원 규격
+                const targetSizes = [11, 13, 15, 16, 19, 24, 28, 30, 34];
+                let closestSize = 15; // 기본값 15
                 let minDiff = Infinity;
                 targetSizes.forEach(sz => {
                     const diff = Math.abs(sizePx - sz);
@@ -2442,14 +2583,13 @@
                 });
 
                 const targetVal = closestSize + 'px';
-                const selector = document.getElementById('font-size-selector');
-                const floatingSelector = document.getElementById('floating-font-size');
-                if (selector && selector.value !== targetVal) {
-                    selector.value = targetVal;
-                }
-                if (floatingSelector && floatingSelector.value !== targetVal) {
-                    floatingSelector.value = targetVal;
-                }
+                const selectors = ['font-size-selector', 'font-size-selector-mobile', 'floating-font-size'];
+                selectors.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && el.value !== targetVal) {
+                        el.value = targetVal;
+                    }
+                });
             } catch (err) {
                 console.error("updateUIFontSizeFromCaret error:", err);
             }
@@ -2501,29 +2641,29 @@
                 if (!matchedFontStr) return;
 
                 const fontStrClean = matchedFontStr.replace(/['"]/g, '').toLowerCase();
-                const selector = document.getElementById('font-family-selector');
-                const floatingSelector = document.getElementById('floating-font-family');
-                if (selector) {
-                    let matched = false;
-                    for (let i = 0; i < selector.options.length; i++) {
-                        const optVal = selector.options[i].value.replace(/['"]/g, '').toLowerCase();
+                const selectors = ['fb-font-family', 'fb-font-family-mobile', 'floating-font-family'];
+                let matched = false;
+                
+                const mainSelector = document.getElementById('fb-font-family');
+                if (mainSelector) {
+                    let targetVal = 'inherit';
+                    for (let i = 0; i < mainSelector.options.length; i++) {
+                        const optVal = mainSelector.options[i].value.replace(/['"]/g, '').toLowerCase();
                         if (optVal === 'inherit') continue;
                         const firstFontOfOpt = optVal.split(',')[0].trim();
                         if (fontStrClean.includes(firstFontOfOpt) || optVal.includes(fontStrClean)) {
-                            if (selector.value !== selector.options[i].value) {
-                                selector.value = selector.options[i].value;
-                            }
-                            if (floatingSelector && floatingSelector.value !== selector.options[i].value) {
-                                floatingSelector.value = selector.options[i].value;
-                            }
+                            targetVal = mainSelector.options[i].value;
                             matched = true;
                             break;
                         }
                     }
                     if (!matched) {
-                        selector.value = 'inherit';
-                        if (floatingSelector) floatingSelector.value = 'inherit';
+                        targetVal = 'inherit';
                     }
+                    selectors.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el && el.value !== targetVal) el.value = targetVal;
+                    });
                 }
             } catch (err) {
                 console.error("updateUIFontFamilyFromCaret error:", err);
@@ -2633,12 +2773,16 @@
             });
 
             // 실시간 selectionchange 이벤트 리스너를 더해 커서 드래그 및 정밀 이동까지 즉시 포착
+            let selectionSyncTimer = null;
             document.addEventListener('selectionchange', () => {
-                const activeEl = document.activeElement;
-                if (activeEl && activeEl.classList && activeEl.classList.contains('editor-canvas')) {
-                    updateUIFontSizeFromCaret();
-                    updateUIFontFamilyFromCaret();
-                }
+                if (selectionSyncTimer) clearTimeout(selectionSyncTimer);
+                selectionSyncTimer = setTimeout(() => {
+                    const activeEl = document.activeElement;
+                    if (activeEl && activeEl.classList && activeEl.classList.contains('editor-canvas')) {
+                        updateUIFontSizeFromCaret();
+                        updateUIFontFamilyFromCaret();
+                    }
+                }, 200);
             });
 
             // Prevent focus dispersion & save selection before click focus leaves editor
@@ -2723,10 +2867,21 @@
 
         // Apply Font Styles (드래그된 텍스트 실시간 0.1초 즉시 적용 및 무결점 강제 주입)
         function applyFontFamily(fontName) {
-            const selector = document.getElementById('font-family-selector');
-            const floatingSelector = document.getElementById('floating-font-family');
-            if (selector && selector.value !== fontName) selector.value = fontName;
-            if (floatingSelector && floatingSelector.value !== fontName) floatingSelector.value = fontName;
+            const selectors = ['fb-font-family', 'fb-font-family-mobile', 'floating-font-family'];
+            selectors.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value !== fontName) el.value = fontName;
+            });
+
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount && !sel.isCollapsed) {
+                if (window.oEditors && window.oEditors.getById && window.oEditors.getById["ir1"]) {
+                    window.oEditors.getById["ir1"].exec("FONT_NAME", [fontName]);
+                } else {
+                    _applyFontFamilyRaw(fontName);
+                }
+                return;
+            }
 
             // 본문 편집 영역 전역의 base font-family를 바뀐 폰트명으로 실시간 교체
             let dynamicStyle = document.getElementById('editor-active-font-style');
@@ -2774,10 +2929,11 @@
             // Convert to px instead of pt to match Naver Blog's exact px standard
             const sizeStr = size.endsWith('px') || size.endsWith('pt') ? size : size + 'px';
             
-            const selector = document.getElementById('font-size-selector');
-            const floatingSelector = document.getElementById('floating-font-size');
-            if (selector && selector.value !== sizeStr) selector.value = sizeStr;
-            if (floatingSelector && floatingSelector.value !== sizeStr) floatingSelector.value = sizeStr;
+            const selectors = ['font-size-selector', 'font-size-selector-mobile', 'floating-font-size'];
+            selectors.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value !== sizeStr) el.value = sizeStr;
+            });
 
             if (window.oEditors && window.oEditors.getById && window.oEditors.getById["ir1"]) {
                 window.oEditors.getById["ir1"].exec("SET_WYSIWYG_STYLE", [{ fontSize: sizeStr }]);
@@ -2787,27 +2943,26 @@
         }
 
         function _applyFontFamilyRaw(fontName) {
-            const selector = document.getElementById('font-family-selector');
-            const floatingSelector = document.getElementById('floating-font-family');
-            if (selector && selector.value !== fontName) selector.value = fontName;
-            if (floatingSelector && floatingSelector.value !== fontName) floatingSelector.value = fontName;
+            const selectors = ['fb-font-family', 'fb-font-family-mobile', 'floating-font-family'];
+            selectors.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value !== fontName) el.value = fontName;
+            });
 
             if (!activeEditorId) return;
             const sel = window.getSelection();
             if (sel && sel.rangeCount && !sel.isCollapsed) {
-                document.execCommand('styleWithCSS', false, false);
-                document.execCommand('fontName', false, 'temp-font-family-placeholder');
-                
-                const el = document.getElementById(activeEditorId);
-                if (el) {
-                    const fonts = Array.from(el.getElementsByTagName('font'));
-                    fonts.forEach(font => {
-                        if (font.getAttribute('face') === 'temp-font-family-placeholder' || font.face === 'temp-font-family-placeholder') {
-                            const span = document.createElement('span');
-                            span.style.setProperty('font-family', fontName, 'important');
-                            span.innerHTML = font.innerHTML;
-                            font.parentNode.replaceChild(span, font);
-                        }
+                document.execCommand('styleWithCSS', false, true);
+                const marker = 'tempfont' + Date.now();
+                document.execCommand('fontName', false, marker);
+                const activeEl = document.getElementById(activeEditorId);
+                if (activeEl) {
+                    const els = activeEl.querySelectorAll(`font[face="${marker}"], span[style*="${marker}"]`);
+                    els.forEach(el => {
+                        const span = document.createElement('span');
+                        span.style.setProperty('font-family', fontName, 'important');
+                        span.innerHTML = el.innerHTML;
+                        el.parentNode.replaceChild(span, el);
                     });
                 }
             } else {
@@ -2821,34 +2976,33 @@
 
         function _applyFontSizeRaw(size) {
             const sizeStr = size.endsWith('px') || size.endsWith('pt') ? size : size + 'px';
-            const selector = document.getElementById('font-size-selector');
-            const floatingSelector = document.getElementById('floating-font-size');
-            if (selector && selector.value !== sizeStr) selector.value = sizeStr;
-            if (floatingSelector && floatingSelector.value !== sizeStr) floatingSelector.value = sizeStr;
+            const selectors = ['font-size-selector', 'font-size-selector-mobile', 'floating-font-size'];
+            selectors.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value !== sizeStr) el.value = sizeStr;
+            });
 
             if (!activeEditorId) return;
             const sel = window.getSelection();
             if (sel && sel.rangeCount && !sel.isCollapsed) {
                 document.execCommand('styleWithCSS', false, false);
-                document.execCommand('fontSize', false, '7');
-                
-                const el = document.getElementById(activeEditorId);
-                if (el) {
-                    const fonts = Array.from(el.getElementsByTagName('font'));
-                    fonts.forEach(font => {
-                        if (font.getAttribute('size') === '7' || font.size === '7') {
-                            const span = document.createElement('span');
-                            span.style.fontSize = size;
-                            span.style.lineHeight = '1.6';
-                            span.innerHTML = font.innerHTML;
-                            font.parentNode.replaceChild(span, font);
-                        }
+                document.execCommand('fontSize', false, "7");
+                const activeEl = document.getElementById(activeEditorId);
+                if (activeEl) {
+                    const els = activeEl.querySelectorAll('font[size="7"], span[style*="xxx-large"]');
+                    els.forEach(el => {
+                        const span = document.createElement('span');
+                        span.style.setProperty('font-size', sizeStr, 'important');
+                        span.style.setProperty('line-height', '1.8', 'important');
+                        span.innerHTML = el.innerHTML;
+                        el.parentNode.replaceChild(span, el);
                     });
                 }
             } else {
                 const el = document.getElementById(activeEditorId);
                 if (el) {
-                    el.style.fontSize = size;
+                    el.style.setProperty('font-size', sizeStr, 'important');
+                    el.style.setProperty('line-height', '1.8', 'important');
                 }
             }
             notifyParent();
@@ -2874,6 +3028,12 @@
             const otherPanel = document.getElementById('bg-color-picker-panel');
             panel.classList.toggle('hidden');
             if (otherPanel) otherPanel.classList.add('hidden');
+            
+            if (!panel.classList.contains('hidden') && event && event.currentTarget) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                panel.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+                panel.style.left = Math.min(rect.left, window.innerWidth - 250) + 'px'; // Prevent going off-screen
+            }
         }
 
         function toggleBgColorPicker(event) {
@@ -2882,6 +3042,12 @@
             const otherPanel = document.getElementById('text-color-picker-panel');
             panel.classList.toggle('hidden');
             if (otherPanel) otherPanel.classList.add('hidden');
+            
+            if (!panel.classList.contains('hidden') && event && event.currentTarget) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                panel.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+                panel.style.left = Math.min(rect.left, window.innerWidth - 250) + 'px'; // Prevent going off-screen
+            }
         }
 
         function setTextColor(color) {
@@ -4223,7 +4389,7 @@
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
                 isRecommended: document.getElementById('post-isRecommended').checked,
-                fontFamily: document.getElementById('font-family-selector') ? document.getElementById('font-family-selector').value : '나눔고딕',
+                fontFamily: document.getElementById('fb-font-family') ? document.getElementById('fb-font-family').value : 'NanumGothic',
                 fontSize: document.getElementById('font-size-selector') ? document.getElementById('font-size-selector').value : '15px'
             };
             window.parent.postMessage({
@@ -4388,6 +4554,53 @@
         // Iframe listeners
         window.addEventListener('message', function(e) {
             if (!e.data) return;
+            if (e.data.type === 'MASTER_PANEL_ACTION') {
+                const action = e.data.action;
+                const value = e.data.value;
+                
+                // 복원하여 focus/selection 유지
+                if (typeof restoreSelection === 'function') {
+                    restoreSelection();
+                }
+                
+                if (['bold', 'italic', 'underline', 'strikeThrough', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'insertHorizontalRule'].includes(action)) {
+                    document.execCommand(action, false, value);
+                } else if (action === 'foreColor' || action === 'hiliteColor') {
+                    document.execCommand(action, false, value);
+                    if (action === 'hiliteColor') document.execCommand('backColor', false, value);
+                } else if (action === 'fontName') {
+                    const fontMap = {
+                        'MaruBuri': 'MaruBuri',
+                        'NanumBarunGothic': 'NanumBarunGothic',
+                        'NanumGothic': 'NanumGothic',
+                        'NanumSquare': 'NanumSquare',
+                        'NanumMyeongjo': 'NanumMyeongjo',
+                        'yunjia2': 'yunjia2',
+                        'yunjia3': 'yunjia3',
+                        'yunjia4': 'yunjia4'
+                    };
+                    const mappedFont = fontMap[value] || value;
+                    document.execCommand('fontName', false, mappedFont);
+                } else if (action === 'fontSize') {
+                    // size 7 trick
+                    document.execCommand('fontSize', false, '7');
+                    const fonts = document.querySelectorAll('font[size="7"]');
+                    fonts.forEach(font => {
+                        font.removeAttribute('size');
+                        font.style.fontSize = value + 'px';
+                        font.style.lineHeight = '1.5';
+                    });
+                } else if (action === 'createLink') {
+                    document.execCommand('createLink', false, value);
+                } else if (action === 'unlink') {
+                    document.execCommand('unlink');
+                } else if (action === 'insertImage') {
+                    document.execCommand('insertImage', false, value);
+                } else if (action === 'insertText') {
+                    document.execCommand('insertText', false, value);
+                }
+                return;
+            }
             if (e.data.type === 'LOAD_DATA') {
                 const data = e.data.payload;
                 window.pendingEditorData = data;
@@ -4416,17 +4629,17 @@
                 if (data.fontFamily) {
                     let loadedFont = data.fontFamily;
                     const fontMap = {
-                        'MaruBuri': '마루부리',
-                        'NanumBarunGothic': '나눔바른고딕',
-                        'NanumGothic': '나눔고딕',
-                        'NanumSquare': '나눔스퀘어',
-                        'NanumMyeongjo': '나눔명조',
+                        'MaruBuri': 'MaruBuri',
+                        'NanumBarunGothic': 'NanumBarunGothic',
+                        'NanumGothic': 'NanumGothic',
+                        'NanumSquare': 'NanumSquare',
+                        'NanumMyeongjo': 'NanumMyeongjo',
                         'DasiSijakhae': '다시시작해',
                         'BareunHippie': '바른히피',
                         'UriTtal': '우리딸손글씨'
                     };
                     if (fontMap[loadedFont]) loadedFont = fontMap[loadedFont];
-                    const selector = document.getElementById('font-family-selector');
+                    const selector = document.getElementById('fb-font-family');
                     const floatingSelector = document.getElementById('floating-font-family');
                     if (selector) selector.value = loadedFont;
                     if (floatingSelector) floatingSelector.value = loadedFont;
@@ -4762,6 +4975,183 @@
 
         // DOM Loaded Init
         window.addEventListener('DOMContentLoaded', () => {
+            // 컬러 피커 패널을 body 직계 자식으로 이동시켜 전역 위치 지정을 완벽하게 처리
+            const textColorPanel = document.getElementById('text-color-picker-panel');
+            if (textColorPanel) document.body.appendChild(textColorPanel);
+            const bgColorPanel = document.getElementById('bg-color-picker-panel');
+            if (bgColorPanel) document.body.appendChild(bgColorPanel);
+
+            // 플로팅 툴바 동적 생성 및 주입
+            let floatingToolbar = document.getElementById('editor-floating-toolbar');
+            if (!floatingToolbar) {
+                floatingToolbar = document.createElement('div');
+                floatingToolbar.id = 'editor-floating-toolbar';
+                floatingToolbar.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <!-- 글꼴 선택창 -->
+                        <select id="floating-font-family" onchange="applyFontFamily(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none cursor-pointer text-slate-700" style="padding: 4px 6px;">
+                            <option value="NanumGothic" selected>나눔고딕</option>
+                            <option value="MaruBuri">마루부리</option>
+                            <option value="NanumBarunGothic">나눔바른고딕</option>
+                            <option value="NanumMyeongjo">나눔명조</option>
+                            <option value="NanumSquare">나눔스퀘어</option>
+                            <option value="yunjia2">yunjia2</option>
+                            <option value="yunjia3">yunjia3</option>
+                            <option value="yunjia4">yunjia4</option>
+                        </select>
+                        
+                        <!-- font size -->
+                        <select id="floating-font-size" onchange="applyFontSize(this.value)" style="padding: 4px 6px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; font-size: 0.85rem;">
+                            <option value="11px">11</option>
+                            <option value="13px">13</option>
+                            <option value="15px" selected>15</option>
+                            <option value="16px">16</option>
+                            <option value="19px">19</option>
+                            <option value="24px">24</option>
+                            <option value="28px">28</option>
+                            <option value="30px">30</option>
+                            <option value="34px">34</option>
+                        </select>
+                        
+                        <div class="divider"></div>
+
+                        <button type="button" onclick="document.execCommand('bold', false, null); updateCharacterCounts();" title="굵게" style="font-weight: 800; padding: 4px 6px;">B</button>
+                        <button type="button" onclick="document.execCommand('italic', false, null); updateCharacterCounts();" title="기울임" style="font-style: italic; padding: 4px 6px;">I</button>
+                        <button type="button" onclick="document.execCommand('underline', false, null); updateCharacterCounts();" title="밑줄" style="text-decoration: underline; padding: 4px 6px;">U</button>
+                        <button type="button" onclick="document.execCommand('strikeThrough', false, null); updateCharacterCounts();" title="취소선" style="text-decoration: line-through; padding: 4px 6px;">S</button>
+                        <button type="button" onclick="toggleTextColorPicker(event)" title="글자색" style="padding: 4px 6px;">A</button>
+                        <button type="button" onclick="toggleBgColorPicker(event)" title="형광펜" style="padding: 4px 6px;"><span class="bg-yellow-200 px-0.5 rounded-xs">T</span></button>
+                        
+                        <div class="divider"></div>
+                        
+                        <button type="button" onclick="document.execCommand('justifyLeft', false, null)" title="왼쪽 정렬" style="padding: 4px 6px;"><i class="fa-solid fa-align-left text-[11px]"></i></button>
+                        <button type="button" onclick="document.execCommand('justifyCenter', false, null)" title="가운데 정렬" style="padding: 4px 6px;"><i class="fa-solid fa-align-center text-[11px]"></i></button>
+                        <button type="button" onclick="document.execCommand('justifyRight', false, null)" title="오른쪽 정렬" style="padding: 4px 6px;"><i class="fa-solid fa-align-right text-[11px]"></i></button>
+                    </div>
+                `;
+                document.body.appendChild(floatingToolbar);
+            }
+
+            // 사이드바 탭 전환 시 시각적 하이라이트 효과 부여
+            window.highlightSidebarTab = function(tabIndex) {
+                const tabs = [1, 2, 3, 4, 5];
+                tabs.forEach(t => {
+                    const btn = document.getElementById('tab-btn-' + t);
+                    if (btn) {
+                        if (t === tabIndex) {
+                            btn.classList.add('bg-slate-50', 'text-emerald-600', 'border-emerald-200');
+                            btn.classList.remove('bg-white', 'text-slate-400', 'border-slate-200');
+                        } else {
+                            btn.classList.remove('bg-slate-50', 'text-emerald-600', 'border-emerald-200');
+                            btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
+                        }
+                    }
+                });
+            };
+
+            let floatingToolbarHideTimeout = null;
+            
+            function checkAndShowFloatingToolbar() {
+                const selection = window.getSelection();
+                if (!selection || !selection.rangeCount || selection.isCollapsed) {
+                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = setTimeout(() => {
+                        const currentSelection = window.getSelection();
+                        if (!currentSelection || !currentSelection.rangeCount || currentSelection.isCollapsed) {
+                            floatingToolbar.style.setProperty('display', 'none', 'important');
+                        }
+                    }, 200);
+                    return;
+                }
+                
+                const range = selection.getRangeAt(0);
+                
+                let isInsideEditor = false;
+                let current = range.commonAncestorContainer;
+                while (current) {
+                    if (current.nodeType === 1 && (current.id === 'intro-canvas' || current.id === 'body-canvas' || current.hasAttribute('contenteditable'))) {
+                        isInsideEditor = true;
+                        break;
+                    }
+                    current = current.parentNode;
+                }
+                
+                if (!isInsideEditor) {
+                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = setTimeout(() => {
+                        const currentSelection = window.getSelection();
+                        if (!currentSelection || currentSelection.isCollapsed) {
+                            floatingToolbar.style.setProperty('display', 'none', 'important');
+                        }
+                    }, 200);
+                    return;
+                }
+                
+                const rect = range.getBoundingClientRect();
+                
+                if (rect.width === 0 || rect.height === 0) {
+                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = setTimeout(() => {
+                        const currentSelection = window.getSelection();
+                        if (!currentSelection || currentSelection.isCollapsed) {
+                            floatingToolbar.style.setProperty('display', 'none', 'important');
+                        }
+                    }, 200);
+                    return;
+                }
+
+                if (floatingToolbarHideTimeout) {
+                    clearTimeout(floatingToolbarHideTimeout);
+                    floatingToolbarHideTimeout = null;
+                }
+                
+                // 툴바 렌더링 (크기 계산을 위해 먼저 flex로 노출)
+                floatingToolbar.style.setProperty('z-index', '2147483647', 'important');
+                floatingToolbar.style.setProperty('display', 'flex', 'important');
+                
+                let toolbarWidth = floatingToolbar.offsetWidth;
+                let toolbarHeight = floatingToolbar.offsetHeight;
+                
+                // 드래그한 글자 중앙 윗선 (fixed 기준이므로 scroll 무관)
+                let topPos = rect.top - toolbarHeight - 12;
+                let leftPos = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+                
+                // 화면 밖으로 벗어남 방지 알고리즘
+                let finalLeft = Math.max(10, Math.min(leftPos, window.innerWidth - toolbarWidth - 10));
+                let finalTop = Math.max(10, topPos); // 화면 상단 고정벽을 완전히 뚫고 딱 붙어있게 처리
+                
+                floatingToolbar.style.setProperty('top', `${finalTop}px`, 'important');
+                floatingToolbar.style.setProperty('left', `${finalLeft}px`, 'important');
+            }
+            
+            let floatingToolbarDebounceTimer = null;
+            function triggerToolbarCheckDebounced() {
+                if (floatingToolbarDebounceTimer) clearTimeout(floatingToolbarDebounceTimer);
+                floatingToolbarDebounceTimer = setTimeout(checkAndShowFloatingToolbar, 200);
+            }
+
+            document.addEventListener('mouseup', (e) => {
+                if (floatingToolbar.contains(e.target)) return;
+                triggerToolbarCheckDebounced();
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                if (floatingToolbar.contains(e.target)) return;
+                triggerToolbarCheckDebounced();
+            });
+
+            document.addEventListener('selectionchange', () => {
+                triggerToolbarCheckDebounced();
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                triggerToolbarCheckDebounced();
+            });
+            
+            window.addEventListener('scroll', () => {
+                triggerToolbarCheckDebounced();
+            }, { passive: true });
+
             adjustHeaderMargin();
             // Call again with a slight delay to ensure dynamic rendering is finished
             setTimeout(adjustHeaderMargin, 100);
@@ -4816,212 +5206,64 @@
 
             // Notify parent
             window.parent.postMessage({ type: 'EDITOR_READY' }, '*');
-
-            // ==========================================
-            // [드래그 감지 플로팅 툴바 센서 및 배선 구축]
-            // ==========================================
-            const floatingToolbar = document.getElementById('editor-floating-toolbar');
-            
-            // 드래그 선택이 풀리지 않도록 툴바 클릭 시 포커스 강탈 방지
-            floatingToolbar.addEventListener('mousedown', (e) => {
-                if(e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
-                    e.preventDefault();
-                }
-            });
-            
-            let floatingToolbarHideTimeout = null;
-            
-            function checkAndShowFloatingToolbar() {
-                const selection = window.getSelection();
-                if (!selection || !selection.rangeCount || selection.isCollapsed) {
-                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
-                    floatingToolbarHideTimeout = setTimeout(() => {
-                        const currentSelection = window.getSelection();
-                        if (!currentSelection || !currentSelection.rangeCount || currentSelection.isCollapsed) {
-                            floatingToolbar.style.setProperty('display', 'none', 'important');
-                        }
-                    }, 200);
-                    return;
-                }
-                
-                // 에디터 영역(contenteditable="true" 또는 .editor-canvas) 내부인지 검증
-                let focusNode = selection.focusNode;
-                let isInsideEditor = false;
-                while (focusNode) {
-                    if (focusNode.nodeType === Node.ELEMENT_NODE && 
-                        (focusNode.getAttribute('contenteditable') === 'true' || focusNode.classList.contains('editor-canvas'))) {
-                        isInsideEditor = true;
-                        break;
-                    }
-                    focusNode = focusNode.parentNode;
-                }
-                
-                if (!isInsideEditor) {
-                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
-                    floatingToolbarHideTimeout = setTimeout(() => {
-                        const currentSelection = window.getSelection();
-                        if (!currentSelection || currentSelection.isCollapsed) {
-                            floatingToolbar.style.setProperty('display', 'none', 'important');
-                        }
-                    }, 200);
-                    return;
-                }
-                
-                const range = selection.getRangeAt(0);
-                const rect = range.getBoundingClientRect();
-                
-                if (rect.width === 0 || rect.height === 0) {
-                    if (floatingToolbarHideTimeout) clearTimeout(floatingToolbarHideTimeout);
-                    floatingToolbarHideTimeout = setTimeout(() => {
-                        const currentSelection = window.getSelection();
-                        if (!currentSelection || currentSelection.isCollapsed) {
-                            floatingToolbar.style.setProperty('display', 'none', 'important');
-                        }
-                    }, 200);
-                    return;
-                }
-
-                if (floatingToolbarHideTimeout) {
-                    clearTimeout(floatingToolbarHideTimeout);
-                    floatingToolbarHideTimeout = null;
-                }
-                
-                // 툴바 렌더링 방식 조정 (절대 좌표 기반 밀착 및 크기 측정을 위한 임시 flex 노출)
-                floatingToolbar.style.setProperty('position', 'absolute', 'important');
-                floatingToolbar.style.setProperty('z-index', '2147483647', 'important');
-                floatingToolbar.style.setProperty('display', 'flex', 'important');
-                floatingToolbar.style.setProperty('width', 'auto', 'important');
-                
-                let toolbarWidth = floatingToolbar.offsetWidth || 340;
-                let toolbarHeight = floatingToolbar.offsetHeight || 50;
-                
-                // 실시간 스크롤 오프셋 완벽 합산 계산 선로
-                const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-                const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
-                
-                // 글자 블록 바로 윗선으로부터 위쪽으로 15px~20px 정도의 안전 유격 설계 (자석 밀착 공정: 18px 기용)
-                const safetyGap = 18;
-                
-                // 드래그한 글자 영역의 정중앙 수평 정렬 공식 및 수직 윗선 밀착 공식
-                let leftPos = rect.left + scrollX + (rect.width / 2) - (toolbarWidth / 2);
-                let topPos = rect.top + scrollY - toolbarHeight - safetyGap;
-                
-                // 브라우저 좌우 액정 경계선 안쪽으로 안전 수용하기 위한 이중 방어 제한 코드 (Math.max 및 Math.min 처리)
-                let finalLeft = Math.max(10, Math.min(leftPos, window.innerWidth - toolbarWidth - 10));
-                let finalTop = Math.max(scrollY + 10, topPos); // 화면 상단 고정벽을 완전히 뚫고 딱 붙어있게 처리
-                
-                floatingToolbar.style.setProperty('top', `${finalTop}px`, 'important');
-                floatingToolbar.style.setProperty('left', `${finalLeft}px`, 'important');
-                
-                // 현재 선택된 서식 상태를 툴바 셀렉트 박스에 반영 (가능한 경우)
-                try {
-                    const fontName = document.queryCommandValue('fontName') || 'inherit';
-                    const fontSelect = document.getElementById('floating-font-family');
-                    if (fontSelect && fontName) {
-                        let cleanedFontName = fontName.replace(/['"]/g, '');
-                        for (let i = 0; i < fontSelect.options.length; i++) {
-                            if (fontSelect.options[i].value === cleanedFontName || fontSelect.options[i].value.includes(cleanedFontName)) {
-                                fontSelect.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                } catch (e) {}
-            }
-            
-            document.addEventListener('mouseup', (e) => {
-                if (floatingToolbar.contains(e.target)) return;
-                setTimeout(checkAndShowFloatingToolbar, 10);
-            });
-            
-            document.addEventListener('touchend', (e) => {
-                if (floatingToolbar.contains(e.target)) return;
-                setTimeout(checkAndShowFloatingToolbar, 10);
-            });
-
-            document.addEventListener('selectionchange', () => {
-                setTimeout(checkAndShowFloatingToolbar, 10);
-            });
-            
-            document.addEventListener('keyup', (e) => {
-                if (e.key === 'Shift' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
-                    setTimeout(checkAndShowFloatingToolbar, 10);
-                } else {
-                    setTimeout(checkAndShowFloatingToolbar, 10);
-                }
-            });
-            
-            document.addEventListener('scroll', () => {
-                checkAndShowFloatingToolbar();
-            }, { passive: true });
         });
     </script>
     
-    <!-- [드래그 감지 플로팅 툴바 HTML 레이어 신설] -->
-    <div id="editor-floating-toolbar">
-        <div>
-            <!-- 글꼴 변경 선택창 -->
-            <select id="floating-font-family" onchange="_applyFontFamilyRaw(this.value); updateCharacterCounts();">
-                <option value="inherit">기본서체</option>
-                <option value="마루부리">마루부리</option>
-                <option value="나눔바른고딕">나눔바른고딕</option>
-                <option value="나눔고딕">나눔고딕</option>
-                <option value="나눔스퀘어">나눔스퀘어</option>
-                <option value="나눔명조">나눔명조</option>
-                <option value="다시시작해">다시시작해</option>
-                <option value="바른히피">바른히피</option>
-                <option value="우리딸손글씨">우리딸 손글씨</option>
-            </select>
-            
-            <!-- 글자 크기 선택창 -->
-            <select id="floating-font-size" onchange="_applyFontSizeRaw(this.value); updateCharacterCounts();">
-                <option value="11px">11</option>
-                <option value="13px">13</option>
-                <option value="15px" selected>15</option>
-                <option value="16px">16</option>
-                <option value="19px">19</option>
-                <option value="24px">24</option>
-                <option value="28px">28</option>
-                <option value="30px">30</option>
-                <option value="34px">34</option>
-            </select>
-            
-            <div class="divider"></div>
-            
-            <!-- 스타일 버클들 -->
-            <button type="button" onclick="document.execCommand('bold', false, null); updateCharacterCounts();" title="굵게" style="font-weight: 900;">B</button>
-            <button type="button" onclick="document.execCommand('italic', false, null); updateCharacterCounts();" title="기울임" style="font-style: italic; font-weight: 900; font-family: serif;">I</button>
-            <button type="button" onclick="document.execCommand('underline', false, null); updateCharacterCounts();" title="밑줄" style="text-decoration: underline; font-weight: 900;">U</button>
-            <button type="button" onclick="document.execCommand('strikeThrough', false, null); updateCharacterCounts();" title="취소선" style="text-decoration: line-through; font-weight: 900;">S</button>
-            
-            <!-- A 글자색 (Color Picker 연결) -->
-            <button type="button" onclick="toggleTextColorPicker(event)" title="글자색" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <span style="font-weight: 900; line-height: 1;">A</span>
-                <div style="width: 12px; height: 3px; background: #000; margin-top: 1px;"></div>
-            </button>
-            
-            <!-- T 형광펜 배경색 (Background Color Picker 연결) -->
-            <button type="button" onclick="toggleBgColorPicker(event)" title="형광펜 배경색" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <span style="font-weight: 900; line-height: 1;">T</span>
-                <div style="width: 12px; height: 3px; background: #fef08a; margin-top: 1px;"></div>
-            </button>
-            
-            <div class="divider"></div>
-            
-            <!-- 정렬 버튼 3종 -->
-            <button type="button" onclick="document.execCommand('justifyLeft', false, null); updateCharacterCounts();" title="왼쪽 정렬"><i class="fa-solid fa-align-left"></i></button>
-            <button type="button" onclick="document.execCommand('justifyCenter', false, null); updateCharacterCounts();" title="가운데 정렬"><i class="fa-solid fa-align-center"></i></button>
-            <button type="button" onclick="document.execCommand('justifyRight', false, null); updateCharacterCounts();" title="오른쪽 정렬"><i class="fa-solid fa-align-right"></i></button>
+    <!-- ==================== [모바일 하부 팝업 패널 시스템] ==================== -->
+    <div id="panel-favorite" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">⭐️ 즐겨찾기 템플릿</h3>
+        <div class="flex flex-col gap-2">
+            <button onclick="injectFavoriteItem('template', 'exterior')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">원룸 건물 외관 사진 템플릿</button>
+            <button onclick="injectFavoriteItem('template', 'water-pressure')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">특별 수압 테스트 통과 세대</button>
+            <button onclick="injectFavoriteItem('template', 'sunlight')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">정남향 눈부신 채광 실사</button>
         </div>
-        
-        <!-- 우측 결합된 미니 컴포넌트 버튼 그룹 (Inline Shortcuts) -->
-        <div class="toolbar-inline-shortcuts">
-            <button type="button" onclick="switchControlTab(1)" title="즐겨찾기 사진 템플릿">⭐</button>
-            <button type="button" onclick="triggerPhotoUpload()" title="본문 사진 삽입">🖼️</button>
-            <button type="button" onclick="switchControlTab(3)" title="이모지/스티커 삽입">😊</button>
-            <button type="button" onclick="injectFavoriteItem('quote', 'quotes')" title="명품 인용구 상자 즉시 주입">❝ ❞</button>
-            <button type="button" onclick="insertAutoCalculatedDivider('solid')" title="시각적 개방감용 구분 실선 즉시 주입">➖</button>
-            <button type="button" onclick="openLinkDialog()" title="인터넷 상세 주소/링크 매칭">🔗</button>
+    </div>
+    <div id="panel-image" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">📷 이미지 첨부</h3>
+        <button onclick="triggerPhotoUpload()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg shadow-sm mb-3">초록색 사진 파일 선택 버튼</button>
+        <div class="grid grid-cols-3 gap-2">
+            <button onclick="injectFavoriteItem('image', 'kitchen')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">내부 주방</button>
+            <button onclick="injectFavoriteItem('image', 'bathroom')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">실사 화장실</button>
+            <button onclick="injectFavoriteItem('image', 'bedroom')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">방 침실</button>
+        </div>
+    </div>
+    <div id="panel-sticker" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">😀 스티커 (쥐돌이)</h3>
+        <div class="grid grid-cols-4 gap-2">
+            <button onclick="document.execCommand('insertText', false, '🐭')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐭</button>
+            <button onclick="document.execCommand('insertText', false, '🐹')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐹</button>
+            <button onclick="document.execCommand('insertText', false, '🧀')" class="p-2 text-2xl hover:bg-slate-100 rounded">🧀</button>
+            <button onclick="document.execCommand('insertText', false, '🐁')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐁</button>
+        </div>
+    </div>
+    <div id="panel-quote" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">❝ 인용구 및 ↔ 구분선</h3>
+        <div class="flex flex-col gap-3">
+            <div>
+                <span class="text-xs text-slate-500 mb-1 block">에디토리얼 인용 블록 4종</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="injectFavoriteItem('quote', 'type1')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 1</button>
+                    <button onclick="injectFavoriteItem('quote', 'type2')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 2</button>
+                    <button onclick="injectFavoriteItem('quote', 'type3')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 3</button>
+                    <button onclick="injectFavoriteItem('quote', 'type4')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 4</button>
+                </div>
+            </div>
+            <div>
+                <span class="text-xs text-slate-500 mb-1 block">구분선 4종</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="insertAutoCalculatedDivider('solid')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">실선</button>
+                    <button onclick="insertAutoCalculatedDivider('dashed')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">점선</button>
+                    <button onclick="insertAutoCalculatedDivider('dotted')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">도트선</button>
+                    <button onclick="insertAutoCalculatedDivider('double')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">이중선</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="panel-dice" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">🎲 주사위 마스터 전산 장부</h3>
+        <button onclick="alert('무한 조합 주사위 가동!')" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-sm mb-2">무한 조합 주사위 가동!</button>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600">
+            전산 장부 연동 데이터 레이아웃 탑재 완료.
         </div>
     </div>
 </body>

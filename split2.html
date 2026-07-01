@@ -1,0 +1,147 @@
+
+      /* [핀셋 보호 영역 폰트/스타일 래핑 엔진] */
+      function wrapSelectionWithStyle(styleName, styleValue) {
+          const sel = window.getSelection();
+          if (!sel.rangeCount) return;
+          const range = sel.getRangeAt(0);
+          
+          if (!range.collapsed) {
+              const span = document.createElement('span');
+              span.style[styleName] = styleValue;
+              
+              try {
+                  range.surroundContents(span);
+              } catch (e) {
+                  const frag = range.extractContents();
+                  span.appendChild(frag);
+                  range.insertNode(span);
+              }
+              
+              sel.removeAllRanges();
+              const newRange = document.createRange();
+              newRange.selectNodeContents(span);
+              sel.addRange(newRange);
+          }
+      }
+
+      /* [선택 영역 폰트 정보 실시간 역추적 동기화] */
+      document.addEventListener('selectionchange', function() {
+          const sel = window.getSelection();
+          if (sel.rangeCount > 0) {
+              let node = sel.focusNode;
+              if (node && node.nodeType === 3) node = node.parentNode;
+              
+              if (node) {
+                  const computedStyle = window.getComputedStyle(node);
+                  const fontFamily = computedStyle.fontFamily;
+                  const fontSelect = document.getElementById('fb-font-family-mobile');
+                  if (fontSelect && fontFamily) {
+                      if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
+                      else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
+                      else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
+                      else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
+                      else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
+                  }
+              }
+          }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- [직통 의뢰 모달 영역] -->
+    <div id="request-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✍️ 매물 내놓기 / 문의 의뢰</h2>
+                <button class="modal-close-btn" onclick="closeRequestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-group"><label>의뢰인 성함</label><input type="text" id="modal-req-name" placeholder="홍길동" /></div>
+                <div class="modal-form-group"><label>연락처</label><input type="tel" id="modal-req-phone" placeholder="010-1234-5678" /></div>
+                <div class="modal-form-group">
+                    <label>매물 종류</label>
+                    <select id="modal-req-type">
+                        <option value="원룸">원룸</option>
+                        <option value="투룸">투룸 (미투/쓰리룸)</option>
+                        <option value="오피스텔/아파트">오피스텔 / 아파트</option>
+                        <option value="상가/사무실">상가 / 사무실</option>
+                        <option value="기타">기타 매물</option>
+                    </select>
+                </div>
+                <div class="modal-form-group"><label>상세 주소 및 호수</label><input type="text" id="modal-req-address" placeholder="송정대로 6길18, 301호" /></div>
+                <div class="modal-form-group"><label>요청사항</label><textarea id="modal-req-details" placeholder="이사 예정일, 희망 가격, 기타 문의사항 등 남겨주세요."></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn-submit" onclick="submitRequestModal()">제출하기</button>
+                <button class="modal-btn-close" onclick="closeRequestModal()">닫기 X</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== [모바일 하부 팝업 패널 시스템] ==================== -->
+    <div id="panel-favorite" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">⭐️ 즐겨찾기 템플릿</h3>
+        <div class="flex flex-col gap-2">
+            <button onclick="injectFavoriteItem('template', 'exterior')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">원룸 건물 외관 사진 템플릿</button>
+            <button onclick="injectFavoriteItem('template', 'water-pressure')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">특별 수압 테스트 통과 세대</button>
+            <button onclick="injectFavoriteItem('template', 'sunlight')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm">정남향 눈부신 채광 실사</button>
+        </div>
+    </div>
+
+    <div id="panel-image" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">📷 이미지 첨부</h3>
+        <button onclick="triggerPhotoUpload()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg shadow-sm mb-3">초록색 사진 파일 선택 버튼</button>
+        <div class="grid grid-cols-3 gap-2">
+            <button onclick="injectFavoriteItem('image', 'kitchen')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">내부 주방</button>
+            <button onclick="injectFavoriteItem('image', 'bathroom')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">실사 화장실</button>
+            <button onclick="injectFavoriteItem('image', 'bedroom')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">방 침실</button>
+        </div>
+    </div>
+
+    <div id="panel-sticker" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">😀 스티커 (쥐돌이)</h3>
+        <div class="grid grid-cols-4 gap-2">
+            <button onclick="document.execCommand('insertText', false, '🐭')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐭</button>
+            <button onclick="document.execCommand('insertText', false, '🐹')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐹</button>
+            <button onclick="document.execCommand('insertText', false, '🧀')" class="p-2 text-2xl hover:bg-slate-100 rounded">🧀</button>
+            <button onclick="document.execCommand('insertText', false, '🐁')" class="p-2 text-2xl hover:bg-slate-100 rounded">🐁</button>
+        </div>
+    </div>
+
+    <div id="panel-quote" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">❝ 인용구 및 ↔ 구분선</h3>
+        <div class="flex flex-col gap-3">
+            <div>
+                <span class="text-xs text-slate-500 mb-1 block">에디토리얼 인용 블록 4종</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="injectFavoriteItem('quote', 'type1')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 1</button>
+                    <button onclick="injectFavoriteItem('quote', 'type2')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 2</button>
+                    <button onclick="injectFavoriteItem('quote', 'type3')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 3</button>
+                    <button onclick="injectFavoriteItem('quote', 'type4')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">타입 4</button>
+                </div>
+            </div>
+            <div>
+                <span class="text-xs text-slate-500 mb-1 block">구분선 4종</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="insertAutoCalculatedDivider('solid')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">실선</button>
+                    <button onclick="insertAutoCalculatedDivider('dashed')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">점선</button>
+                    <button onclick="insertAutoCalculatedDivider('dotted')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">도트선</button>
+                    <button onclick="insertAutoCalculatedDivider('double')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs">이중선</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="panel-dice" class="mobile-sub-panel">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">🎲 주사위 마스터 전산 장부</h3>
+        <button onclick="alert('무한 조합 주사위 가동!')" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-sm mb-2">무한 조합 주사위 가동!</button>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600">
+            전산 장부 연동 데이터 레이아웃 탑재 완료.
+        </div>
+    </div>
+
+  </body>
+</html>

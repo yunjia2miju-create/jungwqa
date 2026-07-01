@@ -61,6 +61,39 @@ const VrViewer: React.FC<VrViewerProps> = ({
         return isWebGLSupported() && (typeof window !== 'undefined' && window.pannellum) ? 'webgl' : 'flat';
     });
 
+    const [isSceneFading, setIsSceneFading] = React.useState(false);
+    const prevActiveIndexRef = React.useRef(activeIndex);
+
+    React.useEffect(() => {
+        if (prevActiveIndexRef.current === activeIndex) return;
+        prevActiveIndexRef.current = activeIndex;
+
+        setIsSceneFading(true);
+        const timer1 = setTimeout(() => {
+            const targetScene = `scene_${activeIndex}`;
+            
+            if (mode === 'webgl') {
+                if (viewerInstanceRef.current && viewerInstanceRef.current.loadScene) {
+                    try { viewerInstanceRef.current.loadScene(targetScene, 'same', 'same', 'same'); } catch(e) { console.warn(e); }
+                }
+                if (fullscreenViewerInstanceRef.current && fullscreenViewerInstanceRef.current.loadScene) {
+                    try { fullscreenViewerInstanceRef.current.loadScene(targetScene, 'same', 'same', 'same'); } catch(e) { console.warn(e); }
+                }
+            } else {
+                if (flatScrollRef.current) {
+                    const container = flatScrollRef.current;
+                    container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+                }
+            }
+            
+            const timer2 = setTimeout(() => {
+                setIsSceneFading(false);
+            }, 50);
+        }, 300);
+
+        return () => { clearTimeout(timer1); };
+    }, [activeIndex, mode]);
+
     const flatScrollRef = React.useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const [startX, setStartX] = React.useState(0);
@@ -357,25 +390,38 @@ const VrViewer: React.FC<VrViewerProps> = ({
                 let vaov = 180;
 
                 container_ready.innerHTML = '';
+
+                const scenesConfig: any = {};
+                images.forEach((imgRaw, idx) => {
+                    const cUrl = imgRaw.includes('|') ? imgRaw.split('|')[0] : imgRaw;
+                    scenesConfig[`scene_${idx}`] = {
+                        type: 'equirectangular',
+                        panorama: getDirectSrc(cUrl),
+                        hfov: computedHfov,
+                        minHfov: 60,
+                        maxHfov: 115,
+                        minPitch: -85,
+                        maxPitch: 90,
+                        haov: haov,
+                        vaov: vaov,
+                        vOffset: 0,
+                        pitch: 0,
+                        yaw: 0,
+                        hotSpots: []
+                    };
+                });
+
                 v_fullscreen = window.pannellum.viewer(container_ready, {
-                    type: 'equirectangular',
-                    panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
-                    autoLoad: true,
-                    showControls: true,
-                    compass: false,
-                    friction: 0.12,
-                    hfov: computedHfov,
-                    minHfov: 60,
-                    maxHfov: 115,
-                    minPitch: -85,
-                    maxPitch: 90,
-                    haov: haov,
-                    vaov: vaov,
-                    vOffset: 0,
-                    pitch: 0,
-                    yaw: 0,
-                    crossOrigin: 'anonymous',
-                    hotSpots: hotSpots,
+                    default: {
+                        firstScene: `scene_${activeIndex}`,
+                        sceneFadeDuration: 300,
+                        autoLoad: true,
+                        showControls: true,
+                        compass: false,
+                        friction: 0.12,
+                        crossOrigin: 'anonymous',
+                    },
+                    scenes: scenesConfig,
                     strings: {
                         loadingLabel: "대극장 고해상도 공간을 로딩하고 있습니다...",
                         loadButtonLabel: "360° 대극장 투어 입장",
@@ -414,7 +460,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
             }
             fullscreenViewerInstanceRef.current = null;
         };
-    }, [isFullscreen, activeIndex, imagesKey]);
+    }, [isFullscreen, imagesKey]);
 
     // Utility to get clean name from lengthy URLs (retaining 16~36 chars without ugly query params like token)
     const getCleanName = (url: string) => {
@@ -618,25 +664,37 @@ const VrViewer: React.FC<VrViewerProps> = ({
 
                 container.innerHTML = '';
 
+                const scenesConfig: any = {};
+                images.forEach((imgRaw, idx) => {
+                    const cUrl = imgRaw.includes('|') ? imgRaw.split('|')[0] : imgRaw;
+                    scenesConfig[`scene_${idx}`] = {
+                        type: 'equirectangular',
+                        panorama: getDirectSrc(cUrl),
+                        hfov: computedHfov,
+                        minHfov: 60,
+                        maxHfov: 115,
+                        minPitch: -85,
+                        maxPitch: 90,
+                        haov: 360,
+                        vaov: 180,
+                        vOffset: 0,
+                        pitch: 0,
+                        yaw: 0,
+                        hotSpots: []
+                    };
+                });
+
                 v = window.pannellum.viewer(container, {
-                    type: 'equirectangular',
-                    panorama: currentSrc.includes('|') ? currentSrc.split('|')[0] : currentSrc,
-                    autoLoad: true,
-                    showControls: true,
-                    compass: false,
-                    friction: 0.12,
-                    hfov: computedHfov,
-                    minHfov: 60,
-                    maxHfov: 115,
-                    minPitch: -85,
-                    maxPitch: 90,
-                    haov: 360,
-                    vaov: 180,
-                    vOffset: 0,
-                    pitch: 0,
-                    yaw: 0,
-                    crossOrigin: 'anonymous',
-                    hotSpots: hotSpots,
+                    default: {
+                        firstScene: `scene_${activeIndex}`,
+                        sceneFadeDuration: 300,
+                        autoLoad: true,
+                        showControls: true,
+                        compass: false,
+                        friction: 0.12,
+                        crossOrigin: 'anonymous',
+                    },
+                    scenes: scenesConfig,
                     errorCallback: (errMess: string) => {
                         console.warn("Pannellum internal errorCallback caught:", errMess);
                         if (isComponentMounted) {
@@ -696,7 +754,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
             }
             viewerInstanceRef.current = null;
         };
-    }, [imagesKey, activeIndex]);
+    }, [imagesKey]);
 
     return (
         <div className="w-full flex flex-col">
@@ -1164,7 +1222,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
             <div 
                 ref={viewerRef} 
                 id="panorama"
-                className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 ${isStyleHeight ? "" : "pannellum-responsive-container"} ${mode === 'webgl' ? 'block' : 'hidden'}`}
+                className={`w-full bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 transition-all duration-300 ease-in-out ${isSceneFading ? 'opacity-0 blur-md scale-[0.99]' : 'opacity-100 blur-none scale-100'} ${isStyleHeight ? "" : "pannellum-responsive-container"} ${mode === 'webgl' ? 'block' : 'hidden'}`}
                 style={heightStyle}
             ></div>
 
@@ -1204,7 +1262,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                             const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
                             return getDirectSrc(cleanUrl);
                         })()} 
-                        className={`h-full min-w-[240%] sm:min-w-[180%] md:min-w-[140%] max-w-none object-cover pointer-events-none select-none transition-transform duration-500 ease-out ${isDragging ? '' : 'animate-float-pan'}`}
+                        className={`h-full min-w-[240%] sm:min-w-[180%] md:min-w-[140%] max-w-none object-cover pointer-events-none select-none transition-all duration-300 ease-out ${isDragging ? '' : 'animate-float-pan'} ${isSceneFading ? 'opacity-0 blur-md scale-[0.99]' : 'opacity-100 blur-none scale-100'}`}
                         alt="평면 파노라마 VR 뷰"
                         referrerPolicy="no-referrer"
                     />
@@ -1538,7 +1596,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                                 <div 
                                     ref={fullscreenViewerRef} 
                                     id="panorama-fullscreen"
-                                    className="w-full h-full min-h-[450px]"
+                                    className={`w-full h-full min-h-[450px] transition-all duration-300 ease-in-out ${isSceneFading ? 'opacity-0 blur-md scale-[0.99]' : 'opacity-100 blur-none scale-100'}`}
                                 ></div>
                             ) : (
                                 <div className="relative w-full h-full overflow-auto flex items-center justify-center select-none cursor-grab">
@@ -1548,7 +1606,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                                             const cleanUrl = rawUrl.includes('|') ? rawUrl.split('|')[0] : rawUrl;
                                             return getDirectSrc(cleanUrl);
                                         })()} 
-                                        className="max-h-full max-w-none object-contain pointer-events-none select-none"
+                                        className={`max-h-full max-w-none object-contain pointer-events-none select-none transition-all duration-300 ease-in-out ${isSceneFading ? 'opacity-0 blur-md scale-[0.99]' : 'opacity-100 blur-none scale-100'}`}
                                         alt="평면 파노라마 VR 뷰"
                                         referrerPolicy="no-referrer"
                                     />

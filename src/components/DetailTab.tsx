@@ -199,7 +199,7 @@ export const DetailTab = ({
 
     return (
         <section id="detail-section" className="max-w-4xl md:max-w-5xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 transition-opacity duration-300 w-full">
-            <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-[#0D4C3C] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0D4C3C]/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
+            <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
                 {"<<<< 앞 바로가기 <<<<"}
             </button>
 
@@ -239,12 +239,12 @@ export const DetailTab = ({
                             <span className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black border tracking-wide shadow-sm ${
                                 p.transactionType === '매매' ? 'bg-indigo-600 text-white border-indigo-700' :
                                 p.transactionType === '전세' ? 'bg-amber-500 text-white border-amber-600' :
-                                'bg-[#0D4C3C] text-white border-[#0D4C3C]'
+                                'bg-[#0B2545] text-white border-[#0B2545]'
                             }`}>
                                 {p.transactionType || '월세'}
                             </span>
                             <span className="bg-slate-900 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl tracking-wide shadow-sm">{p.category}</span>
-                            <span className="bg-white text-[#0D4C3C] text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0D4C3C] tracking-wide shadow-sm">
+                            <span className="bg-white text-[#0B2545] text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0B2545] tracking-wide shadow-sm">
                                 {p.floor && p.totalFloor ? `${p.floor}/${p.totalFloor}층` : (p.floor ? `${p.floor}층` : (isAdminLoggedIn && p.room ? `${p.room}호` : '지상층'))}
                             </span>
                             <span className="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-slate-200 tracking-wide shadow-sm">{p.dong || '구미시'}</span>
@@ -256,7 +256,7 @@ export const DetailTab = ({
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-slate-900 leading-tight tracking-tight mb-3 lg:mb-4 flex items-center gap-2 flex-wrap">
                             <span>{p.building} {isAdminLoggedIn && p.room ? `${p.room}호` : ''}</span>
                             {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
-                                <span className="shrink-0 bg-[#0D4C3C] text-white text-xs sm:text-sm lg:text-base font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-[#0D4C3C]/20 animate-pulse">
+                                <span className="shrink-0 bg-[#0B2545] text-white text-xs sm:text-sm lg:text-base font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-[#0B2545]/20 animate-pulse">
                                     <Home size={18} className="text-white" strokeWidth={1.8} />
                                     <span>VR 투어 가능</span>
                                 </span>
@@ -269,7 +269,7 @@ export const DetailTab = ({
                     <div className="w-full md:w-[340px] lg:w-full lg:max-w-none bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 lg:p-6.5 flex flex-col gap-3 lg:gap-4.5 shadow-inner text-xs lg:text-sm shrink-0">
                         <div className="flex justify-between items-center border-b border-slate-200 pb-2">
                             <span className="font-black text-slate-800 flex items-center gap-1.5 lg:text-base">
-                                <i className="fa-solid fa-building-circle-check text-sm lg:text-base" style={{ color: '#0D4C3C !important' }}></i>
+                                <i className="fa-solid fa-building-circle-check text-sm lg:text-base" style={{ color: '#0B2545 !important' }}></i>
                                 <span>매물 요약 정보 (Fact Sheet)</span>
                             </span>
                             <span className="text-[10px] lg:text-xs font-mono font-bold text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
@@ -283,7 +283,7 @@ export const DetailTab = ({
                             </div>
                             <div className="flex flex-col gap-0.5 lg:gap-1.5">
                                 <span className="text-[10px] lg:text-xs font-bold text-slate-400">기본 관리비</span>
-                                <span className="font-extrabold lg:text-base" style={{ color: '#0D4C3C !important' }}>{p.manageFee && p.manageFee !== '없음' ? `${p.manageFee}` : '없음 (상세문의)'}</span>
+                                <span className="font-extrabold lg:text-base" style={{ color: '#0B2545 !important' }}>{p.manageFee && p.manageFee !== '없음' ? `${p.manageFee}` : '없음 (상세문의)'}</span>
                             </div>
                             <div className="flex flex-col gap-0.5 lg:gap-1.5">
                                 <span className="text-[10px] lg:text-xs font-bold text-slate-400">해당/전체 층수</span>
@@ -306,7 +306,7 @@ export const DetailTab = ({
                                     openPhoneSelectModal(e, p.phone || '010-7590-0111', p.ownerPhone); 
                                 }
                             }}
-                            className="mt-1 lg:mt-2 w-full bg-[#0D4C3C] hover:bg-[#113866] text-white font-black py-2.5 lg:py-4 rounded-xl flex items-center justify-center gap-2 lg:gap-3 shadow-md shadow-[#0D4C3C]/10 transition-all text-center select-none cursor-pointer text-xs lg:text-base"
+                            className="mt-1 lg:mt-2 w-full bg-[#0B2545] hover:bg-[#113866] text-white font-black py-2.5 lg:py-4 rounded-xl flex items-center justify-center gap-2 lg:gap-3 shadow-md shadow-[#0B2545]/10 transition-all text-center select-none cursor-pointer text-xs lg:text-base"
                         >
                             <i className="fa-solid fa-phone animate-bounce"></i>
                             <span>태왕 공인중개사 직통 빠른 전화</span>
@@ -378,10 +378,10 @@ export const DetailTab = ({
                                 }}
                                 className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shrink-0 select-none shadow-sm cursor-pointer border ${
                                     copied 
-                                    ? 'bg-[#0D4C3C]/10 text-[#0D4C3C] border-[#0D4C3C]/20' 
-                                    : 'text-white border-[#0D4C3C] shadow-[#0D4C3C]/25 shadow-sm hover:opacity-90'
+                                    ? 'bg-[#0B2545]/10 text-[#0B2545] border-[#0B2545]/20' 
+                                    : 'text-white border-[#0B2545] shadow-[#0B2545]/25 shadow-sm hover:opacity-90'
                                 }`}
-                                style={!copied ? { background: '#0D4C3C', backgroundColor: '#0D4C3C' } : {}}
+                                style={!copied ? { background: '#0B2545', backgroundColor: '#0B2545' } : {}}
                             >
                                 {copied ? (
                                     <>
@@ -399,11 +399,11 @@ export const DetailTab = ({
                                 onClick={() => setIsBlogModalOpen(!isBlogModalOpen)}
                                 className={`font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm border cursor-pointer ${
                                     isBlogModalOpen 
-                                    ? 'bg-[#0D4C3C] text-white border-[#0D4C3C] shadow-[#0D4C3C]/25' 
-                                    : 'bg-[#0D4C3C]/10 hover:bg-[#0D4C3C]/20 text-[#0D4C3C] border-[#0D4C3C]/20'
+                                    ? 'bg-[#0B2545] text-white border-[#0B2545] shadow-[#0B2545]/25' 
+                                    : 'bg-[#0B2545]/10 hover:bg-[#0B2545]/20 text-[#0B2545] border-[#0B2545]/20'
                                 }`}
                             >
-                                <i className="fa-solid fa-wand-magic-sparkles text-[#0D4C3C] group-hover:text-white"></i>
+                                <i className="fa-solid fa-wand-magic-sparkles text-[#0B2545] group-hover:text-white"></i>
                                 <span>AI 네이버 등록 도우미 🤖</span>
                             </button>
                         </div>
@@ -429,13 +429,13 @@ export const DetailTab = ({
                 </div>
 
                 <div 
-                    className="aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-[#0D4C3C]/30 relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full"
+                    className="aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-[#0B2545]/30 relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full"
                     onClick={() => {
                         setActiveZoomUrl(p.thumbnail || defaultImg);
                     }}
                 >
                     {/* Unique [녹색 라운드 사각 뱃지] for 대표사진 */}
-                    <div id="representative-badge" className="absolute top-4 left-4 sm:top-5 sm:left-5 bg-[#0D4C3C] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0D4C3C] shadow-md z-30 flex items-center gap-1.5 select-none hover:scale-[1.03] transition-all">
+                    <div id="representative-badge" className="absolute top-4 left-4 sm:top-5 sm:left-5 bg-[#0B2545] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0B2545] shadow-md z-30 flex items-center gap-1.5 select-none hover:scale-[1.03] transition-all">
                         <span>✨ 대표사진</span>
                     </div>
 
@@ -465,14 +465,14 @@ export const DetailTab = ({
                 {imgUrls.length > 0 && (
                     <div className="mb-8">
                         <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
-                            <i className="fa-solid fa-camera text-[#0D4C3C]"></i>
+                            <i className="fa-solid fa-camera text-[#0B2545]"></i>
                             <span>실사 추가 사진첩</span>
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {imgUrls.map((url, i) => (
                                 <div 
                                     key={i} 
-                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-[#0D4C3C]/30 relative select-none"
+                                    className="aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:border-[#0B2545]/30 relative select-none"
                                     onClick={() => {
                                         setActiveZoomUrl(url.trim());
                                     }}
@@ -509,13 +509,16 @@ export const DetailTab = ({
                     <div className="mb-8">
                         <div className="flex flex-col items-start gap-4 mb-5 border-b border-dashed border-emerald-500/10 pb-4 w-full">
                             <h4 className="text-[22px] sm:text-[38px] md:text-[42px] lg:text-[44px] font-black text-slate-900 flex items-center gap-3.5 sm:gap-5 max-w-full">
-                                <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0D4C3C] border-2 border-white/20 shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow">
-            <Home className="text-white w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" strokeWidth={1.8} />
-        </div>
+                                <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0B2545] border-2 border-[#0B2545] shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" style={{ backgroundColor: '#0B2545' }}>
+                                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                        <polyline points="9 22 9 12 15 12 15 22"/>
+                                    </svg>
+                                </div>
                                 <span 
                                     className="animate-vr-glow select-none break-keep"
                                     style={{
-                                        color: '#0D4C3C'
+                                        color: '#0B2545'
                                     }}
                                 >
                                     공간 실감 360° 현장 VR 투어
@@ -527,7 +530,7 @@ export const DetailTab = ({
                                         <button 
                                             key={idx}
                                             onClick={() => setActivePanoIndex(idx)}
-                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${activePanoIndex === idx ? 'bg-[#0D4C3C] text-white shadow-md border border-[#0D4C3C] scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
+                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${activePanoIndex === idx ? 'bg-[#0B2545] text-white shadow-md border border-[#0B2545] scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
                                         >
                                             공간 {idx + 1}
                                         </button>
@@ -550,7 +553,7 @@ export const DetailTab = ({
                                     <button 
                                         key={idx}
                                         onClick={() => setActivePanoIndex(idx)}
-                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-[#0D4C3C] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-[#0B2545] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                     >
                                         <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} loading="lazy" />
                                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -688,7 +691,7 @@ export const DetailTab = ({
 
                 <div className="mt-8">
                     <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
-                        <i className="fa-solid fa-map-location-dot text-[#0D4C3C]"></i>
+                        <i className="fa-solid fa-map-location-dot text-[#0B2545]"></i>
                         <span>실시간 대화형 정밀 위치</span>
                     </h4>
                     <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-md relative bg-slate-100">
@@ -696,7 +699,7 @@ export const DetailTab = ({
                     </div>
                 </div>
 
-                <div className="mt-12 p-6 sm:p-10 bg-[#0D4C3C] text-white rounded-3xl shadow-xl flex flex-col justify-center items-center gap-6 border border-slate-700/50 w-full max-w-sm sm:max-w-none mx-auto" style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important', backgroundImage: 'none !important' }}>
+                <div className="mt-12 p-6 sm:p-10 bg-[#0B2545] text-white rounded-3xl shadow-xl flex flex-col justify-center items-center gap-6 border border-slate-700/50 w-full max-w-sm sm:max-w-none mx-auto" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', backgroundImage: 'none !important' }}>
                     <div className="text-center w-full overflow-hidden py-2">
                         <h4 className="text-lg sm:text-2xl md:text-3xl font-black tracking-tight animate-consult-glow flex items-center justify-center gap-2.5 sm:gap-3 flex-wrap">
                             <i className="fa-solid fa-headset text-xl sm:text-2xl md:text-3xl shrink-0 opacity-90"></i>
@@ -746,7 +749,7 @@ export const DetailTab = ({
             </article>
 
             <div className="mt-6 sm:mt-10 text-center w-full">
-                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-[#0D4C3C] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0D4C3C]/20 text-lg sm:text-2xl tracking-wider">
+                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl tracking-wider">
                     {"<<<< 앞 바로가기 <<<<"}
                 </button>
             </div>
@@ -754,7 +757,7 @@ export const DetailTab = ({
             {matchingRecs.length > 0 && (
                 <div className="mt-8 sm:mt-12 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-md p-5 sm:p-8 w-full">
                     <div className="flex items-center gap-2 mb-6 pb-3 border-b border-slate-100">
-                        <span className="text-[#0D4C3C] text-lg"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
+                        <span className="text-[#0B2545] text-lg"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
                         <h3 className="text-sm sm:text-base font-black text-slate-900">태왕 공인중개사가 추천하는 또 다른 구미 알짜 매물</h3>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -780,7 +783,7 @@ export const DetailTab = ({
                                             <span className={`text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md border ${
                                                 rec.transactionType === '매매' ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60' :
                                                 rec.transactionType === '전세' ? 'bg-amber-50 text-amber-700 border-amber-200/85' :
-                                                'bg-[#0D4C3C]/10 text-[#0D4C3C] border-[#0D4C3C]/20'
+                                                'bg-[#0B2545]/10 text-[#0B2545] border-[#0B2545]/20'
                                             }`}>
                                                 {rec.transactionType || '월세'}
                                             </span>
@@ -791,17 +794,17 @@ export const DetailTab = ({
                                                 {rec.dong || '구미시'}
                                             </span>
                                             {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
-                                                <span className="bg-[#0D4C3C]/10 text-[#0D4C3C] border border-[#0D4C3C]/20 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 animate-pulse shrink-0">
-                                                    <Home size={12} className="text-[#0D4C3C]" strokeWidth={1.8} />
+                                                <span className="bg-[#0B2545]/10 text-[#0B2545] border border-[#0B2545]/20 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 animate-pulse shrink-0">
+                                                    <Home size={12} className="text-[#0B2545]" strokeWidth={1.8} />
                                                     <span>360°</span>
                                                 </span>
                                             )}
                                         </div>
 
-                                        <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0D4C3C] transition-colors flex items-center gap-1.5 flex-wrap">
+                                        <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0B2545] transition-colors flex items-center gap-1.5 flex-wrap">
                                             <span className="truncate">{rec.building}</span>
                                             {(rec.floor || rec.totalFloor) && (
-                                                <span className="text-[10px] text-[#0D4C3C] bg-[#0D4C3C]/10 px-1.5 py-0.5 rounded font-black border border-[#0D4C3C]/20 shrink-0">
+                                                <span className="text-[10px] text-[#0B2545] bg-[#0B2545]/10 px-1.5 py-0.5 rounded font-black border border-[#0B2545]/20 shrink-0">
                                                     {rec.floor && rec.totalFloor ? `${rec.floor}/${rec.totalFloor}층` : (rec.floor ? `${rec.floor}층` : `${rec.totalFloor}층`)}
                                                 </span>
                                             )}
@@ -812,7 +815,7 @@ export const DetailTab = ({
                                     </div>
                                     <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60">
                                         <span className="text-sm font-black text-red-500">{formatDisplayPrice(rec.price, rec.transactionType || '월세')}</span>
-                                        <span className="text-[11px] text-[#0D4C3C] font-bold flex items-center gap-0.5">
+                                        <span className="text-[11px] text-[#0B2545] font-bold flex items-center gap-0.5">
                                             <span>구경하기</span>
                                             <i className="fa-solid fa-chevron-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
                                         </span>
@@ -825,7 +828,7 @@ export const DetailTab = ({
             )}
 
             <div className="mt-6 sm:mt-10 text-center w-full pb-4">
-                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-[#0D4C3C] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0D4C3C]/20 text-lg sm:text-2xl tracking-wider">
+                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl tracking-wider">
                     {"<<<< 앞 바로가기 <<<<"}
                 </button>
             </div>

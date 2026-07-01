@@ -30,8 +30,8 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
             <defs>
                 {/* Under Director's request: Deep Kings Navy solid color */}
                 <linearGradient id="luxury-emerald-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0D4C3C" />
-                    <stop offset="100%" stopColor="#0D4C3C" />
+                    <stop offset="0%" stopColor="#0B2545" />
+                    <stop offset="100%" stopColor="#0B2545" />
                 </linearGradient>
                 <filter id="premium-house-shadow" x="-10%" y="-10%" width="120%" height="120%">
                     <feDropShadow dx="0" dy="5" stdDeviation="6" floodColor="#000000" floodOpacity="0.28" />
@@ -75,7 +75,7 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
             <text 
                 x="50" 
                 y="63" 
-                fill="#0D4C3C" 
+                fill="#0B2545" 
                 fontSize="18.5" 
                 fontWeight="900" 
                 fontFamily="'Inter', 'Space Grotesk', 'JetBrains Mono', 'Noto Sans KR', -apple-system, sans-serif" 

@@ -177,7 +177,7 @@ export const MainTab = ({
         <section id="main-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-opacity duration-300 w-full">
             {/* Desktop Hero */}
             {!isMobile && (
-                <div id="hero-desktop-wrapper" className="bg-[#0D4C3C] rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full hidden lg:block" style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important', borderColor: '#0D4C3C !important' } as React.CSSProperties}>
+                <div id="hero-desktop-wrapper" className="bg-[#0B2545] rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full hidden lg:block" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' } as React.CSSProperties}>
                     <div className="space-y-4 text-left relative z-10 w-full max-w-4xl">
                         <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-widest inline-block">태왕 오리지널 현장 브리핑</span>
                         <h1 className="text-3xl lg:text-5xl font-black leading-tight tracking-tight">
@@ -198,12 +198,15 @@ export const MainTab = ({
                                     }, 100);
                                 }}
                                 className="flex flex-col items-center cursor-pointer hover:scale-[1.03] active:scale-95 transition-all select-none px-6 sm:px-10 py-4 sm:py-5 rounded-2xl shadow-[0_0_20px_rgba(11,37,69,0.15)] shrink-0 max-w-full box-border border-2"
-                                style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important', borderColor: '#0D4C3C !important' }}
+                                style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}
                                 title="클릭하여 360° VR 매물 모아보기"
                             >
                                 <div className="flex items-center gap-3 sm:gap-5 flex-nowrap">
-                                    <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0D4C3C] border-2 border-white/20 shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow">
-                                        <Home className="text-white w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" strokeWidth={1.8} />
+                                    <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0B2545] border-2 border-[#0B2545] shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" style={{ backgroundColor: '#0B2545' }}>
+                                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                            <polyline points="9 22 9 12 15 12 15 22"/>
+                                        </svg>
                                     </div>
                                     <span className="text-white font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tight shrink-0 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] animate-vr-glow select-none">
                                         공간 실감 360° 현장 VR 투어
@@ -248,7 +251,7 @@ export const MainTab = ({
 
             {/* Mobile Hero */}
             {isMobile && (
-                <div id="hero-mobile-wrapper" className="block bg-[#0D4C3C] rounded-2xl p-5 text-white mb-8 shadow-xl relative overflow-hidden w-full lg:hidden" style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important', borderColor: '#0D4C3C !important' } as React.CSSProperties}>
+                <div id="hero-mobile-wrapper" className="block bg-[#0B2545] rounded-2xl p-5 text-white mb-8 shadow-xl relative overflow-hidden w-full lg:hidden" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' } as React.CSSProperties}>
                     <div className="relative z-10 flex flex-col space-y-4">
                         <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-left">
                             발로 뛰어 검증한 <br/>정직한 지역 가치와 현장 답사기
@@ -266,12 +269,15 @@ export const MainTab = ({
                                 }, 100);
                             }}
                             className="rounded-xl p-4 my-2.5 shadow-[inset_0_1px_15px_rgba(11,37,69,0.25)] cursor-pointer active:scale-[0.98] transition-all border-2"
-                            style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important', borderColor: '#0D4C3C !important' }}
+                            style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}
                             title="터치하여 360° VR 매물 모아보기"
                         >
                             <div className="text-white font-black text-lg sm:text-xl tracking-tight text-left flex items-center gap-3">
-                                <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0D4C3C] border-2 border-white/20 shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow">
-                                    <Home className="text-white w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" strokeWidth={1.8} />
+                                <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0B2545] border-2 border-[#0B2545] shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" style={{ backgroundColor: '#0B2545' }}>
+                                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                        <polyline points="9 22 9 12 15 12 15 22"/>
+                                    </svg>
                                 </div>
                                 <span className="animate-vr-glow select-none">공간 실감 360° 현장 VR 투어</span>
                             </div>
@@ -369,7 +375,7 @@ export const MainTab = ({
                                         <span className="shrink-0 font-black">{p.building}</span>
                                         {hasVR && (
                                             <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-1.5 animate-pulse border border-emerald-200">
-                                                <Home size={12} className="text-[#0D4C3C]" strokeWidth={1.8} />
+                                                <Home size={12} className="text-[#0B2545]" strokeWidth={1.8} />
                                                 <span>360°</span>
                                             </span>
                                         )}
@@ -400,7 +406,7 @@ export const MainTab = ({
                 <div id="property-search-title" className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 select-none w-full bg-slate-50 border border-slate-200/80 p-5 rounded-2xl shadow-sm mt-2">
                     <div className="flex items-center gap-4">
                         {/* 눈에 확 띄는 큼직한 집 모양 아이콘 */}
-                        <div className="search-home-icon flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#0D4C3C] text-white rounded-xl sm:rounded-2xl shadow-md shrink-0 border border-[#0D4C3C]" style={{ background: '#0D4C3C !important', backgroundColor: '#0D4C3C !important', borderColor: '#0D4C3C !important' } as React.CSSProperties}>
+                        <div className="search-home-icon flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#0B2545] text-white rounded-xl sm:rounded-2xl shadow-md shrink-0 border border-[#0B2545]" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' } as React.CSSProperties}>
                             <i className="fa-solid fa-house-chimney text-2xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)] animate-pulse-slow"></i>
                         </div>
                         <div>
@@ -430,8 +436,8 @@ export const MainTab = ({
                                     onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} 
                                     className={`category-tab select-none cursor-pointer flex items-center justify-center text-center whitespace-nowrap transition-all duration-200 ease-out rounded-2xl py-3.5 sm:py-4.5 px-2.5 font-black text-sm sm:text-base border-2 shadow-[0_4px_10px_rgba(15,23,42,0.08)] ${
                                         isSelected 
-                                            ? 'active bg-[#0D4C3C] text-white border-[#0D4C3C] scale-[1.03] shadow-[0_6px_20px_rgba(11,37,69,0.35)] ring-2 ring-[#0D4C3C]/20' 
-                                            : 'bg-white text-slate-800 border-slate-200 hover:bg-[#0D4C3C]/10 hover:text-[#0D4C3C] hover:border-[#0D4C3C]/50 hover:scale-[1.04] hover:shadow-[0_8px_16px_rgba(11,37,69,0.15)] active:scale-95'
+                                            ? 'active bg-[#0B2545] text-white border-[#0B2545] scale-[1.03] shadow-[0_6px_20px_rgba(11,37,69,0.35)] ring-2 ring-[#0B2545]/20' 
+                                            : 'bg-white text-slate-800 border-slate-200 hover:bg-[#0B2545]/10 hover:text-[#0B2545] hover:border-[#0B2545]/50 hover:scale-[1.04] hover:shadow-[0_8px_16px_rgba(11,37,69,0.15)] active:scale-95'
                                     }`}
                                 >
                                     {cat === 'all' ? '전체' : cat}
@@ -476,7 +482,7 @@ export const MainTab = ({
                                 className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-emerald-600 border-2 border-slate-300 rounded-lg focus:ring-emerald-500 cursor-pointer accent-emerald-600 transition-all shrink-0" 
                             />
                             <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
-                                <Home size={24} className="text-[#0D4C3C] animate-pulse shrink-0" strokeWidth={1.8} />
+                                <Home size={24} className="text-[#0B2545] animate-pulse shrink-0" strokeWidth={1.8} />
                                 <span>360° VR 매물만 보기</span>
                             </span>
                         </label>
@@ -687,7 +693,7 @@ export const MainTab = ({
                                                 </div>
                                             )}
                                             {hasVR && (
-                                                <span className="absolute top-2 left-2 shrink-0 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border shadow-md animate-pulse flex items-center gap-1" style={{ backgroundColor: '#0D4C3C', borderColor: '#0D4C3C' }}>
+                                                <span className="absolute top-2 left-2 shrink-0 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border shadow-md animate-pulse flex items-center gap-1" style={{ backgroundColor: '#0B2545', borderColor: '#0B2545' }}>
                                                     <Home size={14} className="text-white" strokeWidth={1.8} />
                                                     VR 360°
                                                 </span>
@@ -780,8 +786,8 @@ export const MainTab = ({
                                                         window.location.href = `tel:${p.phone || '010-7590-0111'}`;
                                                     }
                                                 }} 
-                                                className="w-full sm:w-11 h-12 sm:h-11 flex items-center justify-center gap-2.5 text-white bg-[#0D4C3C] hover:bg-[#0D4C3C]/90 hover:shadow-lg rounded-full sm:rounded-xl transition-all shrink-0 shadow-md sm:shadow-sm relative group px-5 sm:px-0"
-                                                style={{ backgroundColor: '#0D4C3C !important' }}>
+                                                className="w-full sm:w-11 h-12 sm:h-11 flex items-center justify-center gap-2.5 text-white bg-[#0B2545] hover:bg-[#0B2545]/90 hover:shadow-lg rounded-full sm:rounded-xl transition-all shrink-0 shadow-md sm:shadow-sm relative group px-5 sm:px-0"
+                                                style={{ backgroundColor: '#0B2545 !important' }}>
                                                 <i className="fa-solid fa-phone text-sm sm:text-base"></i>
                                                 <span className="sm:hidden font-extrabold text-[14px] tracking-wide">소장 직통 연결</span>
                                                 {isAdminLoggedIn && <span className="absolute top-1 right-4 sm:top-0 sm:right-0 w-2.5 h-2.5 bg-amber-500 border border-white rounded-full shadow-sm animate-pulse"></span>}

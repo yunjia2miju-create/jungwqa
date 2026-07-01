@@ -9,10 +9,10 @@ function replaceInDir(dir: string, recursive: boolean = true) {
         const stat = fs.statSync(fullPath);
         if (stat.isDirectory() && recursive) {
             replaceInDir(fullPath, recursive);
-        } else if (!stat.isDirectory() && (fullPath.endsWith('.tsx') || fullPath.endsWith('.css') || fullPath.endsWith('.ts') || fullPath.endsWith('.cjs'))) {
+        } else if (!stat.isDirectory() && (fullPath.endsWith('.tsx') || fullPath.endsWith('.css') || fullPath.endsWith('.ts') || fullPath.endsWith('.cjs') || fullPath.endsWith('.html'))) {
             let content = fs.readFileSync(fullPath, 'utf8');
-            if (content.includes('#0D4C3C')) {
-                content = content.replace(/#0D4C3C/g, '#0D4C3C');
+            if (content.includes('#0B2545')) {
+                content = content.replace(/#0B2545/g, '#0B2545');
                 fs.writeFileSync(fullPath, content);
                 console.log(`Replaced in ${fullPath}`);
             }

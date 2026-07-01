@@ -2218,13 +2218,11 @@
                 queueToast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl text-sm font-bold z-[999999] transition-all';
                 document.body.appendChild(queueToast);
             }
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                queueToast.style.display = 'block';
-                queueToast.innerText = `사진 파일 고속 압착 및 백그라운드 전송 중... (${i + 1}/${files.length})`;
-                
-                await new Promise((resolve) => {
+            queueToast.style.display = 'block';
+            queueToast.innerText = `사진 ${files.length}장 초고속 멀티 큐 압착 및 전송 중...`;
+
+            const uploadPromises = Array.from(files).map((file, i) => {
+                return new Promise((resolve) => {
                     processImage(file, (dataUrl, fileName) => {
                         if (window.self !== window.top) {
                             window.parent.postMessage({
@@ -2239,45 +2237,41 @@
                             const handler = (msgEvent) => {
                                 if (!msgEvent.data) return;
                                 if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === type) {
-                                    if (type === 'images') {
-                                        if (isMain) {
-                                            if (generalPhotos.length > 0) generalPhotos[0] = msgEvent.data.payload.url;
-                                            else generalPhotos.push(msgEvent.data.payload.url);
-                                        } else {
-                                            generalPhotos.push(msgEvent.data.payload.url);
-                                        }
-                                        renderGeneralPhotos();
-                                    } else if (type === 'pano') {
-                                        panoramaPhotos.push(msgEvent.data.payload.url);
-                                        renderPanoramaPhotos();
-                                    }
+                                    resolve(msgEvent.data.payload.url);
                                     window.removeEventListener('message', handler);
-                                    resolve();
                                 } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === type) {
+                                    resolve(null);
                                     window.removeEventListener('message', handler);
-                                    resolve();
                                 }
                             };
                             window.addEventListener('message', handler);
                         } else {
-                            const objUrl = URL.createObjectURL(file);
-                            if (type === 'images') {
-                                if (isMain) {
-                                    if (generalPhotos.length > 0) generalPhotos[0] = objUrl;
-                                    else generalPhotos.push(objUrl);
-                                } else {
-                                    generalPhotos.push(objUrl);
-                                }
-                                renderGeneralPhotos();
-                            } else if (type === 'pano') {
-                                panoramaPhotos.push(objUrl);
-                                renderPanoramaPhotos();
-                            }
-                            resolve();
+                            resolve(URL.createObjectURL(file));
                         }
                     });
                 });
-            }
+            });
+
+            const uploadedUrls = await Promise.all(uploadPromises);
+            
+            uploadedUrls.forEach((url) => {
+                if (!url) return;
+                if (type === 'images') {
+                    if (isMain) {
+                        if (generalPhotos.length > 0) generalPhotos[0] = url;
+                        else generalPhotos.push(url);
+                        isMain = false; // Only the first file acts as main replacement
+                    } else {
+                        generalPhotos.push(url);
+                    }
+                } else if (type === 'pano') {
+                    panoramaPhotos.push(url);
+                }
+            });
+
+            if (type === 'images') renderGeneralPhotos();
+            if (type === 'pano') renderPanoramaPhotos();
+
             queueToast.style.display = 'none';
             notifyParent();
         }
@@ -5330,7 +5324,7 @@
     </div>
     <div id="panel-image" class="mobile-sub-panel">
         <h3 class="text-sm font-bold text-slate-800 mb-2">📷 이미지 첨부</h3>
-        <button onclick="triggerPhotoUpload()" class="w-full py-3 bg-[#0D4C3C] hover:bg-[#0B2545] text-white font-bold rounded-lg shadow-sm mb-3">네이비 사진 파일 선택 버튼</button>
+        <button onclick="triggerPhotoUpload()" class="w-full py-3 bg-[#0B2545] hover:bg-[#113866] text-white font-bold rounded-lg shadow-sm mb-3">네이비 사진 파일 선택 버튼</button>
         <div class="grid grid-cols-3 gap-2">
             <button onclick="injectFavoriteItem('image', 'kitchen')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">내부 주방</button>
             <button onclick="injectFavoriteItem('image', 'bathroom')" class="p-2 bg-slate-50 border border-slate-200 rounded text-xs text-center">실사 화장실</button>

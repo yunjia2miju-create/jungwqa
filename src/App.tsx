@@ -7,6 +7,7 @@ import { AdminLoginSection } from './components/AdminLoginSection';
 import { AdminDashboardSection } from './components/AdminDashboardSection';
 import { AdminWriteSection } from './components/AdminWriteSection';
 import { Modals } from './components/Modals';
+import { Naver360Icon } from './components/Naver360Icon';
 import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
@@ -325,9 +326,9 @@ export default function App() {
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
                             <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
                                 <div className="flex items-center space-x-2 group">
-                                    <span className="text-white p-2 sm:p-2.5 rounded-xl shadow-md shadow-[#0B2545]/20 group-hover:bg-[#113866] transition-colors" style={{ backgroundColor: '#0B2545 !important' }}>
-                                        <i className="fa-solid fa-house-chimney text-lg sm:text-xl"></i>
-                                    </span>
+                                    <div className="shrink-0 flex items-center justify-center transition-all duration-300 !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
+                                        <Naver360Icon className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md" />
+                                    </div>
                                     <div className="flex items-center gap-2.5 sm:gap-4 ml-1">
                                         {/* Left brand column: *구미* / *GUMI* */}
                                         <div className="flex flex-col items-center justify-center text-center select-none">

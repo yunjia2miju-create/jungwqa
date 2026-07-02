@@ -1792,19 +1792,9 @@ const VrViewer: React.FC<VrViewerProps> = ({
                     }}
                     id="vr-starter-unified-container"
                 >
-                    {/* 1번 영역 - 집 모양 녹색 사각 심볼 확장 및 내부 문자열 강제 결합 */}
-                    <div
-                        className="relative flex flex-col items-center justify-center w-[130px] h-[130px] sm:w-[150px] sm:h-[150px] rounded-[24px] sm:rounded-[32px] bg-[#0B2545] border-2 border-white/20 shadow-[0_12px_36px_rgba(11,37,69,0.35)] hover:scale-105 active:scale-95 hover:bg-[#113866] transition-all duration-300 cursor-pointer"
-                        id="vr-starter-green-box-btn"
-                    >
-                        <div className="flex flex-col items-center justify-center gap-2 font-sans text-center">
-                            {/* 상단 수직 축 - 순백색 집 모양 아이콘 심볼 */}
-                            <Home className="text-white w-10 h-10 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" strokeWidth={1.8} />
-                            {/* 하단 수직 축 - 'VR 360 투어' 안내 문자열 */}
-                            <span className="text-white font-black text-xs sm:text-sm tracking-tight leading-none drop-shadow-[0_1px_2.5px_rgba(0,0,0,0.2)]">
-                                VR 360 투어
-                            </span>
-                        </div>
+                    {/* 1번 영역 - 360 집 모양 아이콘 적용 */}
+                    <div className="shrink-0 flex items-center justify-center !opacity-100 !block" style={{ opacity: 1, display: 'block' }} id="vr-starter-green-box-btn">
+                        <Naver360Icon className="w-[130px] h-[130px] sm:w-[150px] sm:h-[150px] drop-shadow-[0_12px_36px_rgba(11,37,69,0.35)] cursor-pointer" />
                     </div>
 
                     {/* 2번 영역 - 매물 정보 명찰 박스 일체형 심볼 바로 밑 정중앙 이동 및 다운사이징 */}

@@ -531,11 +531,8 @@ export const DetailTab = ({
                     <div className="mb-8">
                         <div className="flex flex-col items-start gap-4 mb-5 border-b border-dashed border-emerald-500/10 pb-4 w-full">
                             <h4 className="text-[22px] sm:text-[38px] md:text-[42px] lg:text-[44px] font-black text-slate-900 flex items-center gap-3.5 sm:gap-5 max-w-full">
-                                <div className="relative flex flex-col items-center justify-center w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] rounded-full bg-[#0B2545] border-2 border-[#0B2545] shadow-[0_4px_12px_rgba(11,37,69,0.35)] shrink-0 select-none animate-vr-glow" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 sm:w-12 sm:h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" style={{ backgroundColor: '#0B2545' }}>
-                                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                        <polyline points="9 22 9 12 15 12 15 22"/>
-                                    </svg>
+                                <div className="shrink-0 flex items-center justify-center animate-vr-glow !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
+                                    <Naver360Icon className="w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] drop-shadow-[0_4px_12px_rgba(11,37,69,0.35)]" />
                                 </div>
                                 <span 
                                     className="animate-vr-glow select-none break-keep"

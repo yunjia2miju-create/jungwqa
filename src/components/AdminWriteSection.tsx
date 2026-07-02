@@ -73,7 +73,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                     ...e.data.payload
                 }));
             } else if (e.data.type === 'UPLOAD_FILE') {
-                const { fileData, fileName, uploadType } = e.data.payload;
+                const { fileData, fileName, uploadType, fileId } = e.data.payload;
                 try {
                     // Do not block UI for background uploads unless it's thumbnail
                     if (uploadType === 'thumbnail') {
@@ -87,7 +87,8 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             type: 'UPLOAD_SUCCESS',
                             payload: {
                                 url: downloadURL,
-                                uploadType
+                                uploadType,
+                                fileId
                             }
                         }, '*');
                     }
@@ -101,7 +102,8 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             type: 'UPLOAD_ERROR',
                             payload: {
                                 message: err.message || '업로드 실패',
-                                uploadType
+                                uploadType,
+                                fileId
                             }
                         }, '*');
                     }

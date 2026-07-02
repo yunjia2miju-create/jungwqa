@@ -2233,6 +2233,7 @@
 
             const uploadPromises = Array.from(files).map((file, i) => {
                 return new Promise((resolve) => {
+                    const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_' + i;
                     processImage(file, (dataUrl, fileName) => {
                         if (window.self !== window.top) {
                             window.parent.postMessage({
@@ -2240,16 +2241,17 @@
                                 payload: {
                                     fileData: dataUrl,
                                     fileName: fileName,
-                                    uploadType: type
+                                    uploadType: type,
+                                    fileId: fileId
                                 }
                             }, '*');
                             
                             const handler = (msgEvent) => {
                                 if (!msgEvent.data) return;
-                                if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === type) {
+                                if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === type && msgEvent.data.payload.fileId === fileId) {
                                     resolve(msgEvent.data.payload.url);
                                     window.removeEventListener('message', handler);
-                                } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === type) {
+                                } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === type && msgEvent.data.payload.fileId === fileId) {
                                     resolve(null);
                                     window.removeEventListener('message', handler);
                                 }
@@ -2483,20 +2485,21 @@
                 }
                 
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                const fileId = 'file_thumb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 if (window.self !== window.top) {
                     window.parent.postMessage({
                         type: 'UPLOAD_FILE',
-                        payload: { fileData: dataUrl, fileName: 'representative_capture.jpg', uploadType: 'thumbnail' }
+                        payload: { fileData: dataUrl, fileName: 'representative_capture.jpg', uploadType: 'thumbnail', fileId: fileId }
                     }, '*');
 
                     const handler = (msgEvent) => {
                         if (!msgEvent.data) return;
-                        if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === 'thumbnail') {
+                        if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === 'thumbnail' && msgEvent.data.payload.fileId === fileId) {
                             representativeThumbnailUrl = msgEvent.data.payload.url;
                             window.removeEventListener('message', handler);
                             hideLoader();
                             alert('대표사진이 성공적으로 지정되었습니다.');
-                        } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === 'thumbnail') {
+                        } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === 'thumbnail' && msgEvent.data.payload.fileId === fileId) {
                             window.removeEventListener('message', handler);
                             hideLoader();
                             alert('캡처 전송 실패');
@@ -3989,6 +3992,7 @@
         function uploadImageForEditor(file) {
             return new Promise((resolve, reject) => {
                 showLoader(`본문 삽입용 이미지 파일 업로드 중...`);
+                const fileId = 'file_editor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 const reader = new FileReader();
                 reader.onload = function(evt) {
                     if (window.self !== window.top) {
@@ -3997,17 +4001,18 @@
                             payload: {
                                 fileData: evt.target.result,
                                 fileName: file.name,
-                                uploadType: 'images' // Use 'images' so it gets placed in 'gallery' folder
+                                uploadType: 'images', // Use 'images' so it gets placed in 'gallery' folder
+                                fileId: fileId
                             }
                         }, '*');
                         
                         const responseHandler = (msgEvent) => {
                             if (!msgEvent.data) return;
-                            if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === 'images') {
+                            if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === 'images' && msgEvent.data.payload.fileId === fileId) {
                                 window.removeEventListener('message', responseHandler);
                                 hideLoader();
                                 resolve(msgEvent.data.payload.url);
-                            } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === 'images') {
+                            } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === 'images' && msgEvent.data.payload.fileId === fileId) {
                                 window.removeEventListener('message', responseHandler);
                                 hideLoader();
                                 reject(new Error(msgEvent.data.payload.message || 'Image upload failed'));

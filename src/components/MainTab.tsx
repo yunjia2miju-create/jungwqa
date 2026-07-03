@@ -107,6 +107,68 @@ export const MainTab = ({
     const [searchInput, setSearchInput] = React.useState(searchVal);
     const [isSearching, setIsSearching] = React.useState(false);
 
+    // 1) 5대 마케팅: 필터 상태
+    const [activeDealType, setActiveDealType] = React.useState('all');
+    const [activeDeposit, setActiveDeposit] = React.useState('all');
+
+    // 2) 5대 마케팅: 관심 매물 (찜하기) 시스템
+    const [favorites, setFavorites] = React.useState<string[]>(() => {
+        try { return JSON.parse(localStorage.getItem('taewang_favorites') || '[]'); } catch { return []; }
+    });
+    const [showOnlyFavorites, setShowOnlyFavorites] = React.useState(false);
+
+    const toggleFavorite = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setFavorites(prev => {
+            const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+            localStorage.setItem('taewang_favorites', JSON.stringify(next));
+            if (next.includes(id)) {
+                showToast("관심 매물에 추가되었습니다.", "success");
+            } else {
+                showToast("관심 매물에서 해제되었습니다.", "success");
+            }
+            return next;
+        });
+    };
+
+    // 3) 5대 마케팅: 조회수(views) 증가 시스템
+    const [viewCounts, setViewCounts] = React.useState<Record<string, number>>(() => {
+        try { return JSON.parse(localStorage.getItem('taewang_views') || '{}'); } catch { return {}; }
+    });
+
+    const handlePostClick = (id: string) => {
+        setViewCounts(prev => {
+            const current = prev[id] || Math.floor(Math.random() * 15) + 10;
+            const next = { ...prev, [id]: current + 1 };
+            localStorage.setItem('taewang_views', JSON.stringify(next));
+            return next;
+        });
+        setSelectedPostId(id);
+    };
+
+    // 4) 5대 마케팅: 무한 스크롤 엔진
+    const [displayLimit, setDisplayLimit] = React.useState(15);
+    const observerTarget = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        const observer = new IntersectionObserver(
+            entries => {
+                if (entries[0].isIntersecting) {
+                    setDisplayLimit(prev => prev + 15);
+                }
+            },
+            { threshold: 0.1 }
+        );
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+        return () => observer.disconnect();
+    }, []);
+
+    React.useEffect(() => {
+        setDisplayLimit(15);
+    }, [activeCategory, activeDong, activeDealType, activeDeposit, showOnlyRecommended, showOnlyVR, searchVal, showOnlyFavorites]);
+
     React.useEffect(() => {
         setIsSearching(true);
         const t = setTimeout(() => {
@@ -123,6 +185,7 @@ export const MainTab = ({
     let filtered = posts.filter(p => {
         if (!p) return false;
         if (showOnlyRecommended && !(p.isRecommended === true || String(p.isRecommended) === 'true')) return false;
+        if (showOnlyFavorites && !favorites.includes(p.id)) return false;
 
         const pPanoramas = String(p.panoramas || '');
         const pPanoImage = String(p.panoImage || '');
@@ -141,10 +204,31 @@ export const MainTab = ({
 
         const dongMatch = activeDong === 'all' || (p.dong && String(p.dong) === activeDong) || (p.address && String(p.address).includes(activeDong));
         
+        let dealMatch = true;
+        if (activeDealType !== 'all') {
+            dealMatch = String(p.transactionType || '월세') === activeDealType;
+        }
+
+        let depositMatch = true;
+        if (activeDeposit !== 'all') {
+            const priceStr = String(p.price || '');
+            const match = priceStr.match(/(\d+)/);
+            if (match) {
+                const depositNum = parseInt(match[1], 10);
+                if (activeDeposit === '500') {
+                    depositMatch = depositNum <= 500;
+                } else if (activeDeposit === '1000') {
+                    depositMatch = depositNum <= 1000;
+                }
+            } else if (activeDeposit !== 'all') {
+                depositMatch = false;
+            }
+        }
+
         const buildingMatch = String(p.building || '').toLowerCase().includes(searchVal);
         const addressMatch = String(p.address || '').toLowerCase().includes(searchVal);
         const remarksMatch = stripHtml(p.remarks).toLowerCase().includes(searchVal);
-        return categoryMatch && dongMatch && (buildingMatch || addressMatch || remarksMatch);
+        return categoryMatch && dongMatch && dealMatch && depositMatch && (buildingMatch || addressMatch || remarksMatch);
     });
 
     const totalItems = filtered.length;
@@ -152,9 +236,7 @@ export const MainTab = ({
     let safeCurrentPage = currentPage;
     if (safeCurrentPage > totalPages) safeCurrentPage = totalPages;
 
-    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedItems = filtered.slice(startIndex, endIndex);
+    const paginatedItems = filtered.slice(0, displayLimit);
 
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024 || isMobileSimulationMode);
 
@@ -454,8 +536,55 @@ export const MainTab = ({
                     </div>
                 </div>
 
+                {/* 5대 마케팅: 상세 다중 필터 검색 */}
+                <div className="w-full mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 전/월/매 필터 */}
+                    <div className="flex bg-slate-100 rounded-xl p-1.5 shadow-inner">
+                        {[{v:'all', l:'모든 거래형태'}, {v:'월세', l:'월세'}, {v:'전세', l:'전세'}, {v:'매매', l:'매매'}].map(opt => (
+                            <button
+                                key={opt.v}
+                                onClick={() => setActiveDealType(opt.v)}
+                                className={`flex-1 py-2.5 rounded-lg text-[13px] sm:text-sm font-black transition-all ${activeDealType === opt.v ? 'bg-white text-[#0B2545] shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                {opt.l}
+                            </button>
+                        ))}
+                    </div>
+                    {/* 보증금 필터 */}
+                    <div className="flex bg-slate-100 rounded-xl p-1.5 shadow-inner">
+                        {[{v:'all', l:'보증금 전체'}, {v:'500', l:'500만원 이하'}, {v:'1000', l:'1000만원 이하'}].map(opt => (
+                            <button
+                                key={opt.v}
+                                onClick={() => setActiveDeposit(opt.v)}
+                                className={`flex-1 py-2.5 rounded-lg text-[13px] sm:text-sm font-black transition-all ${activeDeposit === opt.v ? 'bg-white text-[#0B2545] shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                {opt.l}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6 w-full font-medium mt-4 sm:mt-6 mb-4">
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 w-full lg:w-auto">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-5 w-full lg:w-auto">
+                        {/* 5대 마케팅: 내 관심 매물 */}
+                        <label 
+                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
+                                showOnlyFavorites 
+                                    ? 'bg-rose-500/10 border-rose-500 text-rose-950 font-black scale-[1.03] ring-4 ring-rose-500/10 shadow-[0_6px_20px_rgba(244,63,94,0.25)]' 
+                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
+                            }`}
+                        >
+                            <input 
+                                type="checkbox" 
+                                checked={showOnlyFavorites} 
+                                onChange={(e) => setShowOnlyFavorites(e.target.checked)} 
+                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-rose-500 border-2 border-slate-300 rounded-lg focus:ring-rose-500 cursor-pointer accent-rose-500 transition-all shrink-0" 
+                            />
+                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
+                                <i className="fa-solid fa-heart text-rose-500 text-lg sm:text-2xl shrink-0 animate-pulse"></i>
+                                <span>내 관심 매물</span>
+                            </span>
+                        </label>
                         <label 
                             className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
                                 showOnlyRecommended 
@@ -677,11 +806,15 @@ export const MainTab = ({
                                 const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
                                 const roomVal = p.room ? String(p.room) : '';
                                 const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (isAdminLoggedIn && roomVal ? `${roomVal}호` : '지상층');
+                                const isFavorite = favorites.includes(p.id);
+                                const viewCount = viewCounts[p.id] || 0;
+                                const isHot = viewCount > 30;
+
                                 return (
                                     <div 
                                         key={p.id} 
-                                        onClick={() => setSelectedPostId(p.id)} 
-                                        className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 cursor-pointer text-left w-full overflow-hidden"
+                                        onClick={() => handlePostClick(p.id)} 
+                                        className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 cursor-pointer text-left w-full overflow-hidden relative"
                                     >
                                         {/* Thumbnail Section */}
                                         <div className="order-1 relative shrink-0 overflow-hidden rounded-xl bg-transparent border border-slate-100 transition-all duration-300 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video xl:w-[320px] xl:h-[180px] self-center lg:self-stretch">
@@ -699,6 +832,14 @@ export const MainTab = ({
                                                     <span className="text-[10px] font-bold">이미지 준비중</span>
                                                 </div>
                                             )}
+                                            {/* 5대 마케팅: 찜하기 하트 버튼 (썸네일 우측 상단) */}
+                                            <button 
+                                                onClick={(e) => toggleFavorite(e, p.id)}
+                                                className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:scale-110 transition-transform"
+                                            >
+                                                <i className={`fa-heart text-lg ${isFavorite ? 'fa-solid text-rose-500' : 'fa-regular text-slate-400'}`}></i>
+                                            </button>
+
                                             {hasVR && (
                                                 <span className="absolute top-2 left-2 shrink-0 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border shadow-md animate-pulse flex items-center gap-1" style={{ backgroundColor: '#0B2545', borderColor: '#0B2545' }}>
                                                     <Home size={14} className="text-white" strokeWidth={1.8} />
@@ -711,6 +852,12 @@ export const MainTab = ({
                                         <div className="order-2 flex-grow min-w-0 flex flex-col justify-between gap-2.5 pl-0 lg:pl-2">
                                             {/* Row 1: Badges & Building Name - Styled to prevent overlap and truncate beautifully */}
                                             <div className="text-[14px] font-black text-slate-900 flex items-center gap-1.5 min-w-0 w-full flex-wrap xs:flex-nowrap">
+                                                {/* 5대 마케팅: HOT 인기 떡상 뱃지 */}
+                                                {isHot && (
+                                                    <div className="shrink-0 flex items-center justify-center px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-black animate-bounce shadow-md">
+                                                        🔥 인기 떡상
+                                                    </div>
+                                                )}
                                                 {isRec && (
                                                     <div className="shrink-0 flex items-center justify-center text-amber-500 animate-sparkle">
                                                         <i className="fa-solid fa-star"></i>
@@ -737,6 +884,12 @@ export const MainTab = ({
                                                 <span className="text-slate-500 font-bold text-[10.5px] sm:text-xs bg-slate-100 px-2.5 py-1 rounded border border-slate-200/60 leading-none shrink-0">
                                                     {floorLabel}
                                                 </span>
+                                                {/* 5대 마케팅: 조회수 노출 */}
+                                                {viewCount > 0 && (
+                                                    <span className="text-slate-400 font-bold text-[10px] flex items-center gap-1 shrink-0 ml-auto">
+                                                        <i className="fa-regular fa-eye"></i> {viewCount}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             {/* Row 3: Metadata Row - Category & Address Details */}
@@ -796,7 +949,7 @@ export const MainTab = ({
                                                 className="w-full sm:w-11 h-12 sm:h-11 flex items-center justify-center gap-2.5 text-white bg-[#0B2545] hover:bg-[#0B2545]/90 hover:shadow-lg rounded-full sm:rounded-xl transition-all shrink-0 shadow-md sm:shadow-sm relative group px-5 sm:px-0"
                                                 style={{ backgroundColor: '#0B2545 !important' }}>
                                                 <i className="fa-solid fa-phone text-sm sm:text-base"></i>
-                                                <span className="sm:hidden font-extrabold text-[14px] tracking-wide">소장 직통 연결</span>
+                                                <span className="sm:hidden font-extrabold text-[14px] tracking-wide">태왕공인중개사 전화연결</span>
                                                 {isAdminLoggedIn && <span className="absolute top-1 right-4 sm:top-0 sm:right-0 w-2.5 h-2.5 bg-amber-500 border border-white rounded-full shadow-sm animate-pulse"></span>}
                                             </button>
                                         </div>
@@ -805,52 +958,12 @@ export const MainTab = ({
                             })
                         )}
                     </div>
-                </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8 font-semibold font-mono">
-                    {/* First Page */}
-                    <button onClick={() => { setCurrentPage(1); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === 1} className={`px-3 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>처음</button>
-                    
-                    {/* Previous Page Arrow */}
-                    <button onClick={() => { setCurrentPage(Math.max(1, safeCurrentPage - 1)); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === 1} className={`px-2 py-1.5 rounded-xl text-xs font-black border transition-all flex items-center justify-center ${safeCurrentPage === 1 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`} aria-label="이전 페이지">
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-
-                    {/* Numeric Pages */}
-                    {(() => {
-                        const pages: number[] = [];
-                        let startPage = Math.max(1, safeCurrentPage - 2);
-                        let endPage = Math.min(totalPages, safeCurrentPage + 2);
-                        if (safeCurrentPage <= 3) {
-                            startPage = 1;
-                            endPage = Math.min(totalPages, 5);
-                        } else if (safeCurrentPage >= totalPages - 2) {
-                            startPage = Math.max(1, totalPages - 4);
-                            endPage = totalPages;
-                        }
-                        for (let p = startPage; p <= endPage; p++) {
-                            pages.push(p);
-                        }
-                        return pages.map(pageNum => {
-                            const isActive = pageNum === safeCurrentPage;
-                            return (
-                                <button key={pageNum} onClick={() => { setCurrentPage(pageNum); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${isActive ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
-                                    {pageNum}
-                                </button>
-                            );
-                        });
-                    })()}
-
-                    {/* Next Page Arrow */}
-                    <button onClick={() => { setCurrentPage(Math.min(totalPages, safeCurrentPage + 1)); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === totalPages} className={`px-2 py-1.5 rounded-xl text-xs font-black border transition-all flex items-center justify-center ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`} aria-label="다음 페이지">
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-
-                    {/* Last Page */}
-                    <button onClick={() => { setCurrentPage(totalPages); document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' }); }} disabled={safeCurrentPage === totalPages} className={`px-3 py-1.5 rounded-xl text-xs font-black border transition-all ${safeCurrentPage === totalPages ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>마지막</button>
+                    {/* 무한 스크롤 옵저버 타겟 */}
+                    {displayLimit < totalItems && (
+                        <div ref={observerTarget} className="py-8 flex justify-center items-center">
+                            <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -886,6 +999,29 @@ export const MainTab = ({
                     </form>
                 </div>
             </section>
+
+            {/* 5대 마케팅: 하단 우측 플로팅 연락/카톡 버튼 */}
+            <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex flex-col gap-3">
+                {/* 카카오톡 오픈채팅 버튼 */}
+                <a 
+                    href="https://open.kakao.com/o/s" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-14 h-14 bg-[#FEE500] text-[#000000] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform shadow-black/20 group"
+                    aria-label="카카오톡 오픈채팅"
+                >
+                    <i className="fa-solid fa-comment text-2xl group-hover:animate-bounce"></i>
+                </a>
+                {/* 010-7590-0111 전화 다이렉트 버튼 */}
+                <a 
+                    href="tel:010-7590-0111" 
+                    className="w-14 h-14 bg-[#0B2545] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform shadow-[#0B2545]/40 border border-[#0B2545]/50 group" 
+                    style={{ backgroundColor: '#0B2545' }}
+                    aria-label="태왕공인중개사 전화연결"
+                >
+                    <i className="fa-solid fa-phone-volume text-xl group-hover:animate-shake"></i>
+                </a>
+            </div>
         </section>
     );
 };

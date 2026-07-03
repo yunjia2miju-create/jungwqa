@@ -34,6 +34,27 @@ export const DetailTab = ({
 }) => {
     const { posts, isAdminLoggedIn, selectedPostId, setSelectedPostId, setActiveSection, isMobileSimulationMode } = useAppStore();
 
+    // 2) 5대 마케팅: 관심 매물 (찜하기) 시스템
+    const [favorites, setFavorites] = React.useState<string[]>(() => {
+        try { return JSON.parse(localStorage.getItem('taewang_favorites') || '[]'); } catch { return []; }
+    });
+
+    const toggleFavorite = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setFavorites(prev => {
+            const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+            localStorage.setItem('taewang_favorites', JSON.stringify(next));
+            if (showToast) {
+                if (next.includes(id)) {
+                    showToast("관심 매물에 추가되었습니다.", "success");
+                } else {
+                    showToast("관심 매물에서 해제되었습니다.", "success");
+                }
+            }
+            return next;
+        });
+    };
+
     const [isFetchingDetail, setIsFetchingDetail] = React.useState(true);
     const [copied, setCopied] = React.useState(false);
     const [zoomedImageId, setZoomedImageId] = React.useState<string | null>(null);
@@ -267,6 +288,17 @@ export const DetailTab = ({
                     <div className="flex-1 min-w-0 w-full">
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-slate-900 leading-tight tracking-tight mb-3 lg:mb-4 flex items-center gap-2 flex-wrap">
                             <span>{p.building} {isAdminLoggedIn && p.room ? `${p.room}호` : ''}</span>
+                            <button 
+                                onClick={(e) => toggleFavorite(e, p.id)}
+                                className={`ml-1 shrink-0 flex items-center justify-center p-2 sm:p-2.5 rounded-full transition-all duration-300 shadow-sm border cursor-pointer ${
+                                    favorites.includes(p.id) 
+                                        ? 'bg-red-50 hover:bg-red-100 border-red-200' 
+                                        : 'bg-white hover:bg-slate-50 border-slate-200'
+                                }`}
+                                title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
+                            >
+                                <i className={`fa-solid fa-heart ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-slate-300'} text-lg sm:text-xl transition-transform`}></i>
+                            </button>
                             {((p.panoramas && p.panoramas.trim()) || (p.panoImage && p.panoImage.trim())) && (
                                 <span className="shrink-0 bg-[#0B2545] text-white text-xs sm:text-sm lg:text-base font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg shadow-[#0B2545]/20 animate-pulse">
                                     <Home size={18} className="text-white" strokeWidth={1.8} />
@@ -321,7 +353,7 @@ export const DetailTab = ({
                             className="mt-1 lg:mt-2 w-full bg-[#0B2545] hover:bg-[#113866] text-white font-black py-2.5 lg:py-4 rounded-xl flex items-center justify-center gap-2 lg:gap-3 shadow-md shadow-[#0B2545]/10 transition-all text-center select-none cursor-pointer text-xs lg:text-base"
                         >
                             <i className="fa-solid fa-phone animate-bounce"></i>
-                            <span>태왕 공인중개사 직통 빠른 전화</span>
+                            <span>태왕공인중개사 전화연결</span>
                         </a>
                     </div>
                 </div>
@@ -477,6 +509,19 @@ export const DetailTab = ({
                         <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
                         <span>크게 보기 (클릭)</span>
                     </div>
+
+                    {/* Heart Button Overlay */}
+                    <button 
+                        onClick={(e) => toggleFavorite(e, p.id)}
+                        className={`absolute bottom-4 right-4 sm:bottom-5 sm:right-5 z-30 flex items-center justify-center w-12 h-12 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl border cursor-pointer ${
+                            favorites.includes(p.id) 
+                                ? 'bg-white/90 border-red-200' 
+                                : 'bg-[#0B2545]/60 hover:bg-[#0B2545]/80 border-white/20'
+                        }`}
+                        title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
+                    >
+                        <i className={`fa-solid fa-heart text-2xl ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-white'} transition-transform`}></i>
+                    </button>
                 </div>
 
                 {imgUrls.length > 0 && (
@@ -557,15 +602,29 @@ export const DetailTab = ({
                                 </div>
                             )}
                         </div>
-                        <PannellumViewer 
-                            key={`${p.id}-${panoUrls.length}`}
-                            images={panoUrls} 
-                            activeIndex={activePanoIndex} 
-                            onSceneChange={(idx) => setActivePanoIndex(idx)} 
-                            title={p.building || p.title}
-                            address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
-                            thumbnail={p.thumbnail}
-                        />
+                        <div className="relative w-full rounded-none sm:rounded-2xl overflow-hidden shadow-sm">
+                            <PannellumViewer 
+                                key={`${p.id}-${panoUrls.length}`}
+                                images={panoUrls} 
+                                activeIndex={activePanoIndex} 
+                                onSceneChange={(idx) => setActivePanoIndex(idx)} 
+                                title={p.building || p.title}
+                                address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
+                                thumbnail={p.thumbnail}
+                            />
+                            {/* Heart Button for VR */}
+                            <button 
+                                onClick={(e) => toggleFavorite(e, p.id)}
+                                className={`absolute top-4 right-4 sm:top-5 sm:right-5 z-[50] flex items-center justify-center w-12 h-12 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl border cursor-pointer ${
+                                    favorites.includes(p.id) 
+                                        ? 'bg-white/90 border-red-200' 
+                                        : 'bg-[#0B2545]/60 hover:bg-[#0B2545]/80 border-white/20'
+                                }`}
+                                title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
+                            >
+                                <i className={`fa-solid fa-heart text-2xl ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-white'} transition-transform`}></i>
+                            </button>
+                        </div>
                         {panoUrls.length > 1 && (
                             <div className="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-2">
                                 {panoUrls.map((pano, idx) => (

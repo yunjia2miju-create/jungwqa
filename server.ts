@@ -1330,6 +1330,43 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     return null;
   }
 
+  // Dynamic Open Graph Image Route to enforce default_thumb.jpg physical placement per post
+  app.get('/api/og-image/:id/default_thumb.jpg', async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const post = await getPostById(postId);
+      if (!post) {
+        return res.redirect('/images/default_thumb.jpg');
+      }
+      
+      let imageUrl = '';
+      if (post.panoImage) {
+        imageUrl = post.panoImage;
+      } else if (post.panoramas) {
+        const panos = post.panoramas.split('|').filter((u: string) => u.trim());
+        if (panos.length > 0) imageUrl = panos[0];
+      }
+      
+      if (!imageUrl) {
+        if (post.thumbnail) {
+          imageUrl = post.thumbnail;
+        } else if (post.images) {
+          const imgs = post.images.split('|').filter((u: string) => u.trim());
+          if (imgs.length > 0) imageUrl = imgs[0];
+        }
+      }
+      
+      if (!imageUrl) {
+        return res.redirect('/images/default_thumb.jpg');
+      }
+      
+      // Redirect crawler to actual Firebase Storage URL for physical serving
+      res.redirect(imageUrl);
+    } catch (e) {
+      res.redirect('/images/default_thumb.jpg');
+    }
+  });
+
   // Vite middleware for development or fallback static serving
   const isProd = process.env.NODE_ENV === 'production' || _dirname.endsWith('dist') || _dirname.endsWith('dist/');
   const distPath = isProd
@@ -1361,18 +1398,23 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              
+              // 1순위 파노라마, 2순위 썸네일, 전역 default_thumb.jpg 물리적 강제 배선
+              const newImage = `${req.protocol}://${req.get('host')}/api/og-image/${itemId}/default_thumb.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
               html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
               html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
               
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              html = html.replace(/<meta[^>]*property="og:image[^>]*>/gi, '');
+              
+              const ogTags = `
+    <meta id="ogImage" property="og:image" content="${newImage}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+</head>`;
+              html = html.replace('</head>', ogTags);
             }
             res.send(html);
             return;
@@ -1404,18 +1446,23 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              
+              // 1순위 파노라마, 2순위 썸네일, 전역 default_thumb.jpg 물리적 강제 배선
+              const newImage = `${req.protocol}://${req.get('host')}/api/og-image/${itemId}/default_thumb.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
               html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
               html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
               
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              html = html.replace(/<meta[^>]*property="og:image[^>]*>/gi, '');
+              
+              const ogTags = `
+    <meta id="ogImage" property="og:image" content="${newImage}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+</head>`;
+              html = html.replace('</head>', ogTags);
             }
           }
           res.send(html);

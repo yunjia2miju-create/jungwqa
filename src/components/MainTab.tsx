@@ -312,10 +312,10 @@ export const MainTab = ({
                             <div className="hidden"></div>
                         </div>
                         <p className="text-slate-200 text-base lg:text-lg leading-relaxed font-black mb-2 shadow-black/20 text-shadow-sm">
-                            "압도적 공간감! 사진으로는 볼 수 없던 구석구석을 360° 가상 투어로 경험하세요."
+                            "압도적 공간감!<br />사진으로는 볼 수 없던 구석구석을 360° 가상 투어로 경험하세요."
                         </p>
                         <p className="text-slate-400 text-xs lg:text-sm leading-relaxed max-w-2xl">
-                            태왕은 단순히 정보를 전달하는 것을 넘어, 고객님이 현장에 직접 계신 것처럼 생생한 경험을 선사하기 위해 모든 매물을 360° 입체 촬영하여 제공합니다. 
+                            태왕은 단순히 정보를 전달하는 것을 넘어,<br />고객님이 현장에 직접 계신 것처럼 생생한 경험을 선사하기 위해 모든 매물을 360° 입체 촬영하여 제공합니다. 
                         </p>
                         <div className="flex gap-3 pt-2">
                             <button 
@@ -372,7 +372,7 @@ export const MainTab = ({
                             </div>
                             <p className="text-slate-300 text-[10px] leading-relaxed text-left font-semibold italic mt-1.5 flex items-center justify-between">
                                 <span>"구미 전 지역 공실을 360° 가상 투어로 생생하게"</span>
-                                <span className="text-white font-extrabold text-[10px] shrink-0 ml-1">터치하여 모아보기 ➔</span>
+                                <span className="text-white font-extrabold text-[10px] shrink-0 ml-1">터치하여 모아보기</span>
                             </p>
                         </div>
                         <p className="text-slate-400 text-[11px] leading-relaxed text-left">
@@ -749,12 +749,12 @@ export const MainTab = ({
                                                  <div className="flex items-center justify-center gap-2 font-black">
                                                      {hasVR ? (
                                                          <div className="inline-flex items-center bg-emerald-500 text-white border border-emerald-600 px-3.5 py-1.5 rounded-xl shadow-md animate-pulse text-xs sm:text-[13px] font-extrabold tracking-wide">
-                                                             <span className="mr-1.5">🥽</span>
+                                                             <span className="mr-1.5"><i className="fa-solid fa-vr-cardboard"></i></span>
                                                              <span>360° 투어</span>
                                                          </div>
                                                      ) : (thumbnailVal || imagesVal) ? (
                                                          <div className="inline-flex items-center bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-xl shadow-sm text-xs sm:text-[13px] font-extrabold tracking-wide">
-                                                             <span className="mr-1.5">📷</span>
+                                                             <span className="mr-1.5"><i className="fa-solid fa-camera"></i></span>
                                                              <span>일반사진</span>
                                                          </div>
                                                      ) : (
@@ -855,7 +855,7 @@ export const MainTab = ({
                                                 {/* 5대 마케팅: HOT 인기 떡상 뱃지 */}
                                                 {isHot && (
                                                     <div className="shrink-0 flex items-center justify-center px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-black animate-bounce shadow-md">
-                                                        🔥 인기 떡상
+                                                        HOT 인기 떡상
                                                     </div>
                                                 )}
                                                 {isRec && (
@@ -914,7 +914,7 @@ export const MainTab = ({
                                             {/* Row 4: Highlight / Emphasis Field - Beautiful styled box designed for the subscriber */}
                                             {p.remarks && stripHtml(p.remarks) && (
                                                 <div className="text-[11.5px] font-black text-emerald-950 bg-emerald-50/60 border border-emerald-200/40 rounded-xl px-2.5 py-1.5 mt-1.5 flex items-start gap-1.5 w-full max-w-full">
-                                                    <span className="text-emerald-500 shrink-0 text-xs mt-0.5">✨</span>
+                                                    <span className="text-emerald-500 shrink-0 text-xs mt-0.5"><i className="fa-solid fa-check"></i></span>
                                                     <span className="font-bold text-slate-700 break-all leading-relaxed flex-grow min-w-0 line-clamp-2 lg:line-clamp-none">
                                                         {stripHtml(p.remarks)}
                                                     </span>
@@ -976,7 +976,7 @@ export const MainTab = ({
                         <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight animate-heading-zoom-glow">가려운 곳을 콕 짚어 해결해 드립니다</h2>
                     </div>
                     <p className="text-slate-300 text-xs sm:text-base max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-4 font-bold">
-                        세법 설계, 좋은 실거주 단지 선택 등 어떤 고민이든 남겨주시면 정직하게 분석하여 직접 답변드리겠습니다.
+                        세법 설계,<br />좋은 실거주 단지 선택 등 어떤 고민이든 남겨주시면 정직하게 분석하여 직접 답변드리겠습니다.
                     </p>
 
                     <form onSubmit={handleInquirySubmit} className="bg-slate-900 border border-slate-800 p-5 sm:p-8 rounded-2xl text-left max-w-xl mx-auto space-y-3 sm:space-y-4 shadow-2xl w-full">
@@ -1002,4 +1002,5 @@ export const MainTab = ({
         </section>
     );
 };
+
 

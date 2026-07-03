@@ -579,7 +579,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
         if (cleanLines.length > 0) {
             rawLegalTextBlockHtml = `
                 <div style="margin-top: 15px; padding: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 11px; color: #475569; line-height: 1.6; word-break: break-all;">
-                    <strong style="color: #0f172a; display: block; margin-bottom: 6px;">📄 원본 법정 고시란 전체 내역 (대조 확인용)</strong>
+                    <strong style="color: #0f172a; display: block; margin-bottom: 6px;">[원본 법정 고시란 전체 내역 - 대조 확인용]</strong>
                     ${cleanLines.join('<br/>')}
                 </div>
             `;
@@ -588,7 +588,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
         return `
             <div style="margin: 30px 0; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); text-align: left;">
                 <div style="display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #059669; padding-bottom: 12px; margin-bottom: 18px;">
-                    <span style="font-size: 18px; margin-right: 6px;">📋</span>
+                    <span style="font-size: 18px; margin-right: 6px;"></span>
                     <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0; padding: 0; display: inline-block;">법정 중개대상물 표시광고 확인서 요약표</h4>
                 </div>
                 <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; line-height: 1.6; color: #334155;">
@@ -721,7 +721,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
         // 5) [RECOMMENDED HASHTAGS]
         const hashtagsHtml = tags 
             ? `<div style="margin-top: 30px; padding: 16px; background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #10b981; text-align: left;">
-                 <p style="margin: 0; font-weight: bold; color: #065f46; font-size: 14px;">💡 추천 해시태그</p>
+                 <p style="margin: 0; font-weight: bold; color: #065f46; font-size: 14px;">[추천 해시태그]</p>
                  <p style="margin: 5px 0 0 0; color: #2563eb; font-weight: bold; font-size: 13px;">${tags}</p>
                </div>` 
             : '';
@@ -981,7 +981,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                             disabled={isLoading}
                             className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-1.5 rounded-lg text-sm font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
                         >
-                            <Sparkles className="w-4 h-4 text-emerald-600 animate-pulse" /> 🤖 AI 원고 가공하기 (선택)
+                            <Sparkles className="w-4 h-4 text-emerald-600 animate-pulse" /> AI 원고 가공하기 (선택)
                         </button>
                         
                         <a 
@@ -1003,7 +1003,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                             <div className="flex justify-between items-center px-1">
                                 <span className="text-xs font-black text-emerald-800 flex items-center gap-1.5">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span>💚 네이버 블로그 채널 매트릭스 (7 슬롯)</span>
+                                    <span>[네이버 블로그 채널 매트릭스 (7 슬롯)]</span>
                                 </span>
                                 <span className="text-[10px] text-slate-500 font-bold">100% 원고 복사 연결 지원</span>
                             </div>
@@ -1024,7 +1024,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                         >
                                             {isLastSent && (
                                                 <span className="absolute -top-1.5 -right-1 z-10 bg-green-600 text-white text-[8px] font-black px-1 py-0.5 rounded-full shadow-xs flex items-center gap-0.5 animate-pulse">
-                                                    🟢 성공
+                                                    [성공]
                                                 </span>
                                             )}
                                             <span className={`text-[9px] tracking-tighter ${isSelected ? 'text-emerald-700 font-black' : 'text-slate-400 font-bold'}`}>
@@ -1047,7 +1047,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                             <div className="flex justify-between items-center px-1">
                                 <span className="text-xs font-black text-orange-800 flex items-center gap-1.5">
                                     <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                                    <span>🧡 구글 블로그스팟 API 채널 매트릭스 (7 슬롯)</span>
+                                    <span>[구글 블로그스팟 API 채널 매트릭스 (7 슬롯)]</span>
                                 </span>
                                 <span className="text-[10px] text-slate-500 font-bold">API 직접 발행 & 연동 지원</span>
                             </div>
@@ -1068,7 +1068,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                         >
                                             {isLastSent && (
                                                 <span className="absolute -top-1.5 -right-1 z-10 bg-green-600 text-white text-[8px] font-black px-1 py-0.5 rounded-full shadow-xs flex items-center gap-0.5 animate-pulse">
-                                                    🟢 성공
+                                                    [성공]
                                                 </span>
                                             )}
                                             <span className={`text-[9px] tracking-tighter ${isSelected ? 'text-orange-700 font-black' : 'text-slate-400 font-bold'}`}>
@@ -1201,7 +1201,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                                     }}
                                                     className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-xs font-black text-slate-600 transition-all cursor-pointer"
                                                 >
-                                                    🔑 OAuth 세부설정
+                                                    [OAuth 세부설정]
                                                 </button>
                                             </div>
                                         </div>
@@ -1226,7 +1226,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                             </>
                                         ) : (
                                             <>
-                                                <span>🚀</span>
+                                                <span></span>
                                                 <span>{activeSlot.platform === 'naver' ? '[네이버 블로그 즉시 전송]' : '[구글 블로그스팟 즉시 전송]'}</span>
                                             </>
                                         )}
@@ -1260,7 +1260,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                             <span className="bg-emerald-100 text-emerald-800 p-1.5 rounded-lg">
                                 <FileText className="w-4 h-4" />
                             </span>
-                            <h4 className="font-black text-sm text-slate-800 uppercase tracking-wider">✏️ 원고 텍스트 편집기</h4>
+                            <h4 className="font-black text-sm text-slate-800 uppercase tracking-wider">원고 텍스트 편집기</h4>
                             <span className="text-[10px] text-slate-400 font-semibold ml-auto">자유롭게 가공하고 바로 전송해 보세요</span>
                         </div>
 
@@ -1358,7 +1358,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                 <span className="bg-emerald-100 text-emerald-800 p-1.5 rounded-lg">
                                     <HelpCircle className="w-4 h-4 text-emerald-700" />
                                 </span>
-                                <h4 className="font-black text-sm text-slate-800 uppercase tracking-wider">📱 NAVER SmartEditor One 복사 미리보기</h4>
+                                <h4 className="font-black text-sm text-slate-800 uppercase tracking-wider">NAVER SmartEditor One 복사 미리보기</h4>
                             </div>
                             <span className="text-[11px] font-mono text-slate-400">https://blog.naver.com/{naverId}</span>
                         </div>
@@ -1382,7 +1382,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                 <div className="bg-emerald-600 rounded-2xl p-4 text-white flex flex-col sm:flex-row items-center justify-between shadow-md gap-3 select-none">
                                     <div className="text-left">
                                         <p className="font-black text-sm tracking-tight flex items-center gap-1">
-                                            <span>💚 네이버 원스톱HTML 일괄 복사 (추천)</span>
+                                            <span>[네이버 원스톱HTML 일괄 복사 (추천)]</span>
                                         </p>
                                         <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">원스톱 복사 클릭 후 네이버 블로그 글쓰기 화면에 Ctrl+V 붙여넣으면 이미지, 360 VR투어 링크, 제목, 정렬된 본문과 법정 고시 테이블이 완벽하게 전송됩니다!</p>
                                     </div>
@@ -1442,7 +1442,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                                     <div className="mb-4 bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-xl shadow-xs text-left">
                                                         <p className="text-[10px] font-black text-emerald-800 flex items-center gap-1">
                                                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                                            <span>📢 실시간 연동 시스템 알림</span>
+                                                            <span>[실시간 연동 시스템 알림]</span>
                                                         </p>
                                                         <p className="text-[11px] font-bold text-slate-700 mt-1">
                                                             이 완벽한 360도 투어 이미지가 매물 링크로 못 박혀 탑재됩니다.
@@ -1467,7 +1467,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                                                 <div className="absolute inset-0 bg-emerald-950/10 hover:bg-transparent transition-colors duration-200 flex items-center justify-center">
                                                                     {/* Play icon overlay */}
                                                                     <div className="bg-emerald-600/90 text-white px-3 py-1.5 rounded-full font-black text-[10px] tracking-wider flex items-center gap-1 shadow-lg border border-emerald-400">
-                                                                        <span>🕹️ INTERACTIVE 360° VR TOUR</span>
+                                                                        <span>[INTERACTIVE 360° VR TOUR]</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1521,7 +1521,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                 {/* Footer buttons */}
                 <div className="bg-white border-t border-slate-100 px-6 py-4 flex justify-between items-center shrink-0">
                     <span className="text-xs text-slate-400 font-semibold hidden sm:inline flex items-center gap-1">
-                        <span>💡 Tip: Naver Blog SmartEditor 3.0 이나 One 어디서든 복사/붙여넣기가 완전하게 연동됩니다.</span>
+                        <span>[Tip: Naver Blog SmartEditor 3.0 이나 One 어디서든 복사/붙여넣기가 완전하게 연동됩니다.]</span>
                     </span>
                     <div className="flex gap-2 w-full sm:w-auto justify-end">
                         <button

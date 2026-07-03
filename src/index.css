@@ -32,7 +32,7 @@
 /* ==========================================
    소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격 (html, body 제외)
    ========================================== */
-div:not(#mobile-bottom-bar), span {
+div:not(#mobile-bottom-bar):not(#main-simulation-wrapper):not(.fixed-header-wrapper):not(.taewang-floating-viewport-root), span {
     transform: translate3d(0, 0, 0);
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
@@ -67,9 +67,16 @@ body {
 /* ==========================================
    소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단 (fixed 엘리먼트 제외)
    ========================================== */
-div:not(#mobile-bottom-bar), section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
+div:not(#mobile-bottom-bar):not(#main-simulation-wrapper):not(.fixed-header-wrapper):not(.taewang-floating-viewport-root), section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
     transform-style: preserve-3d !important;
     backface-visibility: hidden !important;
+}
+
+#taewang-smart-floating-bar,
+#taewang-smart-floating-bar * {
+    transform-style: flat !important;
+    backface-visibility: visible !important;
+    transform: none !important;
 }
 
 /* ==========================================
@@ -223,7 +230,7 @@ h1, h2, h3, h4, h5, h6 {
     100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 
-@keyframes fadeIn {
+@keyframes fadeInScale {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
@@ -233,7 +240,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-fadeIn {
-    animation: fadeIn 0.25s ease-out forwards;
+    animation: fadeInScale 0.25s ease-out forwards;
 }
 
 @keyframes pulseSlow {

@@ -1359,7 +1359,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                 </button>
             </div>
 
-            {/* 명품 수직 통합 제어 캡슐 바 (줌인/줌아웃/전체화면/🎯제어 초기화 4종 통합) */}
+            {/* 명품 수직 통합 제어 캡슐 바 (줌인/줌아웃/전체화면/제어 초기화 4종 통합) */}
             {mode === 'webgl' && (
                 <div 
                     className="absolute z-30 pointer-events-auto flex flex-col p-1 bg-white/25 backdrop-blur-md border border-white/50 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] select-none items-center vr-capsule-box"
@@ -1407,7 +1407,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                         title="화면 정렬/초기화 (Reset View)"
                         id="vr-reset-view-inline"
                     >
-                        <span className="leading-none select-none">🎯</span>
+                        <span className="leading-none select-none"></span>
                     </button>
                 </div>
             )}
@@ -1661,7 +1661,7 @@ const VrViewer: React.FC<VrViewerProps> = ({
                                         title="화면 정렬/초기화 (Reset View)"
                                         id="vr-reset-view-fullscreen"
                                     >
-                                        <span className="leading-none select-none">🎯</span>
+                                        <span className="leading-none select-none"></span>
                                     </button>
                                 </div>
                             )}

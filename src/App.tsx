@@ -8,6 +8,7 @@ import { AdminDashboardSection } from './components/AdminDashboardSection';
 import { AdminWriteSection } from './components/AdminWriteSection';
 import { Modals } from './components/Modals';
 import { Naver360Icon } from './components/Naver360Icon';
+import TaewangFloatingBar from './components/TaewangFloatingBar';
 import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
@@ -156,15 +157,15 @@ export default function App() {
                 {isAdminLoggedIn ? (
                     /* ================== 2번 관리자 화면 ================== */
                     <div className="grid grid-cols-2 gap-3 w-full max-w-md mx-auto items-center">
-                        {/* [버튼 1]: 📱 상담 모바일 (010-7590-0111) 연결 */}
+                        {/* [버튼 1]: 모바일 (010-7590-0111) 연결 */}
                         <a 
                             href="tel:010-7590-0111"
                             className="flex items-center justify-center gap-1.5 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-black transition-all shadow-sm cursor-pointer border border-emerald-500"
                         >
                             <i className="fa-solid fa-mobile-screen text-xs animate-bounce"></i>
-                            <span className="break-keep">📱 소장님 상담 연결</span>
+                            <span className="break-keep">소장님 상담 연결</span>
                         </a>
-                        {/* [버튼 2]: 🔑 [관리자 전용] 임대인 공급자 연락망 직통 걸기 */}
+                        {/* [버튼 2]: [관리자 전용] 임대인 공급자 연락망 직통 걸기 */}
                         {(() => {
                             const activePost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null;
                             const ownerPhone = activePost?.ownerPhone || '';
@@ -176,7 +177,7 @@ export default function App() {
                                         className="flex items-center justify-center gap-1.5 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white text-xs font-black transition-all shadow-md cursor-pointer border border-amber-400 animate-pulse"
                                     >
                                         <i className="fa-solid fa-key text-xs"></i>
-                                        <span className="break-keep">🔑 임대인 직통 ({ownerPhone})</span>
+                                        <span className="break-keep">임대인 직통 ({ownerPhone})</span>
                                     </a>
                                 );
                             } else {
@@ -186,7 +187,7 @@ export default function App() {
                                         className="flex items-center justify-center gap-1.5 h-12 rounded-xl bg-slate-200 text-slate-400 text-[11px] font-black transition-all cursor-not-allowed border border-slate-300"
                                     >
                                         <i className="fa-solid fa-lock text-xs"></i>
-                                        <span className="break-keep">🔑 임대인 직통 (대기)</span>
+                                        <span className="break-keep">임대인 직통 (대기)</span>
                                     </button>
                                 );
                             }
@@ -195,15 +196,15 @@ export default function App() {
                 ) : (
                     /* ================== 1번 고객 화면 ================== */
                     <div className="grid grid-cols-3 gap-2 w-full max-w-md mx-auto items-center">
-                        {/* [버튼 1]: 📱 모바일 연결 -> 소장님 번호 (tel:010-7590-0111) */}
+                        {/* [버튼 1]: 모바일 연결 -> 소장님 번호 (tel:010-7590-0111) */}
                         <a 
                             href="tel:010-7590-0111"
                             className="flex items-center justify-center gap-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-emerald-500"
                         >
                             <i className="fa-solid fa-mobile-screen text-xs"></i>
-                            <span className="break-keep">📱 모바일</span>
+                            <span className="break-keep">모바일</span>
                         </a>
-                        {/* [버튼 2]: 📞 유선전화 연결 -> 사무실 대표번호 (tel:054-455-6789) */}
+                        {/* [버튼 2]: 유선전화 연결 -> 사무실 대표번호 (tel:054-455-6789) */}
                         <a 
                             href="tel:054-455-6789"
                             className="flex items-center justify-center gap-1 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white text-[11px] font-black transition-all shadow-sm cursor-pointer border border-slate-700"
@@ -211,7 +212,7 @@ export default function App() {
                             <i className="fa-solid fa-phone text-xs"></i>
                             <span className="break-keep">유선전화</span>
                         </a>
-                        {/* [버튼 3]: ✍️ 의뢰하기 -> 매물 등록 의뢰 페이지 연동 */}
+                        {/* [버튼 3]: 의뢰하기 -> 매물 등록 의뢰 페이지 연동 */}
                         <button 
                             onClick={() => {
                                 if (typeof (window as any).openRequestModal === 'function') {
@@ -313,55 +314,52 @@ export default function App() {
                     </div>
                 )}
 
-                {activeSection !== 'admin-write' && (
-                    <div className="bg-[#0B2545] text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium shadow-sm w-full" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important' }}>
-                        <i className="fa-solid fa-bullhorn mr-1"></i> 정직한 발걸음과 생생한 관찰 기록, 구미태왕공인중개사가 전문적인 중개를 약속합니다.
-                    </div>
-                )}
-
-
-
-                {activeSection !== 'admin-write' && (
-                    <header className="sticky top-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 z-40 w-full transition-all">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
-                            <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
-                                <div className="flex items-center space-x-2 group">
-                                    <div className="shrink-0 flex items-center justify-center transition-all duration-300 !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
-                                        <Naver360Icon className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md" />
-                                    </div>
-                                    <div className="flex items-center gap-2.5 sm:gap-4 ml-1">
-                                        {/* Left brand column: *구미* / *GUMI* */}
-                                        <div className="flex flex-col items-center justify-center text-center select-none">
-                                            <span className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight leading-none mb-1 animate-pulse">
-                                                *구미*
-                                            </span>
-                                            <span className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">
-                                                *GUMI*
-                                            </span>
+                {/* Header Portal to document.body */}
+                {activeSection !== 'admin-write' && typeof document !== 'undefined' && createPortal(
+                    <div className="fixed-header-wrapper" style={{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 999999 }}>
+                        <div className="bg-[#0B2545] text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium shadow-sm w-full" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important' }}>
+                            <i className="fa-solid fa-bullhorn mr-1"></i> 정직한 발걸음과 생생한 관찰 기록,<br />구미태왕공인중개사가 전문적인 중개를 약속합니다.
+                        </div>
+                        <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 w-full transition-all">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
+                                <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
+                                    <div className="flex items-center space-x-2 group">
+                                        <div className="shrink-0 flex items-center justify-center transition-all duration-300 !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
+                                            <Naver360Icon className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md" />
                                         </div>
+                                        <div className="flex items-center gap-2.5 sm:gap-4 ml-1">
+                                            {/* Left brand column: 구미 / GUMI */}
+                                            <div className="flex flex-col items-center justify-center text-center select-none">
+                                                <span className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight leading-none mb-1 animate-pulse">
+                                                    구미
+                                                </span>
+                                                <span className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">
+                                                    GUMI
+                                                </span>
+                                            </div>
 
-                                        {/* Modern vertical elegant separator */}
-                                        <div className="h-6 w-[1.5px] bg-slate-200 self-center"></div>
+                                            {/* Modern vertical elegant separator */}
+                                            <div className="h-6 w-[1.5px] bg-slate-200 self-center"></div>
 
-                                        {/* Right brand column: Name / English */}
-                                        <div className="flex flex-col justify-center">
-                                            <span className="text-base sm:text-lg md:text-xl font-black tracking-tight leading-none mb-1" style={{ color: '#0B2545 !important' }}>
-                                                태왕공인중개사사무소
-                                            </span>
-                                            <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                                                TAEWANG REAL ESTATE
-                                            </span>
+                                            {/* Right brand column: Name / English */}
+                                            <div className="flex flex-col justify-center">
+                                                <span className="text-base sm:text-lg md:text-xl font-black tracking-tight leading-none mb-1" style={{ color: '#0B2545 !important' }}>
+                                                    태왕공인중개사사무소
+                                                </span>
+                                                <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                                                    TAEWANG REAL ESTATE
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-
-                        </div>
-                    </header>
+                        </header>
+                    </div>,
+                    document.body
                 )}
 
-                <main className="flex-grow w-full">
+                <main className={`flex-grow w-full ${activeSection !== 'admin-write' ? 'pt-[96px] sm:pt-[116px]' : ''}`}>
                     {activeSection === 'main' && <MainTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
                     {activeSection === 'detail' && <DetailTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
                     {activeSection === 'admin-login' && (
@@ -388,7 +386,7 @@ export default function App() {
                                     <p>연락처 : <a href="tel:054-455-6789" className="hover:text-emerald-500 transition-colors">054-455-6789</a>, <a href="tel:010-7590-0111" className="hover:text-emerald-500 transition-colors">010-7590-0111</a></p>
                                 </div>
                                 <p className="text-[11px] sm:text-xs text-slate-400 font-normal leading-relaxed pt-1.5 break-keep max-w-2xl">
-                                    본 사이트에 게시된 모든 매물 사진 및 360° 파노라마 VR 이미지 등 일체의 콘텐츠는 태왕공인중개사사무소의 고유 자산이며, 저작권법의 보호를 받습니다. 서면 동의 없는 임의 도용, 무단 전재 및 재배포를 엄격히 금지합니다.
+                                    본 사이트에 게시된 모든 매물 사진 및 360° 파노라마 VR 이미지 등 일체의 콘텐츠는 태왕공인중개사사무소의 고유 자산이며, 저작권법의 보호를 받습니다.<br />서면 동의 없는 임의 도용, 무단 전재 및 재배포를 엄격히 금지합니다.
                                 </p>
                                 <p className="text-[11px] text-slate-700 pt-1">© 2026 Gumi Taewang Real Estate. All rights reserved.</p>
                             </div>
@@ -460,34 +458,9 @@ export default function App() {
                 ))}
             </div>
 
-            {/* 5대 마케팅: 3분의 2 지점 독립형 스마트 플로팅 바 */}
-            {activeSection !== 'admin-write' && activeSection !== 'admin-dashboard' && (
-                <div 
-                    className="flex flex-col gap-3" 
-                    style={{ position: 'fixed', bottom: '33vh', right: '20px', zIndex: 9999999 }}
-                >
-                    {/* 카카오톡 오픈채팅 버튼 */}
-                    <a 
-                        href="https://open.kakao.com/o/sdCbUkCi" /* [// 태왕공인중개사 1:1 카카오톡 주소선] */
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="w-[45px] h-[45px] md:w-[55px] md:h-[55px] rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-110 transition-transform group"
-                        style={{ backgroundColor: '#FEE500' }}
-                        aria-label="카카오톡 오픈채팅"
-                    >
-                        <i className="fa-solid fa-comment text-[22px] md:text-[28px] text-[#000000] group-hover:-translate-y-0.5 transition-transform"></i>
-                    </a>
-                    
-                    {/* 010-7590-0111 전화 다이렉트 버튼 */}
-                    <a 
-                        href="tel:010-7590-0111" 
-                        className="w-[45px] h-[45px] md:w-[55px] md:h-[55px] rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-110 transition-transform group" 
-                        style={{ backgroundColor: '#0B2545' }}
-                        aria-label="태왕공인중개사 전화연결"
-                    >
-                        <i className="fa-solid fa-phone-volume text-[20px] md:text-[24px] text-white group-hover:-translate-y-0.5 transition-transform"></i>
-                    </a>
-                </div>
+            {/* [태왕공인중개사 플랫폼 대완공] 루트 독립 배선: 브라우저 뷰포트 직속 쇠말뚝 고정 */}
+            {activeSection !== 'admin-write' && activeSection !== 'admin-dashboard' && typeof document !== 'undefined' && (
+                <TaewangFloatingBar />
             )}
         </ToastContext.Provider>
     );

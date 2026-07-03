@@ -383,7 +383,7 @@ export const DetailTab = ({
                                                 .replace(/<\/p>/gi, '\n\n')
                                                 .replace(/<\/div>/gi, '\n\n')
                                                 .replace(/<br\s*\/?>/gi, '\n')
-                                                .replace(/<blockquote[^>]*>/gi, '\n🟢 [인용구시작]\n')
+                                                .replace(/<blockquote[^>]*>/gi, '\n [인용구시작]\n')
                                                 .replace(/<\/blockquote>/gi, '\n[인용구끝]\n\n')
                                                 .replace(/<h[1-6][^>]*>/gi, '\n\n[ ')
                                                 .replace(/<\/h[1-6]>/gi, ' ]\n\n')
@@ -411,7 +411,7 @@ export const DetailTab = ({
                                     const formattedBody = formatToDoubleSpacing(bodyText);
                                     
                                     // Build the final optimized blog post
-                                    const fullContent = `📢 [블로그 홍보 제목]\n\n${formattedTitle}\n\n🟢 [체험적 서론]\n\n${formattedIntro}\n\n🏠 [상세한 관찰 본론 및 법정 고시]\n\n${formattedBody}`;
+                                    const fullContent = ` [블로그 홍보 제목]\n\n${formattedTitle}\n\n [체험적 서론]\n\n${formattedIntro}\n\n [상세한 관찰 본론 및 법정 고시]\n\n${formattedBody}`;
                                     
                                     navigator.clipboard.writeText(fullContent).then(() => {
                                         setCopied(true);
@@ -448,7 +448,7 @@ export const DetailTab = ({
                                 }`}
                             >
                                 <i className="fa-solid fa-wand-magic-sparkles text-[#0B2545] group-hover:text-white"></i>
-                                <span>AI 네이버 등록 도우미 🤖</span>
+                                <span>AI 네이버 등록 도우미 </span>
                             </button>
                         </div>
                     ) : (
@@ -463,7 +463,7 @@ export const DetailTab = ({
                             className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shrink-0 select-none shadow-sm cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-500 border-slate-200"
                         >
                             <i className="fa-solid fa-lock text-slate-400"></i>
-                            <span>블로그 원고 & AI 등록기 (소장님 전용 🔒)</span>
+                            <span>블로그 원고 & AI 등록기 (소장님 전용 )</span>
                         </button>
                     )}
                 </div>
@@ -485,7 +485,7 @@ export const DetailTab = ({
                 >
                     {/* Unique [녹색 라운드 사각 뱃지] for 대표사진 */}
                     <div id="representative-badge" className="absolute top-4 left-4 sm:top-5 sm:left-5 bg-[#0B2545] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0B2545] shadow-md z-30 flex items-center gap-1.5 select-none hover:scale-[1.03] transition-all">
-                        <span>✨ 대표사진</span>
+                        <span>대표사진</span>
                     </div>
 
                     <img 
@@ -692,7 +692,7 @@ export const DetailTab = ({
                                             <div className="mt-8 bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm text-left">
                                                 <div className="flex items-center gap-2 mb-3 text-slate-800 border-b border-slate-200 pb-2 flex-wrap">
                                                     <i className="fa-solid fa-file-shield text-emerald-600 text-base"></i>
-                                                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900">📋 법정 중개대상물 표시광고 확인서</h4>
+                                                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900"> 법정 중개대상물 표시광고 확인서</h4>
                                                 </div>
                                                 <div dangerouslySetInnerHTML={{ __html: legalDisclosures }} className="text-[11px] sm:text-xs text-slate-600 font-sans bg-white border border-slate-100 p-4 rounded-xl shadow-inner max-h-[350px] overflow-y-auto w-full break-all" />
                                                 <p className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-bold leading-relaxed flex items-center gap-1">
@@ -736,7 +736,7 @@ export const DetailTab = ({
                                         <div className="mt-8 bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm text-left">
                                             <div className="flex items-center gap-2 mb-3 text-slate-800 border-b border-slate-200 pb-2 flex-wrap">
                                                 <i className="fa-solid fa-file-shield text-emerald-600 text-base"></i>
-                                                <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900">📋 법정 중개대상물 표시광고 확인서</h4>
+                                                <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900"> 법정 중개대상물 표시광고 확인서</h4>
                                             </div>
                                             <div className="text-[11px] sm:text-xs text-slate-600 whitespace-pre-wrap leading-loose font-mono bg-white border border-slate-100 p-4 rounded-xl shadow-inner max-h-[350px] overflow-y-auto w-full break-all">
                                                 {legalDisclosures}

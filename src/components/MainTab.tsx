@@ -999,29 +999,6 @@ export const MainTab = ({
                     </form>
                 </div>
             </section>
-
-            {/* 5대 마케팅: 하단 우측 플로팅 연락/카톡 버튼 */}
-            <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex flex-col gap-3">
-                {/* 카카오톡 오픈채팅 버튼 */}
-                <a 
-                    href="https://open.kakao.com/o/sdCbUkCi" /* [// 태왕공인중개사 1:1 카카오톡 주소선] */
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="w-14 h-14 bg-[#FEE500] text-[#000000] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform shadow-black/20 group"
-                    aria-label="카카오톡 오픈채팅"
-                >
-                    <i className="fa-solid fa-comment text-2xl group-hover:animate-bounce"></i>
-                </a>
-                {/* 010-7590-0111 전화 다이렉트 버튼 */}
-                <a 
-                    href="tel:010-7590-0111" 
-                    className="w-14 h-14 bg-[#0B2545] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform shadow-[#0B2545]/40 border border-[#0B2545]/50 group" 
-                    style={{ backgroundColor: '#0B2545' }}
-                    aria-label="태왕공인중개사 전화연결"
-                >
-                    <i className="fa-solid fa-phone-volume text-xl group-hover:animate-shake"></i>
-                </a>
-            </div>
         </section>
     );
 };

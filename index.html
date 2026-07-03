@@ -236,6 +236,14 @@
               display: none !important;
           }
       }
+
+      #taewang-smart-floating-bar { position: fixed !important; bottom: 33vh !important; right: 20px !important; z-index: 999999 !important; display: flex !important; flex-direction: column !important; gap: 12px !important; pointer-events: none !important; }
+      #taewang-smart-floating-bar .floating-btn { width: 55px !important; height: 55px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important; transition: transform 0.3s ease, box-shadow 0.3s ease !important; pointer-events: auto !important; cursor: pointer !important; text-decoration: none !important; }
+      #taewang-smart-floating-bar .floating-btn:hover { transform: translateY(-4px) scale(1.05) !important; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important; }
+      #taewang-smart-floating-bar .floating-btn svg { width: 28px !important; height: 28px !important; }
+      #taewang-smart-floating-bar .kakao-btn { background-color: #FEE500 !important; color: #000000 !important; }
+      #taewang-smart-floating-bar .phone-btn { background-color: #0B2545 !important; color: #FFFFFF !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; }
+      @media (max-width: 768px) { #taewang-smart-floating-bar { bottom: 33vh !important; right: 16px !important; gap: 10px !important; } #taewang-smart-floating-bar .floating-btn { width: 45px !important; height: 45px !important; } #taewang-smart-floating-bar .floating-btn svg { width: 22px !important; height: 22px !important; } }
     </style>
     <script>
       /* [직통 의뢰 모달 기능] */
@@ -446,4 +454,12 @@
     </div>
 
   </body>
+  <div id="taewang-smart-floating-bar">
+      <a href="https://open.kakao.com/o/sdCbUkCi" target="_blank" rel="noopener noreferrer" class="floating-btn kakao-btn" title="카카오톡 1:1 비밀 상담방">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5.523 0-10 3.5-10 7.812 0 2.766 1.761 5.176 4.414 6.547l-1.078 3.961c-.137.5.387.89.816.633l4.606-3.078A10.74 10.74 0 0012 18.625c5.523 0 10-3.5 10-7.813S17.523 3 12 3z"/></svg>
+      </a>
+      <a href="tel:010-7590-0111" class="floating-btn phone-btn" title="소장님 대표 번호 즉시 연결">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.01.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.58l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 12h2a9 9 0 00-9-9v2c3.87 0 7 3.13 7 7zm-4 0h2c0-2.76-2.24-5-5-5v2c1.66 0 3 1.34 3 3z"/></svg>
+      </a>
+  </div>
 </html>

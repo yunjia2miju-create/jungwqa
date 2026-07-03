@@ -459,6 +459,36 @@ export default function App() {
                     </div>
                 ))}
             </div>
+
+            {/* 5대 마케팅: 3분의 2 지점 독립형 스마트 플로팅 바 */}
+            {activeSection !== 'admin-write' && activeSection !== 'admin-dashboard' && (
+                <div 
+                    className="flex flex-col gap-3" 
+                    style={{ position: 'fixed', bottom: '33vh', right: '20px', zIndex: 9999999 }}
+                >
+                    {/* 카카오톡 오픈채팅 버튼 */}
+                    <a 
+                        href="https://open.kakao.com/o/sdCbUkCi" /* [// 태왕공인중개사 1:1 카카오톡 주소선] */
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="w-[45px] h-[45px] md:w-[55px] md:h-[55px] rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-110 transition-transform group"
+                        style={{ backgroundColor: '#FEE500' }}
+                        aria-label="카카오톡 오픈채팅"
+                    >
+                        <i className="fa-solid fa-comment text-[22px] md:text-[28px] text-[#000000] group-hover:-translate-y-0.5 transition-transform"></i>
+                    </a>
+                    
+                    {/* 010-7590-0111 전화 다이렉트 버튼 */}
+                    <a 
+                        href="tel:010-7590-0111" 
+                        className="w-[45px] h-[45px] md:w-[55px] md:h-[55px] rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-110 transition-transform group" 
+                        style={{ backgroundColor: '#0B2545' }}
+                        aria-label="태왕공인중개사 전화연결"
+                    >
+                        <i className="fa-solid fa-phone-volume text-[20px] md:text-[24px] text-white group-hover:-translate-y-0.5 transition-transform"></i>
+                    </a>
+                </div>
+            )}
         </ToastContext.Provider>
     );
 }

@@ -1004,7 +1004,7 @@ export const MainTab = ({
             <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex flex-col gap-3">
                 {/* 카카오톡 오픈채팅 버튼 */}
                 <a 
-                    href="https://open.kakao.com/o/s" 
+                    href="https://open.kakao.com/o/sdCbUkCi" /* [// 태왕공인중개사 1:1 카카오톡 주소선] */
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="w-14 h-14 bg-[#FEE500] text-[#000000] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform shadow-black/20 group"

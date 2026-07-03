@@ -113,18 +113,24 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
         setCurrentPassInput('');
     };
 
+    const [confirmPostId, setConfirmPostId] = useState<string | null>(null);
+
     const handleDeletePost = async (id: string) => {
-        if (window.confirm('정말 이 매물을 데이터베이스에서 영구 삭제하시겠습니까?')) {
-            try {
-                await deletePostService(id);
-                const updated = await getPostsService();
-                setPosts(updated);
-                showToast("매물이 안전하게 삭제 전송 처리되었습니다.", "success");
-            } catch (err) {
-                console.error(err);
-                showToast("매물 삭제 처리에 실패했습니다.", "error");
-            }
+        if (confirmPostId !== id) {
+            setConfirmPostId(id);
+            return;
         }
+        
+        try {
+            await deletePostService(id);
+            const updated = await getPostsService();
+            setPosts(updated);
+            showToast("매물이 안전하게 삭제 전송 처리되었습니다.", "success");
+        } catch (err) {
+            console.error(err);
+            showToast("매물 삭제 처리에 실패했습니다.", "error");
+        }
+        setConfirmPostId(null);
     };
 
     const toggleInquiryProcessed = async (id: string) => {
@@ -161,13 +167,19 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
         showToast(`${email} 회원의 가입 승인을 정지/보류 하였습니다.`, "success");
     };
 
+    const [confirmUserEmail, setConfirmUserEmail] = useState<string | null>(null);
+
     const handleDeleteUser = async (email: string) => {
-        if (window.confirm(`정말 ${email} 회원을 데이터베이스에서 제거하시겠습니까?`)) {
-            await deleteRegisteredUserService(email);
-            const updated = await getRegisteredUsersService();
-            setRegisteredUsers(updated);
-            showToast(`${email} 회원을 삭제하였습니다.`, "success");
+        if (confirmUserEmail !== email) {
+            setConfirmUserEmail(email);
+            return;
         }
+        
+        await deleteRegisteredUserService(email);
+        const updated = await getRegisteredUsersService();
+        setRegisteredUsers(updated);
+        showToast(`${email} 회원을 삭제하였습니다.`, "success");
+        setConfirmUserEmail(null);
     };
 
     return (
@@ -461,14 +473,35 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                             <i className="fa-solid fa-pen-to-square"></i>
                                             <span className="sm:hidden text-xs font-bold">수정</span>
                                         </button>
-                                        <button 
-                                            onClick={() => handleDeletePost(p.id)} 
-                                            className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0"
-                                            title="데이터 영구 삭제"
-                                        >
-                                            <i className="fa-solid fa-trash-can"></i>
-                                            <span className="sm:hidden text-xs font-bold">삭제</span>
-                                        </button>
+                                        {confirmPostId === p.id ? (
+                                            <div className="flex gap-1 flex-1 sm:flex-initial">
+                                                <button 
+                                                    onClick={() => handleDeletePost(p.id)} 
+                                                    className="text-white bg-red-600 hover:bg-red-700 border border-red-600 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 flex items-center justify-center gap-1.5 sm:gap-0"
+                                                    title="정말 삭제하시겠습니까?"
+                                                >
+                                                    <i className="fa-solid fa-check"></i>
+                                                    <span className="sm:hidden text-xs font-bold">확인</span>
+                                                </button>
+                                                <button 
+                                                    onClick={() => setConfirmPostId(null)} 
+                                                    className="text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 flex items-center justify-center gap-1.5 sm:gap-0"
+                                                    title="취소"
+                                                >
+                                                    <i className="fa-solid fa-xmark"></i>
+                                                    <span className="sm:hidden text-xs font-bold">취소</span>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button 
+                                                onClick={() => handleDeletePost(p.id)} 
+                                                className="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-100 p-3 sm:p-4 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer shadow-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-0"
+                                                title="데이터 영구 삭제"
+                                            >
+                                                <i className="fa-solid fa-trash-can"></i>
+                                                <span className="sm:hidden text-xs font-bold">삭제</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 {selectedBlogPost?.id === p.id && isBlogModalOpen && (
@@ -559,13 +592,32 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                                         가입 승인
                                                     </button>
                                                 )}
-                                                <button
-                                                    onClick={() => handleDeleteUser(u.email)}
-                                                    className="text-sm font-black p-3 rounded-xl border border-red-200 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer animate-fadeIn"
-                                                    title="회원 삭제"
-                                                >
-                                                    <i className="fa-solid fa-trash text-sm"></i>
-                                                </button>
+                                                {confirmUserEmail === u.email ? (
+                                                    <div className="flex gap-1">
+                                                        <button
+                                                            onClick={() => handleDeleteUser(u.email)}
+                                                            className="text-sm font-black p-3 rounded-xl border border-red-600 bg-red-600 text-white hover:bg-red-700 transition-all cursor-pointer"
+                                                            title="정말 삭제하시겠습니까?"
+                                                        >
+                                                            <i className="fa-solid fa-check text-sm"></i>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setConfirmUserEmail(null)}
+                                                            className="text-sm font-black p-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all cursor-pointer"
+                                                            title="취소"
+                                                        >
+                                                            <i className="fa-solid fa-xmark text-sm"></i>
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(u.email)}
+                                                        className="text-sm font-black p-3 rounded-xl border border-red-200 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer animate-fadeIn"
+                                                        title="회원 삭제"
+                                                    >
+                                                        <i className="fa-solid fa-trash text-sm"></i>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

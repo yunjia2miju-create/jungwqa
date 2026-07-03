@@ -33,7 +33,7 @@ const TaewangFloatingBar: React.FC<FloatingBarProps> = () => {
       {/* 1번 버튼: 태왕공인중개사 1:1 카카오톡 직통 상담선 */}
       <a
         className="taewang-floating-btn-kakao"
-        href="https://open.kakao.com/o/sdCbUkCi"
+        href="https://open.kakao.com/o/s9o8MkCi"
         target="_blank"
         rel="noopener noreferrer"
         style={{

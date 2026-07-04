@@ -1366,7 +1366,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${req.originalUrl}`;
               
               const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/fixed-master-vr-banner.png`);
+              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=630&q=80`);
               if (newImage && newImage.startsWith('/')) {
                 newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${newImage}`;
               }
@@ -1423,7 +1423,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${req.originalUrl}`;
               
               const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/fixed-master-vr-banner.png`);
+              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=630&q=80`);
               if (newImage && newImage.startsWith('/')) {
                 newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${newImage}`;
               }

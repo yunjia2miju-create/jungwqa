@@ -1366,12 +1366,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
               
               const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              let newImage = '';
-              if (panoUrl) {
-                newImage = `${req.protocol}://${req.get('host')}/api/vr-banner?spatial1Url=${encodeURIComponent(panoUrl)}&building=${encodeURIComponent(building)}`;
-              } else {
-                newImage = post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
-              }
+              const newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
@@ -1425,12 +1420,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
               
               const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              let newImage = '';
-              if (panoUrl) {
-                newImage = `${req.protocol}://${req.get('host')}/api/vr-banner?spatial1Url=${encodeURIComponent(panoUrl)}&building=${encodeURIComponent(building)}`;
-              } else {
-                newImage = post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
-              }
+              const newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');

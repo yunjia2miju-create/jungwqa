@@ -15,6 +15,13 @@
         }
       },
       {
+        "source": "/rooms/**",
+        "run": {
+          "serviceId": "iigumi-today-room-tv",
+          "region": "asia-northeast3"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

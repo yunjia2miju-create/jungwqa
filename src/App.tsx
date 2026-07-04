@@ -36,7 +36,7 @@ export default function App() {
 
     // Modals state
     const [phoneModalOpen, setPhoneModalOpen] = useState(false);
-    const [phoneModalData, setPhoneModalData] = useState<{mobile: string, owner: string} | null>(null);
+    const [phoneModalData, setPhoneModalData] = useState<{mobile: string, owner?: string, x?: number, y?: number} | null>(null);
 
     // Toast state
     const [toasts, setToasts] = useState<{id: number, msg: string, type: 'success'|'error'}[]>([]);
@@ -131,9 +131,9 @@ export default function App() {
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
     };
 
-    const openPhoneSelectModal = (e: React.MouseEvent, mobilePhone: string, ownerPhone: string = '') => {
+    const openPhoneSelectModal = (e: React.MouseEvent, mobilePhone: string, ownerPhone?: string) => {
         e.stopPropagation();
-        setPhoneModalData({ mobile: mobilePhone, owner: ownerPhone });
+        setPhoneModalData({ mobile: mobilePhone, owner: ownerPhone, x: e.clientX, y: e.clientY });
         setPhoneModalOpen(true);
     };
 

@@ -940,11 +940,7 @@ export const MainTab = ({
                                             <button 
                                                 onClick={(e) => { 
                                                     e.stopPropagation(); 
-                                                    if (isAdminLoggedIn) {
-                                                        openPhoneSelectModal(e, p.phone || '010-7590-0111', p.ownerPhone); 
-                                                    } else {
-                                                        window.location.href = `tel:${p.phone || '010-7590-0111'}`;
-                                                    }
+                                                    openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined);
                                                 }} 
                                                 className="w-full sm:w-11 h-12 sm:h-11 flex items-center justify-center gap-2.5 text-white bg-[#0B2545] hover:bg-[#0B2545]/90 hover:shadow-lg rounded-full sm:rounded-xl transition-all shrink-0 shadow-md sm:shadow-sm relative group px-5 sm:px-0"
                                                 style={{ backgroundColor: '#0B2545 !important' }}>

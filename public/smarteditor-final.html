@@ -1634,6 +1634,40 @@
                 </label>
             </div>
 
+            <!-- SECTION 7.5: 단기방 (단기 임대) 설정 -->
+            <div class="w-full max-w-[950px] flex flex-col sm:flex-row sm:items-center justify-between bg-blue-50/50 p-8 rounded-2xl border border-blue-200 font-bold shadow-xs overflow-hidden text-left gap-4">
+                <div class="text-left select-none">
+                    <span class="text-[20px] font-black text-blue-900 flex items-center gap-3">
+                        <i class="fa-solid fa-clock-rotate-left text-2xl text-blue-500"></i>
+                        <span>단기방 (단기 임대) 설정</span>
+                    </span>
+                </div>
+                <div class="flex items-center space-x-6 sm:space-x-8">
+                    <label class="flex items-center space-x-3 cursor-pointer select-none">
+                        <input 
+                            type="checkbox" 
+                            id="post-isShortTerm" 
+                            onchange="notifyParent()"
+                            class="w-8 h-8 accent-blue-600 cursor-pointer rounded-lg" 
+                        />
+                        <span class="text-lg font-bold text-slate-800">단기 임대 가능</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <input 
+                            type="number" 
+                            id="post-contractPeriod" 
+                            placeholder="최소" 
+                            onchange="notifyParent()"
+                            oninput="notifyParent()"
+                            class="w-20 text-center py-2 px-3 border border-slate-300 rounded-lg text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" 
+                            min="1"
+                            max="60"
+                        />
+                        <span class="text-lg font-bold text-slate-600">개월</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- SECTION 8: Submitting Handles -->
             <div class="w-full max-w-[950px] flex space-x-6 pt-3 pb-16 select-none">
                 <button 
@@ -2086,6 +2120,8 @@
                 panoramas: panoramaPhotos.join('|'),
                 thumbnail: representativeThumbnailUrl,
                 isRecommended: document.getElementById('post-isRecommended').checked,
+                isShortTerm: document.getElementById('post-isShortTerm').checked,
+                contractPeriod: document.getElementById('post-contractPeriod').value,
                 fontFamily: document.getElementById('fb-font-family') ? document.getElementById('fb-font-family').value : 'NanumGothic',
                 fontSize: document.getElementById('font-size-selector') ? document.getElementById('font-size-selector').value : '15px'
             };
@@ -4525,6 +4561,8 @@
                 panoramas: panoramaPhotos.join('|'),
                 thumbnail: representativeThumbnailUrl,
                 isRecommended: document.getElementById('post-isRecommended').checked,
+                isShortTerm: document.getElementById('post-isShortTerm').checked,
+                contractPeriod: document.getElementById('post-contractPeriod').value,
                 fontFamily: document.getElementById('fb-font-family') ? document.getElementById('fb-font-family').value : 'NanumGothic',
                 fontSize: document.getElementById('font-size-selector') ? document.getElementById('font-size-selector').value : '15px'
             };
@@ -4761,6 +4799,8 @@
                     handleYoutubeInput();
                 }
                 if (data.isRecommended !== undefined) document.getElementById('post-isRecommended').checked = data.isRecommended;
+                if (data.isShortTerm !== undefined) document.getElementById('post-isShortTerm').checked = data.isShortTerm;
+                if (data.contractPeriod !== undefined) document.getElementById('post-contractPeriod').value = data.contractPeriod;
                 
                 if (data.fontFamily) {
                     let loadedFont = data.fontFamily;

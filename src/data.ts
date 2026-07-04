@@ -22,6 +22,8 @@ export interface Post {
     address: string;
     transactionType: string;
     isRecommended: boolean;
+    contractPeriod?: number;
+    isShortTerm?: boolean;
     fontFamily?: string;
     fontSize?: string;
     createdAt: number;

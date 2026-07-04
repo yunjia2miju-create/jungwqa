@@ -22,7 +22,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     // Form Initial State
     const [formData, setFormData] = useState<Partial<Post>>({
         category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-        title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
+        title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
     });
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -133,7 +133,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 }
                 const payload = currentEditPost || {
                     category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-                    title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
+                    title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
                 };
                 iframeRef.current.contentWindow.postMessage({
                     type: 'LOAD_DATA',
@@ -217,7 +217,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         } else {
             setFormData({
                 category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-                title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false
+                title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
             });
         }
     }, [editingPostId, currentEditPost]);
@@ -256,6 +256,8 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             video: data.video || '',
             address: data.address || '',
             isRecommended: data.isRecommended === true || String(data.isRecommended) === 'true',
+            isShortTerm: data.isShortTerm === true || String(data.isShortTerm) === 'true',
+            contractPeriod: data.contractPeriod ? parseInt(data.contractPeriod, 10) : undefined,
             fontFamily: data.fontFamily || '나눔고딕',
             fontSize: data.fontSize || '15px'
         };

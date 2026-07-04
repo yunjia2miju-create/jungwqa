@@ -116,6 +116,7 @@ export const MainTab = ({
         try { return JSON.parse(localStorage.getItem('taewang_favorites') || '[]'); } catch { return []; }
     });
     const [showOnlyFavorites, setShowOnlyFavorites] = React.useState(false);
+    const [showOnlyShortTerm, setShowOnlyShortTerm] = React.useState(false);
 
     const toggleFavorite = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
@@ -167,7 +168,7 @@ export const MainTab = ({
 
     React.useEffect(() => {
         setDisplayLimit(15);
-    }, [activeCategory, activeDong, activeDealType, activeDeposit, showOnlyRecommended, showOnlyVR, searchVal, showOnlyFavorites]);
+    }, [activeCategory, activeDong, activeDealType, activeDeposit, showOnlyRecommended, showOnlyVR, searchVal, showOnlyFavorites, showOnlyShortTerm]);
 
     React.useEffect(() => {
         setIsSearching(true);
@@ -186,6 +187,7 @@ export const MainTab = ({
         if (!p) return false;
         if (showOnlyRecommended && !(p.isRecommended === true || String(p.isRecommended) === 'true')) return false;
         if (showOnlyFavorites && !favorites.includes(p.id)) return false;
+        if (showOnlyShortTerm && !(p.isShortTerm === true || String(p.isShortTerm) === 'true' || (p.contractPeriod && p.contractPeriod <= 6) || (p.remarks && p.remarks.includes('단기')))) return false;
 
         const pPanoramas = String(p.panoramas || '');
         const pPanoImage = String(p.panoImage || '');
@@ -215,10 +217,10 @@ export const MainTab = ({
             const match = priceStr.match(/(\d+)/);
             if (match) {
                 const depositNum = parseInt(match[1], 10);
-                if (activeDeposit === '500') {
-                    depositMatch = depositNum <= 500;
-                } else if (activeDeposit === '1000') {
+                if (activeDeposit === '1000_under') {
                     depositMatch = depositNum <= 1000;
+                } else if (activeDeposit === '1000_over') {
+                    depositMatch = depositNum >= 1000;
                 }
             } else if (activeDeposit !== 'all') {
                 depositMatch = false;
@@ -552,7 +554,7 @@ export const MainTab = ({
                     </div>
                     {/* 보증금 필터 */}
                     <div className="flex bg-slate-100 rounded-xl p-1.5 shadow-inner">
-                        {[{v:'all', l:'보증금 전체'}, {v:'500', l:'500만원 이하'}, {v:'1000', l:'1000만원 이하'}].map(opt => (
+                        {[{v:'all', l:'보증금 전체'}, {v:'1000_under', l:'1000만원 이하'}, {v:'1000_over', l:'1000만원 이상'}].map(opt => (
                             <button
                                 key={opt.v}
                                 onClick={() => setActiveDeposit(opt.v)}
@@ -620,6 +622,24 @@ export const MainTab = ({
                             <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
                                 <Home size={24} className="text-[#0B2545] animate-pulse shrink-0" strokeWidth={1.8} />
                                 <span>360° VR 매물만 보기</span>
+                            </span>
+                        </label>
+                        <label 
+                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
+                                showOnlyShortTerm 
+                                    ? 'bg-blue-500/10 border-blue-500 text-blue-950 font-black scale-[1.03] ring-4 ring-blue-500/10 shadow-[0_6px_20px_rgba(59,130,246,0.25)]' 
+                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
+                            }`}
+                        >
+                            <input 
+                                type="checkbox" 
+                                checked={showOnlyShortTerm} 
+                                onChange={(e) => { setShowOnlyShortTerm(e.target.checked); setCurrentPage(1); }} 
+                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-blue-500 border-2 border-slate-300 rounded-lg focus:ring-blue-500 cursor-pointer accent-blue-500 transition-all shrink-0" 
+                            />
+                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
+                                <i className="fa-solid fa-clock-rotate-left text-blue-500 text-lg sm:text-2xl shrink-0"></i>
+                                <span>단기방 (6개월 이하)</span>
                             </span>
                         </label>
                     </div>

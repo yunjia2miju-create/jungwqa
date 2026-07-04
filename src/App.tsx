@@ -69,9 +69,12 @@ export default function App() {
                 .then(data => {
                     setPosts(data);
                     
-                    // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
+                    // Parse path or query parameters for automatic redirection to post detail view
+                    const path = window.location.pathname;
+                    const pathParts = path.split('/');
+                    const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
                     const params = new URLSearchParams(window.location.search);
-                    const urlPostId = params.get('id') || params.get('postId');
+                    const urlPostId = isRoomPath ? pathParts[2] : (params.get('id') || params.get('postId'));
                     if (urlPostId) {
                         const postExists = data.some(p => p.id === urlPostId);
                         if (postExists) {
@@ -259,16 +262,18 @@ export default function App() {
 
     // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const currentId = params.get('id') || params.get('postId');
-        if (selectedPostId) {
+        const path = window.location.pathname;
+        const pathParts = path.split('/');
+        const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
+        const currentId = isRoomPath ? pathParts[2] : null;
+
+        if (activeSection === 'detail' && selectedPostId) {
             if (currentId !== selectedPostId) {
-                window.history.pushState({ postId: selectedPostId }, "", `?id=${selectedPostId}`);
+                window.history.pushState({ postId: selectedPostId }, "", `/rooms/${selectedPostId}`);
             }
-        } else {
-            // Only clear the query parameter if it is set and we are returning to the main page
-            if (currentId && activeSection === 'main') {
-                window.history.pushState(null, "", window.location.pathname);
+        } else if (activeSection === 'main') {
+            if (path !== '/') {
+                window.history.pushState(null, "", '/');
             }
         }
     }, [selectedPostId, activeSection]);
@@ -276,8 +281,14 @@ export default function App() {
     // 브라우저 뒤로가기/앞으로가기 (onpopstate) 대응 선로 세팅
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
+            const path = window.location.pathname;
+            const pathParts = path.split('/');
+            const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
+            
+            // Allow fallback to query parameters for backward compatibility
             const params = new URLSearchParams(window.location.search);
-            const id = params.get('id') || params.get('postId');
+            const id = isRoomPath ? pathParts[2] : (params.get('id') || params.get('postId'));
+
             if (id) {
                 useAppStore.getState().setSelectedPostId(id);
                 useAppStore.getState().setActiveSection('detail');

@@ -442,7 +442,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
     const repImgUrl = post ? (post.thumbnail || allImages[0] || '') : '';
     const additionalImages = allImages.filter(img => img !== repImgUrl);
     const hasVr = post ? (!!(post.panoramas && post.panoramas.trim()) || !!(post.panoImage && post.panoImage.trim())) : false;
-    const vrLinkUrl = post ? `${window.location.origin}/?postId=${post.id}` : '';
+    const vrLinkUrl = post ? `${window.location.origin}/rooms/${post.id}` : '';
 
     // Optional click-to-run AI processing button
     const handleRunAiProcessing = async () => {

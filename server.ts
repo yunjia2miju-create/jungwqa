@@ -1046,7 +1046,7 @@ async function startServer() {
 
     // Build VR link
     const vrLinkHtml = postId && origin
-      ? `<div style="margin: 20px 0; text-align: center;"><a href="${origin}/?postId=${postId}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">[태왕 전용 360도 VR 실감 투어 클릭]</a></div>`
+      ? `<div style="margin: 20px 0; text-align: center;"><a href="${origin}/rooms/${postId}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">[태왕 전용 360도 VR 실감 투어 클릭]</a></div>`
       : '';
 
     // Beautiful rule-based fallback generator if API key is not available
@@ -1344,8 +1344,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     });
 
     // Intercept development requests with id query parameters for hot meta-tag injection
-    app.get('/', async (req, res, next) => {
-      const itemId = req.query.id || req.query.postId;
+    app.get(['/', '/rooms/:id'], async (req, res, next) => {
+      const itemId = req.params.id || req.query.id || req.query.postId;
       if (itemId && typeof itemId === 'string') {
         const indexPath = path.join(projectRoot, 'index.html');
         if (fs.existsSync(indexPath)) {
@@ -1373,16 +1373,20 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
                 newImage = post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
               }
 
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:image[^"]*"[^>]*>/gi, '');
               
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              const metaTags = `
+    <meta id="ogTitle" property="og:title" content="${newTitle}" />
+    <meta id="ogDesc" property="og:description" content="${newDesc}" />
+    <meta id="ogUrl" property="og:url" content="${newUrl}" />
+    <meta name="description" content="${newDesc}" />
+    <meta id="ogImage" property="og:image" content="${newImage}" />`;
+              
+              html = html.replace('</head>', `${metaTags}\n</head>`);
             }
             res.send(html);
             return;
@@ -1403,7 +1407,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       if (fs.existsSync(indexPath)) {
         try {
           let html = fs.readFileSync(indexPath, 'utf-8');
-          const itemId = req.query.id || req.query.postId;
+          const pathParts = req.path.split('/');
+          const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
+          const itemId = isRoomPath ? pathParts[2] : (req.query.id || req.query.postId);
           if (itemId && typeof itemId === 'string') {
             const post = await getPostById(itemId);
             if (post) {
@@ -1426,16 +1432,20 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
                 newImage = post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
               }
 
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:image[^"]*"[^>]*>/gi, '');
               
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              const metaTags = `
+    <meta id="ogTitle" property="og:title" content="${newTitle}" />
+    <meta id="ogDesc" property="og:description" content="${newDesc}" />
+    <meta id="ogUrl" property="og:url" content="${newUrl}" />
+    <meta name="description" content="${newDesc}" />
+    <meta id="ogImage" property="og:image" content="${newImage}" />`;
+              
+              html = html.replace('</head>', `${metaTags}\n</head>`);
             }
           }
           res.send(html);

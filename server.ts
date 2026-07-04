@@ -1357,11 +1357,21 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
               const type = post.category || '매물';
+              const room = post.room ? ` ${post.room}호` : '';
+              const transaction = post.transactionType || '거래';
+              const priceInfo = post.price ? `${transaction} ${post.price}` : '';
               
-              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newTitle = `${building}${room} - 태왕공인중개사사무소`;
+              const newDesc = `[${dong} ${type} ${priceInfo}] 실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              
+              const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
+              let newImage = '';
+              if (panoUrl) {
+                newImage = `${req.protocol}://${req.get('host')}/api/vr-banner?spatial1Url=${encodeURIComponent(panoUrl)}&building=${encodeURIComponent(building)}`;
+              } else {
+                newImage = post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
+              }
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1400,11 +1410,21 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
               const type = post.category || '매물';
+              const room = post.room ? ` ${post.room}호` : '';
+              const transaction = post.transactionType || '거래';
+              const priceInfo = post.price ? `${transaction} ${post.price}` : '';
               
-              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newTitle = `${building}${room} - 태왕공인중개사사무소`;
+              const newDesc = `[${dong} ${type} ${priceInfo}] 실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              
+              const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
+              let newImage = '';
+              if (panoUrl) {
+                newImage = `${req.protocol}://${req.get('host')}/api/vr-banner?spatial1Url=${encodeURIComponent(panoUrl)}&building=${encodeURIComponent(building)}`;
+              } else {
+                newImage = post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
+              }
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);

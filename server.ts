@@ -1363,10 +1363,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `${building}${room} - 태왕공인중개사사무소`;
               const newDesc = `[${dong} ${type} ${priceInfo}] 실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${req.originalUrl}`;
               
               const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              const newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
+              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/fixed-master-vr-banner.png`);
+              if (newImage && newImage.startsWith('/')) {
+                newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${newImage}`;
+              }
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
@@ -1417,10 +1420,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `${building}${room} - 태왕공인중개사사무소`;
               const newDesc = `[${dong} ${type} ${priceInfo}] 실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${req.originalUrl}`;
               
               const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              const newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`);
+              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/fixed-master-vr-banner.png`);
+              if (newImage && newImage.startsWith('/')) {
+                newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${newImage}`;
+              }
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');

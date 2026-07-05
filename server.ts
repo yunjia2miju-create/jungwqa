@@ -7,14 +7,14 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 // Dynamically load sharp at runtime instead of statically at startup to prevent native binary crashing in container environments
 
-import { defaultPosts } from './src/data';
+import { defaultPosts } from './src/data.ts';
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { GoogleGenAI } from '@google/genai';
 
 const _filename = typeof __filename !== 'undefined'
   ? __filename
-  : fileURLToPath(import.meta.url);
+  : (typeof process !== 'undefined' ? process.cwd() : '');
 
 const _dirname = typeof __dirname !== 'undefined'
   ? __dirname
@@ -193,6 +193,12 @@ async function startServer() {
   }
   
   app.use(express.json({ limit: '50mb' }));
+
+  // API routes go here FIRST
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+  });
+
 
   // Assets-to-Giphy mapping redirect route to ensure 0 broken images when embedding local path stickers
   const stickerRedirects: Record<string, string> = {
@@ -1046,7 +1052,7 @@ async function startServer() {
 
     // Build VR link
     const vrLinkHtml = postId && origin
-      ? `<div style="margin: 20px 0; text-align: center;"><a href="${origin}/rooms/${postId}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">[태왕 전용 360도 VR 실감 투어 클릭]</a></div>`
+      ? `<div style="margin: 20px 0; text-align: center;"><a href="${origin}/?postId=${postId}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">[태왕 전용 360도 VR 실감 투어 클릭]</a></div>`
       : '';
 
     // Beautiful rule-based fallback generator if API key is not available
@@ -1357,34 +1363,22 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
               const type = post.category || '매물';
-              const room = post.room ? ` ${post.room}호` : '';
-              const transaction = post.transactionType || '거래';
-              const priceInfo = post.price ? `${transaction} ${post.price}` : '';
               
-              const newTitle = `${building}${room} - 태왕공인중개사사무소`;
-              const newDesc = `[${dong} ${type} ${priceInfo}] 실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${req.originalUrl}`;
-              
-              const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=630&q=80`);
-              if (newImage && newImage.startsWith('/')) {
-                newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${newImage}`;
-              }
+              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
+              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:image[^"]*"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
               
-              const metaTags = `
-    <meta id="ogTitle" property="og:title" content="${newTitle}" />
-    <meta id="ogDesc" property="og:description" content="${newDesc}" />
-    <meta id="ogUrl" property="og:url" content="${newUrl}" />
-    <meta name="description" content="${newDesc}" />
-    <meta id="ogImage" property="og:image" content="${newImage}" />`;
-              
-              html = html.replace('</head>', `${metaTags}\n</head>`);
+              if (html.includes('property="og:image"')) {
+                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+              }
             }
             res.send(html);
             return;
@@ -1398,7 +1392,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(distPath, { index: false }));
+    console.log('Static distPath:', distPath); app.use(express.static(distPath, { index: false }));
     
     app.get('*', async (req, res) => {
       const indexPath = path.join(distPath, 'index.html');
@@ -1414,34 +1408,22 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
               const type = post.category || '매물';
-              const room = post.room ? ` ${post.room}호` : '';
-              const transaction = post.transactionType || '거래';
-              const priceInfo = post.price ? `${transaction} ${post.price}` : '';
               
-              const newTitle = `${building}${room} - 태왕공인중개사사무소`;
-              const newDesc = `[${dong} ${type} ${priceInfo}] 실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${req.originalUrl}`;
-              
-              const panoUrl = post.panoImage || (post.panoramas ? post.panoramas.split('|')[0] : null);
-              let newImage = panoUrl || post.thumbnail || (post.images ? post.images.split('|')[0] : `https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=630&q=80`);
-              if (newImage && newImage.startsWith('/')) {
-                newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com${newImage}`;
-              }
+              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
+              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:image[^"]*"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
               
-              const metaTags = `
-    <meta id="ogTitle" property="og:title" content="${newTitle}" />
-    <meta id="ogDesc" property="og:description" content="${newDesc}" />
-    <meta id="ogUrl" property="og:url" content="${newUrl}" />
-    <meta name="description" content="${newDesc}" />
-    <meta id="ogImage" property="og:image" content="${newImage}" />`;
-              
-              html = html.replace('</head>', `${metaTags}\n</head>`);
+              if (html.includes('property="og:image"')) {
+                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+              }
             }
           }
           res.send(html);

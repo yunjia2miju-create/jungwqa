@@ -269,7 +269,7 @@
       /* [핀셋 보호 영역 폰트/스타일 래핑 엔진] */
       function wrapSelectionWithStyle(styleName, styleValue) {
           const sel = window.getSelection();
-          if (!sel.rangeCount) return;
+          if (!sel || !sel.rangeCount) return;
           const range = sel.getRangeAt(0);
           
           if (!range.collapsed) {
@@ -294,7 +294,7 @@
       /* [선택 영역 폰트 정보 실시간 역추적 동기화] */
       document.addEventListener('selectionchange', function() {
           const sel = window.getSelection();
-          if (sel.rangeCount > 0) {
+          if (sel && sel.rangeCount > 0) {
               let node = sel.focusNode;
               if (node && node.nodeType === 3) node = node.parentNode;
               

@@ -2636,8 +2636,10 @@
         function restoreSelection() {
             if (savedSelectionRange) {
                 const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(savedSelectionRange);
+                if (sel) {
+                    sel.removeAllRanges();
+                    sel.addRange(savedSelectionRange);
+                }
             }
             if (activeEditorId) {
                 const el = document.getElementById(activeEditorId);
@@ -3344,6 +3346,7 @@
             html = sanitizeContent(html);
 
             const sel = window.getSelection();
+            if (!sel) return;
             let range;
             const activeEl = document.getElementById(activeEditorId || 'body-canvas');
             

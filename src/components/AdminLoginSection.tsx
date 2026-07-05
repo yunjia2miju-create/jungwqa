@@ -59,7 +59,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
             if (email === 'yunjia2miju@gmail.com') {
                 setIsAdminLoggedIn(true);
                 showToast("구글 관리자 인증 완료! 소장님 권한이 최종 활성화되었습니다.", "success");
-                setActiveSection('main');
+                setActiveSection('admin-dashboard');
             } else {
                 const usersList = await getRegisteredUsersService();
                 const matchedUser = usersList.find((u: any) => u.email === email);
@@ -267,7 +267,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
             setSocialPopup(null);
             setSocialEmailInput('');
             setSocialNameInput('');
-            setActiveSection('main');
+            setActiveSection('admin-dashboard');
             return;
         }
 
@@ -325,7 +325,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                     if (data.success) {
                         setIsAdminLoggedIn(true);
                         showToast("2차 모바일 SMS 본인확인이 최종 완료되었습니다. 소장님 환영합니다!", "success");
-                        setActiveSection('main');
+                        setActiveSection('admin-dashboard');
                         return;
                     }
                 }
@@ -359,7 +359,7 @@ export function AdminLoginSection({ showToast }: AdminLoginSectionProps) {
                 
                 setIsAdminLoggedIn(true);
                 showToast("2차 오프라인 모바일 인증에 통제 승인되었습니다. 소장님 모드가 켜졌습니다.", "success");
-                setActiveSection('main');
+                setActiveSection('admin-dashboard');
             } finally {
                 setIsSmsVerifying(false);
             }

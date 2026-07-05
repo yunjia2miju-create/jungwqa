@@ -293,9 +293,10 @@ export default function App() {
         };
     }, []);
 
-    const mainWrapperClass = isMobileSimulationMode
+    const isManagerSection = activeSection === 'admin-write' || activeSection === 'admin-dashboard';
+    const mainWrapperClass = (isMobileSimulationMode && !isManagerSection)
         ? "flex-grow flex flex-col transition-all duration-300 w-full max-w-[430px] border-x-8 border-slate-950 shadow-2xl mx-auto bg-white rounded-[36px] my-6 relative overflow-hidden pb-[72px]"
-        : "flex-grow flex flex-col transition-all duration-300 w-full structural-border pb-0";
+        : `flex-grow flex flex-col transition-all duration-300 w-full structural-border pb-0 ${activeSection === 'admin-write' ? 'h-screen overflow-hidden' : ''}`;
 
     return (
         <ToastContext.Provider value={{ showToast }}>
@@ -303,7 +304,7 @@ export default function App() {
 
             {/* Main Shell */}
             <div id="main-simulation-wrapper" className={mainWrapperClass}>
-                {isMobileSimulationMode && (
+                {(isMobileSimulationMode && !isManagerSection) && (
                     <div className="bg-slate-950 text-slate-300 text-[10px] py-2 px-6 flex justify-between items-center font-bold tracking-tight select-none border-b border-slate-900">
                         <span>10:25 AM</span>
                         <div className="w-24 h-4 bg-slate-950 rounded-b-xl absolute left-1/2 -translate-x-1/2 top-0 border-x border-b border-slate-800"></div>

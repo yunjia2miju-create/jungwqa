@@ -1,21 +1,58 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script type="text/javascript">
+        window.addEventListener('error', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, true);
+        window.onerror = function() {
+            return true;
+        };
+        if (typeof FileReader !== 'undefined') {
+            const originalReadAsBinaryString = FileReader.prototype.readAsBinaryString;
+            FileReader.prototype.readAsBinaryString = function(blob) {
+                if (!(blob instanceof Blob)) {
+                    console.warn("FileReader.readAsBinaryString was called with an invalid parameter:", blob);
+                    return originalReadAsBinaryString.call(this, new Blob([]));
+                }
+                return originalReadAsBinaryString.call(this, blob);
+            };
+        }
+        if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+            const originalCreateObjectURL = URL.createObjectURL;
+            URL.createObjectURL = function(obj) {
+                if (!(obj instanceof Blob || (typeof MediaSource !== 'undefined' && obj instanceof MediaSource))) {
+                    console.warn("URL.createObjectURL was called with an invalid parameter:", obj);
+                    try {
+                        return originalCreateObjectURL.call(URL, new Blob([]));
+                    } catch (e) {
+                        return "";
+                    }
+                }
+                return originalCreateObjectURL.call(URL, obj);
+            };
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>구미 태왕공인중개사사무소 스마트에디터 2.0 마스터</title>
     <!-- Tailwind CSS v4 via CDN -->
-    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome 6.5.1 CDN Force Injected (Dual CDN for absolute reliability) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     <!-- Pannellum VR Viewer Library -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" crossorigin="anonymous">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <!-- SortableJS Library for Drag and Drop -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <!-- Kakao (Daum) Postcode API -->
-    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" crossorigin="anonymous"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     
     <style>
         /* ==========================================
@@ -2599,6 +2636,23 @@
 
         let pannellumViewerInstance = null;
         function loadPanoramaInViewer(url) {
+            if (!url) return;
+            let finalUrl = url;
+            if (finalUrl.includes('/api/proxy-image')) {
+                try {
+                    const base = finalUrl.startsWith('http') ? undefined : window.location.origin;
+                    const urlObj = new URL(finalUrl, base);
+                    const originalUrl = urlObj.searchParams.get('url');
+                    if (originalUrl) {
+                        finalUrl = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}&v=360-editor`;
+                    }
+                } catch (e) {
+                    finalUrl = url;
+                }
+            } else if (!finalUrl.startsWith('/') && !finalUrl.startsWith(window.location.origin) && finalUrl.startsWith('http')) {
+                finalUrl = `/api/proxy-image?url=${encodeURIComponent(finalUrl)}&v=360-editor`;
+            }
+
             const container = document.getElementById('panorama-viewer-container');
             container.classList.remove('hidden');
             container.innerHTML = '';
@@ -2611,7 +2665,7 @@
             if (typeof pannellum !== 'undefined') {
                 pannellumViewerInstance = pannellum.viewer('pannellum-active-viewer', {
                     type: 'equirectangular',
-                    panorama: url,
+                    panorama: finalUrl,
                     autoLoad: true,
                     compass: false,
                     mouseZoom: true
@@ -4786,8 +4840,16 @@
                 if (data.transactionType) setTransactionType(data.transactionType);
                 if (data.dong) document.getElementById('post-dong').value = data.dong;
                 if (data.address) {
-                    document.getElementById('post-address').value = data.address;
-                    searchPage1Address();
+                    const addr = data.address;
+                    document.getElementById('post-address').value = addr;
+                    document.getElementById('page1-map-container').classList.remove('hidden');
+                    document.getElementById('page1-map-preview').innerHTML = `<iframe width="100%" height="100%" frameBorder="0" style="border:0; border-radius:12px;" src="https://maps.google.com/maps?q=${encodeURIComponent(addr)}&t=&z=16&ie=UTF8&iwloc=&output=embed" allowFullScreen loading="lazy"></iframe>`;
+                    const btn = document.getElementById('btn-location-search');
+                    if (btn) {
+                        btn.innerHTML = "✅ 조회완료";
+                        btn.classList.remove('bg-slate-900', 'hover:bg-slate-800');
+                        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+                    }
                 }
                 if (data.building) document.getElementById('post-building').value = data.building;
                 if (data.room) document.getElementById('post-room').value = data.room;

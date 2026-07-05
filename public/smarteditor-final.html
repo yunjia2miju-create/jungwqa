@@ -2382,14 +2382,13 @@
         }
 
         function clearAllAdditionalPhotos() {
-            if (confirm("정말로 모든 추가 사진을 삭제하시겠습니까? (대표사진은 보존됩니다)")) {
-                if (generalPhotos.length > 0) {
-                    const first = generalPhotos[0];
-                    generalPhotos = [first];
-                } else {
-                    generalPhotos = [];
-                }
+            if (confirm("정말로 모든 추가 사진을 삭제하시겠습니까? (대표사진을 포함한 모든 일반 사진이 삭제됩니다)")) {
+                generalPhotos = [];
                 renderGeneralPhotos();
+                const multipleInput = document.getElementById('multiple-photos-input');
+                if (multipleInput) multipleInput.value = '';
+                const mainInput = document.getElementById('main-photo-input');
+                if (mainInput) mainInput.value = '';
                 notifyParent();
             }
         }
@@ -2398,6 +2397,8 @@
             if (confirm("정말로 모든 360° 파노라마 사진을 삭제하시겠습니까?")) {
                 panoramaPhotos = [];
                 renderPanoramaPhotos();
+                const panoInput = document.getElementById('multiple-panos-input');
+                if (panoInput) panoInput.value = '';
                 notifyParent();
             }
         }
@@ -2483,7 +2484,7 @@
                             </div>
                             <!-- 16:9 Image Area with absolute order indicator badge -->
                             <div class="relative w-full aspect-video overflow-hidden" style="aspect-ratio: 16 / 9 !important;">
-                                <img data-src="${url}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'><rect width='100%' height='100%' fill='%23cbd5e1'/></svg>" class="w-full h-full object-cover lazy-load-img" loading="lazy">
+                                <img src="${url}" class="w-full h-full object-cover" loading="lazy">
                                 <div contenteditable="true" class="rep-overlay-layer absolute inset-0 m-2 flex items-center justify-center text-white font-black text-center text-lg bg-black/30 rounded-lg border-2 border-dashed border-white/50 focus:border-solid focus:border-amber-400 focus:bg-black/50 outline-none transition-all" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);" placeholder="여기에 대표 글자 입력"></div>
                                 <div class="absolute top-1 left-1 bg-black/75 text-white font-black rounded backdrop-blur-xs select-none border border-white/10 shadow-sm" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important;">
                                     [${idx + 1}]
@@ -2538,7 +2539,7 @@
                     loadPanoramaInViewer(url);
                 };
                 item.innerHTML = `
-                    <img data-src="${url}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'><rect width='100%' height='100%' fill='%23cbd5e1'/></svg>" class="w-full h-full object-cover lazy-load-img" loading="lazy">
+                    <img src="${url}" class="w-full h-full object-cover" loading="lazy">
                     <div contenteditable="true" class="rep-overlay-layer absolute inset-0 m-2 flex items-center justify-center text-white font-black text-center text-lg bg-black/30 rounded-lg border-2 border-dashed border-white/50 focus:border-solid focus:border-amber-400 focus:bg-black/50 outline-none transition-all" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);" placeholder="여기에 대표 글자 입력"></div>
                     <!-- Diet/Minimal VR Label Badge (70% Compact Scale) -->
                     <div class="absolute top-1 left-1 bg-emerald-600/90 text-white font-bold rounded shadow-xs select-none" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important; border: 1px solid rgba(16, 185, 129, 0.2);">VR 360 파노라마 실사</div>

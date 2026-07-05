@@ -27,6 +27,7 @@ export interface Post {
     fontFamily?: string;
     fontSize?: string;
     createdAt: number;
+    updatedAt?: number;
 }
 
 export interface Inquiry {

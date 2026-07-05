@@ -234,6 +234,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         const newPost: Post = {
             id: editingPostId || ('local-' + Date.now()),
             createdAt: editingPostId && currentEditPost ? currentEditPost.createdAt : Date.now(),
+            updatedAt: Date.now(),
             category: data.category || '원룸',
             transactionType: data.transactionType || '월세',
             dong: data.dong || '송정동',

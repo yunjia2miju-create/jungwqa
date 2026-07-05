@@ -12,7 +12,7 @@ import TaewangFloatingBar from './components/TaewangFloatingBar';
 import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
-import { doc, getDocFromServer, collection, setDoc } from 'firebase/firestore';
+import { doc, getDocFromServer, collection, setDoc, onSnapshot } from 'firebase/firestore';
 
 // --- Toast Context Helper ---
 export const ToastContext = React.createContext<{ showToast: (msg: string, type?: 'success'|'error') => void } | null>(null);
@@ -33,6 +33,8 @@ export default function App() {
         setPosts,
         setInquiries
     } = useAppStore();
+
+    const selectedPost = posts.find(post => post.id === selectedPostId);
 
     // Modals state
     const [phoneModalOpen, setPhoneModalOpen] = useState(false);
@@ -96,6 +98,27 @@ export default function App() {
             window.addEventListener('load', () => setTimeout(fetchData, 100));
         }
 
+        // Real-time Firestore synchronizer for posts and inquiries (Instantly clears local and virtual cache)
+        const unsubscribePosts = onSnapshot(collection(db, 'posts'), () => {
+            getPostsService()
+                .then(data => {
+                    setPosts(data);
+                })
+                .catch(err => console.error("실시간 매물 업데이트 오류:", err));
+        }, (err) => {
+            console.warn("Firestore posts dynamic subscription failed, falling back:", err);
+        });
+
+        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), () => {
+            getInquiriesService()
+                .then(data => {
+                    setInquiries(data);
+                })
+                .catch(err => console.error("실시간 의뢰 업데이트 오류:", err));
+        }, (err) => {
+            console.warn("Firestore inquiries dynamic subscription failed, falling back:", err);
+        });
+
         // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user && user.email === 'yunjia2miju@gmail.com' && user.emailVerified) {
@@ -121,6 +144,8 @@ export default function App() {
 
         return () => {
             unsubscribe();
+            unsubscribePosts();
+            unsubscribeInquiries();
             window.removeEventListener('submitDirectInquiry', handleDirectInquiry);
         };
     }, []);
@@ -363,7 +388,104 @@ export default function App() {
 
                 <main className={`flex-grow w-full ${activeSection !== 'admin-write' ? 'pt-[96px] sm:pt-[116px]' : ''}`}>
                     {activeSection === 'main' && <MainTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
-                    {activeSection === 'detail' && <DetailTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
+                    {activeSection === 'detail' && selectedPost && (
+                        <DetailTab 
+                            key={`${selectedPost.id}-${selectedPost.updatedAt || selectedPost.createdAt || 0}`}
+                            openPhoneSelectModal={openPhoneSelectModal} 
+                            showToast={showToast} 
+                            images={(() => {
+                                const list: string[] = [];
+                                const buster = selectedPost.updatedAt || selectedPost.createdAt || Date.now();
+                                const appendCb = (url: string) => {
+                                    if (!url) return url;
+                                    if (url.startsWith('data:')) return url;
+                                    if (url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com') || url.includes('token=')) return url;
+                                    const separator = url.includes('?') ? '&' : '?';
+                                    return `${url}${separator}v=${buster}`;
+                                };
+                                if (selectedPost.thumbnail) {
+                                    list.push(selectedPost.thumbnail.trim());
+                                }
+                                const processField = (field: any) => {
+                                    if (!field) return;
+                                    if (Array.isArray(field)) {
+                                        field.forEach(val => {
+                                            if (val && typeof val === 'string') {
+                                                list.push(val.trim());
+                                            }
+                                        });
+                                    } else if (typeof field === 'string') {
+                                        const str = field.trim();
+                                        if (str) {
+                                            if (str.includes('|')) {
+                                                str.split('|').forEach(part => {
+                                                    const trimmed = part.trim();
+                                                    if (trimmed) list.push(trimmed);
+                                                });
+                                            } else if (str.includes(',') && (str.includes('http') || str.includes('/gallery/') || str.includes('/images/'))) {
+                                                str.split(',').forEach(part => {
+                                                    const trimmed = part.trim();
+                                                    if (trimmed) list.push(trimmed);
+                                                });
+                                            } else {
+                                                list.push(str);
+                                            }
+                                        }
+                                    }
+                                };
+                                processField(selectedPost.images);
+                                processField((selectedPost as any).imageUrls);
+                                processField((selectedPost as any).additionalImages);
+                                const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
+                                const uniqueUrls = Array.from(new Set(list)).filter(url => url && url !== defaultImg);
+                                return uniqueUrls.map(appendCb);
+                            })()}
+                            panoramaImages={(() => {
+                                const list: string[] = [];
+                                const buster = selectedPost.updatedAt || selectedPost.createdAt || Date.now();
+                                const appendCb = (url: string) => {
+                                    if (!url) return url;
+                                    if (url.startsWith('data:')) return url;
+                                    if (url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com') || url.includes('token=')) return url;
+                                    const separator = url.includes('?') ? '&' : '?';
+                                    return `${url}${separator}v=${buster}`;
+                                };
+                                const processField = (field: any) => {
+                                    if (!field) return;
+                                    if (Array.isArray(field)) {
+                                        field.forEach(val => {
+                                            if (val && typeof val === 'string') {
+                                                list.push(val.trim());
+                                            }
+                                        });
+                                    } else if (typeof field === 'string') {
+                                        const str = field.trim();
+                                        if (str) {
+                                            if (str.includes('|')) {
+                                                str.split('|').forEach(part => {
+                                                    const trimmed = part.trim();
+                                                    if (trimmed) list.push(trimmed);
+                                                });
+                                            } else if (str.includes(',') && (str.includes('http') || str.includes('/panoramas/'))) {
+                                                str.split(',').forEach(part => {
+                                                    const trimmed = part.trim();
+                                                    if (trimmed) list.push(trimmed);
+                                                });
+                                            } else {
+                                                list.push(str);
+                                            }
+                                        }
+                                    }
+                                };
+                                processField(selectedPost.panoramas);
+                                processField(selectedPost.panoImage);
+                                processField((selectedPost as any).panoramaUrls);
+                                processField((selectedPost as any).panoramaImages);
+                                const uniqueUrls = Array.from(new Set(list)).filter(url => url);
+                                return uniqueUrls.map(appendCb);
+                            })()}
+                        />
+                    )}
                     {activeSection === 'admin-login' && (
                         <div className="admin-ui-root">
                             <AdminLoginSection showToast={showToast} />

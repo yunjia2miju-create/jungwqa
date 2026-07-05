@@ -305,48 +305,57 @@
 
       /* [핀셋 보호 영역 폰트/스타일 래핑 엔진] */
       function wrapSelectionWithStyle(styleName, styleValue) {
-          const sel = window.getSelection();
-          if (!sel || !sel.rangeCount) return;
-          const range = sel.getRangeAt(0);
-          
-          if (!range.collapsed) {
-              const span = document.createElement('span');
-              span.style[styleName] = styleValue;
+          try {
+              const sel = window.getSelection();
+              if (!sel || typeof sel.rangeCount !== 'number' || sel.rangeCount <= 0) return;
+              const range = sel.getRangeAt(0);
+              if (!range) return;
               
-              try {
-                  range.surroundContents(span);
-              } catch (e) {
-                  const frag = range.extractContents();
-                  span.appendChild(frag);
-                  range.insertNode(span);
+              if (!range.collapsed) {
+                  const span = document.createElement('span');
+                  span.style[styleName] = styleValue;
+                  
+                  try {
+                      range.surroundContents(span);
+                  } catch (e) {
+                      const frag = range.extractContents();
+                      span.appendChild(frag);
+                      range.insertNode(span);
+                  }
+                  
+                  sel.removeAllRanges();
+                  const newRange = document.createRange();
+                  newRange.selectNodeContents(span);
+                  sel.addRange(newRange);
               }
-              
-              sel.removeAllRanges();
-              const newRange = document.createRange();
-              newRange.selectNodeContents(span);
-              sel.addRange(newRange);
+          } catch (err) {
+              console.error('wrapSelectionWithStyle error:', err);
           }
       }
 
       /* [선택 영역 폰트 정보 실시간 역추적 동기화] */
       document.addEventListener('selectionchange', function() {
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount > 0) {
-              let node = sel.focusNode;
-              if (node && node.nodeType === 3) node = node.parentNode;
-              
-              if (node) {
-                  const computedStyle = window.getComputedStyle(node);
-                  const fontFamily = computedStyle.fontFamily;
-                  const fontSelect = document.getElementById('fb-font-family-mobile');
-                  if (fontSelect && fontFamily) {
-                      if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
-                      else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
-                      else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
-                      else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
-                      else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
+          try {
+              const sel = window.getSelection();
+              if (sel && typeof sel.rangeCount === 'number' && sel.rangeCount > 0) {
+                  let node = sel.focusNode;
+                  if (node && node.nodeType === 3) node = node.parentNode;
+                  
+                  if (node && node instanceof HTMLElement) {
+                      const computedStyle = window.getComputedStyle(node);
+                      const fontFamily = computedStyle.fontFamily;
+                      const fontSelect = document.getElementById('fb-font-family-mobile');
+                      if (fontSelect && fontFamily) {
+                          if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
+                          else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
+                          else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
+                          else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
+                          else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
+                      }
                   }
               }
+          } catch (err) {
+              console.error('selectionchange error:', err);
           }
       });
     </script>

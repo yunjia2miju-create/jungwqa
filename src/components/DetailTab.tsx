@@ -27,10 +27,14 @@ const stripHtml = (text: string | null | undefined): string => {
 
 export const DetailTab = ({ 
     openPhoneSelectModal,
-    showToast
+    showToast,
+    images,
+    panoramaImages
 }: { 
     openPhoneSelectModal: (e: React.MouseEvent, mobilePhone: string, ownerPhone?: string) => void,
-    showToast?: (msg: string, type?: 'success'|'error') => void
+    showToast?: (msg: string, type?: 'success'|'error') => void,
+    images?: string[],
+    panoramaImages?: string[]
 }) => {
     const { posts, isAdminLoggedIn, selectedPostId, setSelectedPostId, setActiveSection, isMobileSimulationMode } = useAppStore();
 
@@ -121,19 +125,95 @@ export const DetailTab = ({
 
     const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
     const imgUrls = React.useMemo(() => {
-        const safeImages = String(p.images || '');
-        return safeImages 
-            ? safeImages.split('|').map(i => i.trim()).filter(i => i && i !== defaultImg) 
-            : [];
-    }, [p.images]);
+        if (images && images.length > 0) {
+            return images;
+        }
+        const list: string[] = [];
+        
+        // Always include the representative photo as part of the overall sub-images album so it can be seen/zoomed
+        if (p.thumbnail) {
+            list.push(p.thumbnail.trim());
+        }
+
+        const processField = (field: any) => {
+            if (!field) return;
+            if (Array.isArray(field)) {
+                field.forEach(val => {
+                    if (val && typeof val === 'string') {
+                        list.push(val.trim());
+                    }
+                });
+            } else if (typeof field === 'string') {
+                const str = field.trim();
+                if (str) {
+                    if (str.includes('|')) {
+                        str.split('|').forEach(part => {
+                            const trimmed = part.trim();
+                            if (trimmed) list.push(trimmed);
+                        });
+                    } else if (str.includes(',') && (str.includes('http') || str.includes('/gallery/') || str.includes('/images/'))) {
+                        str.split(',').forEach(part => {
+                            const trimmed = part.trim();
+                            if (trimmed) list.push(trimmed);
+                        });
+                    } else {
+                        list.push(str);
+                    }
+                }
+            }
+        };
+
+        processField(p.images);
+        processField((p as any).imageUrls);
+        processField((p as any).additionalImages);
+
+        // Remove default image and duplicates while preserving order
+        const uniqueUrls = Array.from(new Set(list))
+            .filter(url => url && url !== defaultImg);
+        return uniqueUrls;
+    }, [images, p.images, p.thumbnail, (p as any).imageUrls, (p as any).additionalImages]);
 
     const panoUrls = React.useMemo(() => {
-        const safePanos = String(p.panoramas || '');
-        const safePanoImg = String(p.panoImage || '');
-        return safePanos
-            ? safePanos.split('|').map(i => i.trim()).filter(i => i)
-            : (safePanoImg ? [safePanoImg] : []);
-    }, [p.panoramas, p.panoImage]);
+        if (panoramaImages && panoramaImages.length > 0) {
+            return panoramaImages;
+        }
+        const list: string[] = [];
+        
+        const processField = (field: any) => {
+            if (!field) return;
+            if (Array.isArray(field)) {
+                field.forEach(val => {
+                    if (val && typeof val === 'string') {
+                        list.push(val.trim());
+                    }
+                });
+            } else if (typeof field === 'string') {
+                const str = field.trim();
+                if (str) {
+                    if (str.includes('|')) {
+                        str.split('|').forEach(part => {
+                            const trimmed = part.trim();
+                            if (trimmed) list.push(trimmed);
+                        });
+                    } else if (str.includes(',') && (str.includes('http') || str.includes('/panoramas/'))) {
+                        str.split(',').forEach(part => {
+                            const trimmed = part.trim();
+                            if (trimmed) list.push(trimmed);
+                        });
+                    } else {
+                        list.push(str);
+                    }
+                }
+            }
+        };
+
+        processField(p.panoramas);
+        processField(p.panoImage);
+        processField((p as any).panoramaUrls);
+        processField((p as any).panoramaImages);
+
+        return Array.from(new Set(list)).filter(url => url);
+    }, [panoramaImages, p.panoramas, p.panoImage, (p as any).panoramaUrls, (p as any).panoramaImages]);
 
     // Fast-loading Preloader: Calculate next and previous listings to prefetch their panoramas and thumbnails (0-second load tech)
     const adjacentPanoUrls = React.useMemo(() => {
@@ -142,26 +222,53 @@ export const DetailTab = ({
         const nextPost = posts[(currentIndex + 1) % posts.length];
         const prevPost = posts[(currentIndex - 1 + posts.length) % posts.length];
         const urls: string[] = [];
+        
         const processPost = (post: typeof nextPost) => {
             if (!post) return;
-            const safePanos = String(post.panoramas || '');
-            const safePanoImg = String(post.panoImage || '');
-            if (safePanos) {
-                safePanos.split('|').forEach(u => {
-                    const trimmed = u.trim();
-                    if (trimmed) urls.push(trimmed);
-                });
-            } else if (safePanoImg) {
-                const trimmed = safePanoImg.trim();
-                if (trimmed) urls.push(trimmed);
-            }
+            const list: string[] = [];
+            const processField = (field: any) => {
+                if (!field) return;
+                if (Array.isArray(field)) {
+                    field.forEach(val => {
+                        if (val && typeof val === 'string') {
+                            list.push(val.trim());
+                        }
+                    });
+                } else if (typeof field === 'string') {
+                    const str = field.trim();
+                    if (str) {
+                        if (str.includes('|')) {
+                            str.split('|').forEach(part => {
+                                const trimmed = part.trim();
+                                if (trimmed) list.push(trimmed);
+                            });
+                        } else if (str.includes(',') && (str.includes('http') || str.includes('/panoramas/'))) {
+                            str.split(',').forEach(part => {
+                                const trimmed = part.trim();
+                                if (trimmed) list.push(trimmed);
+                            });
+                        } else {
+                            list.push(str);
+                        }
+                    }
+                }
+            };
+            processField(post.panoramas);
+            processField(post.panoImage);
+            processField((post as any).panoramaUrls);
+            processField((post as any).panoramaImages);
+
+            list.forEach(url => {
+                if (url) urls.push(url);
+            });
             if (post.thumbnail) {
                 urls.push(post.thumbnail.trim());
             }
         };
+        
         processPost(nextPost);
         processPost(prevPost);
-        return urls;
+        return Array.from(new Set(urls));
     }, [posts, selectedPostId]);
 
     // Fast-loading Preloader: Proactively fetch all panoramic images in the background
@@ -470,57 +577,129 @@ export const DetailTab = ({
                     <NaverBlogHelperModal post={p} isOpen={isBlogModalOpen} onClose={() => setIsBlogModalOpen(false)} />
                 </div>
 
-                <div 
-                    className={`aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full ${zoomedImageId === 'thumbnail' ? 'cursor-zoom-out shadow-2xl' : 'cursor-zoom-in hover:shadow-xl hover:border-[#0B2545]/30'}`}
-                    style={{ 
-                        transform: zoomedImageId === 'thumbnail' ? 'scale(2)' : 'scale(1)', 
-                        zIndex: zoomedImageId === 'thumbnail' ? 999 : 1, 
-                        transition: 'transform 0.25s ease-in-out' 
-                    }}
-                    onClick={() => {
-                        setZoomedImageId(prev => prev === 'thumbnail' ? null : 'thumbnail');
-                    }}
-                >
-                    {/* Unique [녹색 라운드 사각 뱃지] for 대표사진 */}
-                    <div id="representative-badge" className="absolute top-4 left-4 sm:top-5 sm:left-5 bg-[#0B2545] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0B2545] shadow-md z-30 flex items-center gap-1.5 select-none hover:scale-[1.03] transition-all">
-                        <span>대표사진</span>
+                {panoUrls.length > 0 ? (
+                    <div className="mb-8">
+                        <div className="flex flex-col items-start gap-4 mb-5 border-b border-dashed border-slate-200 pb-4 w-full">
+                            <h4 className="text-[22px] sm:text-[38px] md:text-[42px] lg:text-[44px] font-black text-slate-900 flex items-center gap-3.5 sm:gap-5 max-w-full">
+                                <div className="shrink-0 flex items-center justify-center animate-vr-glow !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
+                                    <Naver360Icon className="w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] drop-shadow-[0_4px_12px_rgba(11,37,69,0.35)]" />
+                                </div>
+                                <span 
+                                    className="animate-vr-glow select-none break-keep"
+                                    style={{
+                                        color: '#0B2545'
+                                    }}
+                                >
+                                    공간 실감 360° 현장 VR 투어
+                                </span>
+                            </h4>
+                            {panoUrls.length > 1 && (
+                                <div className="flex flex-wrap gap-2 overflow-x-auto sm:overflow-x-visible scrollbar-none max-w-full pb-1 shrink-0 select-none items-center scroll-smooth">
+                                    {panoUrls.map((_, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => setActivePanoIndex(idx)}
+                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${activePanoIndex === idx ? 'bg-[#0B2545] text-white shadow-md border border-[#0B2545] scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
+                                        >
+                                            공간 {idx + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="relative w-full rounded-none sm:rounded-2xl overflow-hidden shadow-sm">
+                            <PannellumViewer 
+                                key={`${p.id}-${panoUrls.length}`}
+                                images={panoUrls} 
+                                activeIndex={activePanoIndex} 
+                                onSceneChange={(idx) => setActivePanoIndex(idx)} 
+                                title={p.building || p.title}
+                                address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
+                                thumbnail={p.thumbnail}
+                            />
+                            {/* Heart Button Overlay */}
+                            <button 
+                                onClick={(e) => toggleFavorite(e, p.id)}
+                                className={`absolute top-4 right-4 sm:top-5 sm:right-5 z-[50] flex items-center justify-center w-12 h-12 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl border cursor-pointer ${
+                                    favorites.includes(p.id) 
+                                        ? 'bg-white/90 border-red-200' 
+                                        : 'bg-[#0B2545]/60 hover:bg-[#0B2545]/80 border-white/20'
+                                }`}
+                                title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
+                            >
+                                <i className={`fa-solid fa-heart text-2xl ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-white'} transition-transform`}></i>
+                            </button>
+                        </div>
+                        {panoUrls.length > 1 && (
+                            <div className="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                {panoUrls.map((pano, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => setActivePanoIndex(idx)}
+                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-[#0B2545] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                    >
+                                        <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} loading="lazy" />
+                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                            <span className="text-[8px] font-black text-white bg-black/40 px-1.5 py-0.5 rounded">Sc-{idx + 1}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
-
-                    <img 
-                        src={p.thumbnail} 
-                        className={`w-full h-full object-cover transition-transform duration-500 ${zoomedImageId === 'thumbnail' ? '' : 'group-hover:scale-105'}`} 
-                        alt="매물 대표 사진"
-                        loading="lazy"
-                    />
-                    {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                        <i 
-                            className="fa-solid fa-house select-none pointer-events-none text-4xl sm:text-6xl md:text-7xl"
-                            style={{ 
-                                color: '#FFFFFF',
-                                opacity: 0.18,
-                            }}
-                        ></i>
-                    </div>
-                    {/* Hover status tip */}
-                    <div className={`absolute top-4 right-4 sm:top-5 sm:right-5 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full transition-opacity flex items-center gap-1 z-20 ${zoomedImageId === 'thumbnail' ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
-                        <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
-                        <span>크게 보기 (클릭)</span>
-                    </div>
-
-                    {/* Heart Button Overlay */}
-                    <button 
-                        onClick={(e) => toggleFavorite(e, p.id)}
-                        className={`absolute bottom-4 right-4 sm:bottom-5 sm:right-5 z-30 flex items-center justify-center w-12 h-12 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl border cursor-pointer ${
-                            favorites.includes(p.id) 
-                                ? 'bg-white/90 border-red-200' 
-                                : 'bg-[#0B2545]/60 hover:bg-[#0B2545]/80 border-white/20'
-                        }`}
-                        title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
+                ) : (
+                    <div 
+                        className={`aspect-[4/5] sm:aspect-[16/9] h-[400px] sm:h-auto min-h-[380px] sm:min-h-0 overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-slate-150 shadow-sm mb-6 sm:mb-8 watermark-container group relative select-none -mx-9 sm:mx-0 w-[calc(100%+4.5rem)] sm:w-full ${zoomedImageId === 'thumbnail' ? 'cursor-zoom-out shadow-2xl' : 'cursor-zoom-in hover:shadow-xl hover:border-[#0B2545]/30'}`}
+                        style={{ 
+                            transform: zoomedImageId === 'thumbnail' ? 'scale(2)' : 'scale(1)', 
+                            zIndex: zoomedImageId === 'thumbnail' ? 999 : 1, 
+                            transition: 'transform 0.25s ease-in-out' 
+                        }}
+                        onClick={() => {
+                            setZoomedImageId(prev => prev === 'thumbnail' ? null : 'thumbnail');
+                        }}
                     >
-                        <i className={`fa-solid fa-heart text-2xl ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-white'} transition-transform`}></i>
-                    </button>
-                </div>
+                        {/* Unique [녹색 라운드 사각 뱃지] for 대표사진 */}
+                        <div id="representative-badge" className="absolute top-4 left-4 sm:top-5 sm:left-5 bg-[#0B2545] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-[#0B2545] shadow-md z-30 flex items-center gap-1.5 select-none hover:scale-[1.03] transition-all">
+                            <span>대표사진</span>
+                        </div>
+
+                        <img 
+                            src={p.thumbnail} 
+                            className={`w-full h-full object-cover transition-transform duration-500 ${zoomedImageId === 'thumbnail' ? '' : 'group-hover:scale-105'}`} 
+                            alt="매물 대표 사진"
+                            loading="lazy"
+                        />
+                        {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                            <i 
+                                className="fa-solid fa-house select-none pointer-events-none text-4xl sm:text-6xl md:text-7xl"
+                                style={{ 
+                                    color: '#FFFFFF',
+                                    opacity: 0.18,
+                                }}
+                            ></i>
+                        </div>
+                        {/* Hover status tip */}
+                        <div className={`absolute top-4 right-4 sm:top-5 sm:right-5 bg-black/60 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full transition-opacity flex items-center gap-1 z-20 ${zoomedImageId === 'thumbnail' ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+                            <i className="fa-solid fa-magnifying-glass-plus text-emerald-400"></i>
+                            <span>크게 보기 (클릭)</span>
+                        </div>
+
+                        {/* Heart Button Overlay */}
+                        <button 
+                            onClick={(e) => toggleFavorite(e, p.id)}
+                            className={`absolute bottom-4 right-4 sm:bottom-5 sm:right-5 z-30 flex items-center justify-center w-12 h-12 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl border cursor-pointer ${
+                                favorites.includes(p.id) 
+                                    ? 'bg-white/90 border-red-200' 
+                                    : 'bg-[#0B2545]/60 hover:bg-[#0B2545]/80 border-white/20'
+                            }`}
+                            title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
+                        >
+                            <i className={`fa-solid fa-heart text-2xl ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-white'} transition-transform`}></i>
+                        </button>
+                    </div>
+                )}
 
                 {imgUrls.length > 0 && (
                     <div className="mb-8">
@@ -567,78 +746,6 @@ export const DetailTab = ({
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
-
-                {panoUrls.length > 0 && (
-                    <div className="mb-8">
-                        <div className="flex flex-col items-start gap-4 mb-5 border-b border-dashed border-emerald-500/10 pb-4 w-full">
-                            <h4 className="text-[22px] sm:text-[38px] md:text-[42px] lg:text-[44px] font-black text-slate-900 flex items-center gap-3.5 sm:gap-5 max-w-full">
-                                <div className="shrink-0 flex items-center justify-center animate-vr-glow !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
-                                    <Naver360Icon className="w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] drop-shadow-[0_4px_12px_rgba(11,37,69,0.35)]" />
-                                </div>
-                                <span 
-                                    className="animate-vr-glow select-none break-keep"
-                                    style={{
-                                        color: '#0B2545'
-                                    }}
-                                >
-                                    공간 실감 360° 현장 VR 투어
-                                </span>
-                            </h4>
-                            {panoUrls.length > 1 && (
-                                <div className="flex flex-wrap gap-2 overflow-x-auto sm:overflow-x-visible scrollbar-none max-w-full pb-1 shrink-0 select-none items-center scroll-smooth">
-                                    {panoUrls.map((_, idx) => (
-                                        <button 
-                                            key={idx}
-                                            onClick={() => setActivePanoIndex(idx)}
-                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${activePanoIndex === idx ? 'bg-[#0B2545] text-white shadow-md border border-[#0B2545] scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
-                                        >
-                                            공간 {idx + 1}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        <div className="relative w-full rounded-none sm:rounded-2xl overflow-hidden shadow-sm">
-                            <PannellumViewer 
-                                key={`${p.id}-${panoUrls.length}`}
-                                images={panoUrls} 
-                                activeIndex={activePanoIndex} 
-                                onSceneChange={(idx) => setActivePanoIndex(idx)} 
-                                title={p.building || p.title}
-                                address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
-                                thumbnail={p.thumbnail}
-                            />
-                            {/* Heart Button for VR */}
-                            <button 
-                                onClick={(e) => toggleFavorite(e, p.id)}
-                                className={`absolute top-4 right-4 sm:top-5 sm:right-5 z-[50] flex items-center justify-center w-12 h-12 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl border cursor-pointer ${
-                                    favorites.includes(p.id) 
-                                        ? 'bg-white/90 border-red-200' 
-                                        : 'bg-[#0B2545]/60 hover:bg-[#0B2545]/80 border-white/20'
-                                }`}
-                                title={favorites.includes(p.id) ? "관심 매물 해제" : "관심 매물 등록"}
-                            >
-                                <i className={`fa-solid fa-heart text-2xl ${favorites.includes(p.id) ? 'text-red-500 scale-110' : 'text-white'} transition-transform`}></i>
-                            </button>
-                        </div>
-                        {panoUrls.length > 1 && (
-                            <div className="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-2">
-                                {panoUrls.map((pano, idx) => (
-                                    <button 
-                                        key={idx}
-                                        onClick={() => setActivePanoIndex(idx)}
-                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-[#0B2545] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                                    >
-                                        <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} loading="lazy" />
-                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                            <span className="text-[8px] font-black text-white bg-black/40 px-1.5 py-0.5 rounded">Sc-{idx + 1}</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 )}
 

@@ -20,27 +20,29 @@ export async function getPostsService(): Promise<Post[]> {
   const mergedMap = new Map<string, Post>();
   let legacyPosts: Post[] = [];
 
-  // Add default static posts as initial base
-  defaultPosts.forEach(p => {
-    if (p && p.id) {
+  const mergePost = (p: Post) => {
+    if (!p || !p.id) return;
+    const existing = mergedMap.get(p.id);
+    const pTime = p.updatedAt || p.createdAt || 0;
+    const existingTime = existing ? (existing.updatedAt || existing.createdAt || 0) : -1;
+    if (pTime > existingTime || !existing) {
       mergedMap.set(p.id, p);
     }
-  });
+  };
+
+  // Add default static posts as initial base
+  defaultPosts.forEach(mergePost);
 
   const fetchTasks: Promise<void>[] = [];
 
   // Task A: Fetch from Express backend
   fetchTasks.push((async () => {
     try {
-      const res = await fetch('/api/posts');
+      const res = await fetch('/api/posts?t=' + Date.now());
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          data.forEach(p => {
-            if (p && p.id) {
-              mergedMap.set(p.id, p);
-            }
-          });
+          data.forEach(mergePost);
         }
       }
     } catch (err) {
@@ -56,9 +58,7 @@ export async function getPostsService(): Promise<Post[]> {
       const snapshot = await getDocs(q);
       snapshot.forEach(doc => {
         const p = doc.data() as Post;
-        if (p && p.id) {
-          mergedMap.set(p.id, p);
-        }
+        mergePost(p);
       });
     } catch (err) {
       console.warn("Active Firestore database posts fetch failed:", err);
@@ -217,7 +217,7 @@ export async function deletePostService(id: string): Promise<void> {
 export async function getInquiriesService(): Promise<Inquiry[]> {
   // 1. Try Express backend first because it is super fast with server-side caching
   try {
-    const res = await fetch('/api/inquiries');
+    const res = await fetch('/api/inquiries?t=' + Date.now());
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -335,7 +335,7 @@ export interface RegisteredUser {
 export async function getRegisteredUsersService(): Promise<RegisteredUser[]> {
   // 1. Try Express backend first because it is lightning fast
   try {
-    const res = await fetch('/api/users');
+    const res = await fetch('/api/users?t=' + Date.now());
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {

@@ -439,8 +439,9 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
 
     // Retrieve system image collections safely
     const allImages = post ? (post.images ? post.images.split('|').filter(Boolean) : []) : [];
-    const repImgUrl = post ? (post.thumbnail || allImages[0] || '') : '';
-    const additionalImages = allImages.filter(img => img !== repImgUrl);
+    const bestThumb = post ? (post.category === '360 VR사진' ? (post.vrThumbnail || post.thumbnail) : (post.thumbnail || post.vrThumbnail)) : '';
+    const repImgUrl = bestThumb || (allImages.length > 0 ? allImages[0] : '');
+    const additionalImages = allImages.filter(img => img !== repImgUrl && img !== post?.thumbnail && img !== post?.vrThumbnail);
     const hasVr = post ? (!!(post.panoramas && post.panoramas.trim()) || !!(post.panoImage && post.panoImage.trim())) : false;
     const vrLinkUrl = post ? `${window.location.origin}/?postId=${post.id}` : '';
 

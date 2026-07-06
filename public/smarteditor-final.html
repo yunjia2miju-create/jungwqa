@@ -4,16 +4,34 @@
     <script type="text/javascript">
         window.addEventListener('error', function(e) {
             e.preventDefault();
-            e.stopPropagation();
+            e.stopImmediatePropagation();
         }, true);
         window.addEventListener('unhandledrejection', function(e) {
             e.preventDefault();
-            e.stopPropagation();
+            e.stopImmediatePropagation();
         }, true);
         window.onerror = function() {
             return true;
         };
         if (typeof FileReader !== 'undefined') {
+            const originalAddEventListener = FileReader.prototype.addEventListener;
+            FileReader.prototype.addEventListener = function(type, listener, options) {
+                if (typeof listener === 'function') {
+                    const wrappedListener = function(event) {
+                        try {
+                            return listener.apply(this, arguments);
+                        } catch (err) {
+                            if (err instanceof TypeError && err.message && err.message.includes("setting 'src'")) {
+                                console.warn("Suppressed FileReader race condition error.");
+                            } else {
+                                throw err;
+                            }
+                        }
+                    };
+                    return originalAddEventListener.call(this, type, wrappedListener, options);
+                }
+                return originalAddEventListener.call(this, type, listener, options);
+            };
             const originalReadAsBinaryString = FileReader.prototype.readAsBinaryString;
             FileReader.prototype.readAsBinaryString = function(blob) {
                 if (!(blob instanceof Blob)) {
@@ -1374,7 +1392,7 @@
                             <button onclick="setCategory('오피스텔')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">오피스텔</button>
                             <button onclick="setCategory('빌라')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">빌라</button>
                             <button onclick="setCategory('땅')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">땅</button>
-                            <button onclick="setCategory('기타')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">기타</button>
+                            <button onclick="setCategory('360 VR사진')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">360 VR사진</button>
                         </div>
                     </div>
 
@@ -1497,16 +1515,44 @@
                     <!-- 1. 유튜브 동영상 링크 입력란 -->
                     <div class="space-y-3">
                         <label class="block text-[22px] font-black text-slate-700 select-none">1. 유튜브 동영상 링크</label>
-                        <input type="text" id="post-video" oninput="handleYoutubeInput()" placeholder="예: https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
+                        <div class="flex gap-2">
+                            <input type="text" id="post-video" oninput="handleYoutubeInput()" placeholder="예: https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
+                            <button type="button" id="btn-open-youtube" onclick="openYoutubeLink()" class="shrink-0 bg-emerald-600 text-white px-6 py-5 rounded-2xl font-bold text-[22px] hover:bg-emerald-500 transition-colors whitespace-nowrap shadow-sm">
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>새창 열기
+                            </button>
+                        </div>
                         <!-- 유튜브 16:9 임베드 미리보기 영역 -->
                         <div id="youtube-preview-container" class="hidden w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-black relative shadow-xs">
                             <iframe id="youtube-iframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                         </div>
                     </div>
 
-                    <!-- 2. 일반사진 썸네일(대표사진) 등록란 -->
+                    <!-- 1-2. 네이버 TV 동영상 링크 입력란 -->
                     <div class="space-y-3">
-                        <label class="block text-[22px] font-black text-slate-700 select-none">2. 일반사진 썸네일(대표사진) 등록</label>
+                        <label class="block text-[22px] font-black text-slate-700 select-none">1-2. 네이버 TV 동영상 링크</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="post-navertv" placeholder="예: https://tv.naver.com/v/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
+                            <button type="button" id="btn-open-navertv" onclick="openNaverTvLink()" class="shrink-0 bg-emerald-600 text-white px-6 py-5 rounded-2xl font-bold text-[22px] hover:bg-emerald-500 transition-colors whitespace-nowrap shadow-sm">
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>새창 열기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. 외부 링크 (네이버 블로그 등) -->
+                    <div class="space-y-3">
+                        <label class="block text-[22px] font-black text-slate-700 select-none flex items-center flex-wrap">
+                            2. 대표사진 클릭시 연결할 외부링크(네이버 블로그, 구글 블로그 스팟, ....,)
+                            <span class="text-red-500 font-bold text-lg ml-2">원룸매매, 원룸, 미투, 투룸, 쓰리룸, 상가, 아파트, 오피스텔, 빌라</span>
+                        </label>
+                        <input type="text" id="post-blogUrl" placeholder="예: https://blog.naver.com/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
+                    </div>
+
+                    <!-- 3. 일반사진 썸네일(대표사진) 등록란 -->
+                    <div class="space-y-3">
+                        <label class="block text-[22px] font-black text-slate-700 select-none flex items-center">
+                            3. 일반사진 썸네일(대표사진) 등록
+                            <span class="text-red-500 font-bold text-lg ml-2">원룸매매, 원룸, 미투, 투룸, 쓰리룸, 상가, 아파트, 오피스텔, 빌라</span>
+                        </label>
                         <!-- 대표사진 드래그 존 / 파일 첨부 -->
                         <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-video w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10" id="main-photo-drag-zone">
                             <input type="file" id="main-photo-input" accept="image/*" class="hidden" onchange="handleMainPhotoUpload(event)">
@@ -1530,7 +1576,10 @@
 
                     <!-- 3. 일반사진 추가 첨부 등록란 -->
                     <div class="space-y-4">
-                        <label class="block text-[22px] font-black text-slate-700 select-none">3. 일반사진 추가 첨부 등록</label>
+                        <label class="block text-[22px] font-black text-slate-700 select-none flex items-center">
+                            3. 일반사진 추가 첨부 등록
+                            <span class="text-red-500 font-bold text-lg ml-2">360 VR 투어</span>
+                        </label>
                         <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-[21/9] w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10" id="additional-photos-drag-zone" onclick="document.getElementById('multiple-photos-input').click()">
                             <input type="file" id="multiple-photos-input" multiple accept="image/*" class="hidden" onchange="handleMobilePhotoUpload(event, false)">
                             <i class="fa-solid fa-images text-slate-400 text-6xl mb-4"></i>
@@ -1542,9 +1591,6 @@
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (16:9 비율 컴팩트 격자형 배치)</span>
-                                <button type="button" onclick="clearAllAdditionalPhotos()" class="px-4 py-2 bg-[#D90429] text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm border border-[#D90429]">
-                                    <i class="fa-solid fa-trash-can"></i> 추가사진 전체 삭제
-                                </button>
                             </div>
                             <div id="additional-photos-stack" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;">
                                 <!-- Previews will be rendered as compact 220px aspect-video (16:9) cards -->
@@ -1555,11 +1601,21 @@
                     <!-- 4. 360도 VR 파노라마 사진 등록란 -->
                     <div class="space-y-4">
                         <label class="block text-[22px] font-black text-slate-700 select-none">4. 360도 VR 파노라마 사진 등록</label>
-                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-[21/9] w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10" id="pano-drag-zone" onclick="document.getElementById('multiple-panos-input').click()">
+                        <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-[21/9] w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10 relative overflow-hidden" id="pano-drag-zone">
                             <input type="file" id="multiple-panos-input" multiple accept="image/*" class="hidden" onchange="handleMobilePhotoUpload(event, true)">
-                            <i class="fa-solid fa-globe text-emerald-500 text-6xl mb-4 animate-pulse"></i>
-                            <span class="text-2xl font-black text-slate-800">인스타360 / 캐논 VR 파노라마 사진 등록</span>
-                            <span class="text-lg text-slate-400 mt-2">상하좌우 360도 공간 실감 사진을 첨부하십시오</span>
+                            
+                            <div id="pano-drag-placeholder" class="flex flex-col items-center justify-center w-full h-full" onclick="document.getElementById('multiple-panos-input').click()">
+                                <i class="fa-solid fa-globe text-emerald-500 text-6xl mb-4 animate-pulse"></i>
+                                <span class="text-2xl font-black text-slate-800">인스타360 / 캐논 VR 파노라마 사진 등록</span>
+                                <span class="text-lg text-slate-400 mt-2">상하좌우 360도 공간 실감 사진을 첨부하십시오</span>
+                            </div>
+                            
+                            <div id="pano-drag-preview-container" class="hidden absolute inset-0 w-full h-full relative">
+                                <img id="pano-drag-preview-img" src="" class="w-full h-full object-cover rounded-xl" />
+                                <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-all rounded-xl" onclick="document.getElementById('multiple-panos-input').click()">
+                                    <span class="text-white text-2xl font-black bg-slate-900/80 px-6 py-3 rounded-2xl"><i class="fa-solid fa-rotate mr-2"></i>VR 사진 추가 등록</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- 파노라마 VR 목록 (16:9 비율) -->
@@ -1567,9 +1623,6 @@
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
                                     <span class="block text-[20px] font-black text-slate-500 uppercase select-none">파노라마 리스트</span>
-                                    <button type="button" onclick="clearAllPanoramaPhotos()" class="px-4 py-2 bg-[#D90429] text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm border border-[#D90429]">
-                                        <i class="fa-solid fa-trash-can"></i> 파노라마 전체 삭제
-                                    </button>
                                 </div>
                                 <div id="pano-photos-list" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;"></div>
                             </div>
@@ -1590,6 +1643,7 @@
                     <span class="font-black text-2xl text-slate-700 flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-black">1</span>
                         <span>[책임 중개 소장 한마디]</span>
+                        <span class="text-red-500 font-bold text-lg ml-2">360 VR 투어</span>
                     </span>
                 </div>
                 <div 
@@ -1607,6 +1661,7 @@
                     <span class="font-black text-2xl text-slate-700 flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-black">2</span>
                         <span>[블로그 본문 원고]</span>
+                        <span class="text-red-500 font-bold text-lg ml-2">360 VR 투어</span>
                     </span>
                 </div>
                 <div 
@@ -1624,6 +1679,7 @@
                     <span class="font-black text-2xl text-slate-700 flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-black">3</span>
                         <span>[실시간 매물특징]</span>
+                        <span class="text-red-500 font-bold text-lg ml-2">원룸매매, 원룸, 미투, 투룸, 쓰리룸, 상가, 아파트, 오피스텔, 빌라 360 VR 투어</span>
                     </span>
                 </div>
                 <div 
@@ -1641,6 +1697,7 @@
                     <span class="font-black text-2xl text-slate-700 flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-black">4</span>
                         <span>[전문가 실사 답사가이드]</span>
+                        <span class="text-red-500 font-bold text-lg ml-2">360 VR 투어</span>
                     </span>
                 </div>
                 <div 
@@ -2149,6 +2206,8 @@
                 phone: document.getElementById('post-phone').value,
                 ownerPhone: document.getElementById('post-ownerPhone').value,
                 video: document.getElementById('post-video').value,
+                naverTv: document.getElementById('post-navertv').value,
+                blogUrl: document.getElementById('post-blogUrl').value,
                 title: document.getElementById('intro-canvas').innerHTML,
                 remarks: document.getElementById('remarks-canvas').innerHTML,
                 intro: document.getElementById('body-canvas').innerHTML,
@@ -2156,6 +2215,7 @@
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
                 thumbnail: representativeThumbnailUrl,
+                vrThumbnail: representativeVrThumbnailUrl,
                 isRecommended: document.getElementById('post-isRecommended').checked,
                 isShortTerm: document.getElementById('post-isShortTerm').checked,
                 contractPeriod: document.getElementById('post-contractPeriod').value,
@@ -2229,6 +2289,32 @@
                 panoramaPhotos = joinedStr.split('|').filter(Boolean);
             }
             renderPanoramaPhotos();
+        }
+
+        function openNaverTvLink() {
+            const url = document.getElementById('post-navertv').value.trim();
+            if (url) {
+                window.open(url, '_blank');
+                const btn = document.getElementById('btn-open-navertv');
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                btn.classList.add('bg-slate-500', 'hover:bg-slate-600');
+                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>새창 열림';
+            } else {
+                alert('네이버 TV 동영상 링크를 입력해주세요.');
+            }
+        }
+        
+        function openYoutubeLink() {
+            const url = document.getElementById('post-video').value.trim();
+            if (url) {
+                window.open(url, '_blank');
+                const btn = document.getElementById('btn-open-youtube');
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                btn.classList.add('bg-slate-500', 'hover:bg-slate-600');
+                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>새창 열림';
+            } else {
+                alert('유튜브 동영상 링크를 입력해주세요.');
+            }
         }
 
         // Youtube URL input preview
@@ -2381,27 +2467,7 @@
             notifyParent();
         }
 
-        function clearAllAdditionalPhotos() {
-            if (confirm("정말로 모든 추가 사진을 삭제하시겠습니까? (대표사진을 포함한 모든 일반 사진이 삭제됩니다)")) {
-                generalPhotos = [];
-                renderGeneralPhotos();
-                const multipleInput = document.getElementById('multiple-photos-input');
-                if (multipleInput) multipleInput.value = '';
-                const mainInput = document.getElementById('main-photo-input');
-                if (mainInput) mainInput.value = '';
-                notifyParent();
-            }
-        }
 
-        function clearAllPanoramaPhotos() {
-            if (confirm("정말로 모든 360° 파노라마 사진을 삭제하시겠습니까?")) {
-                panoramaPhotos = [];
-                renderPanoramaPhotos();
-                const panoInput = document.getElementById('multiple-panos-input');
-                if (panoInput) panoInput.value = '';
-                notifyParent();
-            }
-        }
 
         // General Photos Renderer (16:9 Dynamic Split: Representative vs Additional)
         function renderGeneralPhotos() {
@@ -2525,6 +2591,7 @@
 
         // 360 Panorama VR Renderer
         function renderPanoramaPhotos() {
+            updateVRRepresentativePreview();
             const grid = document.getElementById('pano-photos-list');
             if (!grid) return;
             grid.innerHTML = '';
@@ -2534,6 +2601,7 @@
                 item.className = "pano-photo-card relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 aspect-video group flex flex-col cursor-pointer hover:shadow-sm";
                 item.style.aspectRatio = "16 / 9";
                 item.onclick = (e) => {
+                    if (isDraggingSortable) return;
                     if (e.target.closest('button')) return;
                     if (e.target.closest('.rep-overlay-layer')) return;
                     loadPanoramaInViewer(url);
@@ -2541,6 +2609,10 @@
                 item.innerHTML = `
                     <img src="${url}" class="w-full h-full object-cover" loading="lazy">
                     <div contenteditable="true" class="rep-overlay-layer absolute inset-0 m-2 flex items-center justify-center text-white font-black text-center text-lg bg-black/30 rounded-lg border-2 border-dashed border-white/50 focus:border-solid focus:border-amber-400 focus:bg-black/50 outline-none transition-all" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);" placeholder="여기에 대표 글자 입력"></div>
+                    <!-- Drag Handle Icon -->
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 text-white rounded-full w-10 h-10 flex items-center justify-center pointer-events-none z-10">
+                        <i class="fa-solid fa-arrows-up-down-left-right text-xl"></i>
+                    </div>
                     <!-- Diet/Minimal VR Label Badge (70% Compact Scale) -->
                     <div class="absolute top-1 left-1 bg-emerald-600/90 text-white font-bold rounded shadow-xs select-none" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important; border: 1px solid rgba(16, 185, 129, 0.2);">VR 360 파노라마 실사</div>
                     <!-- Representative Photo Button -->
@@ -2565,8 +2637,30 @@
         }
 
         let representativeThumbnailUrl = '';
+        let representativeVrThumbnailUrl = '';
 
-        function setRepresentativePhoto(type, idx) {
+                function updateVRRepresentativePreview() {
+            const placeholder = document.getElementById('pano-drag-placeholder');
+            const previewContainer = document.getElementById('pano-drag-preview-container');
+            const previewImg = document.getElementById('pano-drag-preview-img');
+            
+            if (representativeVrThumbnailUrl) {
+                if (placeholder) placeholder.classList.add('hidden');
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (previewImg) previewImg.src = representativeVrThumbnailUrl;
+            } else if (panoramaPhotos && panoramaPhotos.length > 0) {
+                // If there's a pano but no rep photo yet, maybe show the first one?
+                if (placeholder) placeholder.classList.add('hidden');
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (previewImg) previewImg.src = panoramaPhotos[0];
+            } else {
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (previewContainer) previewContainer.classList.add('hidden');
+                if (previewImg) previewImg.src = '';
+            }
+        }
+        
+function setRepresentativePhoto(type, idx) {
             if (type === 'pano' && typeof captureVRSnapshotAndSetOG === 'function') {
                 const roomName = document.getElementById('post-title')?.value || '프리미엄 매물';
                 captureVRSnapshotAndSetOG('panorama-viewer-container', roomName);
@@ -3585,7 +3679,7 @@
                     </button>
                     <span class="text-[14px] font-bold text-slate-400 group-hover:text-slate-800 text-center mb-1.5 truncate block max-w-[80%] select-none leading-none">${stk.displayName}</span>
                     <div class="w-full aspect-square max-h-[100px] flex items-center justify-center overflow-hidden shrink-0 mt-0.5">
-                        <img src="${stk.url}" onerror="this.onerror=null; this.src='${stk.fallbackUrl}';" alt="${stk.displayName}" class="max-h-full max-w-full object-contain rounded-xl shadow-2xs transition-all duration-150 group-hover:scale-105 group-active:scale-95" referrerPolicy="no-referrer">
+                        <img src="${stk.url}" onerror="if(this){this.onerror=null; this.src='${stk.fallbackUrl}';}" alt="${stk.displayName}" class="max-h-full max-w-full object-contain rounded-xl shadow-2xs transition-all duration-150 group-hover:scale-105 group-active:scale-95" referrerPolicy="no-referrer">
                     </div>
                 `;
                 container.appendChild(item);
@@ -3700,7 +3794,7 @@
                         </button>
                         <span class="text-[14px] font-extrabold text-slate-500 mb-1.5 truncate max-w-[80%] text-center block select-none leading-none">${stk.displayName}</span>
                         <div class="w-full aspect-square max-h-[90px] flex items-center justify-center overflow-hidden shrink-0 mt-0.5">
-                            <img src="${stk.url}" onerror="this.onerror=null; this.src='${stk.fallbackUrl}';" class="max-h-full max-w-full object-contain rounded-xl" referrerPolicy="no-referrer">
+                            <img src="${stk.url}" onerror="if(this){this.onerror=null; this.src='${stk.fallbackUrl}';}" class="max-h-full max-w-full object-contain rounded-xl" referrerPolicy="no-referrer">
                         </div>
                     `;
                     stkGrid.appendChild(div);
@@ -4611,6 +4705,8 @@
                 phone: document.getElementById('post-phone').value,
                 ownerPhone: document.getElementById('post-ownerPhone').value,
                 video: document.getElementById('post-video').value,
+                naverTv: document.getElementById('post-navertv').value,
+                blogUrl: document.getElementById('post-blogUrl').value,
                 title: cleanTitle,
                 remarks: cleanRemarks,
                 intro: cleanIntro,
@@ -4618,6 +4714,7 @@
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
                 thumbnail: representativeThumbnailUrl,
+                vrThumbnail: representativeVrThumbnailUrl,
                 isRecommended: document.getElementById('post-isRecommended').checked,
                 isShortTerm: document.getElementById('post-isShortTerm').checked,
                 contractPeriod: document.getElementById('post-contractPeriod').value,
@@ -4860,6 +4957,8 @@
                 if (data.manageFee) document.getElementById('post-manageFee').value = data.manageFee;
                 if (data.phone) document.getElementById('post-phone').value = data.phone;
                 if (data.ownerPhone) document.getElementById('post-ownerPhone').value = data.ownerPhone;
+                if (data.blogUrl) document.getElementById('post-blogUrl').value = data.blogUrl;
+                if (data.naverTv) document.getElementById('post-navertv').value = data.naverTv;
                 if (data.video) {
                     document.getElementById('post-video').value = data.video;
                     handleYoutubeInput();
@@ -4908,6 +5007,9 @@
                 
                 if (data.images) loadImages(data.images);
                 if (data.panoramas) loadPanoramas(data.panoramas);
+                if (data.thumbnail) representativeThumbnailUrl = data.thumbnail;
+                if (data.vrThumbnail) representativeVrThumbnailUrl = data.vrThumbnail;
+                updateVRRepresentativePreview();
 
                 updateCharacterCounts();
             } else if (e.data.type === 'STORAGE_STICKERS_LOADED') {
@@ -5078,6 +5180,7 @@
         }
 
         // SortableJS Drag & Drop Sort initialization safely wrapped in a local scope
+        let isDraggingSortable = false;
         function initSortablePhotos() {
             (function() {
                 // 1. Sortable for General Photos (additional-photos-stack)
@@ -5089,7 +5192,9 @@
                         ghostClass: 'sortable-ghost',
                         chosenClass: 'sortable-chosen',
                         dragClass: 'sortable-drag',
+                        onStart: function() { isDraggingSortable = true; },
                         onEnd: function(evt) {
+                            setTimeout(() => { isDraggingSortable = false; }, 50);
                             const oldIndex = evt.oldIndex;
                             const newIndex = evt.newIndex;
                             if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return;
@@ -5121,7 +5226,9 @@
                         ghostClass: 'sortable-ghost',
                         chosenClass: 'sortable-chosen',
                         dragClass: 'sortable-drag',
+                        onStart: function() { isDraggingSortable = true; },
                         onEnd: function(evt) {
+                            setTimeout(() => { isDraggingSortable = false; }, 50);
                             const oldIndex = evt.oldIndex;
                             const newIndex = evt.newIndex;
                             if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return;
@@ -5693,14 +5800,38 @@
 
                 const snapshotUrl = compositeCanvas.toDataURL('image/jpeg', 0.9);
                 console.log("📸 [캡처 완료] 투명 레이어 합성된 VR 평면 스냅샷 생성 성공");
-
+                
+                const fileId = 'file_vrthumb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 if (window.parent && window.parent !== window) {
+                    showLoader("VR 대표사진 저장 중...");
+                    window.parent.postMessage({
+                        type: 'UPLOAD_FILE',
+                        payload: { fileData: snapshotUrl, fileName: 'representative_vr_capture.jpg', uploadType: 'vrThumbnail', fileId: fileId }
+                    }, '*');
                     window.parent.postMessage({
                         type: 'UPDATE_OG_IMAGE',
                         imageUrl: snapshotUrl,
                         title: `태왕공인중개사 - ${roomName}`
                     }, '*');
+
+                    const handler = (msgEvent) => {
+                        if (!msgEvent.data) return;
+                        if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === 'vrThumbnail' && msgEvent.data.payload.fileId === fileId) {
+                            representativeVrThumbnailUrl = msgEvent.data.payload.url;
+                            window.removeEventListener('message', handler);
+                            updateVRRepresentativePreview();
+                            hideLoader();
+                            alert(`[⭐ VR 대표사진 지정 완료]\n${roomName} 캡처 이미지가 연동되었습니다.`);
+                        } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === 'vrThumbnail' && msgEvent.data.payload.fileId === fileId) {
+                            window.removeEventListener('message', handler);
+                            hideLoader();
+                            alert('VR 캡처 전송 실패');
+                        }
+                    };
+                    window.addEventListener('message', handler);
                 } else {
+                    representativeVrThumbnailUrl = snapshotUrl;
+                    updateVRRepresentativePreview();
                     let ogImage = document.querySelector('meta[property="og:image"]');
                     if (!ogImage) {
                         ogImage = document.createElement('meta');
@@ -5708,9 +5839,8 @@
                         document.head.appendChild(ogImage);
                     }
                     ogImage.setAttribute('content', snapshotUrl);
+                    alert(`[⭐ VR 대표사진 지정 완료]\n${roomName} 캡처 이미지가 공유 링크 카드(OG)에 연동되었습니다.`);
                 }
-                
-                alert(`[⭐ 대표사진 지정 완료]\n${roomName} 캡처 이미지가 공유 링크 카드(OG)에 연동되었습니다.`);
             } catch (error) {
                 console.error("❌ VR 캡처 엔진 오류:", error);
                 alert("VR 캡처에 실패했습니다. 화면이 완전히 로딩된 후 다시 시도해주세요.");

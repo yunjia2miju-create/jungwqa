@@ -480,6 +480,11 @@ async function startServer() {
   });
 
   app.get('/api/posts', async (req, res) => {
+    // Force cache breaking if t param is present
+    if (req.query.t) {
+      cachedPostsList = null;
+    }
+    
     if (cachedPostsList !== null) {
       res.setHeader('X-Cache', 'HIT');
       res.json(cachedPostsList);
@@ -719,6 +724,11 @@ async function startServer() {
   });
 
   app.get('/api/inquiries', async (req, res) => {
+    // Force cache breaking if t param is present
+    if (req.query.t) {
+      cachedInquiriesList = null;
+    }
+
     if (cachedInquiriesList !== null) {
       res.setHeader('X-Cache', 'HIT');
       res.json(cachedInquiriesList);
@@ -799,6 +809,11 @@ async function startServer() {
 
   // --- Users API ---
   app.get('/api/users', async (req, res) => {
+    // Force cache breaking if t param is present
+    if (req.query.t) {
+      cachedUsersList = null;
+    }
+
     if (cachedUsersList !== null) {
       res.setHeader('X-Cache', 'HIT');
       res.json(cachedUsersList);

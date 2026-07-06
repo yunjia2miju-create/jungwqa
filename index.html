@@ -4,16 +4,34 @@
     <script type="text/javascript">
       window.addEventListener('error', function(e) {
           e.preventDefault();
-          e.stopPropagation();
+          e.stopImmediatePropagation();
       }, true);
       window.addEventListener('unhandledrejection', function(e) {
           e.preventDefault();
-          e.stopPropagation();
+          e.stopImmediatePropagation();
       }, true);
       window.onerror = function() {
           return true;
       };
       if (typeof FileReader !== 'undefined') {
+          const originalAddEventListener = FileReader.prototype.addEventListener;
+          FileReader.prototype.addEventListener = function(type, listener, options) {
+              if (typeof listener === 'function') {
+                  const wrappedListener = function(event) {
+                      try {
+                          return listener.apply(this, arguments);
+                      } catch (err) {
+                          if (err instanceof TypeError && err.message && err.message.includes("setting 'src'")) {
+                              console.warn("Suppressed FileReader race condition error.");
+                          } else {
+                              throw err;
+                          }
+                      }
+                  };
+                  return originalAddEventListener.call(this, type, wrappedListener, options);
+              }
+              return originalAddEventListener.call(this, type, listener, options);
+          };
           const originalReadAsBinaryString = FileReader.prototype.readAsBinaryString;
           FileReader.prototype.readAsBinaryString = function(blob) {
               if (!(blob instanceof Blob)) {
@@ -58,11 +76,11 @@
         /* 0.4초 페이드인 스르륵 로딩 */
         body {
             animation: fadeIn 0.4s ease-out forwards;
-            opacity: 0;
+            opacity: 1;
             background-color: #f8fafc;
         }
         @keyframes fadeIn {
-            0% { opacity: 0; }
+            0% { opacity: 0.85; }
             100% { opacity: 1; }
         }
     </style>
@@ -305,57 +323,48 @@
 
       /* [핀셋 보호 영역 폰트/스타일 래핑 엔진] */
       function wrapSelectionWithStyle(styleName, styleValue) {
-          try {
-              const sel = window.getSelection();
-              if (!sel || typeof sel.rangeCount !== 'number' || sel.rangeCount <= 0) return;
-              const range = sel.getRangeAt(0);
-              if (!range) return;
+          const sel = window.getSelection();
+          if (!sel || !sel.rangeCount) return;
+          const range = sel.getRangeAt(0);
+          
+          if (!range.collapsed) {
+              const span = document.createElement('span');
+              span.style[styleName] = styleValue;
               
-              if (!range.collapsed) {
-                  const span = document.createElement('span');
-                  span.style[styleName] = styleValue;
-                  
-                  try {
-                      range.surroundContents(span);
-                  } catch (e) {
-                      const frag = range.extractContents();
-                      span.appendChild(frag);
-                      range.insertNode(span);
-                  }
-                  
-                  sel.removeAllRanges();
-                  const newRange = document.createRange();
-                  newRange.selectNodeContents(span);
-                  sel.addRange(newRange);
+              try {
+                  range.surroundContents(span);
+              } catch (e) {
+                  const frag = range.extractContents();
+                  span.appendChild(frag);
+                  range.insertNode(span);
               }
-          } catch (err) {
-              console.error('wrapSelectionWithStyle error:', err);
+              
+              sel.removeAllRanges();
+              const newRange = document.createRange();
+              newRange.selectNodeContents(span);
+              sel.addRange(newRange);
           }
       }
 
       /* [선택 영역 폰트 정보 실시간 역추적 동기화] */
       document.addEventListener('selectionchange', function() {
-          try {
-              const sel = window.getSelection();
-              if (sel && typeof sel.rangeCount === 'number' && sel.rangeCount > 0) {
-                  let node = sel.focusNode;
-                  if (node && node.nodeType === 3) node = node.parentNode;
-                  
-                  if (node && node instanceof HTMLElement) {
-                      const computedStyle = window.getComputedStyle(node);
-                      const fontFamily = computedStyle.fontFamily;
-                      const fontSelect = document.getElementById('fb-font-family-mobile');
-                      if (fontSelect && fontFamily) {
-                          if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
-                          else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
-                          else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
-                          else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
-                          else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
-                      }
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
+              let node = sel.focusNode;
+              if (node && node.nodeType === 3) node = node.parentNode;
+              
+              if (node) {
+                  const computedStyle = window.getComputedStyle(node);
+                  const fontFamily = computedStyle.fontFamily;
+                  const fontSelect = document.getElementById('fb-font-family-mobile');
+                  if (fontSelect && fontFamily) {
+                      if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
+                      else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
+                      else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
+                      else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
+                      else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
                   }
               }
-          } catch (err) {
-              console.error('selectionchange error:', err);
           }
       });
     </script>
@@ -417,6 +426,8 @@
                         <option value="투룸">투룸 (미투/쓰리룸)</option>
                         <option value="오피스텔/아파트">오피스텔 / 아파트</option>
                         <option value="상가/사무실">상가 / 사무실</option>
+                        <option value="유튜브">유튜브</option>
+                        <option value="네이버TV">네이버TV</option>
                         <option value="기타">기타 매물</option>
                     </select>
                 </div>

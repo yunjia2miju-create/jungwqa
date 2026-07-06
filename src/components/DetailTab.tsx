@@ -337,13 +337,15 @@ export const DetailTab = ({
     }
     matchingRecs = matchingRecs.slice(0, 18);
 
+    const liveKey = p.updatedAt || p.createdAt || Date.now();
+
     return (
-        <section id="detail-section" className="max-w-4xl md:max-w-5xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 transition-opacity duration-300 w-full">
+        <section key={`detail-section-${liveKey}`} id="detail-section" className="max-w-none w-full px-4 sm:px-12 md:px-16 lg:px-24 xl:px-32 py-6 sm:py-10 transition-opacity duration-300">
             <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
                 {"<<<< 앞 바로가기 <<<<"}
             </button>
 
-            <article className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xl overflow-visible sm:overflow-hidden p-5 sm:p-10 w-full">
+            <article key={`article-live-${liveKey}`} className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-xl overflow-visible sm:overflow-hidden p-5 sm:p-10 w-full">
                 {isFetchingDetail ? (
                     <div className="animate-pulse space-y-6">
                         <div className="flex space-x-2 mb-4">
@@ -723,7 +725,12 @@ export const DetailTab = ({
                                 >
                                     <img 
                                         src={url.trim()} 
-                                        onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80')} 
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (target && typeof target === 'object') {
+                                                target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80';
+                                            }
+                                        }} 
                                         className={`w-full h-full object-cover transition-transform duration-500 ${zoomedImageId === `img-${i}` ? '' : 'group-hover:scale-105'}`} 
                                         alt={`실사 추가 사진 ${i+1}`}
                                         loading="lazy"
@@ -945,7 +952,12 @@ export const DetailTab = ({
                         {matchingRecs.map(rec => (
                             <div key={rec.id} onClick={() => setSelectedPostId(rec.id)} className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group">
                                 <div className="relative aspect-[16/9] overflow-hidden bg-transparent watermark-container">
-                                    <img src={rec.thumbnail} onError={(e) => (e.currentTarget.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80')} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                    <img src={rec.thumbnail} onError={(e) => { 
+                                        const target = e.target as HTMLImageElement;
+                                        if (target && typeof target === 'object') {
+                                            target.src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80';
+                                        }
+                                    }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                     {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
                                         <i 

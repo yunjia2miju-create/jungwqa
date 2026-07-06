@@ -428,7 +428,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                 <div className="bg-slate-50 border border-slate-200 hover:border-emerald-300 p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all min-w-0">
                                     <div className="flex items-start sm:items-center gap-4 text-left min-w-0 flex-1">
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200">
-                                            <img src={p.thumbnail} alt={p.building} className="w-full h-full object-cover" />
+                                            <img src={p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail)} alt={p.building} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="space-y-1.5 min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5 flex-wrap">

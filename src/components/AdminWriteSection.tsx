@@ -22,7 +22,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     // Form Initial State
     const [formData, setFormData] = useState<Partial<Post>>({
         category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-        title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
+        title: '', remarks: '', intro: '', body: '', address: '', video: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
     });
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -76,11 +76,11 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 const { fileData, fileName, uploadType, fileId } = e.data.payload;
                 try {
                     // Do not block UI for background uploads unless it's thumbnail
-                    if (uploadType === 'thumbnail') {
+                    if (uploadType === 'thumbnail' || uploadType === 'vrThumbnail') {
                         setIsUploading(true);
                         setUploadProgress(`대표사진 캡처 및 파이어베이스 전송 중...`);
                     }
-                    const prefix = uploadType === 'images' ? 'gallery' : uploadType === 'thumbnail' ? 'thumbnails' : 'panoramas';
+                    const prefix = uploadType === 'images' ? 'gallery' : uploadType === 'thumbnail' || uploadType === 'vrThumbnail' ? 'thumbnails' : 'panoramas';
                     const downloadURL = await uploadResizedBlobToStorage(fileData, fileName, prefix);
                     if (iframeRef.current && iframeRef.current.contentWindow) {
                         iframeRef.current.contentWindow.postMessage({
@@ -92,7 +92,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                             }
                         }, '*');
                     }
-                    if (uploadType === 'thumbnail') {
+                    if (uploadType === 'thumbnail' || uploadType === 'vrThumbnail') {
                         showToast("대표사진이 성공적으로 캡처 및 저장되었습니다.", "success");
                     }
                 } catch (err: any) {
@@ -133,7 +133,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 }
                 const payload = currentEditPost || {
                     category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-                    title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
+                    title: '', remarks: '', intro: '', body: '', address: '', video: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
                 };
                 iframeRef.current.contentWindow.postMessage({
                     type: 'LOAD_DATA',
@@ -217,7 +217,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         } else {
             setFormData({
                 category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-                title: '', remarks: '', intro: '', body: '', address: '', video: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
+                title: '', remarks: '', intro: '', body: '', address: '', video: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
             });
         }
     }, [editingPostId, currentEditPost]);
@@ -246,9 +246,11 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             manageFee: (data.manageFee && /^\d+$/.test(data.manageFee.trim())) ? data.manageFee.trim() + '만' : (data.manageFee || ''),
             phone: data.phone || '',
             ownerPhone: data.ownerPhone || '',
+            blogUrl: data.blogUrl || '',
             title: data.title || '',
             remarks: data.remarks || '',
             thumbnail: finalThumbnail,
+            vrThumbnail: data.vrThumbnail || '',
             intro: data.intro || '',
             body: data.body || '',
             images: data.images || '',

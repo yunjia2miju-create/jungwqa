@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
-import { gumiDongs } from '../data';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Search, Link as LinkIcon, Phone, ArrowUpRight } from 'lucide-react';
 import { submitInquiryService, getInquiriesService } from '../firebaseService';
 import { Naver360Icon } from './Naver360Icon';
+import { ViewAllModal } from './ViewAllModal';
+import { motion, AnimatePresence } from 'motion/react';
+import VrViewer from './VrViewer';
 
+// 아임웹(imweb) HQ 스타일의 리모델링 대문 컴포넌트
 export const MainTab = ({ 
     openPhoneSelectModal, 
     showToast 
@@ -15,1008 +18,1487 @@ export const MainTab = ({
     const { 
         posts, 
         isAdminLoggedIn, 
-        showOnlyRecommended, 
-        setShowOnlyRecommended, 
-        showOnlyVR,
-        setShowOnlyVR,
-        activeCategory, 
-        setActiveCategory, 
-        activeDong, 
-        setActiveDong,
-        searchVal, 
-        setSearchVal,
-        currentPage, 
-        setCurrentPage,
-        isMobileSimulationMode,
         setSelectedPostId,
-        inquiries,
+        setActiveSection,
         setInquiries
     } = useAppStore();
 
-    const activeDongsInPosts = React.useMemo(() => {
-        const dongsWithPosts = Array.from(new Set(posts.map(p => p.dong).filter(dong => dong && dong.trim() !== '')));
-        const presentGumiDongs = gumiDongs.filter(d => dongsWithPosts.includes(d));
-        const extraDongs = dongsWithPosts.filter(d => !gumiDongs.includes(d));
-        return [...presentGumiDongs, ...extraDongs];
-    }, [posts]);
+    const [searchInput, setSearchInput] = useState('');
+    const [filteredPosts, setFilteredPosts] = useState<any[]>([]);
+    const [isMobile, setIsMobile] = useState(false);
 
-    const [tickerPosts, setTickerPosts] = React.useState<any[]>([]);
 
-    React.useEffect(() => {
-        const filteredPosts = posts.filter(
-            p => p && p.category
-        );
-        if (filteredPosts.length === 0) {
-            setTickerPosts([]);
-            return;
-        }
-        // Shuffle using Fisher-Yates algorithm for genuine randomness on load/visit
-        const shuffled = [...filteredPosts];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        // Duplicate the entire set to allow beautiful, seamless infinite looping
-        setTickerPosts([...shuffled, ...shuffled]);
-    }, [posts]);
+    // 전체보기 모달 상태
+    const [viewAllCategory, setViewAllCategory] = useState<string | null>(null);
+    const [viewAllItems, setViewAllItems] = useState<any[]>([]);
 
-    const [isFetching, setIsFetching] = React.useState(true);
-
-    React.useEffect(() => {
-        setIsFetching(true);
-        const t = setTimeout(() => setIsFetching(false), 500);
-        return () => clearTimeout(t);
-    }, [activeCategory, activeDong, showOnlyRecommended, showOnlyVR, searchVal, currentPage]);
-
-    const itemsPerPage = 30;
-
-    const formatDisplayPrice = (price: any, _manageFee: any) => {
-        return String(price || '');
+    const handleViewAll = (categoryTitle: string, items: any[]) => {
+        setViewAllCategory(categoryTitle);
+        setViewAllItems(items);
     };
 
-    const stripHtml = (htmlText: string | undefined | null) => {
-        if (!htmlText) return '';
+    // 대문용 고화질 디폴트 360 VR 파노라마 이미지 슬라이더 전용 데이터
+
+    const defaultPanoramas = useMemo(() => {
+        const vrPosts = filteredPosts.filter(p => p.category === '360 VR사진' || (p.panoramas && typeof p.panoramas === 'string' && p.panoramas.trim().length > 0));
+        const mapped = [];
         
-        let text = String(htmlText);
-        
-        try {
-            // 1차: DOM 임시 객체를 통한 완벽한 태그 및 엔티티 디코딩
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = text;
-            text = tempDiv.textContent || tempDiv.innerText || '';
-        } catch (e) {
-            // fallback: 정규식 세척
-            text = text.replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
-            text = text.replace(/<[^>]*>/g, ' ');
-        }
-        
-        // 2차: 공백 및 줄바꿈 예외 처리
-        text = text.replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
-        
-        return text;
-    };
-
-    const formatDisplayAddress = (addr: string | undefined | null) => {
-        if (!addr) return '';
-        return addr.split(/\s+/)
-            .filter(word => !/\d/.test(word))
-            .join(' ')
-            .trim();
-    };
-
-    const [searchInput, setSearchInput] = React.useState(searchVal);
-    const [isSearching, setIsSearching] = React.useState(false);
-
-    // 1) 5대 마케팅: 필터 상태
-    const [activeDealType, setActiveDealType] = React.useState('all');
-    const [activeDeposit, setActiveDeposit] = React.useState('all');
-
-    // 2) 5대 마케팅: 관심 매물 (찜하기) 시스템
-    const [favorites, setFavorites] = React.useState<string[]>(() => {
-        try { return JSON.parse(localStorage.getItem('taewang_favorites') || '[]'); } catch { return []; }
-    });
-    const [showOnlyFavorites, setShowOnlyFavorites] = React.useState(false);
-    const [showOnlyShortTerm, setShowOnlyShortTerm] = React.useState(false);
-
-    const toggleFavorite = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation();
-        setFavorites(prev => {
-            const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-            localStorage.setItem('taewang_favorites', JSON.stringify(next));
-            if (next.includes(id)) {
-                showToast("관심 매물에 추가되었습니다.", "success");
-            } else {
-                showToast("관심 매물에서 해제되었습니다.", "success");
-            }
-            return next;
-        });
-    };
-
-    // 3) 5대 마케팅: 조회수(views) 증가 시스템
-    const [viewCounts, setViewCounts] = React.useState<Record<string, number>>(() => {
-        try { return JSON.parse(localStorage.getItem('taewang_views') || '{}'); } catch { return {}; }
-    });
-
-    const handlePostClick = (id: string) => {
-        setViewCounts(prev => {
-            const current = prev[id] || Math.floor(Math.random() * 15) + 10;
-            const next = { ...prev, [id]: current + 1 };
-            localStorage.setItem('taewang_views', JSON.stringify(next));
-            return next;
-        });
-        setSelectedPostId(id);
-    };
-
-    // 4) 5대 마케팅: 무한 스크롤 엔진
-    const [displayLimit, setDisplayLimit] = React.useState(15);
-    const observerTarget = React.useRef<HTMLDivElement>(null);
-
-    React.useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                if (entries[0].isIntersecting) {
-                    setDisplayLimit(prev => prev + 15);
+        for (const post of vrPosts) {
+            let firstUrl = '';
+            const str = post.panoramas;
+            if (str && typeof str === 'string' && str.trim()) {
+                if (str.includes('|')) {
+                    firstUrl = str.split('|')[0].trim();
+                } else if (str.includes(',') && (str.includes('http') || str.includes('/panoramas/'))) {
+                    firstUrl = str.split(',')[0].trim();
+                } else {
+                    firstUrl = str.trim();
                 }
-            },
-            { threshold: 0.1 }
-        );
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
+            }
+            if (firstUrl) {
+                mapped.push({
+                    title: post.building || 'VR 투어',
+                    address: `${post.dong || ''} ${post.building || ''} 360° 가상 투어`.trim(),
+                    url: firstUrl
+                });
+            }
         }
-        return () => observer.disconnect();
+        
+        if (mapped.length > 0) {
+            return mapped;
+        }
+
+        return [
+            {
+                title: "아늑한 거실 (Living Room)",
+                address: "형곡 에코빌 360° 가상 투어",
+                url: "https://pannellum.org/images/jure-barca.jpg"
+            },
+            {
+                title: "럭셔리 복층 홀 (Luxury Duplex)",
+                address: "시청역 모던빌 360° 가상 투어",
+                url: "https://pannellum.org/images/milan.jpg"
+            },
+            {
+                title: "클래식 화이트 서재 (Classic Study)",
+                address: "원평 힐탑뷰 360° 가상 투어",
+                url: "https://pannellum.org/images/library.jpg"
+            },
+            {
+                title: "송정 도심 스카이라인 (City View)",
+                address: "송정 드림하우스 360° 야외 전경",
+                url: "https://pannellum.org/images/alma.jpg"
+            }
+        ];
+    }, [filteredPosts]);
+
+    const [activePanoIndex, setActivePanoIndex] = useState(0);
+    const panoImages = useMemo(() => defaultPanoramas.map(p => p.url), [defaultPanoramas]);
+
+    // 12초 주기로 룸 씬이 부드럽게 자동 슬라이드 전환되는 스마트 시스템
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setActivePanoIndex(prev => (prev + 1) % defaultPanoramas.length);
+        }, 12000);
+        return () => clearInterval(timer);
+    }, [defaultPanoramas.length]);
+
+    // 반응형 레이아웃 감지를 위한 리사이즈 훅 세팅
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 1024);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
     }, []);
 
-    React.useEffect(() => {
-        setDisplayLimit(15);
-    }, [activeCategory, activeDong, activeDealType, activeDeposit, showOnlyRecommended, showOnlyVR, searchVal, showOnlyFavorites, showOnlyShortTerm]);
+    // 실시간 검색 필터링 인프라 매칭
+    useEffect(() => {
+        const query = searchInput.toLowerCase().trim();
+        if (!query) {
+            setFilteredPosts(posts);
+            return;
+        }
+        const filtered = posts.filter(p => {
+            const buildingMatch = String(p.building || '').toLowerCase().includes(query);
+            const addressMatch = String(p.address || '').toLowerCase().includes(query);
+            return buildingMatch || addressMatch;
+        });
+        setFilteredPosts(filtered);
+    }, [searchInput, posts]);
 
-    React.useEffect(() => {
-        setIsSearching(true);
-        const t = setTimeout(() => {
-            setSearchVal(searchInput.toLowerCase().trim());
-            setIsSearching(false);
-        }, 300);
-        return () => clearTimeout(t);
-    }, [searchInput, setSearchVal]);
-
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(e.target.value);
+    // 대기 카드 네이버 블로그 수동 링크 매칭 헬퍼
+    const getBlogUrl = (p: any, defaultUrl: string) => {
+        if (p.naverBlogUrl) {
+            return p.naverBlogUrl;
+        }
+        if (p.blogUrl) {
+            return p.blogUrl;
+        }
+        const remarksVal = String(p.remarks || '');
+        const match = remarksVal.match(/(https?:\/\/blog\.naver\.com\/[^\s]+)/);
+        if (match) {
+            return match[1];
+        }
+        return defaultUrl;
     };
 
-    let filtered = posts.filter(p => {
-        if (!p) return false;
-        if (showOnlyRecommended && !(p.isRecommended === true || String(p.isRecommended) === 'true')) return false;
-        if (showOnlyFavorites && !favorites.includes(p.id)) return false;
-        if (showOnlyShortTerm && !(p.isShortTerm === true || String(p.isShortTerm) === 'true' || (p.contractPeriod && p.contractPeriod <= 6) || (p.remarks && p.remarks.includes('단기')))) return false;
+    // --- 카테고리별 매물 및 임시 대기 카드 리스트업 ---
 
-        const pPanoramas = String(p.panoramas || '');
-        const pPanoImage = String(p.panoImage || '');
-        const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
-        if (showOnlyVR && !hasVR) return false;
-
-        let categoryMatch = false;
-        if (activeCategory === 'all') {
-            categoryMatch = true;
-        } else if (activeCategory === '빌라') {
-            const pCat = String(p.category || '');
-            categoryMatch = pCat === '빌라' || pCat === '다세대' || pCat === '주택' || pCat === '상가주택';
-        } else {
-            categoryMatch = String(p.category || '') === activeCategory;
-        }
-
-        const dongMatch = activeDong === 'all' || (p.dong && String(p.dong) === activeDong) || (p.address && String(p.address).includes(activeDong));
-        
-        let dealMatch = true;
-        if (activeDealType !== 'all') {
-            dealMatch = String(p.transactionType || '월세') === activeDealType;
-        }
-
-        let depositMatch = true;
-        if (activeDeposit !== 'all') {
-            const priceStr = String(p.price || '');
-            const match = priceStr.match(/(\d+)/);
-            if (match) {
-                const depositNum = parseInt(match[1], 10);
-                if (activeDeposit === '1000_under') {
-                    depositMatch = depositNum <= 1000;
-                } else if (activeDeposit === '1000_over') {
-                    depositMatch = depositNum >= 1000;
-                }
-            } else if (activeDeposit !== 'all') {
-                depositMatch = false;
+    // 1. 원룸 추천 매물 목록
+    const oneRoomRecommendData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '원룸')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-rec-1',
+                building: '시청역 라온제나',
+                address: '구미시 송정동 54-2',
+                price: '300/35',
+                remarks: '시청 인근 최상급 풀옵션 리모델링 완료! 강력 추천 원룸 매물입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '원룸',
+                transactionType: '월세',
+                floor: '2층',
+                isRecommended: true,
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-rec-2',
+                building: '봉곡 골든클래스',
+                address: '구미시 봉곡동 902-5',
+                price: '300/33',
+                remarks: '채광이 매우 풍부하고 주방 분리형 구조의 적극 추천 풀옵션 원룸입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '원룸',
+                transactionType: '월세',
+                floor: '3층',
+                isRecommended: true,
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-rec-3',
+                building: '신평 노블레스',
+                address: '구미시 신평동 240-10',
+                price: '200/28',
+                remarks: '즉시 입주 가능한 깔끔하고 가성비 훌륭한 리모델링 추천 세대입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '원룸',
+                transactionType: '월세',
+                floor: '3층',
+                isRecommended: true,
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
             }
-        }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
 
-        const buildingMatch = String(p.building || '').toLowerCase().includes(searchVal);
-        const addressMatch = String(p.address || '').toLowerCase().includes(searchVal);
-        const remarksMatch = stripHtml(p.remarks).toLowerCase().includes(searchVal);
-        return categoryMatch && dongMatch && dealMatch && depositMatch && (buildingMatch || addressMatch || remarksMatch);
-    });
+    // 2. 미투 추천 매물 목록
+    const miRoomRecommendData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '미투')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-mi-1',
+                building: '시청역 모던빌',
+                address: '구미시 송정동 479-2',
+                price: '200/13',
+                remarks: '내 소중한 인생 2막을 채워줄 든든하고 안전한 구미원룸월세 계약 꿀팁!',
+                thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '미투',
+                transactionType: '월세',
+                floor: '2층',
+                isRecommended: true,
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-mi-2',
+                building: '해마루',
+                address: '구미시 형곡동 175-17',
+                price: '100/15',
+                remarks: '형곡동 4주공네거리와 낙원탕 인근에 위치해서 생활하기 참 편한 실시간 즉시 입주 가능 공실이에요.',
+                thumbnail: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '미투',
+                transactionType: '월세',
+                floor: '3층',
+                isRecommended: true,
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-mi-3',
+                building: '문하우스',
+                address: '구미시 송정동 13-17',
+                price: '200/35',
+                remarks: '다이소도 가깝고 구미시청이나 구미역 가기에도 위치가 참 괜찮더라고요.',
+                thumbnail: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '미투',
+                transactionType: '월세',
+                floor: '4층',
+                isRecommended: true,
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
 
-    const totalItems = filtered.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    let safeCurrentPage = currentPage;
-    if (safeCurrentPage > totalPages) safeCurrentPage = totalPages;
+    // 3. 투룸 / 쓰리룸 특선 매물 목록
+    const specialData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => ['투룸', '쓰리룸'].includes(p.category))].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-sp-1',
+                building: '더 테라스 투룸',
+                address: '구미시 진평동 300-2',
+                price: '8000',
+                remarks: '넓은 야외 테라스가 인상적인 프라이빗 정남향 명품 투룸입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '투룸',
+                transactionType: '전세',
+                floor: '3층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-sp-2',
+                building: '송정 팰리스',
+                address: '구미시 송정동 22-9',
+                price: '12000',
+                remarks: '초중고 도보 학군 중심지의 여유롭고 완벽한 쓰리룸 주거 공간입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '쓰리룸',
+                transactionType: '전세',
+                floor: '4층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-sp-3',
+                building: '형곡 리버뷰 투룸',
+                address: '구미시 형곡동 44-1',
+                price: '500/45',
+                remarks: '공원 인근 조용하고 전망이 훌륭하게 정비된 대형 투룸입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '투룸',
+                transactionType: '월세',
+                floor: '2층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
 
-    const paginatedItems = filtered.slice(0, displayLimit);
+    // 4. 오피스텔 특선 매물 목록
+    const officetelData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '오피스텔')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-of-1',
+                building: '태왕오피스텔 A타입',
+                address: '경북 구미시 송정동 74',
+                price: '500/40',
+                remarks: '안심하고 쉴 수 있는 구미오피스텔월세 등기부 보는 법부터 안전한 동선까지 하나씩 짚어드릴게요.',
+                thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '오피스텔',
+                transactionType: '월세',
+                floor: '11층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-of-2',
+                building: '유성푸르나임',
+                address: '구미시 송정동 77',
+                price: '300/40',
+                remarks: '구미시청 관공서 인접하여 생활편리함 가득한 즉시입주가능 복층 매물입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '오피스텔',
+                transactionType: '월세',
+                floor: '16층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-of-3',
+                building: '유성푸르나임 복층',
+                address: '구미시 송정동 77',
+                price: '300/40',
+                remarks: '24시간 가동되는 CCTV와 철저한 보안 시스템 덕분에 여성분들의 야간 귀가 길도 무척 안전합니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '오피스텔',
+                transactionType: '월세',
+                floor: '8층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
 
-    const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024 || isMobileSimulationMode);
+    // 5. 아파트 특선 매물 목록
+    const apartmentData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '아파트')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-ap-1',
+                building: '자이언트',
+                address: '경북 구미시 비산동 80-7',
+                price: '500/37',
+                remarks: '깔끔하게 정비된 주방과 리모델링 완료된 화장실 상태가 최고인 즉시 입주 아파트입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '아파트',
+                transactionType: '월세',
+                floor: '4층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-ap-2',
+                building: '티파니',
+                address: '구미시 송정동 473-7',
+                price: '6000/10',
+                remarks: '"내가 꿈꾸던 포근하고 햇살 가득한 남향 안식처, 구미 최고의 자리에 위치한 고품격 공간의 실물을 직접 감상해보세요."',
+                thumbnail: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '아파트',
+                transactionType: '월세',
+                floor: '3층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-ap-3',
+                building: '태왕아너스타워',
+                address: '구미시 송정동 74',
+                price: '500/55',
+                remarks: '풀옵션 깨끗하고 막힘없는 멋진뷰의 고층 실시간 공실입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '아파트',
+                transactionType: '월세',
+                floor: '20',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
 
-    React.useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 1024 || isMobileSimulationMode);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [isMobileSimulationMode]);
+    // 6. 빌라 특선
+    const villaData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '빌라')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-villa-1',
+                building: '신축 고급 빌라',
+                address: '구미시 형곡동 88-2',
+                price: '매매 15000',
+                remarks: '최고급 자재로 마감된 채광 좋은 신축 빌라 매매입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '빌라',
+                transactionType: '매매',
+                floor: '3층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-villa-2',
+                building: '햇살 가득한 빌라',
+                address: '구미시 송정동 12-4',
+                price: '전세 8000',
+                remarks: '정남향으로 하루종일 채광이 좋은 깔끔한 빌라입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '빌라',
+                transactionType: '전세',
+                floor: '2층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-villa-3',
+                building: '가성비 투룸 빌라',
+                address: '구미시 도량동 53-1',
+                price: '3000/40',
+                remarks: '조용한 주택가, 편의시설 인접한 투룸 구조 빌라입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '빌라',
+                transactionType: '월세',
+                floor: '1층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
 
-    const [inquiryData, setInquiryData] = React.useState({ name: '', phone: '', message: '' });
+    // 7. 상가(사무실) 특선
+    const commercialData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => ['상가', '사무실', '상가/사무실', '기타'].includes(p.category))].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-com-1',
+                building: '대로변 1층 상가',
+                address: '구미시 송정동 55-1',
+                price: '2000/120',
+                remarks: '유동인구 풍부한 대로변 1층 상가 임대합니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '상가',
+                transactionType: '월세',
+                floor: '1층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-com-2',
+                building: '채광 좋은 사무실',
+                address: '구미시 공단동 102-1',
+                price: '1000/80',
+                remarks: '업무 집중도를 높여주는 깔끔하고 채광 좋은 사무실입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '사무실',
+                transactionType: '월세',
+                floor: '3층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-com-3',
+                building: '신축 상가 건물',
+                address: '구미시 형곡동 20-5',
+                price: '5000/250',
+                remarks: '다양한 업종 가능한 신축 상가 건물 통임대입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '상가/사무실',
+                transactionType: '월세',
+                floor: '건물전체',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
+
+    // 8. 원룸매매 추천
+    const oneRoomSaleData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '원룸매매')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-sale-1',
+                building: '수익형 원룸매매',
+                address: '구미시 진평동 102-3',
+                price: '매매 35000',
+                remarks: '안정적인 수익률을 자랑하는 풀옵션 원룸 건물 매매입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '원룸매매',
+                transactionType: '매매',
+                floor: '건물전체',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-sale-2',
+                building: '코너 각지 원룸 통매매',
+                address: '구미시 인의동 54-2',
+                price: '매매 42000',
+                remarks: '공실률 제로! 코너에 위치한 수익률 우수 원룸 건물입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '원룸매매',
+                transactionType: '매매',
+                floor: '건물전체',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-sale-3',
+                building: '리모델링 완료 원룸 건물',
+                address: '구미시 황상동 110-5',
+                price: '매매 28000',
+                remarks: '내외부 전면 리모델링 완료, 즉시 수익 창출 가능한 매물입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '원룸매매',
+                transactionType: '매매',
+                floor: '건물전체',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
+
+    const vrData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '360 VR사진' || (p.panoramas && typeof p.panoramas === 'string' && p.panoramas.trim().length > 0))].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-vr-1',
+                building: '시청역 모던빌 (VR 샘플)',
+                address: '구미시 송정동 479-2',
+                price: '300/35',
+                remarks: '360도 가상 투어로 미리 만나보세요.',
+                thumbnail: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '360 VR사진',
+                transactionType: '월세',
+                floor: '3층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-vr-2',
+                building: '형곡 에코빌 (VR 샘플)',
+                address: '구미시 형곡동 123-4',
+                price: '500/40',
+                remarks: '럭셔리한 복층 공간을 360도로 체험하세요.',
+                thumbnail: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '360 VR사진',
+                transactionType: '월세',
+                floor: '5층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            },
+            {
+                id: 'placeholder-vr-3',
+                building: '원평 힐탑뷰 (VR 샘플)',
+                address: '구미시 원평동 45-6',
+                price: '400/40',
+                remarks: '클래식한 인테리어를 가상 현실에서 만나보세요.',
+                thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '360 VR사진',
+                transactionType: '월세',
+                floor: '11층',
+                blogUrl: 'https://blog.naver.com/yunjia2miju'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
+
+    const youtubeData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '유튜브')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-youtube-1',
+                building: '구미 원룸 투어',
+                address: '유튜브 채널',
+                price: '추천 영상',
+                remarks: '가성비 좋은 구미 원룸 매물들을 영상으로 생생하게 확인하세요.',
+                thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '유튜브',
+                transactionType: '동영상',
+                floor: '유튜브',
+                blogUrl: 'https://youtube.com'
+            },
+            {
+                id: 'placeholder-youtube-2',
+                building: '투룸 인테리어 팁',
+                address: '유튜브 채널',
+                price: '인테리어',
+                remarks: '투룸을 더 넓고 쾌적하게 쓰는 인테리어 꿀팁을 영상으로 만나보세요.',
+                thumbnail: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '유튜브',
+                transactionType: '동영상',
+                floor: '유튜브',
+                blogUrl: 'https://youtube.com'
+            },
+            {
+                id: 'placeholder-youtube-3',
+                building: '구미 핫플 상가',
+                address: '유튜브 채널',
+                price: '상가 소개',
+                remarks: '요즘 가장 뜨는 구미 주요 상권 매물 투어 영상입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '유튜브',
+                transactionType: '동영상',
+                floor: '유튜브',
+                blogUrl: 'https://youtube.com'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
+
+    const naverTvData = useMemo(() => {
+        const real = [...filteredPosts.filter(p => p.category === '네이버TV')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const placeholders = [
+            {
+                id: 'placeholder-navertv-1',
+                building: '아파트 랜선 투어',
+                address: '네이버TV',
+                price: '랜선 집들이',
+                remarks: '최고급 옵션의 아파트 랜선 집들이 영상입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '네이버TV',
+                transactionType: '동영상',
+                floor: '네이버TV',
+                blogUrl: 'https://tv.naver.com'
+            },
+            {
+                id: 'placeholder-navertv-2',
+                building: '신축 빌라 리뷰',
+                address: '네이버TV',
+                price: '매물 리뷰',
+                remarks: '방 구석구석을 꼼꼼하게 살펴보는 신축 빌라 상세 리뷰 영상입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '네이버TV',
+                transactionType: '동영상',
+                floor: '네이버TV',
+                blogUrl: 'https://tv.naver.com'
+            },
+            {
+                id: 'placeholder-navertv-3',
+                building: '오피스텔 투자 정보',
+                address: '네이버TV',
+                price: '투자 가이드',
+                remarks: '오피스텔 수익률 분석 및 똑똑한 투자 가이드 영상입니다.',
+                thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80',
+                category: '네이버TV',
+                transactionType: '동영상',
+                floor: '네이버TV',
+                blogUrl: 'https://tv.naver.com'
+            }
+        ];
+        return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
+    }, [filteredPosts]);
+
+    // 1:1 상담 및 매물 의뢰 데이터 상태
+    const [inquiryForm, setInquiryForm] = useState({ name: '', phone: '', message: '' });
     const handleInquirySubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const newInq = { ...inquiryData, id: 'inq-' + Date.now(), processed: false, createdAt: Date.now() };
+        if (!inquiryForm.name || !inquiryForm.phone) {
+            showToast("신청인 성함과 연락처는 필수 입력 사항입니다.", "error");
+            return;
+        }
+        const newInq = { 
+            id: 'inq-' + Date.now(), 
+            name: inquiryForm.name, 
+            phone: inquiryForm.phone, 
+            message: inquiryForm.message, 
+            processed: false, 
+            createdAt: Date.now() 
+        };
         try {
             await submitInquiryService(newInq);
             const updated = await getInquiriesService();
             if (Array.isArray(updated)) {
                 setInquiries(updated);
-            } else {
-                setInquiries([newInq, ...inquiries]);
             }
-            setInquiryData({ name: '', phone: '', message: '' });
-            showToast("의뢰 접수 완료! 소장님이 곧 연락드리겠습니다.", "success");
+            setInquiryForm({ name: '', phone: '', message: '' });
+            showToast("상담 및 의뢰 신청이 성공적으로 접수되었습니다.", "success");
         } catch (err) {
             console.error(err);
-            showToast("의뢰 접수에 실패했습니다. 잠시 후 다시 시도해 주세요.", "error");
+            showToast("시스템 오류로 의뢰 접수에 실패하였습니다.", "error");
         }
     };
 
     return (
-        <section id="main-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-opacity duration-300 w-full">
-            {/* Desktop Hero */}
-            {!isMobile && (
-                <div id="hero-desktop-wrapper" className="bg-[#0B2545] rounded-3xl p-10 text-white mb-12 shadow-xl relative overflow-hidden w-full hidden lg:block" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' } as React.CSSProperties}>
-                    <div className="space-y-4 text-left relative z-10 w-full max-w-4xl">
-                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-widest inline-block">태왕 오리지널 현장 브리핑</span>
-                        <h1 className="text-3xl lg:text-5xl font-black leading-tight tracking-tight">
-                            발로 뛰어 검증한 <br/>정직한 지역 가치와 현장 답사기
-                        </h1>
-                        <div className="flex items-center gap-4 py-6 w-full max-w-full">
-                            <div className="hidden"></div>
-                            <div 
-                                onClick={() => {
-                                    setShowOnlyVR(true);
-                                    setShowOnlyRecommended(false);
-                                    setCurrentPage(1);
-                                    setActiveCategory('all');
-                                    setActiveDong('all');
-                                    showToast("360° VR 현장 투어가 포함된 매물을 필터링하여 보여줍니다.", "success");
-                                    setTimeout(() => {
-                                        document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' });
-                                    }, 100);
-                                }}
-                                className="flex flex-col items-center cursor-pointer hover:scale-[1.03] active:scale-95 transition-all select-none px-6 sm:px-10 py-4 sm:py-5 rounded-2xl shadow-[0_0_20px_rgba(11,37,69,0.15)] shrink-0 max-w-full box-border border-2"
-                                style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}
-                                title="클릭하여 360° VR 매물 모아보기"
-                            >
-                                <div className="flex items-center gap-3 sm:gap-5 flex-nowrap">
-                                    <div className="shrink-0 flex items-center justify-center animate-vr-glow !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
-                                        <Naver360Icon className="w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] drop-shadow-[0_4px_12px_rgba(11,37,69,0.35)]" />
-                                    </div>
-                                    <span className="text-white font-black text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tight shrink-0 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] animate-vr-glow select-none">
-                                        공간 실감 360° 현장 VR 투어
-                                    </span>
-                                </div>
-                                <span className="text-white/80 text-[10px] sm:text-xs font-black tracking-[0.15em] mt-2 flex items-center gap-1.5 uppercase shrink-0">
-                                    <i className="fa-solid fa-circle-play text-[9px] text-white animate-pulse"></i>
-                                    <span>클릭하여 360° VR 매물 모아보기</span>
-                                </span>
-                            </div>
-                            <div className="hidden"></div>
-                        </div>
-                        <p className="text-slate-200 text-base lg:text-lg leading-relaxed font-black mb-2 shadow-black/20 text-shadow-sm">
-                            "압도적 공간감!<br />사진으로는 볼 수 없던 구석구석을 360° 가상 투어로 경험하세요."
-                        </p>
-                        <p className="text-slate-400 text-xs lg:text-sm leading-relaxed max-w-2xl">
-                            태왕은 단순히 정보를 전달하는 것을 넘어,<br />고객님이 현장에 직접 계신 것처럼 생생한 경험을 선사하기 위해 모든 매물을 360° 입체 촬영하여 제공합니다. 
-                        </p>
-                        <div className="flex gap-3 pt-2">
-                            <button 
-                                onClick={() => { 
-                                    setShowOnlyRecommended(true); 
-                                    setShowOnlyVR(false);
-                                    setCurrentPage(1);
-                                    setActiveCategory('all'); 
-                                    setActiveDong('all');
-                                    setTimeout(() => {
-                                        document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' });
-                                    }, 100);
-                                }} 
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-center px-6 py-3.5 rounded-xl font-bold transition-all shadow-md shadow-emerald-900/40 text-sm cursor-pointer select-none"
-                            >
-                                추천 매물 목록 둘러보기
-                            </button>
-                            <a href="#quick-inquiry" className="bg-white/10 hover:bg-white/20 border border-white/10 text-white text-center px-6 py-3.5 rounded-xl font-bold transition-all text-sm">
-                                실시간 1:1 중개 상담 신청
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            )}
+        <section id="main-section" className="w-full bg-white text-[#111827] transition-all duration-300">
+            
+            {/* [최상단 비주얼 브랜드 히어로 배너]: 소장님의 지시에 따라 오직 텍스트로만 웅장하고 미니멀하게 구성 */}
+            <div 
+                id="hero-desktop-wrapper" 
+                className="relative w-full h-auto min-h-[550px] lg:h-auto lg:py-28 bg-[#050c1a] flex items-center justify-center overflow-hidden border-b border-slate-900 select-none px-6 pt-36 sm:pt-44 pb-20"
+            >
+                {/* 깊고 고급스러운 웅장함을 주는 딥 킹스 네이비(Deep King's Navy) 바탕 백그라운드 */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#050c1a] via-[#09152b] to-[#12284f] opacity-98"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.04),transparent)]"></div>
 
-            {/* Mobile Hero */}
-            {isMobile && (
-                <div id="hero-mobile-wrapper" className="block bg-[#0B2545] rounded-2xl p-5 text-white mb-8 shadow-xl relative overflow-hidden w-full lg:hidden" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' } as React.CSSProperties}>
-                    <div className="relative z-10 flex flex-col space-y-4">
-                        <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-left">
-                            발로 뛰어 검증한 <br/>정직한 지역 가치와 현장 답사기
-                        </h1>
-                        <div 
-                            onClick={() => {
-                                setShowOnlyVR(true);
-                                setShowOnlyRecommended(false);
-                                setCurrentPage(1);
-                                setActiveCategory('all');
-                                setActiveDong('all');
-                                showToast("360° VR 현장 투어가 포함된 매물을 필터링하여 보여줍니다.", "success");
-                                setTimeout(() => {
-                                    document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' });
-                                }, 100);
-                            }}
-                            className="rounded-xl p-4 my-2.5 shadow-[inset_0_1px_15px_rgba(11,37,69,0.25)] cursor-pointer active:scale-[0.98] transition-all border-2"
-                            style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' }}
-                            title="터치하여 360° VR 매물 모아보기"
-                        >
-                            <div className="text-white font-black text-lg sm:text-xl tracking-tight text-left flex items-center gap-3">
-                                <div className="shrink-0 flex items-center justify-center animate-vr-glow !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
-                                    <Naver360Icon className="w-[57px] h-[57px] sm:w-[90px] sm:h-[90px] drop-shadow-[0_4px_12px_rgba(11,37,69,0.35)]" />
-                                </div>
-                                <span className="animate-vr-glow select-none">공간 실감 360° 현장 VR 투어</span>
-                            </div>
-                            <p className="text-slate-300 text-[10px] leading-relaxed text-left font-semibold italic mt-1.5 flex items-center justify-between">
-                                <span>"구미 전 지역 공실을 360° 가상 투어로 생생하게"</span>
-                                <span className="text-white font-extrabold text-[10px] shrink-0 ml-1">터치하여 모아보기</span>
-                            </p>
-                        </div>
-                        <p className="text-slate-400 text-[11px] leading-relaxed text-left">
-                            직접 문을 열어보고 소음을 측정하여 엄선한 솔직한 현장 답사 브리핑입니다.
-                        </p>
-                        <div className="pt-0.5 text-left">
-                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest inline-block w-fit">태왕 오리지널 현장 브리핑</span>
-                        </div>
-                        <div className="flex flex-col gap-2 pt-2">
-                            <button 
-                                onClick={() => { 
-                                    setShowOnlyRecommended(true); 
-                                    setShowOnlyVR(false);
-                                    setCurrentPage(1);
-                                    setActiveCategory('all'); 
-                                    setActiveDong('all');
-                                    setTimeout(() => {
-                                        document.getElementById('blog-list')?.scrollIntoView({ behavior: 'smooth' });
-                                    }, 100);
-                                }} 
-                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-center py-3 rounded-xl font-bold transition-all shadow-md shadow-emerald-950/40 text-xs cursor-pointer select-none"
-                            >
-                                추천 매물 목록 둘러보기
-                            </button>
-                            <a href="#quick-inquiry" className="w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-center py-3 rounded-xl font-bold transition-all text-xs">
-                                실시간 1:1 중개 상담 신청
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Notice Message */}
-            {activeCategory === 'all' && (
-                <div className="w-full bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 shadow-sm flex items-center gap-2.5">
-                    <i className="fa-solid fa-circle-exclamation text-red-500"></i>
-                    <p className="text-red-500 font-black text-xs sm:text-sm">
-                        원룸 5만원, 미투 7만원, 투룸 9만원, 쓰리룸 12만원 관리비별도
-                    </p>
-                </div>
-            )}
-
-            {/* Real-time Vacancy Ticker */}
-            {activeCategory === 'all' && (
-            <div className="w-full bg-white border border-slate-200 sm:rounded-2xl rounded-xl shadow-sm mb-6 sm:mb-8 overflow-hidden flex flex-col">
-                <div className="bg-slate-50 px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex items-center justify-between z-10 shadow-sm relative">
-                    <h3 className="text-[13px] sm:text-[15px] font-black text-slate-800 flex items-center gap-2">
-                        <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-500"></span>
+                <div className="relative z-10 max-w-4xl mx-auto w-full text-center space-y-8 px-4 flex flex-col items-center">
+                    
+                    <div className="flex flex-col items-center gap-3">
+                        <span className="text-[#64dfdf] text-[11px] sm:text-xs font-black uppercase tracking-[0.3em] bg-white/5 border border-white/10 px-5 py-2.5 rounded-full backdrop-blur-md shadow-2xl">
+                            GUMI TAEWANG REAL ESTATE
                         </span>
-                        실시간 <span className="text-emerald-700">공실현황</span>
-                    </h3>
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer transition-colors bg-white hover:bg-slate-50 shadow-sm text-[10px] sm:text-xs">
-                        <i className="fa-solid fa-plus"></i>
                     </div>
-                </div>
-                <div className="relative h-[540px] sm:h-[720px] overflow-hidden bg-white px-2">
-                    {/* Create a duplicate list to ensure smooth infinite scrolling. */}
-                    <div 
-                        className="animate-scroll-up flex flex-col pt-2 pb-2"
-                        style={{ animationDuration: `${tickerPosts.length * 0.5}s` }}
-                    >
-                        {tickerPosts.map((p, idx) => {
-                            const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
-                            const pPanoramas = String(p.panoramas || '');
-                            const pPanoImage = String(p.panoImage || '');
-                            const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
-                            const floorVal = p.floor ? String(p.floor) : '';
-                            const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
-                            const roomVal = p.room ? String(p.room) : '';
-                            const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (isAdminLoggedIn && roomVal ? `${roomVal}호` : '지상층');
-                            const dongVal = String(p.dong || '');
-                            const addrVal = String(p.address || '');
-                            const remarksVal = String(p.remarks || '');
-                            return (
-                                <div key={`${p.id}-${idx}`} onClick={() => setSelectedPostId(p.id)} className="flex items-center gap-2 sm:gap-4 px-3 py-1.5 sm:px-4 sm:py-2 border-b border-dashed border-slate-200/80 hover:bg-slate-50/90 cursor-pointer transition-colors w-full group select-none">
-                                    <div className="w-4 sm:w-6 shrink-0 flex items-center justify-center">
-                                        {isRec && <span className="text-amber-500 animate-sparkle text-[11px] sm:text-sm drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]"><i className="fa-solid fa-star"></i></span>}
-                                    </div>
-                                    <span className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] sm:text-[12.5px] font-extrabold border tracking-wide shadow-sm leading-none ${
-                                        p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
-                                        p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                                        'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                    }`}>
-                                        {p.transactionType || '월세'}
-                                    </span>
-                                    <div className="text-xs sm:text-[13.5px] font-extrabold text-slate-900 group-hover:text-emerald-700 truncate min-w-[70px] sm:w-[170px] sm:min-w-0 flex items-center gap-1.5 transition-colors">
-                                        <span className="shrink-0 font-black">{p.building}</span>
-                                        {hasVR && (
-                                            <span className="shrink-0 bg-emerald-100 text-emerald-800 text-[8.5px] font-black px-1 py-[1px] rounded flex items-center gap-1.5 animate-pulse border border-emerald-200">
-                                                <Home size={12} className="text-[#0B2545]" strokeWidth={1.8} />
-                                                <span>360°</span>
-                                            </span>
-                                        )}
-                                        <span className="text-slate-600 bg-slate-100 px-1.5 py-[1px] rounded text-[9px] sm:text-[10px] font-bold border border-slate-200/60 leading-none shrink-0">{floorLabel}</span>
-                                    </div>
-                                    <div className="text-xs sm:text-[13.5px] font-black text-red-500 whitespace-nowrap sm:w-[110px] shrink-0 font-mono tracking-tight leading-none">
-                                        {formatDisplayPrice(p.price, p.manageFee)}
-                                    </div>
-                                    <div className="text-[11px] sm:text-[12.5px] font-extrabold text-slate-750 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl whitespace-nowrap sm:w-[85px] text-center shrink-0 shadow-sm leading-none">
-                                        {p.category}
-                                    </div>
-                                    <div className="text-[10px] sm:text-[12px] font-semibold text-slate-600 truncate hidden sm:block ml-0 flex-1 border-l border-slate-200 pl-3">
-                                        {dongVal || (addrVal && addrVal.split(' ')[0]) || ''} {remarksVal && `· ${stripHtml(remarksVal).replace(/▶|■/g, '').slice(0, 50)}...`}
-                                    </div>
-                                </div>
-                            );
-                        })}
+
+                    <h1 className="flex flex-col items-center gap-4 select-none">
+                        <span className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] whitespace-nowrap sm:whitespace-normal">
+                            360 공간 현장 VR 투어
+                        </span>
+                        <span className="text-xl sm:text-3xl lg:text-3.5xl font-black text-[#64dfdf] tracking-tight leading-none drop-shadow-[0_5px_15px_rgba(100,223,223,0.2)]">
+                            단 한줄의 정직한 가치
+                        </span>
+                    </h1>
+
+                    <p className="text-slate-300 text-sm sm:text-base lg:text-lg leading-relaxed font-bold max-w-2xl mx-auto">
+                        태왕공인중개사사무소는 오랜 경험과 정직함을 바탕으로 구미 전 지역의 프리미엄 부동산 정보를 선별하여 제공합니다.
+                        <br /><br />
+                        신뢰할 수 있는 구미 대표 자사몰에서 단 한 줄의 정직한 인연을 통해 소중한 주거 공간의 가치를 직접 발견해 보세요.
+                        <br /><br />
+                        고객님의 라이프스타일을 완벽히 반영한 맞춤형 중개 솔루션을 정성스럽게 제안해 드립니다.
+                    </p>
+
+                    <div className="flex flex-wrap justify-center gap-4 pt-4">
+                        <a 
+                            href="#property-search-section" 
+                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4.5 rounded-full shadow-lg"
+                        >
+                            실시간 매물 보러가기
+                        </a>
+                        <a 
+                            href="#direct-consulting-section" 
+                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4.5 rounded-full shadow-lg backdrop-blur-sm"
+                        >
+                            1:1 중개 의뢰하기
+                        </a>
                     </div>
-                    <div className="hidden"></div>
-                    <div className="hidden"></div>
                 </div>
             </div>
-            )}
 
-            {/* Filter Tabs & Search */}
-            <div id="blog-list" className="flex flex-col mb-4 sm:mb-6 gap-5 sm:gap-6 border-b border-slate-200 pb-5 sm:pb-6 w-full">
-                {/* 대형 매물검색 섹션 타이틀 */}
-                <div id="property-search-title" className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 select-none w-full bg-slate-50 border border-slate-200/80 p-5 rounded-2xl shadow-sm mt-2">
-                    <div className="flex items-center gap-4">
-                        {/* 눈에 확 띄는 큼직한 집 모양 아이콘 */}
-                        <div className="search-home-icon flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#0B2545] text-white rounded-xl sm:rounded-2xl shadow-md shrink-0 border border-[#0B2545]" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', borderColor: '#0B2545 !important' } as React.CSSProperties}>
-                            <i className="fa-solid fa-house-chimney text-2xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)] animate-pulse-slow"></i>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
-                                    매물검색
-                                </h2>
-                                <span className="bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] sm:text-xs font-black px-2 mt-0.5 sm:mt-0 py-0.5 rounded-full shadow-sm">
-                                    SEARCH
-                                </span>
-                            </div>
-                            <p className="text-slate-500 text-xs sm:text-sm font-semibold mt-1.5">
-                                구미 대표 브랜드 태왕공인중개사사무소에서 검증한 추천 매물 찾기
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            {/* [통합 검색창 구역]: 대문 상단 중앙에 배치되어 칼같이 실시간 필터링 수행 */}
+            <div 
+                id="property-search-section" 
+                className="max-w-4xl mx-auto -mt-16 relative z-30 px-4"
+            >
+                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+                    <div className="text-center space-y-2 select-none">
+                        <span className="text-[#3a506b] text-[10px] sm:text-xs font-black uppercase tracking-widest">
+                            SMART INTEGRATED SEARCH
+                        </span>
+                        
+                        <br /><br />
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                            스마트 통합 검색
+                        </h3>
+                        <br /><br />
 
-                {/* 카테고리 기획 수정: 버튼 크기 확대 및 디자인 시인성 극대화 */}
-                <div className="w-full">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-3 w-full">
-                        {['all', '원룸매매', '원룸', '미투', '투룸', '쓰리룸', '상가', '아파트', '오피스텔', '빌라', '땅', '기타'].map((cat) => {
-                            const isSelected = activeCategory === cat;
-                            return (
-                                <button 
-                                    key={cat} 
-                                    onClick={() => { setActiveCategory(cat); setCurrentPage(1); }} 
-                                    className={`category-tab select-none cursor-pointer flex items-center justify-center text-center whitespace-nowrap transition-all duration-200 ease-out rounded-2xl py-3.5 sm:py-4.5 px-2.5 font-black text-sm sm:text-base border-2 shadow-[0_4px_10px_rgba(15,23,42,0.08)] ${
-                                        isSelected 
-                                            ? 'active bg-[#0B2545] text-white border-[#0B2545] scale-[1.03] shadow-[0_6px_20px_rgba(11,37,69,0.35)] ring-2 ring-[#0B2545]/20' 
-                                            : 'bg-white text-slate-800 border-slate-200 hover:bg-[#0B2545]/10 hover:text-[#0B2545] hover:border-[#0B2545]/50 hover:scale-[1.04] hover:shadow-[0_8px_16px_rgba(11,37,69,0.15)] active:scale-95'
-                                    }`}
-                                >
-                                    {cat === 'all' ? '전체' : cat}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* 5대 마케팅: 상세 다중 필터 검색 */}
-                <div className="w-full mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 전/월/매 필터 */}
-                    <div className="flex bg-slate-100 rounded-xl p-1.5 shadow-inner">
-                        {[{v:'all', l:'모든 거래형태'}, {v:'월세', l:'월세'}, {v:'전세', l:'전세'}, {v:'매매', l:'매매'}].map(opt => (
-                            <button
-                                key={opt.v}
-                                onClick={() => setActiveDealType(opt.v)}
-                                className={`flex-1 py-2.5 rounded-lg text-[13px] sm:text-sm font-black transition-all ${activeDealType === opt.v ? 'bg-white text-[#0B2545] shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                {opt.l}
-                            </button>
-                        ))}
-                    </div>
-                    {/* 보증금 필터 */}
-                    <div className="flex bg-slate-100 rounded-xl p-1.5 shadow-inner">
-                        {[{v:'all', l:'보증금 전체'}, {v:'1000_under', l:'1000만원 이하'}, {v:'1000_over', l:'1000만원 이상'}].map(opt => (
-                            <button
-                                key={opt.v}
-                                onClick={() => setActiveDeposit(opt.v)}
-                                className={`flex-1 py-2.5 rounded-lg text-[13px] sm:text-sm font-black transition-all ${activeDeposit === opt.v ? 'bg-white text-[#0B2545] shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                {opt.l}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6 w-full font-medium mt-4 sm:mt-6 mb-4">
-                    <div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-5 w-full lg:w-auto">
-                        {/* 5대 마케팅: 내 관심 매물 */}
-                        <label 
-                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
-                                showOnlyFavorites 
-                                    ? 'bg-rose-500/10 border-rose-500 text-rose-950 font-black scale-[1.03] ring-4 ring-rose-500/10 shadow-[0_6px_20px_rgba(244,63,94,0.25)]' 
-                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
-                            }`}
-                        >
-                            <input 
-                                type="checkbox" 
-                                checked={showOnlyFavorites} 
-                                onChange={(e) => setShowOnlyFavorites(e.target.checked)} 
-                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-rose-500 border-2 border-slate-300 rounded-lg focus:ring-rose-500 cursor-pointer accent-rose-500 transition-all shrink-0" 
-                            />
-                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
-                                <i className="fa-solid fa-heart text-rose-500 text-lg sm:text-2xl shrink-0 animate-pulse"></i>
-                                <span>내 관심 매물</span>
-                            </span>
-                        </label>
-                        <label 
-                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
-                                showOnlyRecommended 
-                                    ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-black scale-[1.03] ring-4 ring-amber-500/10 shadow-[0_6px_20px_rgba(245,158,11,0.25)]' 
-                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
-                            }`}
-                        >
-                            <input 
-                                type="checkbox" 
-                                checked={showOnlyRecommended} 
-                                onChange={(e) => { setShowOnlyRecommended(e.target.checked); setCurrentPage(1); }} 
-                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-amber-500 border-2 border-slate-300 rounded-lg focus:ring-amber-500 cursor-pointer accent-amber-500 transition-all shrink-0" 
-                            />
-                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
-                                <i className="fa-solid fa-star text-amber-500 text-lg sm:text-2xl animate-sparkle shrink-0"></i>
-                                <span>추천 매물만 보기</span>
-                            </span>
-                        </label>
-
-                        <label 
-                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
-                                showOnlyVR 
-                                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-950 font-black scale-[1.03] ring-4 ring-emerald-500/10 shadow-[0_6px_20px_rgba(16,185,129,0.25)]' 
-                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
-                            }`}
-                        >
-                            <input 
-                                type="checkbox" 
-                                checked={showOnlyVR} 
-                                onChange={(e) => { setShowOnlyVR(e.target.checked); setCurrentPage(1); }} 
-                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-emerald-600 border-2 border-slate-300 rounded-lg focus:ring-emerald-500 cursor-pointer accent-emerald-600 transition-all shrink-0" 
-                            />
-                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
-                                <Home size={24} className="text-[#0B2545] animate-pulse shrink-0" strokeWidth={1.8} />
-                                <span>360° VR 매물만 보기</span>
-                            </span>
-                        </label>
-                        <label 
-                            className={`flex items-center justify-center space-x-3.5 sm:space-x-4.5 cursor-pointer rounded-2xl px-6 py-4 sm:px-7 sm:py-5 border-2 shadow-md transition-all duration-200 select-none whitespace-nowrap w-full sm:w-auto ${
-                                showOnlyShortTerm 
-                                    ? 'bg-blue-500/10 border-blue-500 text-blue-950 font-black scale-[1.03] ring-4 ring-blue-500/10 shadow-[0_6px_20px_rgba(59,130,246,0.25)]' 
-                                    : 'bg-white border-slate-200 text-slate-800 font-extrabold hover:bg-slate-50 hover:border-slate-350 hover:scale-[1.01]'
-                            }`}
-                        >
-                            <input 
-                                type="checkbox" 
-                                checked={showOnlyShortTerm} 
-                                onChange={(e) => { setShowOnlyShortTerm(e.target.checked); setCurrentPage(1); }} 
-                                className="w-6.5 h-6.5 sm:w-[28px] sm:h-[28px] text-blue-500 border-2 border-slate-300 rounded-lg focus:ring-blue-500 cursor-pointer accent-blue-500 transition-all shrink-0" 
-                            />
-                            <span className="flex items-center gap-2 sm:gap-2.5 text-base sm:text-lg lg:text-xl shrink-0">
-                                <i className="fa-solid fa-clock-rotate-left text-blue-500 text-lg sm:text-2xl shrink-0"></i>
-                                <span>단기방 (6개월 이하)</span>
-                            </span>
-                        </label>
+                        <p className="text-slate-500 text-xs sm:text-sm font-semibold">
+                            찾으시는 건물의 명칭이나 주소를 입력하시면 실시간으로 아래 매물들이 필터링됩니다.
+                            <br /><br />
+                        </p>
                     </div>
 
-                    <div className="relative w-full lg:w-96 lg:ml-auto">
-                        <span className="absolute inset-y-0 left-0 pl-4.5 flex items-center text-emerald-600 z-10 pointer-events-none">
-                            <i className="fa-solid fa-magnifying-glass text-sm sm:text-base"></i>
+                    <div className="relative w-full">
+                        <span className="absolute inset-y-0 left-0 pl-6 flex items-center text-slate-400">
+                            <Search className="w-5 h-5 sm:w-6 h-6" />
                         </span>
                         <input 
                             type="text" 
                             value={searchInput} 
-                            onChange={handleSearch} 
-                            placeholder="건물명 또는 주소 검색..." 
-                            className="w-full bg-emerald-50/80 border-2 border-emerald-300/80 text-emerald-950 font-extrabold rounded-2xl pl-11 sm:pl-12 pr-4 sm:pr-5 py-4 sm:py-4.5 text-sm focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15 transition-all placeholder-emerald-700/60 shadow-inner" 
+                            onChange={(e) => setSearchInput(e.target.value)} 
+                            placeholder="건물 주소 또는 건물명(예: 포브스, 모던빌, 젠틀맨)을 입력하세요..." 
+                            className="w-full bg-slate-50 border border-slate-200 text-slate-950 font-extrabold rounded-2xl pl-14 sm:pl-16 pr-6 py-5 text-sm sm:text-base focus:outline-none focus:bg-white focus:ring-4 focus:ring-[#3a506b]/15 focus:border-[#3a506b] transition-all placeholder-slate-400" 
+                        />
+                    </div>
+
+                    {searchInput && (
+                        <div className="text-center text-xs font-bold text-slate-400 select-none animate-pulse">
+                            <span>검색어 "{searchInput}"에 대한 실시간 연동 필터링이 가동 중입니다.</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* [실시간 360° 공간 가상 투어 구역]: 스마트 통합검색 밑과 360 최신 매물 사이에 이동 설치 완료 */}
+            <div 
+                id="vr-showcase-section"
+                className="max-w-7xl mx-auto px-4 sm:px-8 py-16 space-y-8 relative z-20"
+            >
+                <div className="text-center space-y-3 select-none">
+                    <span className="text-[#0B2545] text-xs sm:text-sm font-black uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
+                        REAL-TIME 360° VR SHOWCASE
+                    </span>
+                    <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                        실시간 360° 가상 현장 투어
+                    </h3>
+                    <p className="text-slate-500 text-xs sm:text-sm font-bold max-w-xl mx-auto leading-relaxed">
+                        실제 방문하시기 전에 360° 파노라마 뷰어로 현장 인프라와 세대별 내부 공간을 고해상도로 미리 실감나게 탐색해보세요.
+                    </p>
+                </div>
+
+                <div className="max-w-5xl mx-auto w-full flex flex-col justify-center">
+                    <div className="relative bg-slate-950/40 border border-slate-200 rounded-[32px] overflow-hidden shadow-[0_32px_80px_rgba(15,23,42,0.12)] group/pano transition-all duration-500 hover:border-slate-300">
+                        
+                        {/* 가상 웹 브라우저 상단 장식 바 (실제 360 투어 솔루션 창 느낌을 시각화) */}
+                        <div className="flex items-center justify-between px-6 py-4.5 bg-[#0B2545] border-b border-white/5 select-none text-white">
+                            <div className="flex items-center gap-2">
+                                <span className="w-3.5 h-3.5 rounded-full bg-red-500/80 shadow-md"></span>
+                                <span className="w-3.5 h-3.5 rounded-full bg-yellow-500/80 shadow-md"></span>
+                                <span className="w-3.5 h-3.5 rounded-full bg-green-500/80 shadow-md"></span>
+                            </div>
+                            <span className="text-[10px] sm:text-[11px] font-mono font-black text-[#64dfdf] uppercase tracking-widest bg-white/5 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-sm shadow-inner">
+                                TAEWANG 360 VR ENGINE • {defaultPanoramas[activePanoIndex].title}
+                            </span>
+                            <div className="w-14"></div>
+                        </div>
+
+                        {/* 360 파노라마 실감형 뷰어 본체 */}
+                        <div className="relative w-full h-[320px] sm:h-[400px] lg:h-[480px]">
+                            <VrViewer 
+                                images={panoImages} 
+                                activeIndex={activePanoIndex} 
+                                onSceneChange={(idx) => setActivePanoIndex(idx)}
+                                height="h-full w-full"
+                                title={defaultPanoramas[activePanoIndex].title}
+                                address={defaultPanoramas[activePanoIndex].address}
+                            />
+
+                            {/* 슬라이더 컨트롤 좌측 버튼 */}
+                            <button 
+                                onClick={() => setActivePanoIndex(prev => (prev - 1 + defaultPanoramas.length) % defaultPanoramas.length)}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 z-40 bg-slate-950/60 hover:bg-[#0B2545] hover:text-white text-white w-12 h-12 rounded-full flex items-center justify-center border border-white/10 hover:scale-110 active:scale-95 transition-all shadow-2xl"
+                                aria-label="Previous Panorama Room"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            
+                            {/* 슬라이더 컨트롤 우측 버튼 */}
+                            <button 
+                                onClick={() => setActivePanoIndex(prev => (prev + 1) % defaultPanoramas.length)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 z-40 bg-slate-950/60 hover:bg-[#0B2545] hover:text-white text-white w-12 h-12 rounded-full flex items-center justify-center border border-white/10 hover:scale-110 active:scale-95 transition-all shadow-2xl"
+                                aria-label="Next Panorama Room"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* 활성 슬라이드 하단 정보 패널 및 도트 인디케이터 */}
+                        <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 select-none text-slate-800">
+                            <div className="text-left w-full sm:w-auto">
+                                <span className="text-[9px] font-black text-[#0B2545] uppercase tracking-widest block">CURRENT VR SCENE</span>
+                                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">{defaultPanoramas[activePanoIndex].address}</h4>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                {defaultPanoramas.map((p, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => setActivePanoIndex(idx)}
+                                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === activePanoIndex ? 'bg-[#0B2545] scale-125 shadow-[0_0_10px_rgba(11,37,69,0.3)]' : 'bg-slate-300 hover:bg-slate-400'}`}
+                                        title={p.title}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pt-24 w-full max-w-full overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none mb-10">
+                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            360° VIRTUAL REALITY
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            최신 360° VR 매물
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            직접 방문하지 않아도 생생하게 공간을 체험할 수 있는 최신 360도 VR 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('360° 현장 VR 투어', vrData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">360° 현장 VR 투어</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={vrData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal} 
+                            setSelectedPostId={setSelectedPostId} 
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Dong Filter Tabs */}
-            {['원룸', '미투', '투룸', '쓰리룸'].includes(activeCategory) && (
-                <div id="dong-tabs-container" className="transition-all duration-300 bg-slate-50 border border-slate-200/60 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-6 sm:mb-8 w-full">
-                    <div className="text-[11px] sm:text-xs font-bold text-slate-400 mb-2 flex items-center gap-1">
-                        <i className="fa-solid fa-map-location-dot text-emerald-500"></i>
-                        <span>구미시 세부 동네 필터</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                        <button onClick={() => { setActiveDong('all'); setCurrentPage(1); }} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === 'all' ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
-                            전체 동
-                        </button>
-                        {activeDongsInPosts.map(dong => (
-                            <button key={dong} onClick={() => { setActiveDong(dong); setCurrentPage(1); }} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${activeDong === dong ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
-                                {dong}
+            {/* [카테고리별 3D 슬라이드 판 & 기기별 반응형 최적화 - PC상에서는 화면을 가득 채우는 전체 화면 슬라이더 적용] */}
+            <div className="w-full py-24 space-y-36">
+
+                {/* 1. 원룸 추천 매물 구역 */}
+                <div id="oneroom-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            PREMIUM SELECTION
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            원룸 추천매물
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            직주근접에 탁월하며 완벽한 수리 및 리모델링이 보증된 실용적이고 특별한 원룸 추천 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('원룸추천매물', oneRoomRecommendData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">원룸추천매물</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
                             </button>
-                        ))}
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={oneRoomRecommendData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
                     </div>
                 </div>
-            )}
 
-            {totalItems === 0 && !(isFetching || isSearching) && (
-                <div className="text-center py-16 sm:py-20 w-full">
-                    <div className="bg-slate-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-slate-400">
-                        <i className="fa-solid fa-folder-open text-xl sm:text-2xl"></i>
+                {/* 2. 미투 추천 매물 구역 */}
+                <div id="mitu-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-[#3a506b] text-xs sm:text-sm font-black uppercase tracking-widest">
+                            EXCLUSIVE MITU
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            미투 추천매물
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            거실과 방이 분리된 미니투룸 구조로 공간 활용도가 극대화된 최고 평판의 미투 추천 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('미투추천매물', miRoomRecommendData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">미투추천매물</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-700">검색 조건에 맞는 매물이 없습니다</h3>
-                    <p className="text-slate-400 text-xs sm:text-sm mt-1">다른 검색어를 입력하시거나 분류를 다시 선택해 보세요.</p>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={miRoomRecommendData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
                 </div>
-            )}
 
+                {/* 3. 투룸/쓰리룸 특선 구역 */}
+                <div id="tworoom-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-[#3a506b] text-xs sm:text-sm font-black uppercase tracking-widest">
+                            EXCLUSIVE SELECTIONS
+                        </span>
 
-            {/* Notice Message Above List */}
-            {['all', '원룸', '미투', '투룸', '쓰리룸'].includes(activeCategory) && (totalItems > 0 || (isFetching || isSearching)) && (
-                <div className="w-full bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 shadow-sm flex items-center gap-2.5">
-                    <i className="fa-solid fa-circle-exclamation text-red-500"></i>
-                    <p className="text-red-500 font-black text-xs sm:text-sm">
-                        원룸 5만원, 미투 7만원, 투룸 9만원, 쓰리룸 12만원 관리비별도
-                    </p>
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            투룸/쓰리룸 특선
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            거주 공간의 여유와 현대적 품격을 선사하는 웅장하고 거창한 프리미엄 투룸 및 쓰리룸 특선 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('투룸/쓰리룸 특선', specialData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">투룸/쓰리룸 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={specialData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
                 </div>
-            )}
 
-            {/* Desktop Table View */}
-            {false && (totalItems > 0 || (isFetching || isSearching)) && (
-                <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm w-full hidden lg:block">
-                    <table className="w-full text-center text-xs sm:text-sm border-collapse min-w-[1000px]">
-                        <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                            <tr>
-                                <th className="p-4 text-left pl-5 whitespace-nowrap">건물명</th>
-                                <th className="p-4 whitespace-nowrap">해당층/총층</th>
-                                <th className="p-4 whitespace-nowrap">거래형태</th>
-                                <th className="p-4 whitespace-nowrap">구분</th>
-                                <th className="p-4 whitespace-nowrap">금액 (보/월)</th>
-                                <th className="p-4 whitespace-nowrap">주소</th>
-                                <th className="p-4 text-left whitespace-nowrap">비고</th>
-                                <th className="p-4 whitespace-nowrap">사진여부</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 font-medium">
-                            {(isFetching || isSearching) ? (
-                                Array.from({length: 5}).map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto animate-pulse"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto animate-pulse"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2 mx-auto animate-pulse"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div></td>
-                                        <td className="p-4"><div className="h-4 bg-slate-200 rounded w-6 mx-auto animate-pulse"></div></td>
-                                    </tr>
-                                ))
-                            ) : (
-                                paginatedItems.map(p => {
-                                    const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
-                                    const pPanoramas = String(p.panoramas || '');
-                                    const pPanoImage = String(p.panoImage || '');
-                                    const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
-                                    const thumbnailVal = String(p.thumbnail || '');
-                                    const imagesVal = String(p.images || '');
-                                    return (
-                                        <tr key={p.id} onClick={() => setSelectedPostId(p.id)} className="hover:bg-slate-50 border-b border-slate-100 transition-colors cursor-pointer text-sm">
-                                            <td className="p-4 font-bold text-slate-800 text-left pl-5">
-                                                <div className="flex items-center gap-1">
-                                                    <div className="w-5 shrink-0 flex items-center justify-center">
-                                                         {isRec && <span className="text-amber-500 animate-sparkle"><i className="fa-solid fa-star"></i></span>}
-                                                    </div>
-                                                    <span className="truncate max-w-[150px] lg:max-w-none">{p.building}</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 text-slate-600 text-center whitespace-nowrap">{p.floor || '-'}/{p.totalFloor || '-'}층</td>
-                                            <td className="p-4 text-center whitespace-nowrap">
-                                                <span className={`inline-block px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold border shadow-sm tracking-wide ${
-                                                    p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
-                                                    p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                                                    'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                                }`}>
-                                                    {p.transactionType || '월세'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 text-center whitespace-nowrap">
-                                                <span className="inline-block bg-slate-150 border border-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold tracking-wide shadow-sm min-w-[75px]">
-                                                    {p.category}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 text-red-500 font-black text-center whitespace-nowrap">{formatDisplayPrice(p.price, p.manageFee)}</td>
-                                            <td className="p-4 text-slate-600 text-center"><span className="block truncate max-w-[140px] lg:max-w-none">{formatDisplayAddress(p.address)}</span></td>
-                                            <td className="p-4 text-slate-500 text-xs text-left max-w-xs break-all">{stripHtml(p.remarks)}</td>
-                                            <td className="p-4 text-center whitespace-nowrap">
-                                                 <div className="flex items-center justify-center gap-2 font-black">
-                                                     {hasVR ? (
-                                                         <div className="inline-flex items-center bg-emerald-500 text-white border border-emerald-600 px-3.5 py-1.5 rounded-xl shadow-md animate-pulse text-xs sm:text-[13px] font-extrabold tracking-wide">
-                                                             <span className="mr-1.5"><i className="fa-solid fa-vr-cardboard"></i></span>
-                                                             <span>360° 투어</span>
-                                                         </div>
-                                                     ) : (thumbnailVal || imagesVal) ? (
-                                                         <div className="inline-flex items-center bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-xl shadow-sm text-xs sm:text-[13px] font-extrabold tracking-wide">
-                                                             <span className="mr-1.5"><i className="fa-solid fa-camera"></i></span>
-                                                             <span>일반사진</span>
-                                                         </div>
-                                                     ) : (
-                                                         <span className="text-slate-300 text-sm font-bold">-</span>
-                                                     )}
-                                                 </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
+                {/* 4. 오피스텔 특선 구역 */}
+                <div id="officetel-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            PREMIUM OFFICETEL
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            오피스텔 특선
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            도심의 편리함과 고품격 인프라를 모두 갖춘 최적의 입지, 완벽하게 정비된 오피스텔 특선 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('오피스텔 특선', officetelData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">오피스텔 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={officetelData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
                 </div>
-            )}
 
-            {/* Properties List View (Responsive Cards) */}
-            {(totalItems > 0 || (isFetching || isSearching)) && (
-                <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
-                    <div className="flex flex-col">
-                        {(isFetching || isSearching) ? (
-                            Array.from({length: 5}).map((_, i) => (
-                                <div key={i} className="p-4.5 sm:p-5 border-b border-slate-100 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 w-full animate-pulse">
-                                    {/* Thumbnail Skeleton */}
-                                    <div className="order-1 shrink-0 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video rounded-xl bg-slate-200 self-center lg:self-stretch"></div>
-                                    {/* Info Skeleton */}
-                                    <div className="order-2 flex-grow space-y-2.5 min-w-0">
-                                        <div className="h-4.5 bg-slate-200 rounded-md w-1/3"></div>
-                                        <div className="h-6 bg-slate-200 rounded-md w-1/2"></div>
-                                        <div className="h-4 bg-slate-200 rounded-md w-1/4"></div>
-                                        <div className="h-8 bg-slate-200 rounded-xl w-full"></div>
+                {/* 5. 아파트 특선 구역 */}
+                <div id="apartment-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-[#3a506b] text-xs sm:text-sm font-black uppercase tracking-widest">
+                            LUXURY APARTMENT
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            아파트 특선
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            넓고 쾌적한 주거 명작, 프리미엄 단지의 풍부한 인프라와 단독 생활의 평화로움을 전하는 아파트 특선 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('아파트 특선', apartmentData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">아파트 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={apartmentData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
+                </div>
+
+                {/* 6. 빌라 특선 구역 */}
+                <div id="villa-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            SPECIAL VILLA
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            빌라 특선
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            편안하고 아늑한 생활을 위한 프리미엄 빌라 추천 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('빌라 특선', villaData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">빌라 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={villaData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
+                </div>
+
+                {/* 7. 상가(사무실) 특선 구역 */}
+                <div id="commercial-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            SPECIAL COMMERCIAL
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            상가(사무실) 특선
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            성공적인 비즈니스를 위한 최적의 상가 및 사무실 추천 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('상가(사무실) 특선', commercialData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">상가(사무실) 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={commercialData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
+                </div>
+
+                {/* 8. 원룸매매 추천 구역 */}
+                <div id="oneroom-sale-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            ONE-ROOM SALE
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            원룸매매 추천
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            안정적인 임대 수익을 창출할 수 있는 수익형 원룸매매 추천 매물입니다.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('원룸매매 추천', oneRoomSaleData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">원룸매매 추천</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={oneRoomSaleData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
+                </div>
+
+                {/* 9. 유튜브 구역 */}
+                <div id="youtube-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-red-500 text-xs sm:text-sm font-black uppercase tracking-widest">
+                            YOUTUBE
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            유튜브
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            생생한 영상으로 매물 투어와 유용한 부동산 정보를 확인하세요.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('유튜브', youtubeData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">유튜브</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={youtubeData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
+                </div>
+
+                {/* 10. 네이버TV 구역 */}
+                <div id="navertv-section" className="space-y-14 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
+                        <span className="text-[#03c75a] text-xs sm:text-sm font-black uppercase tracking-widest">
+                            NAVER TV
+                        </span>
+
+                        <br /><br />
+                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                            네이버TV
+                        </h3>
+                        <br /><br />
+
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                            네이버TV에서 제공하는 엄선된 매물 영상과 알짜 정보를 만나보세요.
+                        </p>
+                        <div className="pt-8 flex justify-center">
+                            <button onClick={() => handleViewAll('네이버TV', naverTvData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">네이버TV</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="w-full pt-4">
+                        <Carousel3D 
+                            items={naverTvData} 
+                            isMobile={isMobile} 
+                            openPhoneSelectModal={openPhoneSelectModal}
+                            setSelectedPostId={setSelectedPostId}
+                            setActiveSection={setActiveSection}
+                            getBlogUrl={getBlogUrl}
+                            isAdminLoggedIn={isAdminLoggedIn}
+                        />
+                    </div>
+                </div>
+
+                {/* 하단 폼 및 가이드 영역은 기존처럼 max-w-7xl로 중앙 정렬 배치하여 가독성 유지 */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full space-y-36 pt-12">
+                    {/* [상담 및 매물 등록 의뢰 신청 구역] - 백엔드 연동과 조화된 고급 폼 */}
+                    <div 
+                        id="direct-consulting-section" 
+                        className="bg-[#1c2541] rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-white/5 relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-tr from-[#1c2541] to-[#3a506b] opacity-40"></div>
+                        
+                        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <div className="space-y-6 select-none text-left">
+                                <span className="text-[#64dfdf] text-xs font-black uppercase tracking-widest">
+                                    REAL ESTATE INQUIRY
+                                </span>
+
+                                <br /><br />
+                                <h3 className="text-2xl sm:text-4xl font-black text-white">
+                                    실시간 1:1 중개 상담 신청
+                                </h3>
+                                <br /><br />
+
+                                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-semibold">
+                                    찾으시는 주거 형태나 임대 및 임차 관련 매물 의뢰 내용을 작성하여 보내주세요.
+                                    <br /><br />
+                                    구미 대표 브랜드 태왕공인중개사사무소에서 오랜 중개 실적을 증명하듯 소장님이 직접 신속하고 무결하게 전화를 드립니다.
+                                    <br /><br />
+                                    정직하고 성실한 자세로 고객님의 소중한 자산 형성을 정성을 다해 돕겠습니다.
+                                    <br /><br />
+                                </p>
+
+                                <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <p className="text-slate-400 text-[10px] font-bold">대표 번호</p>
+                                        <p className="text-white text-sm sm:text-base font-black">054-455-6789</p>
                                     </div>
-                                    {/* Phone Button Skeleton */}
-                                    <div className="order-3 flex lg:flex-col items-center justify-center shrink-0 w-10 h-10 lg:pl-6 self-center lg:self-stretch">
-                                        <div className="w-10 h-10 bg-slate-200 rounded-xl"></div>
+                                    <div className="space-y-1">
+                                        <p className="text-slate-400 text-[10px] font-bold">소장님 직통</p>
+                                        <p className="text-[#64dfdf] text-sm sm:text-base font-black">010-7590-0111</p>
                                     </div>
                                 </div>
-                            ))
-                        ) : (
-                            paginatedItems.map(p => {
-                                const isRec = p.isRecommended === true || String(p.isRecommended) === 'true';
-                                const pPanoramas = String(p.panoramas || '');
-                                const pPanoImage = String(p.panoImage || '');
-                                const hasVR = !((!pPanoramas.trim()) && (!pPanoImage.trim()));
-                                const thumbnailVal = p.thumbnail ? String(p.thumbnail).trim() : '';
-                                const imagesVal = p.images ? String(p.images).split('|')[0].trim() : '';
-                                const thumbnailImg = thumbnailVal || imagesVal;
-                                const floorVal = p.floor ? String(p.floor) : '';
-                                const totalFloorVal = p.totalFloor ? String(p.totalFloor) : '';
-                                const roomVal = p.room ? String(p.room) : '';
-                                const floorLabel = floorVal && totalFloorVal ? `${floorVal}/${totalFloorVal}층` : (isAdminLoggedIn && roomVal ? `${roomVal}호` : '지상층');
-                                const isFavorite = favorites.includes(p.id);
-                                const viewCount = viewCounts[p.id] || 0;
-                                const isHot = viewCount > 30;
+                            </div>
 
-                                return (
-                                    <div 
-                                        key={p.id} 
-                                        onClick={() => handlePostClick(p.id)} 
-                                        className="p-4.5 sm:p-5 border-b border-slate-100 hover:bg-slate-50/60 transition-all flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 cursor-pointer text-left w-full overflow-hidden relative"
-                                    >
-                                        {/* Thumbnail Section */}
-                                        <div className="order-1 relative shrink-0 overflow-hidden rounded-xl bg-transparent border border-slate-100 transition-all duration-300 w-full aspect-video sm:aspect-square sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-[280px] lg:h-[157.5px] lg:aspect-video xl:w-[320px] xl:h-[180px] self-center lg:self-stretch">
-                                            {thumbnailImg ? (
-                                                <img 
-                                                    src={thumbnailImg} 
-                                                    alt={p.building} 
-                                                    referrerPolicy="no-referrer"
-                                                    className="w-full h-full object-cover rounded-xl transition-transform duration-500 hover:scale-105"
-                                                    loading="lazy"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
-                                                    <i className="fa-solid fa-house text-2xl"></i>
-                                                    <span className="text-[10px] font-bold">이미지 준비중</span>
-                                                </div>
-                                            )}
-                                            {/* 5대 마케팅: 찜하기 하트 버튼 (썸네일 우측 상단) */}
-                                            <button 
-                                                onClick={(e) => toggleFavorite(e, p.id)}
-                                                className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:scale-110 transition-transform"
-                                            >
-                                                <i className={`fa-heart text-lg ${isFavorite ? 'fa-solid text-rose-500' : 'fa-regular text-slate-400'}`}></i>
-                                            </button>
+                            <form onSubmit={handleInquirySubmit} className="bg-white/5 p-6 sm:p-8 rounded-2xl border border-white/10 space-y-5">
+                                <div className="space-y-1 text-left">
+                                    <label className="text-xs font-black text-slate-300">신청인 성함</label>
+                                    <input 
+                                        type="text" 
+                                        value={inquiryForm.name}
+                                        onChange={(e) => setInquiryForm({...inquiryForm, name: e.target.value})}
+                                        placeholder="성함을 입력하세요" 
+                                        className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-[#64dfdf] transition-all"
+                                    />
+                                </div>
 
-                                            {hasVR && (
-                                                <span className="absolute top-2 left-2 shrink-0 text-white text-[9.5px] lg:text-[10.5px] font-black px-2 py-0.5 sm:py-1 rounded-md border shadow-md animate-pulse flex items-center gap-1" style={{ backgroundColor: '#0B2545', borderColor: '#0B2545' }}>
-                                                    <Home size={14} className="text-white" strokeWidth={1.8} />
-                                                    VR 360°
-                                                </span>
-                                            )}
-                                        </div>
+                                <div className="space-y-1 text-left">
+                                    <label className="text-xs font-black text-slate-300">연락처</label>
+                                    <input 
+                                        type="text" 
+                                        value={inquiryForm.phone}
+                                        onChange={(e) => setInquiryForm({...inquiryForm, phone: e.target.value})}
+                                        placeholder="연락처를 입력하세요" 
+                                        className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-[#64dfdf] transition-all"
+                                    />
+                                </div>
 
-                                        {/* Info Section */}
-                                        <div className="order-2 flex-grow min-w-0 flex flex-col justify-between gap-2.5 pl-0 lg:pl-2">
-                                            {/* Row 1: Badges & Building Name - Styled to prevent overlap and truncate beautifully */}
-                                            <div className="text-[14px] font-black text-slate-900 flex items-center gap-1.5 min-w-0 w-full flex-wrap xs:flex-nowrap">
-                                                {/* 5대 마케팅: HOT 인기 떡상 뱃지 */}
-                                                {isHot && (
-                                                    <div className="shrink-0 flex items-center justify-center px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-black animate-bounce shadow-md">
-                                                        HOT 인기 떡상
-                                                    </div>
-                                                )}
-                                                {isRec && (
-                                                    <div className="shrink-0 flex items-center justify-center text-amber-500 animate-sparkle">
-                                                        <i className="fa-solid fa-star"></i>
-                                                    </div>
-                                                )}
-                                                <span className={`shrink-0 px-2.5 py-1 rounded-xl text-[10.5px] font-extrabold border shadow-sm leading-none ${
-                                                    p.transactionType === '매매' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
-                                                    p.transactionType === '전세' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                                                    'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                                }`}>
-                                                    {p.transactionType || '월세'}
-                                                </span>
-                                                <span className="font-black text-slate-900 text-[16px] sm:text-[18px] lg:text-xl xl:text-2xl truncate flex-grow min-w-0 mr-1 leading-snug">
-                                                    {p.building}{isAdminLoggedIn && p.room ? ` ${p.room}호` : ''}
-                                                </span>
+                                <div className="space-y-1 text-left">
+                                    <label className="text-xs font-black text-slate-300">상담 및 의뢰 내용</label>
+                                    <textarea 
+                                        value={inquiryForm.message}
+                                        onChange={(e) => setInquiryForm({...inquiryForm, message: e.target.value})}
+                                        rows={4}
+                                        placeholder="원하시는 동네, 매물 종류, 보증금 수준 등을 자세히 입력해 주세요" 
+                                        className="w-full bg-white/10 border border-white/10 rounded-xl p-4 text-xs sm:text-sm text-white focus:outline-none focus:border-[#64dfdf] transition-all resize-none"
+                                    ></textarea>
+                                </div>
 
-                                            </div>
-
-                                            {/* Row 2: Price & Floor Label moved side by side in a clean layout to guarantee spacing */}
-                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                <span className="text-[16px] sm:text-lg lg:text-[22px] xl:text-2xl text-red-500 font-extrabold font-mono tracking-tight leading-none shrink-0">
-                                                    {formatDisplayPrice(p.price, p.manageFee)}
-                                                </span>
-                                                <span className="text-slate-500 font-bold text-[10.5px] sm:text-xs bg-slate-100 px-2.5 py-1 rounded border border-slate-200/60 leading-none shrink-0">
-                                                    {floorLabel}
-                                                </span>
-                                                {/* 5대 마케팅: 조회수 노출 */}
-                                                {viewCount > 0 && (
-                                                    <span className="text-slate-400 font-bold text-[10px] flex items-center gap-1 shrink-0 ml-auto">
-                                                        <i className="fa-regular fa-eye"></i> {viewCount}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {/* Row 3: Metadata Row - Category & Address Details */}
-                                            <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 min-w-0 flex-wrap">
-                                                <span className="inline-flex items-center justify-center bg-slate-150 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-extrabold leading-none shrink-0 shadow-sm">
-                                                    {p.category}
-                                                </span>
-                                                <span className="text-slate-300 leading-none shrink-0">|</span>
-                                                <span className="truncate text-slate-600 leading-relaxed font-semibold">
-                                                    {formatDisplayAddress(p.address)}
-                                                </span>
-                                                {isAdminLoggedIn && (
-                                                    <>
-                                                        <span className="text-slate-300 leading-none shrink-0">|</span>
-                                                        <span className="text-emerald-700 font-black shrink-0 border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 rounded text-[9.5px] leading-none">
-                                                            {p.phone || '010-7590-0111'}
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            {/* Row 4: Highlight / Emphasis Field - Beautiful styled box designed for the subscriber */}
-                                            {p.remarks && stripHtml(p.remarks) && (
-                                                <div className="text-[11.5px] font-black text-emerald-950 bg-emerald-50/60 border border-emerald-200/40 rounded-xl px-2.5 py-1.5 mt-1.5 flex items-start gap-1.5 w-full max-w-full">
-                                                    <span className="text-emerald-500 shrink-0 text-xs mt-0.5"><i className="fa-solid fa-check"></i></span>
-                                                    <span className="font-bold text-slate-700 break-all leading-relaxed flex-grow min-w-0 line-clamp-2 lg:line-clamp-none">
-                                                        {stripHtml(p.remarks)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {/* Action Buttons Section */}
-                                        <div className="order-3 flex lg:flex-col items-center justify-center gap-3 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 w-full sm:w-auto self-stretch sm:self-center lg:self-stretch mt-1.5 sm:mt-0">
-                                            <div className="hidden">
-                                                {hasVR ? (
-                                                    <div className="bg-emerald-500 text-white w-full h-full rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-900/30 animate-pulse-slow">
-                                                        <Home size={16} className="text-white" strokeWidth={1.8} />
-                                                        <span className="text-[7px] font-black uppercase tracking-tighter">VR</span>
-                                                    </div>
-                                                ) : (thumbnailVal || imagesVal) ? (
-                                                    <div className="text-slate-400">
-                                                        <i className="fa-solid fa-camera text-lg"></i>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-300 text-xs">-</span>
-                                                )}
-                                            </div>
-                                            <button 
-                                                onClick={(e) => { 
-                                                    e.stopPropagation(); 
-                                                    openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined);
-                                                }} 
-                                                className="w-full sm:w-11 h-12 sm:h-11 flex items-center justify-center gap-2.5 text-white bg-[#0B2545] hover:bg-[#0B2545]/90 hover:shadow-lg rounded-full sm:rounded-xl transition-all shrink-0 shadow-md sm:shadow-sm relative group px-5 sm:px-0"
-                                                style={{ backgroundColor: '#0B2545 !important' }}>
-                                                <i className="fa-solid fa-phone text-sm sm:text-base"></i>
-                                                <span className="sm:hidden font-extrabold text-[14px] tracking-wide">태왕공인중개사 전화연결</span>
-                                                {isAdminLoggedIn && <span className="absolute top-1 right-4 sm:top-0 sm:right-0 w-2.5 h-2.5 bg-amber-500 border border-white rounded-full shadow-sm animate-pulse"></span>}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
+                                <button 
+                                    type="submit" 
+                                    className="w-full bg-white hover:bg-slate-100 text-[#1c2541] font-black text-xs sm:text-sm py-4 rounded-xl shadow-lg transition-all"
+                                >
+                                    중개 상담 및 매물 의뢰 신청 완료하기
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    {/* 무한 스크롤 옵저버 타겟 */}
-                    {displayLimit < totalItems && (
-                        <div ref={observerTarget} className="py-8 flex justify-center items-center">
-                            <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
-                        </div>
-                    )}
-                </div>
-            )}
 
-            {/* Quick Consultation & Inquiry Form */}
-            <section id="quick-inquiry" className="bg-slate-950 text-white py-12 sm:py-16 mt-12 sm:mt-20 relative overflow-hidden w-full rounded-2xl sm:rounded-3xl">
-                <div className="hidden"></div>
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                    <span className="text-emerald-400 text-xs sm:text-sm md:text-base font-black tracking-widest uppercase mb-3 sm:mb-4 inline-block bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full animate-pulse">1:1 맞춤 부동산 컨설팅</span>
-                    <div className="py-2 overflow-hidden mb-4 sm:mb-6">
-                        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight animate-heading-zoom-glow">가려운 곳을 콕 짚어 해결해 드립니다</h2>
+                    {/* PC 환경 전용 안내 동선 가이드 (반응형 특성 유지) */}
+                    <div className="hidden lg:block bg-slate-100 border border-slate-200 rounded-3xl p-6 select-none">
+                        <p className="text-slate-500 text-xs font-bold leading-relaxed text-center">
+                            모든 관리자용 매물 등록 및 편집 등의 조작은 오직 PC 최적화 모드에서만 초고속으로 이루어지도록 설계되어 가동되고 있습니다.
+                            <br /><br />
+                        </p>
                     </div>
-                    <p className="text-slate-300 text-xs sm:text-base max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-4 font-bold">
-                        세법 설계,<br />좋은 실거주 단지 선택 등 어떤 고민이든 남겨주시면 정직하게 분석하여 직접 답변드리겠습니다.
-                    </p>
-
-                    <form onSubmit={handleInquirySubmit} className="bg-slate-900 border border-slate-800 p-5 sm:p-8 rounded-2xl text-left max-w-xl mx-auto space-y-3 sm:space-y-4 shadow-2xl w-full">
-                        <div>
-                            <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">성함 또는 법인명</label>
-                            <input type="text" value={inquiryData.name} onChange={e => setInquiryData({...inquiryData, name: e.target.value})} required placeholder="예: 홍길동 소장" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-all"/>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">연락처</label>
-                            <input type="tel" value={inquiryData.phone} onChange={e => setInquiryData({...inquiryData, phone: e.target.value})} required placeholder="예: 010-7590-0111" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-all"/>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">문의 또는 중개 의뢰 요약</label>
-                            <textarea rows={3} value={inquiryData.message} onChange={e => setInquiryData({...inquiryData, message: e.target.value})} required placeholder="예: 구미 원룸 매매 상담 또는 방 접수" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-all resize-none"></textarea>
-                        </div>
-                        <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/50 transition-all flex items-center justify-center space-x-1.5 sm:space-x-2">
-                            <i className="fa-solid fa-paper-plane text-xs"></i>
-                            <span>중개 상담 및 의뢰 접수</span>
-                        </button>
-                    </form>
                 </div>
-            </section>
+
+            </div>
+        
+                <ViewAllModal 
+                    isOpen={viewAllCategory !== null}
+                    onClose={() => setViewAllCategory(null)}
+                    categoryTitle={viewAllCategory || ''}
+                    items={viewAllItems}
+                    openPhoneSelectModal={openPhoneSelectModal}
+                    setSelectedPostId={setSelectedPostId}
+                    setActiveSection={setActiveSection}
+                    getBlogUrl={getBlogUrl}
+                    isAdminLoggedIn={isAdminLoggedIn}
+                />
         </section>
     );
 };
 
+// 아임웹(imweb) 갤러리 감성의 2D 플랫 무한 루프 슬라이더 (화살표 제거, 우측에서 좌측으로 매끄럽게 흐르는 슬라이드)
+const Carousel3D = ({ 
+    items, 
+    isMobile, 
+    openPhoneSelectModal,
+    setSelectedPostId,
+    setActiveSection,
+    getBlogUrl,
+    isAdminLoggedIn
+}: {
+    items: any[];
+    isMobile: boolean;
+    openPhoneSelectModal: (e: React.MouseEvent, mobilePhone: string, ownerPhone?: string) => void;
+    setSelectedPostId: (id: string) => void;
+    setActiveSection: (sec: string) => void;
+    getBlogUrl: (p: any, defaultUrl: string) => string;
+    isAdminLoggedIn: boolean;
+}) => {
+    // 완벽한 무한 루프(Seamless Loop) 구성을 위해 카드를 복제하여 충분한 너비를 확보하는 알고리즘
+    const repeatedItems = useMemo(() => {
+        if (!items || items.length === 0) return [];
+        let list = [...items];
+        // 카드 수가 너무 적으면 끊길 수 있으므로 최소 8개 이상 채우기
+        while (list.length < 8) {
+            list = [...list, ...items];
+        }
+        // 좌우대칭 -50% 평행이동 시 시각적 연속성을 위해 정확히 배열을 2배 복제
+        return [...list, ...list];
+    }, [items]);
+
+    const handleCardClick = (id: string, blogUrl?: string) => {
+        if (!id.startsWith('placeholder')) {
+            if (blogUrl) {
+                window.open(blogUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                setSelectedPostId(id);
+                setActiveSection('detail');
+            }
+        } else if (id.startsWith('placeholder') && blogUrl) {
+            window.open(blogUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    if (items.length === 0) {
+        return (
+            <div className="text-center py-12 text-slate-400 font-semibold text-sm">
+                등록된 매물이 없습니다.
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative w-full overflow-hidden py-6 select-none">
+            {/* 좌우 사이드 그라데이션 소프트 페이드 마스크로 고급감 극대화 */}
+            <div className="absolute inset-y-0 left-0 w-8 sm:w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute inset-y-0 right-0 w-8 sm:w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+            <div 
+                className="w-full overflow-hidden"
+            >
+                <div className="taewang-flow-track py-2 gap-6">
+                    {repeatedItems.map((p, idx) => {
+                        const customBlogUrl = p.naverBlogUrl || p.blogUrl || (String(p.remarks || '').match(/(https?:\/\/blog\.naver\.com\/[^\s]+)/)?.[1]);
+                        const blogUrl = customBlogUrl || 'https://blog.naver.com/yunjia2miju';
+                        return (
+                            <div
+                                key={`${p.id}-${idx}`}
+                                onClick={() => handleCardClick(p.id, customBlogUrl)}
+                                className="w-[290px] sm:w-[360px] h-[440px] sm:h-[500px] bg-white rounded-[24px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-2.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0"
+                            >
+                                {/* 3D 효과를 배제하고 오직 평면 사진 갤러리 감성을 극대화한 프레임 */}
+                                <div className="relative aspect-[16/10] w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">
+                                    <img 
+                                        src={p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail)} 
+                                        alt={p.building} 
+                                        referrerPolicy="no-referrer"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    />
+                                    <div className="absolute top-4 left-4 flex gap-1.5">
+                                        <span className="bg-[#1c2541] text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md uppercase">
+                                            {p.category}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* 상세 텍스트 및 간결하고 명확한 평면 레이아웃 - 충분한 여백(p-6 sm:p-7)과 세로 간격(space-y-3.5) 부여 */}
+                                <div className="p-6 sm:p-7 flex-grow flex flex-col justify-between text-left">
+                                    <div className="space-y-3.5">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[11px] font-bold text-slate-400 truncate max-w-[180px]">
+                                                {p.address}
+                                            </span>
+                                            <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                                                {p.floor || '지상층'}
+                                            </span>
+                                        </div>
+                                        <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-[#1c2541] line-clamp-1 leading-snug">
+                                            {p.building}
+                                        </h4>
+                                        <p className="text-xs font-semibold text-slate-500 line-clamp-2 h-10 leading-relaxed">
+                                            {p.remarks ? p.remarks.replace(/<[^>]*>/g, '') : '체계적이고 투명한 권리분석을 통해 완벽한 안심 입주를 지원합니다.'}
+                                        </p>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-4">
+                                        <div className="text-base sm:text-lg font-black text-red-500">
+                                            {p.transactionType || '월세'} {p.price}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <a 
+                                                href={blogUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-[#64dfdf]/10 flex items-center justify-center border border-slate-200 text-indigo-600 shadow-sm hover:text-indigo-700 transition-all"
+                                                title="네이버 블로그 리뷰 연결"
+                                            >
+                                                <LinkIcon className="w-4 h-4" />
+                                            </a>
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined);
+                                                }}
+                                                className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center border border-slate-200 text-[#1c2541] shadow-sm transition-all"
+                                                title="문의 전화 걸기"
+                                            >
+                                                <Phone className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            
+        </div>
+    );
+};
 

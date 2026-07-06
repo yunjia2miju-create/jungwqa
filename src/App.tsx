@@ -92,10 +92,10 @@ export default function App() {
                 .catch(err => console.error("의뢰 목록을 불러오는 중 오류 발생:", err));
         };
 
-        if (document.readyState === 'complete') {
-            setTimeout(fetchData, 100);
+        if (document.readyState !== 'loading') {
+            fetchData();
         } else {
-            window.addEventListener('load', () => setTimeout(fetchData, 100));
+            window.addEventListener('DOMContentLoaded', fetchData);
         }
 
         // Real-time Firestore synchronizer for posts and inquiries (Instantly clears local and virtual cache)
@@ -348,7 +348,7 @@ export default function App() {
                             <i className="fa-solid fa-bullhorn mr-1"></i> 정직한 발걸음과 생생한 관찰 기록,<br />구미태왕공인중개사가 전문적인 중개를 약속합니다.
                         </div>
                         <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 w-full transition-all">
-                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex justify-between items-center">
+                            <div className="max-w-none w-full px-4 sm:px-12 md:px-16 lg:px-24 xl:px-32 h-16 sm:h-20 flex justify-between items-center">
                                 <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
                                     <div className="flex items-center space-x-2 group">
                                         <div className="shrink-0 flex items-center justify-center transition-all duration-300 !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
@@ -399,7 +399,6 @@ export default function App() {
                                 const appendCb = (url: string) => {
                                     if (!url) return url;
                                     if (url.startsWith('data:')) return url;
-                                    if (url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com') || url.includes('token=')) return url;
                                     const separator = url.includes('?') ? '&' : '?';
                                     return `${url}${separator}v=${buster}`;
                                 };
@@ -446,7 +445,6 @@ export default function App() {
                                 const appendCb = (url: string) => {
                                     if (!url) return url;
                                     if (url.startsWith('data:')) return url;
-                                    if (url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com') || url.includes('token=')) return url;
                                     const separator = url.includes('?') ? '&' : '?';
                                     return `${url}${separator}v=${buster}`;
                                 };
@@ -501,7 +499,7 @@ export default function App() {
 
                 {activeSection !== 'admin-write' && (
                     <footer className="!bg-[#0B2545] text-slate-500 py-12 border-t border-[#113866] w-full font-medium mt-auto" style={{ background: '#0B2545', backgroundColor: '#0B2545', backgroundImage: 'none' }}>
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left w-full">
+                        <div className="max-w-none w-full px-4 sm:px-12 md:px-16 lg:px-24 xl:px-32 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
                             <div className="space-y-2">
                                 <p className="text-base font-black text-slate-300">태왕공인중개사사무소</p>
                                 <div className="text-xs text-slate-500 leading-relaxed space-y-1">

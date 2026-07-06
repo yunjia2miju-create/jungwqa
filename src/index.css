@@ -32,32 +32,19 @@
 /* ==========================================
    소수점 좌표 픽셀 정렬(transform blur) 원천 차단 강력 규격 (html, body 제외)
    ========================================== */
-div:not(#mobile-bottom-bar):not(#main-simulation-wrapper):not(.fixed-header-wrapper):not(.taewang-floating-viewport-root), span {
-    transform: translate3d(0, 0, 0);
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
-    text-rendering: optimizeLegibility !important;
-}
-
-@font-face {
-    font-family: 'NanumDaSiSiJagHae';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/NanumDaSiSiJagHae.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-
+/* ==========================================
+   글자 외곽선 선명도(Anti-aliasing) 최적화 및 폰트 렌더링 극대화 규칙
+   ========================================== */
 body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background-color: #f8fafc;
+    font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background-color: #ffffff;
+    color: #111827; /* 고대비 딥 차콜 */
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
     text-rendering: optimizeLegibility !important;
 }
 
-/* ==========================================
-   글자 외곽선 선명도(Anti-aliasing) 최적화 규칙 주입
-   ========================================== */
 * {
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
@@ -65,22 +52,7 @@ body {
 }
 
 /* ==========================================
-   소수점 좌표 픽셀 정렬 뭉개짐(transform blur) 차단 (fixed 엘리먼트 제외)
-   ========================================== */
-div:not(#mobile-bottom-bar):not(#main-simulation-wrapper):not(.fixed-header-wrapper):not(.taewang-floating-viewport-root), section, p, span, h1, h2, h3, h4, h5, h6, button, a, i, input, textarea, label {
-    transform-style: preserve-3d !important;
-    backface-visibility: hidden !important;
-}
-
-#taewang-smart-floating-bar,
-#taewang-smart-floating-bar * {
-    transform-style: flat !important;
-    backface-visibility: visible !important;
-    transform: none !important;
-}
-
-/* ==========================================
-   하드웨어 폰트 렌더링 속성 정돈
+   하드웨어 폰트 렌더링 속성 정돈 ( crisp text vector rendering)
    ========================================== */
 html, body, button, input, select, textarea, p, span, h1, h2, h3, h4, h5, h6 {
     font-synthesis: none !important;
@@ -453,6 +425,30 @@ h1, h2, h3, h4, h5, h6 {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+}
+
+/* ==========================================
+   아임웹 감성: 하드웨어 가속 기반의 60fps 무한 루프 스르륵 슬라이더 애니메이션
+   ========================================== */
+@keyframes taewang-infinite-flow {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(-50%, 0, 0);
+    }
+}
+
+.taewang-flow-track {
+    display: flex;
+    width: max-content;
+    animation: taewang-infinite-flow 36s linear infinite !important;
+    will-change: transform;
+}
+
+/* 마우스 호버 시 뚝 끊기는 상태 전이 없이, 그 자리에서 우아하게 일시정지하여 클릭 및 상세 감상을 지원 */
+.taewang-flow-track:hover {
+    animation-play-state: paused !important;
 }
 
 

@@ -56,7 +56,7 @@ async function startServer() {
       fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), 'utf-8');
     }
 
-    // Programmatically replicate vr-captured-banner.png as fixed-master-vr-banner.png
+    // Programmatically convert SVG vr-captured-banner.png to a real raster PNG as fixed-master-vr-banner.png using sharp
     try {
       const assetsDir = path.join(projectRoot, 'public', 'assets');
       if (!fs.existsSync(assetsDir)) {
@@ -64,12 +64,27 @@ async function startServer() {
       }
       const srcBanner = path.join(assetsDir, 'vr-captured-banner.png');
       const destBanner = path.join(assetsDir, 'fixed-master-vr-banner.png');
-      if (fs.existsSync(srcBanner) && !fs.existsSync(destBanner)) {
-        fs.copyFileSync(srcBanner, destBanner);
-        console.log("[Server Startup] Replicated vr-captured-banner.png to fixed-master-vr-banner.png successfully.");
+      if (fs.existsSync(srcBanner)) {
+        // Since vr-captured-banner.png is actually an SVG file, we render it to a high-quality raster PNG so social scrapers (KakaoTalk, etc.) can show it!
+        const { default: sharp } = await import('sharp');
+        const svgContent = fs.readFileSync(srcBanner);
+        await sharp(svgContent)
+          .png()
+          .toFile(destBanner);
+        console.log("[Server Startup] Rendered SVG vr-captured-banner.png to real PNG fixed-master-vr-banner.png via sharp successfully!");
       }
     } catch (bannerErr) {
-      console.warn("[Server Startup] Failed to replicate master banner image:", bannerErr);
+      console.warn("[Server Startup] Failed to convert master banner to real PNG via sharp, falling back to direct copy:", bannerErr);
+      try {
+        const assetsDir = path.join(projectRoot, 'public', 'assets');
+        const srcBanner = path.join(assetsDir, 'vr-captured-banner.png');
+        const destBanner = path.join(assetsDir, 'fixed-master-vr-banner.png');
+        if (fs.existsSync(srcBanner) && !fs.existsSync(destBanner)) {
+          fs.copyFileSync(srcBanner, destBanner);
+        }
+      } catch (copyErr) {
+        console.error("[Server Startup] direct copy fallback also failed:", copyErr);
+      }
     }
   } catch (fsErr) {
     console.warn("[Cloud Run Startup] Cannot write local data files on read-only file system, serving safely from memory.", fsErr);
@@ -274,6 +289,19 @@ async function startServer() {
   app.get('/assets/vr-captured-banner.png', (req, res) => {
     res.setHeader('Content-Type', 'image/svg+xml');
     res.sendFile(path.join(projectRoot, 'public/assets/vr-captured-banner.png'));
+  });
+
+  app.get('/assets/fixed-master-vr-banner.png', (req, res) => {
+    res.setHeader('Content-Type', 'image/png');
+    const p1 = path.join(projectRoot, 'public/assets/fixed-master-vr-banner.png');
+    const p2 = path.join(projectRoot, 'dist/assets/fixed-master-vr-banner.png');
+    if (fs.existsSync(p1)) {
+      res.sendFile(p1);
+    } else if (fs.existsSync(p2)) {
+      res.sendFile(p2);
+    } else {
+      res.status(404).send('Banner not found');
+    }
   });
 
   // Request logger
@@ -1388,6 +1416,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
               html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
               html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
               
               if (html.includes('property="og:image"')) {
                 html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
@@ -1438,6 +1467,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
               html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
               html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
               
               if (html.includes('property="og:image"')) {
                 html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);

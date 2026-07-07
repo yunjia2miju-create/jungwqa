@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAppStore } from './store';
 import { MainTab } from './components/MainTab';
 import { DetailTab } from './components/DetailTab';
+import { VrListTab } from './components/VrListTab';
 import { AdminLoginSection } from './components/AdminLoginSection';
 import { AdminDashboardSection } from './components/AdminDashboardSection';
 import { AdminWriteSection } from './components/AdminWriteSection';
@@ -409,7 +410,10 @@ export default function App() {
                         </div>
                         <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 w-full transition-all">
                             <div className="max-w-[1100px] mx-auto w-full px-4 sm:px-6 md:px-8 h-16 sm:h-20 flex justify-between items-center">
-                                <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
+                                <div className="flex items-center cursor-pointer" onClick={() => {
+                                    setActiveSection('main');
+                                    useAppStore.getState().setViewAllCategory(null);
+                                }}>
                                     <div className="flex items-center space-x-2 group">
                                         <div className="shrink-0 flex items-center justify-center transition-all duration-300 !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
                                             <Naver360Icon className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md" />
@@ -448,6 +452,7 @@ export default function App() {
 
                 <main className={`flex-grow w-full ${activeSection !== 'admin-write' ? 'pt-[96px] sm:pt-[116px]' : ''}`}>
                     {activeSection === 'main' && <MainTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
+                    {activeSection === 'vr-list' && <VrListTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
                     {activeSection === 'detail' && selectedPost && (
                         <DetailTab 
                             key={`${selectedPost.id}-${selectedPost.updatedAt || selectedPost.createdAt || 0}`}

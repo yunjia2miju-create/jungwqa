@@ -15,9 +15,12 @@ interface AppState {
     searchVal: string;
     currentPage: number;
     isMobileSimulationMode: boolean;
-    activeSection: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write';
+    activeSection: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write' | 'vr-list';
     selectedPostId: string | null;
     videoPopupUrl: string | null;
+    viewAllCategory: string | null;
+    viewAllItems: Post[];
+    fromSection: 'main' | 'vr-list';
 
     setPosts: (posts: Post[]) => void;
     setInquiries: (inqs: Inquiry[]) => void;
@@ -30,9 +33,12 @@ interface AppState {
     setSearchVal: (val: string) => void;
     setCurrentPage: (page: number) => void;
     setIsMobileSimulationMode: (val: boolean) => void;
-    setActiveSection: (sec: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write') => void;
+    setActiveSection: (sec: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write' | 'vr-list') => void;
     setSelectedPostId: (id: string | null) => void;
     setVideoPopupUrl: (url: string | null) => void;
+    setViewAllCategory: (cat: string | null) => void;
+    setViewAllItems: (items: Post[]) => void;
+    setFromSection: (sec: 'main' | 'vr-list') => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -52,6 +58,9 @@ export const useAppStore = create<AppState>((set) => ({
     activeSection: 'main',
     selectedPostId: null,
     videoPopupUrl: null,
+    viewAllCategory: null,
+    viewAllItems: [],
+    fromSection: 'main',
 
     setPosts: (posts) => set({ posts }),
     setInquiries: (inqs) => set({ inquiries: inqs }),
@@ -74,11 +83,14 @@ export const useAppStore = create<AppState>((set) => ({
     setIsMobileSimulationMode: (val) => set({ isMobileSimulationMode: val }),
     setActiveSection: (sec) => set((state) => ({ 
         activeSection: sec,
-        selectedPostId: (sec === 'main' || sec === 'admin-login' || sec === 'admin-dashboard' || sec === 'admin-write') ? null : state.selectedPostId 
+        selectedPostId: (sec === 'main' || sec === 'admin-login' || sec === 'admin-dashboard' || sec === 'admin-write' || sec === 'vr-list') ? null : state.selectedPostId 
     })),
-    setSelectedPostId: (id) => set({ 
+    setSelectedPostId: (id) => set((state) => ({ 
         selectedPostId: id, 
-        activeSection: id ? 'detail' : 'main' 
-    }),
+        activeSection: id ? 'detail' : state.fromSection 
+    })),
     setVideoPopupUrl: (url) => set({ videoPopupUrl: url }),
+    setViewAllCategory: (cat) => set({ viewAllCategory: cat }),
+    setViewAllItems: (items) => set({ viewAllItems: items }),
+    setFromSection: (sec) => set({ fromSection: sec }),
 }));

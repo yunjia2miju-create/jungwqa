@@ -20,17 +20,29 @@ export const MainTab = ({
         isAdminLoggedIn, 
         setSelectedPostId,
         setActiveSection,
-        setInquiries
+        setInquiries,
+        viewAllCategory,
+        viewAllItems,
+        setViewAllCategory,
+        setViewAllItems,
+        setFromSection
     } = useAppStore();
 
     const [searchInput, setSearchInput] = useState('');
     const [filteredPosts, setFilteredPosts] = useState<any[]>([]);
     const [isMobile, setIsMobile] = useState(false);
 
+    // 스마트 통합검색 실시간 팝업 검색결과 목록 추출용
+    const searchResults = useMemo(() => {
+        const query = searchInput.toLowerCase().trim();
+        if (!query) return [];
+        return posts.filter(p => {
+            const buildingMatch = String(p.building || '').toLowerCase().includes(query);
+            const addressMatch = String(p.address || '').toLowerCase().includes(query);
+            return buildingMatch || addressMatch;
+        });
+    }, [searchInput, posts]);
 
-    // 전체보기 모달 상태
-    const [viewAllCategory, setViewAllCategory] = useState<string | null>(null);
-    const [viewAllItems, setViewAllItems] = useState<any[]>([]);
 
     const handleViewAll = (categoryTitle: string, items: any[]) => {
         setViewAllCategory(categoryTitle);
@@ -130,6 +142,28 @@ export const MainTab = ({
         });
         setFilteredPosts(filtered);
     }, [searchInput, posts]);
+
+    const handleSearchItemClick = (p: any) => {
+        const isVideoCategory = p.category === '유튜브' || p.category === '네이버TV';
+        const videoUrl = p.video || p.naverTv || p.naverBlogUrl || p.blogUrl || (String(p.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+
+        if (isVideoCategory && videoUrl) {
+            useAppStore.getState().setVideoPopupUrl(videoUrl);
+            return;
+        }
+
+        if (!p.id.startsWith('placeholder')) {
+            const customBlogUrl = p.naverBlogUrl || p.blogUrl;
+            if (customBlogUrl && !isVideoCategory) {
+                window.open(customBlogUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                setSelectedPostId(p.id);
+                setActiveSection('detail');
+            }
+        } else if (p.id.startsWith('placeholder') && (p.naverBlogUrl || p.blogUrl)) {
+            window.open(p.naverBlogUrl || p.blogUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
 
     // 대기 카드 네이버 블로그 수동 링크 매칭 헬퍼
     const getBlogUrl = (p: any, defaultUrl: string) => {
@@ -754,6 +788,69 @@ export const MainTab = ({
                             placeholder="건물 주소 또는 건물명(예: 포브스, 모던빌, 젠틀맨)을 입력하세요..." 
                             className="w-full bg-slate-50 border border-slate-200 text-slate-950 font-extrabold rounded-2xl pl-14 sm:pl-16 pr-6 py-5 text-sm sm:text-base focus:outline-none focus:bg-white focus:ring-4 focus:ring-[#3a506b]/15 focus:border-[#3a506b] transition-all placeholder-slate-400" 
                         />
+
+                        {/* 스마트 통합검색 실시간 결과 팝업창 (결과가 있을 때만 렌더링) */}
+                        {searchInput.trim() !== '' && searchResults.length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-50 overflow-hidden divide-y divide-slate-100 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="bg-slate-50 px-5 py-3 text-xs font-black text-slate-500 border-b border-slate-100 flex items-center justify-between select-none shrink-0">
+                                    <span>실시간 매물 검색 결과 ({searchResults.length}건)</span>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setSearchInput('')}
+                                        className="text-slate-400 hover:text-slate-600 transition-colors font-extrabold cursor-pointer px-2 py-1 rounded hover:bg-slate-200/50"
+                                    >
+                                        닫기
+                                    </button>
+                                </div>
+                                <div className="max-h-[350px] overflow-y-auto divide-y divide-slate-100 scrollbar-none">
+                                    {searchResults.map((p) => {
+                                        return (
+                                            <div 
+                                                key={p.id}
+                                                onClick={() => {
+                                                    handleSearchItemClick(p);
+                                                    setSearchInput(''); // 검색창 초기화로 팝업창 닫기 및 필터링 리셋
+                                                }}
+                                                className="p-3.5 flex items-center gap-3.5 hover:bg-slate-50 cursor-pointer transition-all duration-150 group text-left"
+                                            >
+                                                <div className="w-14 h-11 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-100 relative">
+                                                    <img 
+                                                        src={p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail)} 
+                                                        alt={p.building} 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                </div>
+                                                <div className="flex-grow min-w-0">
+                                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                                        <span className="text-[9px] font-black bg-[#1c2541]/10 text-[#1c2541] px-1.5 py-0.5 rounded uppercase">
+                                                            {p.category}
+                                                        </span>
+                                                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 shrink-0">
+                                                            {p.price}
+                                                        </span>
+                                                        {p.floor && (
+                                                            <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded shrink-0">
+                                                                {p.floor}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <h5 className="text-sm font-black text-slate-900 truncate group-hover:text-[#3a506b] transition-colors leading-snug">
+                                                        {p.building}
+                                                    </h5>
+                                                    <p className="text-[11px] text-slate-400 font-bold truncate leading-relaxed">
+                                                        {p.address}
+                                                    </p>
+                                                </div>
+                                                <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-[#3a506b]/10 flex items-center justify-center shrink-0 transition-colors">
+                                                    <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#3a506b] transition-colors" />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {searchInput && (
@@ -863,7 +960,11 @@ export const MainTab = ({
                             직접 방문하지 않아도 생생하게 공간을 체험할 수 있는 최신 360도 VR 매물입니다.
                         </p>
                         <div className="pt-6 flex justify-center">
-                            <button onClick={() => handleViewAll('360° 현장 VR 투어', vrData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                            <button onClick={() => {
+                                setFromSection('main');
+                                setActiveSection('vr-list');
+                                window.scrollTo(0, 0);
+                            }} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
                                 지금 즉시 <span className="font-black text-[#64dfdf]">360° 현장 VR 투어</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
@@ -1429,12 +1530,43 @@ const Carousel3D = ({
                                         </span>
                                     </div>
                                     {isVideoCategory && (
-                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                            <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform">
-                                                <svg className="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z" />
-                                                </svg>
-                                            </div>
+                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-all duration-300">
+                                            {p.category === '유튜브' ? (
+                                                /* YouTube Play Button Logo */
+                                                <div className="w-16 h-11 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                                                    <svg className="w-full h-full text-[#FF0000] filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
+                                                        <polygon points="9.545 8.568 15.818 12 9.545 15.432" fill="white" />
+                                                    </svg>
+                                                </div>
+                                            ) : (
+                                                /* Naver TV Play Button Logo (Rounded Gradient Square + White Folded Ribbon) */
+                                                <div className="w-14 h-14 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
+                                                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                                                        <defs>
+                                                            <linearGradient id="naverTvLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                                <stop offset="0%" stopColor="#05D975" />
+                                                                <stop offset="100%" stopColor="#00CCD6" />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        {/* Rounded container with exact green-to-cyan gradient */}
+                                                        <rect width="100" height="100" rx="28" fill="url(#naverTvLogoGrad)" />
+                                                        
+                                                        {/* White Folded Triangular Ribbon Loop */}
+                                                        <g transform="translate(4, 4)">
+                                                            {/* Left Pillar */}
+                                                            <path d="M 30 25 C 30 19.5 33.5 17 38 19.5 L 38 80.5 C 33.5 83 30 80.5 30 75 Z" fill="#FFFFFF" opacity="0.95" />
+                                                            {/* Top Diagonal */}
+                                                            <path d="M 38 19.5 L 72.5 43.5 C 76.5 46.2 76.5 50.8 72.5 53.5 L 61 45.5 L 38 29.5 Z" fill="#FFFFFF" opacity="1" />
+                                                            {/* Bottom Diagonal */}
+                                                            <path d="M 38 80.5 L 72.5 56.5 C 76.5 53.8 76.5 49.2 72.5 46.5 L 49.5 62.5 L 38 70.5 Z" fill="#FFFFFF" opacity="0.85" />
+                                                            {/* Overlapping fold covers for 3D realism */}
+                                                            <path d="M 38 29.5 L 38 19.5 L 46 25 Z" fill="#EEEEEE" opacity="0.9" />
+                                                            <path d="M 38 70.5 L 38 80.5 L 46 75 Z" fill="#DDDDDD" opacity="0.8" />
+                                                        </g>
+                                                    </svg>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

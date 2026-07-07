@@ -36,7 +36,7 @@ export const DetailTab = ({
     images?: string[],
     panoramaImages?: string[]
 }) => {
-    const { posts, isAdminLoggedIn, selectedPostId, setSelectedPostId, setActiveSection, isMobileSimulationMode } = useAppStore();
+    const { posts, isAdminLoggedIn, selectedPostId, setSelectedPostId, setActiveSection, isMobileSimulationMode, fromSection } = useAppStore();
 
     // 2) 5대 마케팅: 관심 매물 (찜하기) 시스템
     const [favorites, setFavorites] = React.useState<string[]>(() => {
@@ -356,7 +356,7 @@ export const DetailTab = ({
 
     return (
         <section key={`detail-section-${liveKey}`} id="detail-section" className="max-w-[1100px] mx-auto w-full px-4 sm:px-6 md:px-8 py-6 sm:py-10 transition-opacity duration-300">
-            <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
+            <button onClick={() => { setActiveSection(fromSection); window.scrollTo(0, 0); }} className="inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
                 {"<<<< 앞 바로가기 <<<<"}
             </button>
 
@@ -975,7 +975,7 @@ export const DetailTab = ({
             </article>
 
             <div className="mt-6 sm:mt-10 text-center w-full">
-                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl tracking-wider">
+                <button onClick={() => { setActiveSection(fromSection); window.scrollTo(0, 0); }} className="w-full inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl tracking-wider">
                     {"<<<< 앞 바로가기 <<<<"}
                 </button>
             </div>
@@ -1080,7 +1080,7 @@ export const DetailTab = ({
             )}
 
             <div className="mt-6 sm:mt-10 text-center w-full pb-4">
-                <button onClick={() => setActiveSection('main')} className="w-full inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl tracking-wider">
+                <button onClick={() => { setActiveSection(fromSection); window.scrollTo(0, 0); }} className="w-full inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl tracking-wider">
                     {"<<<< 앞 바로가기 <<<<"}
                 </button>
             </div>

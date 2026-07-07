@@ -182,7 +182,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                         <div className="text-[10px] sm:text-xs font-bold text-slate-400 mb-1 line-clamp-1">{item.address}</div>
                                                         <h3 className="text-base sm:text-lg font-black text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">
                                                             {item.building || '건물명 없음'}
-                                                            {item.room ? <span className="ml-1 text-sm font-bold text-slate-500">{item.room}호</span> : ''}
+                                                            {isAdminLoggedIn && item.room ? <span className="ml-1 text-sm font-bold text-slate-500">{item.room}호</span> : ''}
                                                         </h3>
                                                     </div>
 
@@ -192,7 +192,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
 
                                                     {item.remarks && (
                                                         <p className="text-xs sm:text-sm text-slate-500 font-medium line-clamp-2 mb-4 flex-1">
-                                                            {item.remarks}
+                                                            {typeof item.remarks === 'string' ? item.remarks.replace(/<[^>]*>/g, '') : ''}
                                                         </p>
                                                     )}
 

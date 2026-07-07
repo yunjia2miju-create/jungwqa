@@ -1454,7 +1454,7 @@ const Carousel3D = ({
                                             {p.building}
                                         </h4>
                                         <p className="text-[11px] font-semibold text-slate-500 line-clamp-1 leading-relaxed">
-                                            {p.remarks ? p.remarks.replace(/<[^>]*>/g, '') : '체계적이고 투명한 권리분석을 통해 완벽한 안심 입주를 지원합니다.'}
+                                            {typeof p.remarks === 'string' ? p.remarks.replace(/<[^>]*>/g, '') : '체계적이고 투명한 권리분석을 통해 완벽한 안심 입주를 지원합니다.'}
                                         </p>
 
                                         {/* 네이버 블로그 글 수동 링크 칸 - 썸네일과 1:1 대응하여 시인성 극대화 */}

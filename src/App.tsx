@@ -158,6 +158,31 @@ export default function App() {
         };
     }, []);
 
+    // Synchronize detail view state dynamically with the browser's URL address bar query parameters
+    useEffect(() => {
+        try {
+            if (activeSection === 'detail' && selectedPostId) {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('postId') !== selectedPostId && params.get('id') !== selectedPostId) {
+                    params.set('postId', selectedPostId);
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
+                }
+            } else if (activeSection === 'main') {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('postId') || params.has('id')) {
+                    params.delete('postId');
+                    params.delete('id');
+                    const search = params.toString();
+                    const newUrl = window.location.pathname + (search ? `?${search}` : '');
+                    window.history.pushState(null, "", newUrl);
+                }
+            }
+        } catch (e) {
+            console.warn("URL history sync failed:", e);
+        }
+    }, [activeSection, selectedPostId]);
+
     const showToast = (msg: string, type: 'success'|'error' = 'success') => {
         const id = Date.now();
         setToasts(prev => [...prev, { id, msg, type }]);

@@ -61,6 +61,7 @@ export const DetailTab = ({
 
     const [isFetchingDetail, setIsFetchingDetail] = React.useState(true);
     const [copied, setCopied] = React.useState(false);
+    const [shareCopied, setShareCopied] = React.useState(false);
     const [zoomedImageId, setZoomedImageId] = React.useState<string | null>(null);
     const [isHovered, setIsHovered] = React.useState<string | null>(null);
     const [isBlogModalOpen, setIsBlogModalOpen] = React.useState(false);
@@ -476,6 +477,39 @@ export const DetailTab = ({
                             <i className="fa-solid fa-phone animate-bounce"></i>
                             <span>태왕공인중개사 전화연결</span>
                         </a>
+
+                        {/* 이 매물 인터넷 주소(링크) 복사하기 버튼 */}
+                        <button 
+                            onClick={() => {
+                                const shareUrl = `${window.location.origin}${window.location.pathname}?postId=${p.id}`;
+                                navigator.clipboard.writeText(shareUrl).then(() => {
+                                    setShareCopied(true);
+                                    if (showToast) {
+                                        showToast("매물 상세페이지 인터넷 주소가 복사되었습니다. 카카오톡 채팅창에 붙여넣기(전송)하세요!", "success");
+                                    }
+                                    setTimeout(() => setShareCopied(false), 3000);
+                                }).catch(err => {
+                                    console.error("URL copy failed: ", err);
+                                });
+                            }}
+                            className={`mt-2 w-full font-black py-2.5 lg:py-4 rounded-xl flex items-center justify-center gap-2 lg:gap-3 transition-all text-center select-none cursor-pointer text-xs lg:text-base border ${
+                                shareCopied 
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-700' 
+                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-sm'
+                            }`}
+                        >
+                            {shareCopied ? (
+                                <>
+                                    <i className="fa-solid fa-circle-check text-emerald-500 text-sm lg:text-lg"></i>
+                                    <span>주소 복사 완료! (채팅창에 붙여넣으세요)</span>
+                                </>
+                            ) : (
+                                <>
+                                    <i className="fa-solid fa-share-nodes text-[#0B2545] text-sm lg:text-lg animate-pulse"></i>
+                                    <span>이 매물 인터넷 주소(링크) 복사하기</span>
+                                </>
+                            )}
+                        </button>
                     </div>
                 </div>
 

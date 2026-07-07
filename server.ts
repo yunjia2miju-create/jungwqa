@@ -1395,6 +1395,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
                 html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
             }
+            // Dynamic host replacement for developer's active domain
+            const hostUrl = `${req.protocol}://${req.get('host')}`;
+            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
             res.send(html);
             return;
           } catch (e) {
@@ -1441,6 +1446,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               }
             }
           }
+          // Dynamic host replacement for production client's active domain
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
           res.send(html);
         } catch (err) {
           console.error("Error inject dynamic OG tags:", err);

@@ -26,9 +26,10 @@ async function startServer() {
   const app = express();
   const port = 3000;
 
-  const projectRoot = _dirname.endsWith('dist') || _dirname.endsWith('dist/')
-    ? path.resolve(_dirname, '..')
-    : _dirname;
+  // Robust projectRoot calculation
+  const projectRoot = (typeof __dirname !== 'undefined')
+    ? (__dirname.endsWith('dist') || __dirname.endsWith('dist/') ? path.resolve(__dirname, '..') : __dirname)
+    : process.cwd();
 
   const DATA_DIR = path.join(projectRoot, 'data');
   const POSTS_FILE = path.join(DATA_DIR, 'posts.json');

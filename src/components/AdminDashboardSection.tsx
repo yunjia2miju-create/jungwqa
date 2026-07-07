@@ -183,7 +183,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
     };
 
     return (
-        <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn text-left">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn text-left">
             {/* Upper Dashboard Header (Inline Panel) */}
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

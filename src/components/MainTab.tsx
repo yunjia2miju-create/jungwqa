@@ -551,7 +551,7 @@ export const MainTab = ({
     }, [filteredPosts]);
 
     const youtubeData = useMemo(() => {
-        const real = [...filteredPosts.filter(p => p.category === '유튜브')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const real = [...posts.filter(p => p.category === '유튜브')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
         const placeholders = [
             {
                 id: 'placeholder-youtube-1',
@@ -591,10 +591,10 @@ export const MainTab = ({
             }
         ];
         return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
-    }, [filteredPosts]);
+    }, [posts]);
 
     const naverTvData = useMemo(() => {
-        const real = [...filteredPosts.filter(p => p.category === '네이버TV')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
+        const real = [...posts.filter(p => p.category === '네이버TV')].sort((a, b) => (a.isRecommended === b.isRecommended ? 0 : a.isRecommended ? -1 : 1));
         const placeholders = [
             {
                 id: 'placeholder-navertv-1',
@@ -634,7 +634,7 @@ export const MainTab = ({
             }
         ];
         return real.length > 0 ? [...real, ...placeholders.slice(real.length)] : placeholders;
-    }, [filteredPosts]);
+    }, [posts]);
 
     // 1:1 상담 및 매물 의뢰 데이터 상태
     const [inquiryForm, setInquiryForm] = useState({ name: '', phone: '', message: '' });
@@ -672,47 +672,50 @@ export const MainTab = ({
             {/* [최상단 비주얼 브랜드 히어로 배너]: 소장님의 지시에 따라 오직 텍스트로만 웅장하고 미니멀하게 구성 */}
             <div 
                 id="hero-desktop-wrapper" 
-                className="relative w-full h-auto min-h-[550px] lg:h-auto lg:py-28 bg-[#050c1a] flex items-center justify-center overflow-hidden border-b border-slate-900 select-none px-6 pt-36 sm:pt-44 pb-20"
+                className="relative w-full h-auto min-h-[520px] lg:min-h-[620px] bg-[#051124] flex items-center justify-center overflow-hidden border-b border-slate-900 select-none px-6 pt-28 sm:pt-36 pb-20 sm:pb-24"
             >
                 {/* 깊고 고급스러운 웅장함을 주는 딥 킹스 네이비(Deep King's Navy) 바탕 백그라운드 */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#050c1a] via-[#09152b] to-[#12284f] opacity-98"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.04),transparent)]"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-[#0B2545] via-[#081D33] to-[#040E1A] opacity-100"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent)]"></div>
 
-                <div className="relative z-10 max-w-4xl mx-auto w-full text-center space-y-8 px-4 flex flex-col items-center">
+                <div className="relative z-10 max-w-5xl mx-auto w-full text-center space-y-8 px-4 flex flex-col items-center">
                     
-                    <div className="flex flex-col items-center gap-3">
-                        <span className="text-[#64dfdf] text-[11px] sm:text-xs font-black uppercase tracking-[0.3em] bg-white/5 border border-white/10 px-5 py-2.5 rounded-full backdrop-blur-md shadow-2xl">
+                    {/* 360 집 모양 VR 아이콘 */}
+                    <div className="relative mb-3 animate-[pulse_3s_ease-in-out_infinite]">
+                        <Naver360Icon className="w-36 h-36 sm:w-44 sm:h-44 drop-shadow-[0_16px_48px_rgba(100,223,223,0.35)] hover:scale-110 active:scale-95 transition-all duration-500 cursor-pointer" />
+                    </div>
+
+                    <div className="flex flex-col items-center gap-2">
+                        <span className="text-[#64dfdf] text-xs sm:text-sm lg:text-base font-black uppercase tracking-[0.3em] bg-white/5 border border-white/10 px-6 py-2.5 rounded-full backdrop-blur-md shadow-2xl">
                             GUMI TAEWANG REAL ESTATE
                         </span>
                     </div>
 
-                    <h1 className="flex flex-col items-center gap-4 select-none">
-                        <span className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] whitespace-nowrap sm:whitespace-normal">
+                    <h1 className="flex flex-col items-center gap-3.5 select-none">
+                        <span className="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-none drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                             360 공간 현장 VR 투어
                         </span>
-                        <span className="text-xl sm:text-3xl lg:text-3.5xl font-black text-[#64dfdf] tracking-tight leading-none drop-shadow-[0_5px_15px_rgba(100,223,223,0.2)]">
+                        <span className="text-xl sm:text-3xl lg:text-4xl font-black text-[#64dfdf] tracking-tight leading-none drop-shadow-[0_5px_15px_rgba(100,223,223,0.3)] mt-1">
                             단 한줄의 정직한 가치
                         </span>
                     </h1>
 
-                    <p className="text-slate-300 text-sm sm:text-base lg:text-lg leading-relaxed font-bold max-w-2xl mx-auto">
+                    <p className="text-slate-200 text-sm sm:text-lg lg:text-xl leading-relaxed font-semibold max-w-4xl mx-auto">
                         태왕공인중개사사무소는 오랜 경험과 정직함을 바탕으로 구미 전 지역의 프리미엄 부동산 정보를 선별하여 제공합니다.
-                        <br /><br />
-                        신뢰할 수 있는 구미 대표 자사몰에서 단 한 줄의 정직한 인연을 통해 소중한 주거 공간의 가치를 직접 발견해 보세요.
-                        <br /><br />
-                        고객님의 라이프스타일을 완벽히 반영한 맞춤형 중개 솔루션을 정성스럽게 제안해 드립니다.
+                        <br />
+                        신뢰할 수 있는 구미 대표 자사몰에서 단 한 줄의 정직한 인연을 통해 소중한 주거 공간의 가치를 발견해 보세요.
                     </p>
 
-                    <div className="flex flex-wrap justify-center gap-4 pt-4">
+                    <div className="flex flex-wrap justify-center gap-5 pt-4">
                         <a 
                             href="#property-search-section" 
-                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4.5 rounded-full shadow-lg"
+                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-lg px-10 py-5 rounded-full shadow-xl hover:shadow-2xl"
                         >
                             실시간 매물 보러가기
                         </a>
                         <a 
                             href="#direct-consulting-section" 
-                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4.5 rounded-full shadow-lg backdrop-blur-sm"
+                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-lg px-10 py-5 rounded-full shadow-xl hover:shadow-2xl backdrop-blur-sm"
                         >
                             1:1 중개 의뢰하기
                         </a>
@@ -723,23 +726,20 @@ export const MainTab = ({
             {/* [통합 검색창 구역]: 대문 상단 중앙에 배치되어 칼같이 실시간 필터링 수행 */}
             <div 
                 id="property-search-section" 
-                className="max-w-4xl mx-auto -mt-16 relative z-30 px-4"
+                className="max-w-4xl mx-auto -mt-10 relative z-30 px-4"
             >
-                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
-                    <div className="text-center space-y-2 select-none">
+                <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-100 space-y-4">
+                    <div className="text-center space-y-1.5 select-none">
                         <span className="text-[#3a506b] text-[10px] sm:text-xs font-black uppercase tracking-widest">
                             SMART INTEGRATED SEARCH
                         </span>
                         
-                        <br /><br />
-                        <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
                             스마트 통합 검색
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-500 text-xs sm:text-sm font-semibold">
+                        <p className="text-slate-500 text-xs sm:text-sm font-semibold mt-1">
                             찾으시는 건물의 명칭이나 주소를 입력하시면 실시간으로 아래 매물들이 필터링됩니다.
-                            <br /><br />
                         </p>
                     </div>
 
@@ -767,16 +767,17 @@ export const MainTab = ({
             {/* [실시간 360° 공간 가상 투어 구역]: 스마트 통합검색 밑과 360 최신 매물 사이에 이동 설치 완료 */}
             <div 
                 id="vr-showcase-section"
-                className="max-w-7xl mx-auto px-4 sm:px-8 py-16 space-y-8 relative z-20"
+                className="max-w-7xl mx-auto px-4 sm:px-8 py-20 space-y-12 relative z-20"
             >
-                <div className="text-center space-y-3 select-none">
-                    <span className="text-[#0B2545] text-xs sm:text-sm font-black uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
+                <div className="text-center space-y-6 select-none flex flex-col items-center">
+                    <span className="text-[#0B2545] text-sm sm:text-base font-black uppercase tracking-widest bg-slate-100 px-5 py-2 rounded-full border border-slate-200">
                         REAL-TIME 360° VR SHOWCASE
                     </span>
-                    <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+
+                    <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                         실시간 360° 가상 현장 투어
                     </h3>
-                    <p className="text-slate-500 text-xs sm:text-sm font-bold max-w-xl mx-auto leading-relaxed">
+                    <p className="text-slate-500 text-sm sm:text-base lg:text-lg font-semibold max-w-4xl mx-auto leading-relaxed mt-2">
                         실제 방문하시기 전에 360° 파노라마 뷰어로 현장 인프라와 세대별 내부 공간을 고해상도로 미리 실감나게 탐색해보세요.
                     </p>
                 </div>
@@ -848,24 +849,22 @@ export const MainTab = ({
                     </div>
                 </div>
 
-                <div className="pt-24 w-full max-w-full overflow-hidden">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none mb-10">
-                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div className="pt-20 w-full max-w-full overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none mb-14 flex flex-col items-center">
+                        <span className="text-emerald-600 text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             360° VIRTUAL REALITY
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             최신 360° VR 매물
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             직접 방문하지 않아도 생생하게 공간을 체험할 수 있는 최신 360도 VR 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('360° 현장 VR 투어', vrData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">360° 현장 VR 투어</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('360° 현장 VR 투어', vrData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">360° 현장 VR 투어</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -888,24 +887,22 @@ export const MainTab = ({
             <div className="w-full py-24 space-y-36">
 
                 {/* 1. 원룸 추천 매물 구역 */}
-                <div id="oneroom-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="oneroom-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-emerald-600 text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             PREMIUM SELECTION
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             원룸 추천매물
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             직주근접에 탁월하며 완벽한 수리 및 리모델링이 보증된 실용적이고 특별한 원룸 추천 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('원룸추천매물', oneRoomRecommendData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">원룸추천매물</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('원룸추천매물', oneRoomRecommendData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">원룸추천매물</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -924,24 +921,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 2. 미투 추천 매물 구역 */}
-                <div id="mitu-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-[#3a506b] text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="mitu-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-[#3a506b] text-sm sm:text-base font-black uppercase tracking-widest bg-slate-100 px-5 py-2 rounded-full border border-slate-200">
                             EXCLUSIVE MITU
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             미투 추천매물
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             거실과 방이 분리된 미니투룸 구조로 공간 활용도가 극대화된 최고 평판의 미투 추천 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('미투추천매물', miRoomRecommendData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">미투추천매물</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('미투추천매물', miRoomRecommendData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">미투추천매물</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -960,24 +955,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 3. 투룸/쓰리룸 특선 구역 */}
-                <div id="tworoom-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-[#3a506b] text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="tworoom-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-[#3a506b] text-sm sm:text-base font-black uppercase tracking-widest bg-slate-100 px-5 py-2 rounded-full border border-slate-200">
                             EXCLUSIVE SELECTIONS
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             투룸/쓰리룸 특선
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             거주 공간의 여유와 현대적 품격을 선사하는 웅장하고 거창한 프리미엄 투룸 및 쓰리룸 특선 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('투룸/쓰리룸 특선', specialData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">투룸/쓰리룸 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('투룸/쓰리룸 특선', specialData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">투룸/쓰리룸 특선</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -996,24 +989,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 4. 오피스텔 특선 구역 */}
-                <div id="officetel-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="officetel-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-emerald-600 text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             PREMIUM OFFICETEL
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             오피스텔 특선
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             도심의 편리함과 고품격 인프라를 모두 갖춘 최적의 입지, 완벽하게 정비된 오피스텔 특선 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('오피스텔 특선', officetelData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">오피스텔 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('오피스텔 특선', officetelData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">오피스텔 특선</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1032,24 +1023,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 5. 아파트 특선 구역 */}
-                <div id="apartment-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-[#3a506b] text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="apartment-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-[#3a506b] text-sm sm:text-base font-black uppercase tracking-widest bg-slate-100 px-5 py-2 rounded-full border border-slate-200">
                             LUXURY APARTMENT
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             아파트 특선
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             넓고 쾌적한 주거 명작, 프리미엄 단지의 풍부한 인프라와 단독 생활의 평화로움을 전하는 아파트 특선 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('아파트 특선', apartmentData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">아파트 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('아파트 특선', apartmentData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">아파트 특선</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1068,24 +1057,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 6. 빌라 특선 구역 */}
-                <div id="villa-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="villa-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-emerald-600 text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             SPECIAL VILLA
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             빌라 특선
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             편안하고 아늑한 생활을 위한 프리미엄 빌라 추천 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('빌라 특선', villaData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">빌라 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('빌라 특선', villaData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">빌라 특선</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1104,24 +1091,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 7. 상가(사무실) 특선 구역 */}
-                <div id="commercial-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="commercial-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-emerald-600 text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             SPECIAL COMMERCIAL
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             상가(사무실) 특선
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             성공적인 비즈니스를 위한 최적의 상가 및 사무실 추천 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('상가(사무실) 특선', commercialData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">상가(사무실) 특선</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('상가(사무실) 특선', commercialData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">상가(사무실) 특선</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1140,24 +1125,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 8. 원룸매매 추천 구역 */}
-                <div id="oneroom-sale-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-emerald-600 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="oneroom-sale-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-emerald-600 text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             ONE-ROOM SALE
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             원룸매매 추천
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             안정적인 임대 수익을 창출할 수 있는 수익형 원룸매매 추천 매물입니다.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('원룸매매 추천', oneRoomSaleData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">원룸매매 추천</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('원룸매매 추천', oneRoomSaleData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">원룸매매 추천</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1176,24 +1159,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 9. 유튜브 구역 */}
-                <div id="youtube-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-red-500 text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="youtube-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-red-500 text-sm sm:text-base font-black uppercase tracking-widest bg-red-50 px-5 py-2 rounded-full border border-red-100">
                             YOUTUBE
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             유튜브
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             생생한 영상으로 매물 투어와 유용한 부동산 정보를 확인하세요.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('유튜브', youtubeData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">유튜브</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('유튜브', youtubeData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">유튜브</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1212,24 +1193,22 @@ export const MainTab = ({
                 </div>
 
                 {/* 10. 네이버TV 구역 */}
-                <div id="navertv-section" className="space-y-14 w-full scroll-mt-28">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 select-none">
-                        <span className="text-[#03c75a] text-xs sm:text-sm font-black uppercase tracking-widest">
+                <div id="navertv-section" className="space-y-12 w-full scroll-mt-28">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-6 select-none flex flex-col items-center">
+                        <span className="text-[#03c75a] text-sm sm:text-base font-black uppercase tracking-widest bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100">
                             NAVER TV
                         </span>
 
-                        <br /><br />
-                        <h3 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mt-4">
                             네이버TV
                         </h3>
-                        <br /><br />
 
-                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-bold max-w-3xl mx-auto">
+                        <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-semibold max-w-4xl mx-auto mt-2">
                             네이버TV에서 제공하는 엄선된 매물 영상과 알짜 정보를 만나보세요.
                         </p>
-                        <div className="pt-8 flex justify-center">
-                            <button onClick={() => handleViewAll('네이버TV', naverTvData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3.5 px-8 sm:px-10 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base flex items-center gap-2">
-                                지금 즉시 <span className="font-black text-[#64dfdf]">네이버TV</span> 전체보기 <ArrowUpRight className="w-5 h-5 text-[#64dfdf]" />
+                        <div className="pt-6 flex justify-center">
+                            <button onClick={() => handleViewAll('네이버TV', naverTvData)} className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-black py-4.5 px-10 sm:px-12 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 text-sm sm:text-base lg:text-lg flex items-center gap-2.5">
+                                지금 즉시 <span className="font-black text-[#64dfdf]">네이버TV</span> 전체보기 <ArrowUpRight className="w-5.5 h-5.5 text-[#64dfdf]" />
                             </button>
                         </div>
                     </div>
@@ -1257,25 +1236,20 @@ export const MainTab = ({
                         <div className="absolute inset-0 bg-gradient-to-tr from-[#1c2541] to-[#3a506b] opacity-40"></div>
                         
                         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                            <div className="space-y-6 select-none text-left">
-                                <span className="text-[#64dfdf] text-xs font-black uppercase tracking-widest">
+                            <div className="space-y-4 select-none text-left">
+                                <span className="text-[#64dfdf] text-xs font-black uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/5">
                                     REAL ESTATE INQUIRY
                                 </span>
 
-                                <br /><br />
-                                <h3 className="text-2xl sm:text-4xl font-black text-white">
+                                <h3 className="text-2xl sm:text-3.5xl font-black text-white mt-2">
                                     실시간 1:1 중개 상담 신청
                                 </h3>
-                                <br /><br />
 
-                                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-semibold">
-                                    찾으시는 주거 형태나 임대 및 임차 관련 매물 의뢰 내용을 작성하여 보내주세요.
-                                    <br /><br />
-                                    구미 대표 브랜드 태왕공인중개사사무소에서 오랜 중개 실적을 증명하듯 소장님이 직접 신속하고 무결하게 전화를 드립니다.
-                                    <br /><br />
-                                    정직하고 성실한 자세로 고객님의 소중한 자산 형성을 정성을 다해 돕겠습니다.
-                                    <br /><br />
-                                </p>
+                                <div className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium space-y-3 mt-1">
+                                    <p>찾으시는 주거 형태나 임대 및 임차 관련 매물 의뢰 내용을 작성하여 보내주세요.</p>
+                                    <p>구미 대표 브랜드 태왕공인중개사사무소에서 오랜 중개 실적을 증명하듯 소장님이 직접 신속하고 무결하게 전화를 드립니다.</p>
+                                    <p>정직하고 성실한 자세로 고객님의 소중한 자산 형성을 정성을 다해 돕겠습니다.</p>
+                                </div>
 
                                 <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -1334,10 +1308,9 @@ export const MainTab = ({
                     </div>
 
                     {/* PC 환경 전용 안내 동선 가이드 (반응형 특성 유지) */}
-                    <div className="hidden lg:block bg-slate-100 border border-slate-200 rounded-3xl p-6 select-none">
-                        <p className="text-slate-500 text-xs font-bold leading-relaxed text-center">
+                    <div className="hidden lg:block bg-slate-100 border border-slate-200 rounded-2xl p-4 select-none">
+                        <p className="text-slate-500 text-[11px] font-semibold leading-relaxed text-center">
                             모든 관리자용 매물 등록 및 편집 등의 조작은 오직 PC 최적화 모드에서만 초고속으로 이루어지도록 설계되어 가동되고 있습니다.
-                            <br /><br />
                         </p>
                     </div>
                 </div>
@@ -1389,16 +1362,25 @@ const Carousel3D = ({
         return [...list, ...list];
     }, [items]);
 
-    const handleCardClick = (id: string, blogUrl?: string) => {
-        if (!id.startsWith('placeholder')) {
-            if (blogUrl) {
-                window.open(blogUrl, '_blank', 'noopener,noreferrer');
+    const handleCardClick = (p: any) => {
+        const isVideoCategory = p.category === '유튜브' || p.category === '네이버TV';
+        const videoUrl = p.video || p.naverTv || p.naverBlogUrl || p.blogUrl || (String(p.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+
+        if (isVideoCategory && videoUrl) {
+            useAppStore.getState().setVideoPopupUrl(videoUrl);
+            return;
+        }
+
+        if (!p.id.startsWith('placeholder')) {
+            const customBlogUrl = p.naverBlogUrl || p.blogUrl;
+            if (customBlogUrl && !isVideoCategory) {
+                window.open(customBlogUrl, '_blank', 'noopener,noreferrer');
             } else {
-                setSelectedPostId(id);
+                setSelectedPostId(p.id);
                 setActiveSection('detail');
             }
-        } else if (id.startsWith('placeholder') && blogUrl) {
-            window.open(blogUrl, '_blank', 'noopener,noreferrer');
+        } else if (p.id.startsWith('placeholder') && (p.naverBlogUrl || p.blogUrl)) {
+            window.open(p.naverBlogUrl || p.blogUrl, '_blank', 'noopener,noreferrer');
         }
     };
 
@@ -1419,74 +1401,116 @@ const Carousel3D = ({
             <div 
                 className="w-full overflow-hidden"
             >
-                <div className="taewang-flow-track py-2 gap-6">
+                <div className="taewang-flow-track py-2 gap-8">
                     {repeatedItems.map((p, idx) => {
                         const customBlogUrl = p.naverBlogUrl || p.blogUrl || (String(p.remarks || '').match(/(https?:\/\/blog\.naver\.com\/[^\s]+)/)?.[1]);
                         const blogUrl = customBlogUrl || 'https://blog.naver.com/yunjia2miju';
+                        const isVideoCategory = p.category === '유튜브' || p.category === '네이버TV';
+                        const videoUrl = p.video || p.naverTv || p.naverBlogUrl || p.blogUrl || (String(p.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+
                         return (
                             <div
                                 key={`${p.id}-${idx}`}
-                                onClick={() => handleCardClick(p.id, customBlogUrl)}
-                                className="w-[290px] sm:w-[360px] h-[440px] sm:h-[500px] bg-white rounded-[24px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-2.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0"
+                                onClick={() => handleCardClick(p)}
+                                className="w-[315px] sm:w-[360px] h-[420px] sm:h-[480px] bg-white rounded-[28px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-1.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0"
                             >
-                                {/* 3D 효과를 배제하고 오직 평면 사진 갤러리 감성을 극대화한 프레임 */}
-                                <div className="relative aspect-[16/10] w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">
+                                {/* 3D 효과를 배제하고 오직 평면 사진 갤러리 감성을 극대화한 프레임 - 12:9 (4:3) 썸네일로 구성 */}
+                                <div className="relative aspect-[12/9] w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">
                                     <img 
                                         src={p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail)} 
                                         alt={p.building} 
                                         referrerPolicy="no-referrer"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                        style={{ aspectRatio: '12/9' }}
                                     />
-                                    <div className="absolute top-4 left-4 flex gap-1.5">
-                                        <span className="bg-[#1c2541] text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md uppercase">
+                                    <div className="absolute top-3 left-3 flex gap-1.5">
+                                        <span className="bg-[#1c2541] text-white text-[9px] font-black px-2.5 py-1 rounded-md shadow-md uppercase">
                                             {p.category}
                                         </span>
                                     </div>
+                                    {isVideoCategory && (
+                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                            <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform">
+                                                <svg className="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* 상세 텍스트 및 간결하고 명확한 평면 레이아웃 - 충분한 여백(p-6 sm:p-7)과 세로 간격(space-y-3.5) 부여 */}
-                                <div className="p-6 sm:p-7 flex-grow flex flex-col justify-between text-left">
-                                    <div className="space-y-3.5">
+                                {/* 상세 텍스트 및 간결하고 명확한 평면 레이아웃 - 9:12 카드 형태에 최적화된 컴팩트 여백과 세로 간격(space-y-1.5) 부여 */}
+                                <div className="p-4 sm:p-5 flex-grow flex flex-col justify-between text-left">
+                                    <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[11px] font-bold text-slate-400 truncate max-w-[180px]">
+                                            <span className="text-[10px] font-bold text-slate-400 truncate max-w-[190px] sm:max-w-[220px]">
                                                 {p.address}
                                             </span>
-                                            <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                                            <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
                                                 {p.floor || '지상층'}
                                             </span>
                                         </div>
-                                        <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-[#1c2541] line-clamp-1 leading-snug">
+                                        <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-[#1c2541] line-clamp-1 leading-snug">
                                             {p.building}
                                         </h4>
-                                        <p className="text-xs font-semibold text-slate-500 line-clamp-2 h-10 leading-relaxed">
+                                        <p className="text-[11px] font-semibold text-slate-500 line-clamp-1 leading-relaxed">
                                             {p.remarks ? p.remarks.replace(/<[^>]*>/g, '') : '체계적이고 투명한 권리분석을 통해 완벽한 안심 입주를 지원합니다.'}
                                         </p>
-                                    </div>
 
-                                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-4">
-                                        <div className="text-base sm:text-lg font-black text-red-500">
-                                            {p.transactionType || '월세'} {p.price}
-                                        </div>
-                                        <div className="flex items-center gap-2">
+                                        {/* 네이버 블로그 글 수동 링크 칸 - 썸네일과 1:1 대응하여 시인성 극대화 */}
+                                        <div className="bg-emerald-50/40 rounded-lg p-2 border border-emerald-100/50 flex items-center justify-between text-[11px] font-bold text-emerald-800">
+                                            <span className="truncate max-w-[110px] sm:max-w-[140px] text-slate-400 font-normal">{blogUrl}</span>
                                             <a 
                                                 href={blogUrl} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer" 
                                                 onClick={(e) => e.stopPropagation()}
-                                                className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-[#64dfdf]/10 flex items-center justify-center border border-slate-200 text-indigo-600 shadow-sm hover:text-indigo-700 transition-all"
-                                                title="네이버 블로그 리뷰 연결"
+                                                className="text-emerald-700 hover:text-emerald-950 flex items-center gap-1 shrink-0 bg-white border border-emerald-200/50 px-2 py-0.5 rounded-md transition-colors shadow-sm text-[9px]"
                                             >
-                                                <LinkIcon className="w-4 h-4" />
+                                                <span>블로그 리뷰 연결</span>
                                             </a>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+                                        <div className="text-sm sm:text-base font-black text-red-500 shrink-0">
+                                            {p.transactionType || '월세'} {p.price}
+                                        </div>
+                                        <div className="flex-grow flex items-center gap-1.5">
+                                            {isVideoCategory && videoUrl ? (
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        useAppStore.getState().setVideoPopupUrl(videoUrl);
+                                                    }}
+                                                    className="flex-1 h-9 sm:h-10 rounded-xl bg-red-50 hover:bg-red-100 flex items-center justify-center gap-1 border border-red-200 text-red-600 shadow-sm transition-all font-black text-[11px] sm:text-xs"
+                                                    title="영상 재생 연결"
+                                                >
+                                                    <span>영상 재생</span>
+                                                </button>
+                                            ) : (
+                                                <a 
+                                                    href={blogUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="flex-1 h-9 sm:h-10 rounded-xl bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center gap-1 border border-emerald-200 text-emerald-700 shadow-sm transition-all font-black text-[11px] sm:text-xs"
+                                                    title="네이버 블로그 리뷰 연결"
+                                                >
+                                                    <LinkIcon className="w-3.5 h-3.5" />
+                                                    <span>블로그</span>
+                                                </a>
+                                            )}
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined);
                                                 }}
-                                                className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center border border-slate-200 text-[#1c2541] shadow-sm transition-all"
+                                                className="flex-1 h-9 sm:h-10 rounded-xl bg-[#0B2545] hover:bg-[#1a385f] text-white flex items-center justify-center gap-1 border border-slate-200 shadow-sm transition-all font-black text-[11px] sm:text-xs"
                                                 title="문의 전화 걸기"
                                             >
-                                                <Phone className="w-4 h-4" />
+                                                <Phone className="w-3.5 h-3.5" />
+                                                <span>전화 문의</span>
                                             </button>
                                         </div>
                                     </div>

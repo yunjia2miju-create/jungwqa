@@ -308,6 +308,20 @@ export const DetailTab = ({
 
     const [activePanoIndex, setActivePanoIndex] = React.useState(0);
 
+    // 360 파노라마 대표사진(vrThumbnail)이 지정되어 있는 경우, 해당 파노라마 사진을 시작 씬(Scene)으로 설정
+    React.useEffect(() => {
+        if (p && p.vrThumbnail && panoUrls.length > 0) {
+            const idx = panoUrls.findIndex(url => url === p.vrThumbnail);
+            if (idx !== -1) {
+                setActivePanoIndex(idx);
+            } else {
+                setActivePanoIndex(0);
+            }
+        } else {
+            setActivePanoIndex(0);
+        }
+    }, [p?.id, p?.vrThumbnail, panoUrls]);
+
     let embedUrl = String(p.video || '');
     if (embedUrl.includes('watch?v=')) {
         const vid = embedUrl.split('v=')[1]?.split('&')[0];
@@ -340,7 +354,7 @@ export const DetailTab = ({
     const liveKey = p.updatedAt || p.createdAt || Date.now();
 
     return (
-        <section key={`detail-section-${liveKey}`} id="detail-section" className="max-w-none w-full px-4 sm:px-12 md:px-16 lg:px-24 xl:px-32 py-6 sm:py-10 transition-opacity duration-300">
+        <section key={`detail-section-${liveKey}`} id="detail-section" className="max-w-[1100px] mx-auto w-full px-4 sm:px-6 md:px-8 py-6 sm:py-10 transition-opacity duration-300">
             <button onClick={() => setActiveSection('main')} className="inline-flex items-center justify-center bg-[#0B2545] hover:bg-[#113866] text-white font-black px-6 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-[#0B2545]/20 text-lg sm:text-2xl mb-4 sm:mb-6 w-full tracking-wider">
                 {"<<<< 앞 바로가기 <<<<"}
             </button>
@@ -617,7 +631,7 @@ export const DetailTab = ({
                                 onSceneChange={(idx) => setActivePanoIndex(idx)} 
                                 title={p.building || p.title}
                                 address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
-                                thumbnail={p.thumbnail}
+                                thumbnail={p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail)}
                             />
                             {/* Heart Button Overlay */}
                             <button 
@@ -867,17 +881,7 @@ export const DetailTab = ({
                     </div>
                 </div>
 
-                {p.video && (
-                    <div className="mt-8">
-                        <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
-                            <i className="fa-solid fa-circle-play text-red-500"></i>
-                            <span>소장의 고화질 동영상 브리핑</span>
-                        </h4>
-                        <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-md">
-                            <iframe src={embedUrl} className="w-full h-full" frameBorder="0" loading="lazy" allowFullScreen></iframe>
-                        </div>
-                    </div>
-                )}
+
 
                 <div className="mt-8">
                     <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
@@ -949,73 +953,94 @@ export const DetailTab = ({
                         <h3 className="text-sm sm:text-base font-black text-slate-900">태왕 공인중개사가 추천하는 또 다른 구미 알짜 매물</h3>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {matchingRecs.map(rec => (
-                            <div key={rec.id} onClick={() => setSelectedPostId(rec.id)} className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group">
-                                <div className="relative aspect-[16/9] overflow-hidden bg-transparent watermark-container">
-                                    <img src={rec.thumbnail} onError={(e) => { 
-                                        const target = e.target as HTMLImageElement;
-                                        if (target && typeof target === 'object') {
-                                            target.src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80';
-                                        }
-                                    }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                                    {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
-                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-                                        <i 
-                                            className="fa-solid fa-house select-none pointer-events-none text-3xl sm:text-4xl"
-                                            style={{ 
-                                                color: '#FFFFFF',
-                                                opacity: 0.18,
-                                            }}
-                                        ></i>
-                                    </div>
-                                </div>
-                                <div className="p-4 flex-grow flex flex-col justify-between">
-                                    <div className="space-y-2">
-                                        {/* 태그 영역 - 사진 바로 아래이자 매물 대타이틀 바로 위 */}
-                                        <div className="flex flex-wrap gap-1.5 items-center">
-                                            <span className={`text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md border ${
-                                                rec.transactionType === '매매' ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60' :
-                                                rec.transactionType === '전세' ? 'bg-amber-50 text-amber-700 border-amber-200/85' :
-                                                'bg-[#0B2545]/10 text-[#0B2545] border-[#0B2545]/20'
-                                            }`}>
-                                                {rec.transactionType || '월세'}
-                                            </span>
-                                            <span className="bg-slate-100 text-slate-705 border border-slate-200/60 text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md">
-                                                {rec.category}
-                                            </span>
-                                            <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md">
-                                                {rec.dong || '구미시'}
-                                            </span>
-                                            {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
-                                                <span className="bg-[#0B2545]/10 text-[#0B2545] border border-[#0B2545]/20 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 animate-pulse shrink-0">
-                                                    <Home size={12} className="text-[#0B2545]" strokeWidth={1.8} />
-                                                    <span>360°</span>
-                                                </span>
-                                            )}
-                                        </div>
+                        {matchingRecs.map(rec => {
+                            const isVideoCategory = rec.category === '유튜브' || rec.category === '네이버TV';
+                            const videoUrl = rec.video || rec.naverTv || rec.naverBlogUrl || rec.blogUrl || (String(rec.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+                            const customBlogUrl = rec.naverBlogUrl || rec.blogUrl;
 
-                                        <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0B2545] transition-colors flex items-center gap-1.5 flex-wrap">
-                                            <span className="truncate">{rec.building}</span>
-                                            {(rec.floor || rec.totalFloor) && (
-                                                <span className="text-[10px] text-[#0B2545] bg-[#0B2545]/10 px-1.5 py-0.5 rounded font-black border border-[#0B2545]/20 shrink-0">
-                                                    {rec.floor && rec.totalFloor ? `${rec.floor}/${rec.totalFloor}층` : (rec.floor ? `${rec.floor}층` : `${rec.totalFloor}층`)}
-                                                </span>
-                                            )}
-                                        </h4>
-                                        <p className="text-slate-500 text-[11px] line-clamp-1 min-h-[1.25rem]">
-                                            {stripHtml(rec.title)}
-                                        </p>
+                            return (
+                                <div 
+                                    key={rec.id} 
+                                    onClick={() => {
+                                        if (isVideoCategory && videoUrl) {
+                                            useAppStore.getState().setVideoPopupUrl(videoUrl);
+                                            return;
+                                        }
+                                        if (customBlogUrl) {
+                                            const finalUrl = customBlogUrl.startsWith('http') ? customBlogUrl : `https://${customBlogUrl}`;
+                                            window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                                        } else {
+                                            setSelectedPostId(rec.id);
+                                        }
+                                    }} 
+                                    className="bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group"
+                                >
+                                    <div className="relative aspect-[16/9] overflow-hidden bg-transparent watermark-container">
+                                        <img src={rec.category === '360 VR사진' ? (rec.vrThumbnail || rec.thumbnail) : (rec.thumbnail || rec.vrThumbnail)} onError={(e) => { 
+                                            const target = e.target as HTMLImageElement;
+                                            if (target && typeof target === 'object') {
+                                                target.src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&h=675&q=80';
+                                            }
+                                        }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                        {/* Exact center copyright watermark - House icon only, white with 15~20% opacity */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
+                                            <i 
+                                                className="fa-solid fa-house select-none pointer-events-none text-3xl sm:text-4xl"
+                                                style={{ 
+                                                    color: '#FFFFFF',
+                                                    opacity: 0.18,
+                                                }}
+                                            ></i>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60">
-                                        <span className="text-sm font-black text-red-500">{formatDisplayPrice(rec.price, rec.transactionType || '월세')}</span>
-                                        <span className="text-[11px] text-[#0B2545] font-bold flex items-center gap-0.5">
-                                            <span>구경하기</span>
-                                            <i className="fa-solid fa-chevron-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
-                                        </span>
+                                    <div className="p-4 flex-grow flex flex-col justify-between">
+                                        <div className="space-y-2">
+                                            {/* 태그 영역 - 사진 바로 아래이자 매물 대타이틀 바로 위 */}
+                                            <div className="flex flex-wrap gap-1.5 items-center">
+                                                <span className={`text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md border ${
+                                                    rec.transactionType === '매매' ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60' :
+                                                    rec.transactionType === '전세' ? 'bg-amber-50 text-amber-700 border-amber-200/85' :
+                                                    'bg-[#0B2545]/10 text-[#0B2545] border-[#0B2545]/20'
+                                                }`}>
+                                                    {rec.transactionType || '월세'}
+                                                </span>
+                                                <span className="bg-slate-100 text-slate-705 border border-slate-200/60 text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md">
+                                                    {rec.category}
+                                                </span>
+                                                <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md">
+                                                    {rec.dong || '구미시'}
+                                                </span>
+                                                {((rec.panoramas && rec.panoramas.trim()) || (rec.panoImage && rec.panoImage.trim())) && (
+                                                    <span className="bg-[#0B2545]/10 text-[#0B2545] border border-[#0B2545]/20 text-[10.5px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-1 animate-pulse shrink-0">
+                                                        <Home size={12} className="text-[#0B2545]" strokeWidth={1.8} />
+                                                        <span>360°</span>
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0B2545] transition-colors flex items-center gap-1.5 flex-wrap">
+                                                <span className="truncate">{rec.building}</span>
+                                                {(rec.floor || rec.totalFloor) && (
+                                                    <span className="text-[10px] text-[#0B2545] bg-[#0B2545]/10 px-1.5 py-0.5 rounded font-black border border-[#0B2545]/20 shrink-0">
+                                                        {rec.floor && rec.totalFloor ? `${rec.floor}/${rec.totalFloor}층` : (rec.floor ? `${rec.floor}층` : `${rec.totalFloor}층`)}
+                                                    </span>
+                                                )}
+                                            </h4>
+                                            <p className="text-slate-500 text-[11px] line-clamp-1 min-h-[1.25rem]">
+                                                {stripHtml(rec.title)}
+                                            </p>
+                                        </div>
+                                        <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60">
+                                            <span className="text-sm font-black text-red-500">{formatDisplayPrice(rec.price, rec.transactionType || '월세')}</span>
+                                            <span className="text-[11px] text-[#0B2545] font-bold flex items-center gap-0.5">
+                                                <span>{customBlogUrl ? '블로그 리뷰' : '구경하기'}</span>
+                                                <i className="fa-solid fa-chevron-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

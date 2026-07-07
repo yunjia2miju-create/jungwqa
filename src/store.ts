@@ -17,6 +17,7 @@ interface AppState {
     isMobileSimulationMode: boolean;
     activeSection: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write';
     selectedPostId: string | null;
+    videoPopupUrl: string | null;
 
     setPosts: (posts: Post[]) => void;
     setInquiries: (inqs: Inquiry[]) => void;
@@ -31,6 +32,7 @@ interface AppState {
     setIsMobileSimulationMode: (val: boolean) => void;
     setActiveSection: (sec: 'main' | 'detail' | 'admin-login' | 'admin-dashboard' | 'admin-write') => void;
     setSelectedPostId: (id: string | null) => void;
+    setVideoPopupUrl: (url: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -49,6 +51,7 @@ export const useAppStore = create<AppState>((set) => ({
     isMobileSimulationMode: false,
     activeSection: 'main',
     selectedPostId: null,
+    videoPopupUrl: null,
 
     setPosts: (posts) => set({ posts }),
     setInquiries: (inqs) => set({ inquiries: inqs }),
@@ -77,4 +80,5 @@ export const useAppStore = create<AppState>((set) => ({
         selectedPostId: id, 
         activeSection: id ? 'detail' : 'main' 
     }),
+    setVideoPopupUrl: (url) => set({ videoPopupUrl: url }),
 }));

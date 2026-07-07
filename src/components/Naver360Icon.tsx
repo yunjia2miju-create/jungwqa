@@ -14,12 +14,13 @@ export const Naver360Icon: React.FC<Naver360IconProps> = ({
     height 
 }) => {
     // Proportional scaling for the luxury 360-engraved house shape (perfect square aspect ratio 1:1)
-    const baseSize = size || height || width || 64;
+    const finalWidth = size || width || "100%";
+    const finalHeight = size || height || "100%";
 
     return (
         <svg 
-            width={baseSize} 
-            height={baseSize} 
+            width={finalWidth}
+            height={finalHeight}
             viewBox="0 0 100 100" 
             className={`select-none shrink-0 ${className} hover:scale-105 active:scale-95 transition-all duration-300 !opacity-100 !block`} 
             style={{ display: 'block', opacity: 1 }}

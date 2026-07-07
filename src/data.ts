@@ -20,6 +20,7 @@ export interface Post {
     panoImage?: string;
     panoramas?: string;
     video?: string;
+    naverTv?: string;
     address: string;
     transactionType: string;
     isRecommended: boolean;
@@ -30,6 +31,7 @@ export interface Post {
     createdAt: number;
     updatedAt?: number;
     blogUrl?: string;
+    naverBlogUrl?: string;
 }
 
 export interface Inquiry {

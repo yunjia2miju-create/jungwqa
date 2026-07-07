@@ -1371,8 +1371,39 @@
         <!-- Right Main Panel: Sequential registration and canvas editors (Gemini style) -->
         <main class="w-[75%] h-full overflow-y-auto bg-white p-10 flex flex-col items-center space-y-8">
             
+            <!-- 세 가지 정밀 등록 인프라 분리 선택 탭 (3-Way Split Rooms) -->
+            <div class="w-full max-w-[950px] bg-slate-50 border border-slate-200 rounded-3xl p-3 flex flex-row items-center gap-3 select-none shadow-xs shrink-0">
+                <button 
+                    id="room-tab-1" 
+                    onclick="switchRoom(1)" 
+                    type="button" 
+                    class="flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-emerald-600 text-white border border-emerald-700 shadow-md transform scale-[1.02]"
+                >
+                    <i class="fa-solid fa-house-chimney text-2xl"></i>
+                    <span>1. 매매/임대 등록</span>
+                </button>
+                <button 
+                    id="room-tab-2" 
+                    onclick="switchRoom(2)" 
+                    type="button" 
+                    class="flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                >
+                    <i class="fa-solid fa-globe text-2xl"></i>
+                    <span>2. 360 사진 등록</span>
+                </button>
+                <button 
+                    id="room-tab-3" 
+                    onclick="switchRoom(3)" 
+                    type="button" 
+                    class="flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                >
+                    <i class="fa-solid fa-circle-play text-2xl"></i>
+                    <span>3. 동영상 등록</span>
+                </button>
+            </div>
+            
             <!-- SECTION 1: 매물 기초 정보 기재란 -->
-            <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
+            <div id="sec-category" class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
                 <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
                     <i class="fa-solid fa-hotel text-[32px] text-emerald-500"></i>
                     <h3 class="font-black text-[26px] text-slate-900">기본 매물 대분류</h3>
@@ -1393,6 +1424,8 @@
                             <button onclick="setCategory('빌라')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">빌라</button>
                             <button onclick="setCategory('땅')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">땅</button>
                             <button onclick="setCategory('360 VR사진')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">360 VR사진</button>
+                            <button onclick="setCategory('유튜브')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">유튜브</button>
+                            <button onclick="setCategory('네이버TV')" type="button" class="cat-btn px-7 py-5 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">네이버TV</button>
                         </div>
                     </div>
 
@@ -1408,13 +1441,13 @@
             </div>
 
             <!-- SECTION 2: 지명 주소 및 상세 정보 입력 -->
-            <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
+            <div id="sec-address" class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
                 <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
                     <i class="fa-solid fa-map-location-dot text-[32px] text-emerald-500"></i>
                     <h3 class="font-black text-[26px] text-slate-900">구미 지명 및 법정 주소</h3>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="wrapper-dong-address">
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">법정동 선택</label>
                         <div class="dong-grid-container select-none" id="dongGrid"></div>
@@ -1440,20 +1473,20 @@
                     <div id="page1-map-preview" class="w-full h-[320px] rounded-2xl border border-slate-200"></div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-3">
-                    <div>
-                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">건물명</label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-3" id="wrapper-room-floors-container">
+                    <div id="wrapper-building-input" class="col-span-2 md:col-span-1">
+                        <label id="lbl-post-building" class="block text-[22px] font-black text-slate-500 uppercase mb-3">건물명</label>
                         <input type="text" id="post-building" oninput="notifyParentDebounced()" placeholder="예: 무지개빌" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
-                    <div>
+                    <div id="wrapper-room-input">
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">호실 (금고보관)</label>
                         <input type="text" id="post-room" oninput="notifyParentDebounced()" placeholder="예: 301호" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
-                    <div>
+                    <div id="wrapper-floor-input">
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">해당층</label>
                         <input type="text" id="post-floor" oninput="notifyParentDebounced()" placeholder="예: 3층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
-                    <div>
+                    <div id="wrapper-totalfloor-input">
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">전체층</label>
                         <input type="text" id="post-totalFloor" oninput="notifyParentDebounced()" placeholder="예: 4층" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
@@ -1461,7 +1494,7 @@
             </div>
 
             <!-- SECTION 3: 실거래 금액 및 보증금 조건 -->
-            <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
+            <div id="sec-price" class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
                 <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
                     <i class="fa-solid fa-coins text-[32px] text-emerald-500"></i>
                     <h3 class="font-black text-[26px] text-slate-900">금액 및 관리비 조건</h3>
@@ -1480,7 +1513,7 @@
             </div>
 
             <!-- SECTION 4: 연락 담당처 정보 -->
-            <div class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
+            <div id="sec-phone" class="w-full max-w-[950px] bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-xs text-left">
                 <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
                     <i class="fa-solid fa-address-book text-[32px] text-emerald-500"></i>
                     <h3 class="font-black text-[26px] text-slate-900">연락 담당처 정보</h3>
@@ -1505,7 +1538,7 @@
             </div>
 
             <!-- SECTION 5: 미디어 자료 등록 구역 -->
-            <div class="w-full max-w-[950px] bg-white rounded-3xl border border-slate-200 p-8 space-y-8 shadow-xs text-left">
+            <div id="sec-media" class="w-full max-w-[950px] bg-white rounded-3xl border border-slate-200 p-8 space-y-8 shadow-xs text-left">
                 <div class="flex items-center gap-4 border-b border-slate-100 pb-5 select-none">
                     <i class="fa-solid fa-photo-film text-[36px] text-emerald-600"></i>
                     <h3 class="font-black text-[28px] text-slate-900">미디어 자료 등록 구역 (16:9 수직 통합)</h3>
@@ -1513,7 +1546,7 @@
 
                 <div class="space-y-8">
                     <!-- 1. 유튜브 동영상 링크 입력란 -->
-                    <div class="space-y-3">
+                    <div id="media-youtube-wrapper" class="space-y-3">
                         <label class="block text-[22px] font-black text-slate-700 select-none">1. 유튜브 동영상 링크</label>
                         <div class="flex gap-2">
                             <input type="text" id="post-video" oninput="handleYoutubeInput()" placeholder="예: https://youtu.be/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
@@ -1528,18 +1561,22 @@
                     </div>
 
                     <!-- 1-2. 네이버 TV 동영상 링크 입력란 -->
-                    <div class="space-y-3">
+                    <div id="media-navertv-wrapper" class="space-y-3">
                         <label class="block text-[22px] font-black text-slate-700 select-none">1-2. 네이버 TV 동영상 링크</label>
                         <div class="flex gap-2">
-                            <input type="text" id="post-navertv" placeholder="예: https://tv.naver.com/v/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
+                            <input type="text" id="post-navertv" oninput="handleNaverTvInput()" placeholder="예: https://tv.naver.com/v/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500 transition-colors">
                             <button type="button" id="btn-open-navertv" onclick="openNaverTvLink()" class="shrink-0 bg-emerald-600 text-white px-6 py-5 rounded-2xl font-bold text-[22px] hover:bg-emerald-500 transition-colors whitespace-nowrap shadow-sm">
                                 <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>새창 열기
                             </button>
                         </div>
+                        <!-- 네이버 TV 16:9 임베드 미리보기 영역 -->
+                        <div id="navertv-preview-container" class="hidden w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-black relative shadow-xs">
+                            <iframe id="navertv-iframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
                     </div>
 
                     <!-- 2. 외부 링크 (네이버 블로그 등) -->
-                    <div class="space-y-3">
+                    <div id="media-blog-wrapper" class="space-y-3">
                         <label class="block text-[22px] font-black text-slate-700 select-none flex items-center flex-wrap">
                             2. 대표사진 클릭시 연결할 외부링크(네이버 블로그, 구글 블로그 스팟, ....,)
                             <span class="text-red-500 font-bold text-lg ml-2">원룸매매, 원룸, 미투, 투룸, 쓰리룸, 상가, 아파트, 오피스텔, 빌라</span>
@@ -1548,7 +1585,7 @@
                     </div>
 
                     <!-- 3. 일반사진 썸네일(대표사진) 등록란 -->
-                    <div class="space-y-3">
+                    <div id="media-thumbnail-wrapper" class="space-y-3">
                         <label class="block text-[22px] font-black text-slate-700 select-none flex items-center">
                             3. 일반사진 썸네일(대표사진) 등록
                             <span class="text-red-500 font-bold text-lg ml-2">원룸매매, 원룸, 미투, 투룸, 쓰리룸, 상가, 아파트, 오피스텔, 빌라</span>
@@ -1575,7 +1612,7 @@
                     </div>
 
                     <!-- 3. 일반사진 추가 첨부 등록란 -->
-                    <div class="space-y-4">
+                    <div id="media-gallery-wrapper" class="space-y-4">
                         <label class="block text-[22px] font-black text-slate-700 select-none flex items-center">
                             3. 일반사진 추가 첨부 등록
                             <span class="text-red-500 font-bold text-lg ml-2">360 VR 투어</span>
@@ -1599,7 +1636,7 @@
                     </div>
 
                     <!-- 4. 360도 VR 파노라마 사진 등록란 -->
-                    <div class="space-y-4">
+                    <div id="media-vr-wrapper" class="space-y-4">
                         <label class="block text-[22px] font-black text-slate-700 select-none">4. 360도 VR 파노라마 사진 등록</label>
                         <div class="border-2 border-dashed border-slate-250 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 transition-all aspect-[21/9] w-full cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10 relative overflow-hidden" id="pano-drag-zone">
                             <input type="file" id="multiple-panos-input" multiple accept="image/*" class="hidden" onchange="handleMobilePhotoUpload(event, true)">
@@ -1710,7 +1747,7 @@
             </div>
 
             <!-- SECTION 7: 태왕 추천 랜드마크 매물 등록 -->
-            <div class="w-full max-w-[950px] flex items-center justify-between bg-emerald-50/50 p-8 rounded-2xl border border-emerald-200 font-bold shadow-xs overflow-hidden text-left">
+            <div id="sec-recommend" class="w-full max-w-[950px] flex items-center justify-between bg-emerald-50/50 p-8 rounded-2xl border border-emerald-200 font-bold shadow-xs overflow-hidden text-left">
                 <div class="text-left select-none">
                     <span class="text-[20px] font-black text-emerald-900 flex items-center gap-3">
                         <i class="fa-solid fa-star text-2xl text-amber-500 animate-pulse"></i>
@@ -1729,7 +1766,7 @@
             </div>
 
             <!-- SECTION 7.5: 단기방 (단기 임대) 설정 -->
-            <div class="w-full max-w-[950px] flex flex-col sm:flex-row sm:items-center justify-between bg-blue-50/50 p-8 rounded-2xl border border-blue-200 font-bold shadow-xs overflow-hidden text-left gap-4">
+            <div id="sec-shortterm" class="w-full max-w-[950px] flex flex-col sm:flex-row sm:items-center justify-between bg-blue-50/50 p-8 rounded-2xl border border-blue-200 font-bold shadow-xs overflow-hidden text-left gap-4">
                 <div class="text-left select-none">
                     <span class="text-[20px] font-black text-blue-900 flex items-center gap-3">
                         <i class="fa-solid fa-clock-rotate-left text-2xl text-blue-500"></i>
@@ -2111,6 +2148,217 @@
             document.getElementById('global-loader').classList.add('hidden');
         }
 
+        let activeRoom = 1;
+
+        function switchRoom(roomIndex, isFromLoad = false) {
+            activeRoom = roomIndex;
+            
+            // 1. Update Room Tabs active classes
+            const tab1 = document.getElementById('room-tab-1');
+            const tab2 = document.getElementById('room-tab-2');
+            const tab3 = document.getElementById('room-tab-3');
+            
+            if (tab1) {
+                if (roomIndex === 1) {
+                    tab1.className = "flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-emerald-600 text-white border border-emerald-700 shadow-md transform scale-[1.02]";
+                } else {
+                    tab1.className = "flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900";
+                }
+            }
+            if (tab2) {
+                if (roomIndex === 2) {
+                    tab2.className = "flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-emerald-600 text-white border border-emerald-700 shadow-md transform scale-[1.02]";
+                } else {
+                    tab2.className = "flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900";
+                }
+            }
+            if (tab3) {
+                if (roomIndex === 3) {
+                    tab3.className = "flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-emerald-600 text-white border border-emerald-700 shadow-md transform scale-[1.02]";
+                } else {
+                    tab3.className = "flex-1 py-5 px-6 rounded-2xl font-black text-[22px] transition-all cursor-pointer flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900";
+                }
+            }
+            
+            // 2. Toggle Form Sections Visibility
+            const secCategory = document.getElementById('sec-category');
+            const secAddress = document.getElementById('sec-address');
+            const secPrice = document.getElementById('sec-price');
+            const secPhone = document.getElementById('sec-phone');
+            const secMedia = document.getElementById('sec-media');
+            const secRecommend = document.getElementById('sec-recommend');
+            const secShortterm = document.getElementById('sec-shortterm');
+            
+            const wrapperIntro = document.getElementById('wrapper-intro');
+            const wrapperBody = document.getElementById('wrapper-body');
+            const wrapperRemarks = document.getElementById('wrapper-remarks');
+            const wrapperGuide = document.getElementById('wrapper-guide');
+            
+            // Sub-wrappers
+            const wrapDongAddress = document.getElementById('wrapper-dong-address');
+            const wrapRoomInput = document.getElementById('wrapper-room-input');
+            const wrapFloorInput = document.getElementById('wrapper-floor-input');
+            const wrapTotalFloorInput = document.getElementById('wrapper-totalfloor-input');
+            const wrapBuildingInput = document.getElementById('wrapper-building-input');
+            const lblBuilding = document.getElementById('lbl-post-building');
+            
+            const mediaYoutube = document.getElementById('media-youtube-wrapper');
+            const mediaNaverTv = document.getElementById('media-navertv-wrapper');
+            const mediaBlog = document.getElementById('media-blog-wrapper');
+            const mediaThumbnail = document.getElementById('media-thumbnail-wrapper');
+            const mediaGallery = document.getElementById('media-gallery-wrapper');
+            const mediaVr = document.getElementById('media-vr-wrapper');
+            
+            // Hide/Show logic
+            if (roomIndex === 1) {
+                // Room 1: 매매/임대 등록
+                if (secCategory) secCategory.classList.remove('hidden');
+                if (secAddress) secAddress.classList.remove('hidden');
+                if (secPrice) secPrice.classList.remove('hidden');
+                if (secPhone) secPhone.classList.remove('hidden');
+                if (secMedia) secMedia.classList.remove('hidden');
+                if (secRecommend) secRecommend.classList.remove('hidden');
+                if (secShortterm) secShortterm.classList.remove('hidden');
+                
+                if (wrapperIntro) wrapperIntro.classList.remove('hidden');
+                if (wrapperBody) wrapperBody.classList.remove('hidden');
+                if (wrapperRemarks) wrapperRemarks.classList.remove('hidden');
+                if (wrapperGuide) wrapperGuide.classList.remove('hidden');
+                
+                if (wrapDongAddress) wrapDongAddress.classList.remove('hidden');
+                if (wrapRoomInput) wrapRoomInput.classList.remove('hidden');
+                if (wrapFloorInput) wrapFloorInput.classList.remove('hidden');
+                if (wrapTotalFloorInput) wrapTotalFloorInput.classList.remove('hidden');
+                if (wrapBuildingInput) {
+                    wrapBuildingInput.className = "col-span-2 md:col-span-1";
+                }
+                if (lblBuilding) lblBuilding.innerText = "건물명";
+                
+                if (mediaYoutube) mediaYoutube.classList.add('hidden');
+                if (mediaNaverTv) mediaNaverTv.classList.add('hidden');
+                if (mediaBlog) mediaBlog.classList.remove('hidden');
+                if (mediaThumbnail) mediaThumbnail.classList.remove('hidden');
+                if (mediaGallery) mediaGallery.classList.remove('hidden');
+                if (mediaVr) mediaVr.classList.add('hidden');
+                
+                // Show standard category buttons, hide Youtube, NaverTV, 360 VR사진 buttons
+                const catButtons = document.querySelectorAll('.cat-btn');
+                catButtons.forEach(btn => {
+                    const txt = btn.innerText;
+                    if (txt === '360 VR사진' || txt === '유튜브' || txt === '네이버TV') {
+                        btn.classList.add('hidden');
+                    } else {
+                        btn.classList.remove('hidden');
+                    }
+                });
+                
+                // If loaded category is invalid for Room 1, set category to '원룸'
+                if (!isFromLoad) {
+                    const currentCat = document.getElementById('post-category').value;
+                    if (currentCat === '360 VR사진' || currentCat === '유튜브' || currentCat === '네이버TV') {
+                        setCategory('원룸');
+                    }
+                }
+            } else if (roomIndex === 2) {
+                // Room 2: 360 사진 등록
+                if (secCategory) secCategory.classList.remove('hidden');
+                if (secAddress) secAddress.classList.remove('hidden');
+                if (secPrice) secPrice.classList.remove('hidden');
+                if (secPhone) secPhone.classList.remove('hidden');
+                if (secMedia) secMedia.classList.remove('hidden');
+                if (secRecommend) secRecommend.classList.remove('hidden');
+                if (secShortterm) secShortterm.classList.remove('hidden');
+                
+                if (wrapperIntro) wrapperIntro.classList.remove('hidden');
+                if (wrapperBody) wrapperBody.classList.remove('hidden');
+                if (wrapperRemarks) wrapperRemarks.classList.remove('hidden');
+                if (wrapperGuide) wrapperGuide.classList.remove('hidden');
+                
+                if (wrapDongAddress) wrapDongAddress.classList.remove('hidden');
+                if (wrapRoomInput) wrapRoomInput.classList.remove('hidden');
+                if (wrapFloorInput) wrapFloorInput.classList.remove('hidden');
+                if (wrapTotalFloorInput) wrapTotalFloorInput.classList.remove('hidden');
+                if (wrapBuildingInput) {
+                    wrapBuildingInput.className = "col-span-2 md:col-span-1";
+                }
+                if (lblBuilding) lblBuilding.innerText = "건물명";
+                
+                if (mediaYoutube) mediaYoutube.classList.add('hidden');
+                if (mediaNaverTv) mediaNaverTv.classList.add('hidden');
+                if (mediaBlog) mediaBlog.classList.remove('hidden');
+                if (mediaThumbnail) mediaThumbnail.classList.remove('hidden');
+                if (mediaGallery) mediaGallery.classList.remove('hidden');
+                if (mediaVr) mediaVr.classList.remove('hidden');
+                
+                // Show standard category buttons, but force category to '360 VR사진' (or keep it if it's already '360 VR사진')
+                const catButtons = document.querySelectorAll('.cat-btn');
+                catButtons.forEach(btn => {
+                    const txt = btn.innerText;
+                    if (txt === '유튜브' || txt === '네이버TV') {
+                        btn.classList.add('hidden');
+                    } else {
+                        btn.classList.remove('hidden');
+                    }
+                });
+                
+                if (!isFromLoad) {
+                    setCategory('360 VR사진');
+                }
+            } else if (roomIndex === 3) {
+                // Room 3: 동영상 등록 (초간소화)
+                if (secCategory) secCategory.classList.remove('hidden');
+                if (secAddress) secAddress.classList.remove('hidden'); // We will keep only building title
+                if (secPrice) secPrice.classList.add('hidden');
+                if (secPhone) secPhone.classList.add('hidden');
+                if (secMedia) secMedia.classList.remove('hidden');
+                if (secRecommend) secRecommend.classList.add('hidden');
+                if (secShortterm) secShortterm.classList.add('hidden');
+                
+                if (wrapperIntro) wrapperIntro.classList.add('hidden');
+                if (wrapperBody) wrapperBody.classList.add('hidden');
+                if (wrapperRemarks) wrapperRemarks.classList.add('hidden');
+                if (wrapperGuide) wrapperGuide.classList.add('hidden');
+                
+                if (wrapDongAddress) wrapDongAddress.classList.add('hidden');
+                if (wrapRoomInput) wrapRoomInput.classList.add('hidden');
+                if (wrapFloorInput) wrapFloorInput.classList.add('hidden');
+                if (wrapTotalFloorInput) wrapTotalFloorInput.classList.add('hidden');
+                if (wrapBuildingInput) {
+                    wrapBuildingInput.className = "col-span-4 w-full";
+                }
+                if (lblBuilding) lblBuilding.innerText = "동영상 제목 (건물명)";
+                
+                if (mediaYoutube) mediaYoutube.classList.remove('hidden');
+                if (mediaNaverTv) mediaNaverTv.classList.remove('hidden');
+                if (mediaBlog) mediaBlog.classList.add('hidden');
+                if (mediaThumbnail) mediaThumbnail.classList.remove('hidden');
+                if (mediaGallery) mediaGallery.classList.add('hidden');
+                if (mediaVr) mediaVr.classList.add('hidden');
+                
+                // Show only Youtube & NaverTV category buttons
+                const catButtons = document.querySelectorAll('.cat-btn');
+                catButtons.forEach(btn => {
+                    const txt = btn.innerText;
+                    if (txt === '유튜브' || txt === '네이버TV') {
+                        btn.classList.remove('hidden');
+                    } else {
+                        btn.classList.add('hidden');
+                    }
+                });
+                
+                if (!isFromLoad) {
+                    const currentCat = document.getElementById('post-category').value;
+                    if (currentCat !== '유튜브' && currentCat !== '네이버TV') {
+                        setCategory('유튜브');
+                    }
+                }
+            }
+            
+            if (!isFromLoad) {
+                notifyParent();
+            }
+        }
+
         // Dropdown categorization controllers
         function setCategory(val) {
             document.getElementById('post-category').value = val;
@@ -2192,7 +2440,17 @@
         // Extract dataset and notify parent React
         function notifyParent() {
             updateDicePreview();
+            let finalVrThumbnail = representativeVrThumbnailUrl;
+            if (panoramaPhotos.length > 0) {
+                if (!finalVrThumbnail || !panoramaPhotos.includes(finalVrThumbnail)) {
+                    finalVrThumbnail = panoramaPhotos[0];
+                }
+            } else {
+                finalVrThumbnail = '';
+            }
+
             const data = {
+                roomType: activeRoom,
                 category: document.getElementById('post-category').value,
                 transactionType: document.getElementById('post-transactionType').value,
                 dong: document.getElementById('post-dong').value,
@@ -2215,7 +2473,7 @@
                 images: generalPhotos.join('|'),
                 panoramas: panoramaPhotos.join('|'),
                 thumbnail: representativeThumbnailUrl,
-                vrThumbnail: representativeVrThumbnailUrl,
+                vrThumbnail: finalVrThumbnail,
                 isRecommended: document.getElementById('post-isRecommended').checked,
                 isShortTerm: document.getElementById('post-isShortTerm').checked,
                 contractPeriod: document.getElementById('post-contractPeriod').value,
@@ -2326,6 +2584,25 @@
             if (!inputVal) {
                 if (container) container.classList.add('hidden');
                 if (iframe) iframe.src = '';
+                
+                // Clear auto-generated thumbnail if they empty the input
+                if (representativeThumbnailUrl && representativeThumbnailUrl.includes('img.youtube.com')) {
+                    representativeThumbnailUrl = '';
+                    const previewImg = document.getElementById('main-photo-img');
+                    const placeholder = document.getElementById('main-photo-placeholder');
+                    const previewContainer = document.getElementById('main-photo-preview-container');
+                    const controls = document.getElementById('main-photo-controls');
+                    const mainZone = document.getElementById('main-photo-drag-zone');
+                    
+                    if (previewImg) previewImg.src = '';
+                    if (placeholder) placeholder.classList.remove('hidden');
+                    if (previewContainer) previewContainer.classList.add('hidden');
+                    if (controls) controls.classList.add('hidden');
+                    if (mainZone) {
+                        mainZone.classList.remove('border-solid', 'border-slate-200');
+                        mainZone.classList.add('border-dashed', 'border-slate-250');
+                    }
+                }
                 notifyParentDebounced();
                 return;
             }
@@ -2339,6 +2616,52 @@
             
             if (videoId) {
                 if (iframe) iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                if (container) container.classList.remove('hidden');
+                
+                // Automatically set representativeThumbnailUrl to YouTube thumbnail if not already customized
+                const ytThumb = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                if (!representativeThumbnailUrl || representativeThumbnailUrl.includes('unsplash.com') || representativeThumbnailUrl === '') {
+                    representativeThumbnailUrl = ytThumb;
+                    
+                    // Show it in the representative photo preview
+                    const previewImg = document.getElementById('main-photo-img');
+                    const placeholder = document.getElementById('main-photo-placeholder');
+                    const previewContainer = document.getElementById('main-photo-preview-container');
+                    const controls = document.getElementById('main-photo-controls');
+                    const mainZone = document.getElementById('main-photo-drag-zone');
+                    
+                    if (previewImg) previewImg.src = ytThumb;
+                    if (placeholder) placeholder.classList.add('hidden');
+                    if (previewContainer) previewContainer.classList.remove('hidden');
+                    if (controls) controls.classList.remove('hidden');
+                    if (mainZone) {
+                        mainZone.classList.remove('border-dashed', 'border-slate-250');
+                        mainZone.classList.add('border-solid', 'border-slate-200');
+                    }
+                }
+            } else {
+                if (container) container.classList.add('hidden');
+                if (iframe) iframe.src = '';
+            }
+            notifyParentDebounced();
+        }
+
+        function handleNaverTvInput() {
+            const inputVal = document.getElementById('post-navertv').value.trim();
+            const container = document.getElementById('navertv-preview-container');
+            const iframe = document.getElementById('navertv-iframe');
+            
+            if (!inputVal) {
+                if (container) container.classList.add('hidden');
+                if (iframe) iframe.src = '';
+                notifyParentDebounced();
+                return;
+            }
+            
+            // Extract NaverTV / Naver Now video ID
+            const nvMatch = inputVal.match(/(?:tv\.naver\.com|now\.naver\.com)(?:\/v|\/player|\/embed)\/([a-zA-Z0-9_]+)/i);
+            if (nvMatch && nvMatch[1]) {
+                if (iframe) iframe.src = `https://tv.naver.com/embed/${nvMatch[1]}?autoPlay=false`;
                 if (container) container.classList.remove('hidden');
             } else {
                 if (container) container.classList.add('hidden');
@@ -2597,8 +2920,9 @@
             grid.innerHTML = '';
 
             panoramaPhotos.forEach((url, idx) => {
+                const isRep = (representativeVrThumbnailUrl === url) || (!representativeVrThumbnailUrl && idx === 0);
                 const item = document.createElement('div');
-                item.className = "pano-photo-card relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200 aspect-video group flex flex-col cursor-pointer hover:shadow-sm";
+                item.className = `pano-photo-card relative bg-slate-100 rounded-xl overflow-hidden border aspect-video group flex flex-col cursor-pointer hover:shadow-sm ${isRep ? 'border-amber-400 ring-2 ring-amber-400/50' : 'border-slate-200'}`;
                 item.style.aspectRatio = "16 / 9";
                 item.onclick = (e) => {
                     if (isDraggingSortable) return;
@@ -2613,11 +2937,11 @@
                     <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 text-white rounded-full w-10 h-10 flex items-center justify-center pointer-events-none z-10">
                         <i class="fa-solid fa-arrows-up-down-left-right text-xl"></i>
                     </div>
-                    <!-- Diet/Minimal VR Label Badge (70% Compact Scale) -->
-                    <div class="absolute top-1 left-1 bg-emerald-600/90 text-white font-bold rounded shadow-xs select-none" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important; border: 1px solid rgba(16, 185, 129, 0.2);">VR 360 파노라마 실사</div>
+                    <!-- Diet/Minimal VR Label Badge or Representative Badge -->
+                    ${isRep ? `<div class="absolute top-1 left-1 bg-amber-500 text-white font-black rounded shadow-xs select-none border border-amber-600/50" style="font-size: 8px !important; padding: 1px 4px !important; line-height: 1 !important; z-index: 5;">⭐ 대표 360사진</div>` : `<div class="absolute top-1 left-1 bg-emerald-600/90 text-white font-bold rounded shadow-xs select-none" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important; border: 1px solid rgba(16, 185, 129, 0.2);">VR 360 파노라마 실사</div>`}
                     <!-- Representative Photo Button -->
                     <div class="absolute top-1 right-1">
-                        <button onclick="setRepresentativePhoto('pano', ${idx})" type="button" class="text-amber-400 hover:text-amber-300 rounded flex items-center justify-center cursor-pointer drop-shadow-md" style="padding: 0 !important; width: 18px !important; height: 18px !important;" title="대표사진 지정"><i class="fa-solid fa-star" style="font-size: 14px !important;"></i></button>
+                        <button onclick="setRepresentativePhoto('pano', ${idx})" type="button" class="${isRep ? 'text-amber-400' : 'text-slate-400 hover:text-amber-300'} rounded flex items-center justify-center cursor-pointer drop-shadow-md" style="padding: 0 !important; width: 18px !important; height: 18px !important;" title="대표사진 지정"><i class="fa-solid fa-star" style="font-size: 14px !important;"></i></button>
                     </div>
                     <!-- Delete Button (70% Compact Scale) -->
                     <div class="absolute bottom-1 right-1">
@@ -2630,7 +2954,11 @@
         }
 
         function deletePanoramaPhoto(index) {
+            const deletedUrl = panoramaPhotos[index];
             panoramaPhotos.splice(index, 1);
+            if (representativeVrThumbnailUrl === deletedUrl) {
+                representativeVrThumbnailUrl = panoramaPhotos.length > 0 ? panoramaPhotos[0] : '';
+            }
             renderPanoramaPhotos();
             document.getElementById('panorama-viewer-container').classList.add('hidden');
             notifyParent();
@@ -2661,14 +2989,19 @@
         }
         
 function setRepresentativePhoto(type, idx) {
-            if (type === 'pano' && typeof captureVRSnapshotAndSetOG === 'function') {
-                const roomName = document.getElementById('post-title')?.value || '프리미엄 매물';
-                captureVRSnapshotAndSetOG('panorama-viewer-container', roomName);
+            if (type === 'pano') {
+                const imgUrl = panoramaPhotos[idx];
+                if (!imgUrl) return;
+                representativeVrThumbnailUrl = imgUrl;
+                renderPanoramaPhotos();
+                updateVRRepresentativePreview();
+                notifyParent();
+                alert('선택하신 360 파노라마가 대표사진으로 지정되었습니다.');
                 return;
             }
-            let imgUrl = type === 'pano' ? panoramaPhotos[idx] : generalPhotos[idx];
+            let imgUrl = generalPhotos[idx];
             if (!imgUrl) return;
-            const containerSelector = type === 'pano' ? '#pano-photos-list > div:nth-child('+(idx+1)+')' : '#additional-photos-stack > div:nth-child('+idx+')';
+            const containerSelector = '#additional-photos-stack > div:nth-child('+idx+')';
             const container = document.querySelector(containerSelector);
             const overlayLayer = container ? container.querySelector('.rep-overlay-layer') : null;
             
@@ -4934,6 +5267,15 @@ function setRepresentativePhoto(type, idx) {
                 const data = e.data.payload;
                 window.pendingEditorData = data;
 
+                // Auto detect and switch room on load
+                let targetRoom = 1;
+                if (data.category === '유튜브' || data.category === '네이버TV') {
+                    targetRoom = 3;
+                } else if (data.category === '360 VR사진' || (data.panoramas && data.panoramas.trim().length > 0)) {
+                    targetRoom = 2;
+                }
+                switchRoom(targetRoom, true);
+
                 if (data.category) setCategory(data.category);
                 if (data.transactionType) setTransactionType(data.transactionType);
                 if (data.dong) document.getElementById('post-dong').value = data.dong;
@@ -4958,7 +5300,10 @@ function setRepresentativePhoto(type, idx) {
                 if (data.phone) document.getElementById('post-phone').value = data.phone;
                 if (data.ownerPhone) document.getElementById('post-ownerPhone').value = data.ownerPhone;
                 if (data.blogUrl) document.getElementById('post-blogUrl').value = data.blogUrl;
-                if (data.naverTv) document.getElementById('post-navertv').value = data.naverTv;
+                if (data.naverTv) {
+                    document.getElementById('post-navertv').value = data.naverTv;
+                    handleNaverTvInput();
+                }
                 if (data.video) {
                     document.getElementById('post-video').value = data.video;
                     handleYoutubeInput();
@@ -5008,8 +5353,9 @@ function setRepresentativePhoto(type, idx) {
                 if (data.images) loadImages(data.images);
                 if (data.panoramas) loadPanoramas(data.panoramas);
                 if (data.thumbnail) representativeThumbnailUrl = data.thumbnail;
-                if (data.vrThumbnail) representativeVrThumbnailUrl = data.vrThumbnail;
+                representativeVrThumbnailUrl = data.vrThumbnail || (panoramaPhotos.length > 0 ? panoramaPhotos[0] : '');
                 updateVRRepresentativePreview();
+                renderPanoramaPhotos();
 
                 updateCharacterCounts();
             } else if (e.data.type === 'STORAGE_STICKERS_LOADED') {
@@ -5553,6 +5899,11 @@ function setRepresentativePhoto(type, idx) {
             console.clear();
             console.log("소장님! 73개의 스티커 주소를 수동으로 딸 필요가 없는 [파이어베이스 폴더 전수 자동 로드 엔진]이 완공되었습니다. 이제 파이어베이스 창고 stickers 폴더에 이미지를 마우스로 던져만 두십시오. 컴퓨터가 실시간으로 73종 무기를 긁어와 좌측 창에 큼직하게 정렬하고, 클릭 시 우측 본문에 툭툭 주입해 줍니다. 최종 완성본 index.html을 적용하시고 [Ctrl + F5]로 최고의 자동화 손맛을 확인하십시오!");
 
+            // Initialize default room (only if not loaded by LOAD_DATA already)
+            if (!window.pendingEditorData) {
+                switchRoom(1, true);
+            }
+
             // Notify parent
             window.parent.postMessage({ type: 'EDITOR_READY' }, '*');
         });
@@ -5669,37 +6020,92 @@ function setRepresentativePhoto(type, idx) {
         window.addPanoramaPhoto = function(url, fileName) {
             if (typeof panoramaPhotos !== 'undefined') {
                 panoramaPhotos.push(url);
+                if (!representativeVrThumbnailUrl && panoramaPhotos.length > 0) {
+                    representativeVrThumbnailUrl = panoramaPhotos[0];
+                }
                 if (typeof renderPanoramaPhotos === 'function') renderPanoramaPhotos();
                 if (typeof notifyParent === 'function') notifyParent();
             }
         };
 
+        function fileToDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = err => reject(err);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function uploadFileToServer(file, uploadType) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const fileId = 'file_queue_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const dataUrl = await fileToDataURL(file);
+                    
+                    if (window.self !== window.top) {
+                        window.parent.postMessage({
+                            type: 'UPLOAD_FILE',
+                            payload: {
+                                fileData: dataUrl,
+                                fileName: file.name,
+                                uploadType: uploadType,
+                                fileId: fileId
+                            }
+                        }, '*');
+                        
+                        const handler = (msgEvent) => {
+                            if (!msgEvent.data) return;
+                            if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === uploadType && msgEvent.data.payload.fileId === fileId) {
+                                window.removeEventListener('message', handler);
+                                resolve(msgEvent.data.payload.url);
+                            } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === uploadType && msgEvent.data.payload.fileId === fileId) {
+                                window.removeEventListener('message', handler);
+                                reject(new Error(msgEvent.data.payload.message || '업로드 실패'));
+                            }
+                        };
+                        window.addEventListener('message', handler);
+                    } else {
+                        resolve(URL.createObjectURL(file));
+                    }
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
         async function processUploadQueue() {
             if (isUploadingQueue || uploadQueue.length === 0) return;
             isUploadingQueue = true;
             
+            showLoader("사진 및 VR 전송 중...");
+            
             while (uploadQueue.length > 0) {
                 const task = uploadQueue.shift();
                 try {
-                    // 파이어베이스 스토리지 전송 모의 통신 (소장님 글 작성 방해 없이 뒤에서 전송)
-                    const objectUrl = URL.createObjectURL(task.file);
+                    const uploadType = task.type === 'VR' ? 'pano' : 'images';
+                    const downloadUrl = await uploadFileToServer(task.file, uploadType);
                     
-                    // 분기 매핑: VR 사진과 일반 사진 리스트 분리 안착
-                    if (task.type === 'VR') {
-                        console.log(`✅ [업로드 큐] VR 파노라마 전송 완료: ${task.file.name}`);
-                        if (typeof window.addPanoramaPhoto === 'function') {
-                            window.addPanoramaPhoto(objectUrl, task.file.name);
-                        }
-                    } else {
-                        console.log(`✅ [업로드 큐] 일반 사진 전송 완료: ${task.file.name}`);
-                        if (typeof window.addNormalPhoto === 'function') {
-                            window.addNormalPhoto(objectUrl, task.file.name);
+                    if (downloadUrl) {
+                        if (task.type === 'VR') {
+                            console.log(`✅ [업로드 큐] VR 파노라마 전송 완료: ${task.file.name} -> ${downloadUrl}`);
+                            if (typeof window.addPanoramaPhoto === 'function') {
+                                window.addPanoramaPhoto(downloadUrl, task.file.name);
+                            }
+                        } else {
+                            console.log(`✅ [업로드 큐] 일반 사진 전송 완료: ${task.file.name} -> ${downloadUrl}`);
+                            if (typeof window.addNormalPhoto === 'function') {
+                                window.addNormalPhoto(downloadUrl, task.file.name);
+                            }
                         }
                     }
                 } catch (error) {
                     console.error("❌ 업로드 실패:", error);
+                    alert(`업로드 실패: ${error.message || error}`);
                 }
             }
+            
+            hideLoader();
             isUploadingQueue = false;
         }
 
@@ -5715,8 +6121,8 @@ function setRepresentativePhoto(type, idx) {
                 }
 
                 try {
-                    const compressedFile = await compressImage(file, 1920, 0.85);
-                    console.log(`🗜️ [압착 완료] ${file.name} -> 가로 1920px 리사이징 및 90% 압착 처리 완료`);
+                    const compressedFile = await compressImage(file, isVR ? 4096 : 1920, 0.85);
+                    console.log(`🗜️ [압착 완료] ${file.name} -> 가로 ${isVR ? 4096 : 1920}px 리사이징 및 압착 처리 완료`);
                     uploadQueue.push({ file: compressedFile, type: isVR ? 'VR' : 'NORMAL' });
                 } catch (err) {
                     console.warn("⚠️ 압축 실패, 원본 그대로 전송 큐 이관:", err);

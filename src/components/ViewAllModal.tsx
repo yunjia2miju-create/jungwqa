@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { useAppStore } from '../store';
 
 
 interface ViewAllModalProps {
@@ -70,12 +72,10 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
         };
     }, [isOpen]);
 
-    if (!isOpen) return null;
-
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 sm:p-8">
+                <div className="fixed inset-0 z-[9999999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 sm:p-8">
                     <motion.div 
                         initial={{ opacity: 0, y: 50, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -114,13 +114,27 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {items.slice(0, displayCount).map((item, idx) => {
                                         const isPlaceholder = item.id.startsWith('placeholder-');
+                                        const isVideoCategory = item.category === '유튜브' || item.category === '네이버TV';
+                                        const videoUrl = item.video || item.naverTv || item.naverBlogUrl || item.blogUrl || (String(item.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+                                        const customBlogUrl = item.naverBlogUrl || item.blogUrl;
+
                                         return (
                                             <div 
                                                 key={item.id || idx} 
                                                 className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:border-emerald-300 group cursor-pointer ${isPlaceholder ? 'opacity-80' : ''}`}
                                                 onClick={(e) => {
-                                                    if (isPlaceholder) {
-                                                        window.open(item.blogUrl, '_blank', 'noopener,noreferrer');
+                                                    if (isVideoCategory && videoUrl) {
+                                                        useAppStore.getState().setVideoPopupUrl(videoUrl);
+                                                        // Do not close this modal, so that closing the video popup leaves this modal open
+                                                        return;
+                                                    }
+                                                    if (customBlogUrl) {
+                                                        const finalUrl = customBlogUrl.startsWith('http') ? customBlogUrl : `https://${customBlogUrl}`;
+                                                        window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                                                    } else if (isPlaceholder) {
+                                                        const fallbackUrl = item.blogUrl || 'https://blog.naver.com/yunjia2miju';
+                                                        const finalUrl = fallbackUrl.startsWith('http') ? fallbackUrl : `https://${fallbackUrl}`;
+                                                        window.open(finalUrl, '_blank', 'noopener,noreferrer');
                                                     } else {
                                                         setSelectedPostId(item.id);
                                                         setActiveSection('detail');
@@ -131,7 +145,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                 {/* Thumbnail Area */}
                                                 <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
                                                     <img 
-                                                        src={item.thumbnail} 
+                                                        src={item.category === '360 VR사진' ? (item.vrThumbnail || item.thumbnail) : (item.thumbnail || item.vrThumbnail)} 
                                                         alt={item.building}
                                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                         loading="lazy"
@@ -187,8 +201,18 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                         <button 
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                if (isPlaceholder) {
-                                                                    window.open(item.blogUrl, '_blank', 'noopener,noreferrer');
+                                                                if (isVideoCategory && videoUrl) {
+                                                                    useAppStore.getState().setVideoPopupUrl(videoUrl);
+                                                                    // Do not close this modal, so that closing the video popup leaves this modal open
+                                                                    return;
+                                                                }
+                                                                if (customBlogUrl) {
+                                                                    const finalUrl = customBlogUrl.startsWith('http') ? customBlogUrl : `https://${customBlogUrl}`;
+                                                                    window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                                                                } else if (isPlaceholder) {
+                                                                    const fallbackUrl = item.blogUrl || 'https://blog.naver.com/yunjia2miju';
+                                                                    const finalUrl = fallbackUrl.startsWith('http') ? fallbackUrl : `https://${fallbackUrl}`;
+                                                                    window.open(finalUrl, '_blank', 'noopener,noreferrer');
                                                                 } else {
                                                                     setSelectedPostId(item.id);
                                                                     setActiveSection('detail');
@@ -197,7 +221,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                             }}
                                                             className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-colors text-center"
                                                         >
-                                                            {isPlaceholder ? '블로그 보기' : '상세 보기'}
+                                                            {isVideoCategory ? '영상 재생' : (customBlogUrl || isPlaceholder ? '블로그 보기' : '상세 보기')}
                                                         </button>
                                                         <button 
                                                             onClick={(e) => {
@@ -228,4 +252,6 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
             )}
         </AnimatePresence>
     );
+
+    return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

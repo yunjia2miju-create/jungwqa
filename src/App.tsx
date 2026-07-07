@@ -31,7 +31,9 @@ export default function App() {
         setActiveSection, 
         selectedPostId,
         setPosts,
-        setInquiries
+        setInquiries,
+        videoPopupUrl,
+        setVideoPopupUrl
     } = useAppStore();
 
     const selectedPost = posts.find(post => post.id === selectedPostId);
@@ -75,8 +77,14 @@ export default function App() {
                     const params = new URLSearchParams(window.location.search);
                     const urlPostId = params.get('id') || params.get('postId');
                     if (urlPostId) {
-                        const postExists = data.some(p => p.id === urlPostId);
-                        if (postExists) {
+                        const post = data.find(p => p.id === urlPostId);
+                        if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
+                            const videoUrl = post.video || post.naverTv || post.naverBlogUrl || post.blogUrl || (String(post.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+                            if (videoUrl) {
+                                useAppStore.getState().setVideoPopupUrl(videoUrl);
+                            }
+                            window.history.replaceState(null, "", window.location.pathname);
+                        } else if (post) {
                             useAppStore.getState().setSelectedPostId(urlPostId);
                             useAppStore.getState().setActiveSection('detail');
                         }
@@ -305,8 +313,19 @@ export default function App() {
             const id = params.get('id') || params.get('postId');
             
             if (id) {
-                useAppStore.getState().setSelectedPostId(id);
-                useAppStore.getState().setActiveSection('detail');
+                const found = useAppStore.getState().posts.find(p => p.id === id);
+                if (found && (found.category === '유튜브' || found.category === '네이버TV')) {
+                    const videoUrl = found.video || found.naverTv || found.naverBlogUrl || found.blogUrl || (String(found.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+                    if (videoUrl) {
+                        useAppStore.getState().setVideoPopupUrl(videoUrl);
+                    }
+                    useAppStore.getState().setSelectedPostId(null);
+                    useAppStore.getState().setActiveSection('main');
+                    window.history.replaceState(null, "", window.location.pathname);
+                } else {
+                    useAppStore.getState().setSelectedPostId(id);
+                    useAppStore.getState().setActiveSection('detail');
+                }
             } else {
                 useAppStore.getState().setSelectedPostId(null);
                 useAppStore.getState().setActiveSection('main');
@@ -317,6 +336,22 @@ export default function App() {
             window.removeEventListener('popstate', handlePopState);
         };
     }, []);
+
+    // 유튜브/네이버TV 상세페이지 진입 원천 차단 및 비디오 팝업 즉시 우회(Bypass)
+    useEffect(() => {
+        if (selectedPostId && posts.length > 0) {
+            const post = posts.find(p => p.id === selectedPostId);
+            if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
+                const videoUrl = post.video || post.naverTv || post.naverBlogUrl || post.blogUrl || (String(post.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+                if (videoUrl) {
+                    setVideoPopupUrl(videoUrl);
+                }
+                useAppStore.getState().setSelectedPostId(null);
+                useAppStore.getState().setActiveSection('main');
+                window.history.replaceState(null, "", window.location.pathname);
+            }
+        }
+    }, [selectedPostId, posts, setVideoPopupUrl]);
 
     const isManagerSection = activeSection === 'admin-write' || activeSection === 'admin-dashboard';
     const mainWrapperClass = (isMobileSimulationMode && !isManagerSection)
@@ -348,7 +383,7 @@ export default function App() {
                             <i className="fa-solid fa-bullhorn mr-1"></i> 정직한 발걸음과 생생한 관찰 기록,<br />구미태왕공인중개사가 전문적인 중개를 약속합니다.
                         </div>
                         <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 w-full transition-all">
-                            <div className="max-w-none w-full px-4 sm:px-12 md:px-16 lg:px-24 xl:px-32 h-16 sm:h-20 flex justify-between items-center">
+                            <div className="max-w-[1100px] mx-auto w-full px-4 sm:px-6 md:px-8 h-16 sm:h-20 flex justify-between items-center">
                                 <div className="flex items-center cursor-pointer" onClick={() => setActiveSection('main')}>
                                     <div className="flex items-center space-x-2 group">
                                         <div className="shrink-0 flex items-center justify-center transition-all duration-300 !opacity-100 !block" style={{ opacity: 1, display: 'block' }}>
@@ -583,6 +618,70 @@ export default function App() {
             {/* [태왕공인중개사 플랫폼 대완공] 루트 독립 배선: 브라우저 뷰포트 직속 쇠말뚝 고정 */}
             {activeSection !== 'admin-write' && activeSection !== 'admin-dashboard' && typeof document !== 'undefined' && (
                 <TaewangFloatingBar />
+            )}
+
+            {/* 유튜브 및 네이버TV 직통 팝업 재생 시스템 (Modal Window) */}
+            {videoPopupUrl && (
+                <div className="fixed inset-0 z-[10000000] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 sm:p-8">
+                    <div className="relative w-full max-w-4xl bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-white/10 flex flex-col">
+                        {/* 상단 컨트롤 헤더 영역 (동영상 화면을 가리지 않음) */}
+                        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-900 border-b border-white/10">
+                            <div className="flex items-center gap-2">
+                                <a 
+                                    href={videoPopupUrl.startsWith('http') ? videoPopupUrl : `https://${videoPopupUrl}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center gap-1.5 sm:gap-2 transition-all text-xs sm:text-sm font-black shadow-lg"
+                                    title="동영상이 보이지 않을 때 클릭하시면 네이버TV/유튜브 웹페이지에서 바로 재생할 수 있습니다."
+                                >
+                                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                                    새 창에서 직접 재생 ↗
+                                </a>
+                                <span className="hidden sm:inline text-xs text-slate-400 font-medium">
+                                    영상이 안 나오면 버튼을 클릭하세요.
+                                </span>
+                            </div>
+
+                            {/* 닫기 버튼 */}
+                            <button 
+                                onClick={() => setVideoPopupUrl(null)}
+                                className="bg-slate-800 hover:bg-red-600 text-white w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border border-white/10 transition-all cursor-pointer text-xl font-bold"
+                                title="닫기"
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        {/* 동영상 프레임 영역: 세로 길이를 더 길게 늘려서 가려지지 않고 넉넉하게 표시되도록 개선 */}
+                        <div className="w-full h-[55vh] sm:h-[65vh] md:h-[75vh] min-h-[320px] sm:min-h-[450px] md:min-h-[550px] bg-black relative">
+                            <iframe 
+                                src={(() => {
+                                    const url = videoPopupUrl;
+                                    // YouTube
+                                    const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+                                    if (ytMatch && ytMatch[1]) {
+                                        return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`;
+                                    }
+
+                                    // NaverTV / Naver Now
+                                    const nvMatch = url.match(/(?:tv\.naver\.com|now\.naver\.com)(?:\/v|\/player|\/embed)\/([a-zA-Z0-9_-]+)/i);
+                                    if (nvMatch && nvMatch[1]) {
+                                        return `https://tv.naver.com/embed/${nvMatch[1]}?autoPlay=true`;
+                                    }
+
+                                    // Fallback
+                                    if (url.includes('embed')) {
+                                        return url;
+                                    }
+                                    return url.startsWith('http') ? url : `https://${url}`;
+                                })()}
+                                className="absolute inset-0 w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
+                    </div>
+                </div>
             )}
         </ToastContext.Provider>
     );

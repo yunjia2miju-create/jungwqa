@@ -442,7 +442,7 @@ h1, h2, h3, h4, h5, h6 {
 .taewang-flow-track {
     display: flex;
     width: max-content;
-    animation: taewang-infinite-flow 36s linear infinite !important;
+    animation: taewang-infinite-flow 80s linear infinite !important;
     will-change: transform;
 }
 

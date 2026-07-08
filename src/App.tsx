@@ -185,22 +185,33 @@ export default function App() {
         try {
             if (activeSection === 'detail' && selectedPostId) {
                 const targetPath = `/rooms/${selectedPostId}`;
-                if (window.location.pathname !== targetPath) {
-                    const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(window.location.search);
+                const hasIdOrPostId = params.has('id') || params.has('postId');
+
+                if (window.location.pathname !== targetPath || hasIdOrPostId) {
                     params.delete('postId');
                     params.delete('id');
                     const search = params.toString();
                     const newUrl = targetPath + (search ? `?${search}` : '');
-                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
+                    if (window.location.pathname === targetPath) {
+                        window.history.replaceState({ postId: selectedPostId }, "", newUrl);
+                    } else {
+                        window.history.pushState({ postId: selectedPostId }, "", newUrl);
+                    }
                 }
             } else if (activeSection === 'main') {
-                if (window.location.pathname !== '/' && !window.location.pathname.startsWith('/admin')) {
-                    const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(window.location.search);
+                const hasIdOrPostId = params.has('id') || params.has('postId');
+                if ((window.location.pathname !== '/' && !window.location.pathname.startsWith('/admin')) || hasIdOrPostId) {
                     params.delete('postId');
                     params.delete('id');
                     const search = params.toString();
                     const newUrl = '/' + (search ? `?${search}` : '');
-                    window.history.pushState(null, "", newUrl);
+                    if (window.location.pathname === '/') {
+                        window.history.replaceState(null, "", newUrl);
+                    } else {
+                        window.history.pushState(null, "", newUrl);
+                    }
                 }
             }
         } catch (e) {

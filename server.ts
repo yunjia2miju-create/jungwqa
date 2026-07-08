@@ -1477,7 +1477,15 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     app.use(vite.middlewares);
   } else {
-    console.log('Static distPath:', distPath); app.use(express.static(distPath, { index: false }));
+    console.log('Static distPath:', distPath);
+    
+    // Serve static files inside /rooms/ prefix correctly to handle any older cached relative paths robustly
+    app.use('/rooms/assets', express.static(path.join(distPath, 'assets')));
+    app.get('/rooms/smarteditor-final.html', (req, res) => {
+      res.sendFile(path.join(distPath, 'smarteditor-final.html'));
+    });
+
+    app.use(express.static(distPath, { index: false }));
     
     app.get('*', async (req, res) => {
       const indexPath = path.join(distPath, 'index.html');

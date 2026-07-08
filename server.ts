@@ -91,16 +91,25 @@ async function startServer() {
     console.warn("[Cloud Run Startup] Cannot write local data files on read-only file system, serving safely from memory.", fsErr);
   }
 
-  // Load and initialize Firebase Cloud Database
-  const configPath = path.join(projectRoot, 'firebase-applet-config.json');
+  // Load and initialize Firebase Cloud Database with multi-path robust fallback lookup
+  const configPaths = [
+    path.join(projectRoot, 'firebase-applet-config.json'),
+    path.join(process.cwd(), 'firebase-applet-config.json'),
+    path.join(_dirname, 'firebase-applet-config.json'),
+    'firebase-applet-config.json'
+  ];
   let firebaseAdminConfig: any = null;
   let firestoreDb: any = null;
 
-  if (fs.existsSync(configPath)) {
-    try {
-      firebaseAdminConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    } catch (e) {
-      console.error("Error reading firebase-applet-config.json:", e);
+  for (const p of configPaths) {
+    if (fs.existsSync(p)) {
+      try {
+        firebaseAdminConfig = JSON.parse(fs.readFileSync(p, 'utf-8'));
+        console.log(`[Firebase Config] Successfully loaded config from ${p}`);
+        break;
+      } catch (e) {
+        console.error(`Error reading config from ${p}:`, e);
+      }
     }
   }
 
@@ -1387,8 +1396,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     // Try public Firestore REST API which bypasses container credential limitations and is 100% reliable
     try {
-      const projectId = "gumi-today-room-tv";
-      const databaseId = "ai-studio-26ca0b12-30a2-4105-aae6-8ada4b2f1f60";
+      const projectId = (firebaseAdminConfig && firebaseAdminConfig.projectId) || "gumi-today-room-tv";
+      const databaseId = (firebaseAdminConfig && firebaseAdminConfig.firestoreDatabaseId) || "ai-studio-26ca0b12-30a2-4105-aae6-8ada4b2f1f60";
+      console.log(`[getPostById] Fetching from REST API - Project: ${projectId}, Database: ${databaseId}, Item ID: ${id}`);
       const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/posts/${id}`;
       const res = await fetch(url);
       if (res.ok) {
@@ -1461,24 +1471,52 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const hostUrl = getAbsoluteHostUrl(req);
               const newUrl = `${hostUrl}${req.path}`;
               
-              // 파이어베이스 살아있는 실시간 대표 사진 소스 탐색
-              let finalImg = post.thumbnail || '';
+              // 파이어베이스에 직접 업로드된 "실시간 생생한 현장 사진" 최우선 추출 알고리즘
+              let finalImg = '';
+              const isFirebaseImg = (src: any) => typeof src === 'string' && (src.includes('firebasestorage') || src.includes('googleapis') || src.includes('googleusercontent'));
+
+              // 1. vrThumbnail 수색 (가장 정확한 360 VR 대표 사진)
+              if (isFirebaseImg(post.vrThumbnail)) {
+                finalImg = post.vrThumbnail;
+              }
+              // 2. thumbnail이 파이어베이스 이미지인지 수색
+              if (!finalImg && isFirebaseImg(post.thumbnail)) {
+                finalImg = post.thumbnail;
+              }
+              // 3. panoImage 수색
+              if (!finalImg && isFirebaseImg(post.panoImage)) {
+                finalImg = post.panoImage;
+              }
+              // 4. images 배열/문자열 파싱 후 파이어베이스 이미지 수색
               if (!finalImg && post.images) {
                 try {
                   const imgs = typeof post.images === 'string' ? JSON.parse(post.images) : post.images;
-                  if (Array.isArray(imgs) && imgs.length > 0) {
-                    finalImg = imgs[0];
+                  if (Array.isArray(imgs)) {
+                    const firstFb = imgs.find(img => isFirebaseImg(img));
+                    if (firstFb) finalImg = firstFb;
                   }
                 } catch (e) {}
               }
+              // 5. panoramas 문자열 파싱 (파이프 '|' 등으로 연결된 형태 분해)
+              if (!finalImg && typeof post.panoramas === 'string' && post.panoramas.length > 0) {
+                const parts = post.panoramas.split('|');
+                const firstFb = parts.find(p => isFirebaseImg(p));
+                if (firstFb) finalImg = firstFb;
+              }
+              // 6. 전수 필드 스캔하여 최초의 파이어베이스 이미지 주소 탐색
               if (!finalImg) {
                 for (const val of Object.values(post)) {
-                  if (typeof val === 'string' && val.includes('firebasestorage')) {
-                    finalImg = val;
+                  if (isFirebaseImg(val)) {
+                    finalImg = val as string;
                     break;
                   }
                 }
               }
+              // 7. 파이어베이스 이미지가 전혀 없다면 일반 썸네일 수용 (Unsplash 등 포함)
+              if (!finalImg && post.thumbnail) {
+                finalImg = post.thumbnail;
+              }
+
               const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
@@ -1543,24 +1581,52 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const hostUrl = getAbsoluteHostUrl(req);
               const newUrl = `${hostUrl}${req.path}`;
               
-              // 파이어베이스 살아있는 실시간 대표 사진 소스 탐색
-              let finalImg = post.thumbnail || '';
+              // 파이어베이스에 직접 업로드된 "실시간 생생한 현장 사진" 최우선 추출 알고리즘
+              let finalImg = '';
+              const isFirebaseImg = (src: any) => typeof src === 'string' && (src.includes('firebasestorage') || src.includes('googleapis') || src.includes('googleusercontent'));
+
+              // 1. vrThumbnail 수색 (가장 정확한 360 VR 대표 사진)
+              if (isFirebaseImg(post.vrThumbnail)) {
+                finalImg = post.vrThumbnail;
+              }
+              // 2. thumbnail이 파이어베이스 이미지인지 수색
+              if (!finalImg && isFirebaseImg(post.thumbnail)) {
+                finalImg = post.thumbnail;
+              }
+              // 3. panoImage 수색
+              if (!finalImg && isFirebaseImg(post.panoImage)) {
+                finalImg = post.panoImage;
+              }
+              // 4. images 배열/문자열 파싱 후 파이어베이스 이미지 수색
               if (!finalImg && post.images) {
                 try {
                   const imgs = typeof post.images === 'string' ? JSON.parse(post.images) : post.images;
-                  if (Array.isArray(imgs) && imgs.length > 0) {
-                    finalImg = imgs[0];
+                  if (Array.isArray(imgs)) {
+                    const firstFb = imgs.find(img => isFirebaseImg(img));
+                    if (firstFb) finalImg = firstFb;
                   }
                 } catch (e) {}
               }
+              // 5. panoramas 문자열 파싱 (파이프 '|' 등으로 연결된 형태 분해)
+              if (!finalImg && typeof post.panoramas === 'string' && post.panoramas.length > 0) {
+                const parts = post.panoramas.split('|');
+                const firstFb = parts.find(p => isFirebaseImg(p));
+                if (firstFb) finalImg = firstFb;
+              }
+              // 6. 전수 필드 스캔하여 최초의 파이어베이스 이미지 주소 탐색
               if (!finalImg) {
                 for (const val of Object.values(post)) {
-                  if (typeof val === 'string' && val.includes('firebasestorage')) {
-                    finalImg = val;
+                  if (isFirebaseImg(val)) {
+                    finalImg = val as string;
                     break;
                   }
                 }
               }
+              // 7. 파이어베이스 이미지가 전혀 없다면 일반 썸네일 수용 (Unsplash 등 포함)
+              if (!finalImg && post.thumbnail) {
+                finalImg = post.thumbnail;
+              }
+
               const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);

@@ -1565,17 +1565,26 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
               const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
 
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
-              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
-              
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              // 1. 기존의 카카오/네이버가 수집하는 메타 태그 중복 방지를 위한 강력 제거 패턴
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
+              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, '');
+
+              // 2. 완벽하게 파싱되어 완성된 고품격 동적 메타 태그 일괄 주입
+              const metaTags = `
+    <meta property="og:title" id="ogTitle" content="${newTitle}">
+    <meta property="og:description" id="ogDesc" content="${newDesc}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" id="ogUrl" content="${newUrl}">
+    <meta property="og:site_name" content="구미 태왕공인중개사사무소">
+    <meta property="og:image" id="ogImage" content="${newImage}">
+    <meta name="description" content="${newDesc}">
+    <link rel="canonical" id="canonicalUrl" href="${newUrl}">`;
+
+              html = html.replace('</head>', `${metaTags}\n  </head>`);
             }
             // Dynamic host replacement for developer's active domain
             const hostUrl = getAbsoluteHostUrl(req);
@@ -1675,17 +1684,26 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
               const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
 
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
-              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
-              
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              // 1. 기존의 카카오/네이버가 수집하는 메타 태그 중복 방지를 위한 강력 제거 패턴
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, '');
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
+              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, '');
+
+              // 2. 완벽하게 파싱되어 완성된 고품격 동적 메타 태그 일괄 주입
+              const metaTags = `
+    <meta property="og:title" id="ogTitle" content="${newTitle}">
+    <meta property="og:description" id="ogDesc" content="${newDesc}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" id="ogUrl" content="${newUrl}">
+    <meta property="og:site_name" content="구미 태왕공인중개사사무소">
+    <meta property="og:image" id="ogImage" content="${newImage}">
+    <meta name="description" content="${newDesc}">
+    <link rel="canonical" id="canonicalUrl" href="${newUrl}">`;
+
+              html = html.replace('</head>', `${metaTags}\n  </head>`);
             }
           }
           // Dynamic host replacement for production client's active domain

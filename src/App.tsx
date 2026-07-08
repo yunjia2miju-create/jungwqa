@@ -111,27 +111,6 @@ export default function App() {
             window.addEventListener('DOMContentLoaded', fetchData);
         }
 
-        // Real-time Firestore synchronizer for posts and inquiries (Instantly clears local and virtual cache)
-        const unsubscribePosts = onSnapshot(collection(db, 'posts'), () => {
-            getPostsService()
-                .then(data => {
-                    setPosts(data);
-                })
-                .catch(err => console.error("실시간 매물 업데이트 오류:", err));
-        }, (err) => {
-            console.warn("Firestore posts dynamic subscription failed, falling back:", err);
-        });
-
-        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), () => {
-            getInquiriesService()
-                .then(data => {
-                    setInquiries(data);
-                })
-                .catch(err => console.error("실시간 의뢰 업데이트 오류:", err));
-        }, (err) => {
-            console.warn("Firestore inquiries dynamic subscription failed, falling back:", err);
-        });
-
         // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user && user.email === 'yunjia2miju@gmail.com' && user.emailVerified) {
@@ -173,12 +152,40 @@ export default function App() {
 
         return () => {
             unsubscribe();
-            unsubscribePosts();
-            unsubscribeInquiries();
             window.removeEventListener('submitDirectInquiry', handleDirectInquiry);
             window.removeEventListener('popstate', handlePopState);
         };
     }, []);
+
+    // Set up real-time Firestore listeners ONLY for logged-in admin users to save daily read quota
+    useEffect(() => {
+        if (!isAdminLoggedIn) return;
+
+        const unsubscribePosts = onSnapshot(collection(db, 'posts'), () => {
+            getPostsService()
+                .then(data => {
+                    setPosts(data);
+                })
+                .catch(err => console.error("실시간 매물 업데이트 오류:", err));
+        }, (err) => {
+            console.warn("Firestore posts dynamic subscription failed, falling back:", err);
+        });
+
+        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), () => {
+            getInquiriesService()
+                .then(data => {
+                    setInquiries(data);
+                })
+                .catch(err => console.error("실시간 의뢰 업데이트 오류:", err));
+        }, (err) => {
+            console.warn("Firestore inquiries dynamic subscription failed, falling back:", err);
+        });
+
+        return () => {
+            unsubscribePosts();
+            unsubscribeInquiries();
+        };
+    }, [isAdminLoggedIn]);
 
     // Synchronize detail view state dynamically with the browser's URL address bar using path-based routing
     useEffect(() => {

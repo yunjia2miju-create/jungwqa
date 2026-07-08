@@ -1008,6 +1008,52 @@ async function startServer() {
     res.json({ success: true, message: "2차 모바일 인증이 최종 완료되었습니다." });
   });
 
+  // Dynamic sitemap.xml route for SEO indexation
+  app.get('/sitemap.xml', (req, res) => {
+    try {
+      const posts = readPosts();
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+      
+      // 1. Home page
+      xml += `  <url>\n`;
+      xml += `    <loc>https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/</loc>\n`;
+      xml += `    <lastmod>2026-07-08</lastmod>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>1.0</priority>\n`;
+      xml += `  </url>\n`;
+      
+      // 2. Individual room listings
+      for (const post of posts) {
+        if (post && post.id) {
+          let lastmod = '2026-07-08';
+          if (post.updatedAt || post.createdAt) {
+            try {
+              const dt = new Date(post.updatedAt || post.createdAt);
+              if (!isNaN(dt.getTime())) {
+                lastmod = dt.toISOString().split('T')[0];
+              }
+            } catch (e) {}
+          }
+          xml += `  <url>\n`;
+          xml += `    <loc>https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/rooms/${post.id}</loc>\n`;
+          xml += `    <lastmod>${lastmod}</lastmod>\n`;
+          xml += `    <changefreq>weekly</changefreq>\n`;
+          xml += `    <priority>0.8</priority>\n`;
+          xml += `  </url>\n`;
+        }
+      }
+      
+      xml += `</urlset>\n`;
+      
+      res.header('Content-Type', 'application/xml');
+      res.status(200).send(xml);
+    } catch (err) {
+      console.error("Error generating dynamic sitemap.xml:", err);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
   // Naver Blog Article Auto-Generator using Gemini API with Local Template Fallback
   app.post('/api/naver-blog/generate', async (req, res) => {
     const { 

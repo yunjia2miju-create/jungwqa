@@ -50,61 +50,66 @@ export async function getPostsService(): Promise<Post[]> {
     }
   })());
 
-  // Task B: Fetch from active Firestore database
-  fetchTasks.push((async () => {
-    try {
-      const postsRef = collection(db, 'posts');
-      const q = query(postsRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      snapshot.forEach(doc => {
-        const p = doc.data() as Post;
-        mergePost(p);
-      });
-    } catch (err) {
-      console.warn("Active Firestore database posts fetch failed:", err);
-    }
-  })());
+  const isAdmin = (auth.currentUser && auth.currentUser.email === 'yunjia2miju@gmail.com') || 
+                  (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('taewang_firebase_sim_connected') === 'true');
 
-  // Task C: Fetch from legacy default database (if different) in the background so it never blocks the fast active DB/API loading
-  if (db !== defaultDb) {
-    (async () => {
+  if (isAdmin) {
+    // Task B: Fetch from active Firestore database
+    fetchTasks.push((async () => {
       try {
-        const legacyRef = collection(defaultDb, 'posts');
-        const q = query(legacyRef, orderBy('createdAt', 'desc'));
+        const postsRef = collection(db, 'posts');
+        const q = query(postsRef, orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
         snapshot.forEach(doc => {
           const p = doc.data() as Post;
-          if (p && p.id) {
-            legacyPosts.push(p);
-          }
+          mergePost(p);
         });
-        
-        // Trigger background migration if legacy posts were discovered
-        if (legacyPosts.length > 0) {
-          console.log(`[Migration] Found ${legacyPosts.length} legacy posts. Starting automatic migration in background...`);
-          for (const post of legacyPosts) {
-            try {
-              // 1. Write to active Firestore database
-              const activeDocRef = doc(db, 'posts', post.id);
-              await setDoc(activeDocRef, post, { merge: true });
-
-              // 2. Write/Sync to Express backend
-              await fetch('/api/posts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(post)
-              });
-            } catch (migErr) {
-              console.warn(`[Migration] Failed migrating post ${post.id}:`, migErr);
-            }
-          }
-          console.log("[Migration] Automatic migration completed successfully.");
-        }
       } catch (err) {
-        // Downgrade to console.debug/info to prevent distracting warning logs when permission is expectedly denied
-        console.info("Legacy Firestore database posts fetch bypassed (this is expected when using a custom named database ID):", err);
+        console.warn("Active Firestore database posts fetch failed:", err);
       }
-    })();
+    })());
+
+    // Task C: Fetch from legacy default database (if different) in the background so it never blocks the fast active DB/API loading
+    if (db !== defaultDb) {
+      (async () => {
+        try {
+          const legacyRef = collection(defaultDb, 'posts');
+          const q = query(legacyRef, orderBy('createdAt', 'desc'));
+          const snapshot = await getDocs(q);
+          snapshot.forEach(doc => {
+            const p = doc.data() as Post;
+            if (p && p.id) {
+              legacyPosts.push(p);
+            }
+          });
+          
+          // Trigger background migration if legacy posts were discovered
+          if (legacyPosts.length > 0) {
+            console.log(`[Migration] Found ${legacyPosts.length} legacy posts. Starting automatic migration in background...`);
+            for (const post of legacyPosts) {
+              try {
+                // 1. Write to active Firestore database
+                const activeDocRef = doc(db, 'posts', post.id);
+                await setDoc(activeDocRef, post, { merge: true });
+
+                // 2. Write/Sync to Express backend
+                await fetch('/api/posts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(post)
+                });
+              } catch (migErr) {
+                console.warn(`[Migration] Failed migrating post ${post.id}:`, migErr);
+              }
+            }
+            console.log("[Migration] Automatic migration completed successfully.");
+          }
+        } catch (err) {
+          // Downgrade to console.debug/info to prevent distracting warning logs when permission is expectedly denied
+          console.info("Legacy Firestore database posts fetch bypassed (this is expected when using a custom named database ID):", err);
+        }
+      })();
+    }
   }
 
   // Wait for Task A (API) and Task B (Active DB) to complete or settle

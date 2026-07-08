@@ -74,9 +74,13 @@ export default function App() {
                 .then(data => {
                     setPosts(data);
                     
-                    // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
+                    // Parse query parameters and path-based routing for automatic redirection to post detail view
                     const params = new URLSearchParams(window.location.search);
-                    const urlPostId = params.get('id') || params.get('postId');
+                    let urlPostId = params.get('id') || params.get('postId');
+                    if (!urlPostId && window.location.pathname.startsWith('/rooms/')) {
+                        const pathParts = window.location.pathname.split('/');
+                        urlPostId = pathParts[2];
+                    }
                     if (urlPostId) {
                         const post = data.find(p => p.id === urlPostId);
                         if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
@@ -84,7 +88,7 @@ export default function App() {
                             if (videoUrl) {
                                 useAppStore.getState().setVideoPopupUrl(videoUrl);
                             }
-                            window.history.replaceState(null, "", window.location.pathname);
+                            window.history.replaceState(null, "", '/');
                         } else if (post) {
                             useAppStore.getState().setSelectedPostId(urlPostId);
                             useAppStore.getState().setActiveSection('detail');
@@ -151,31 +155,51 @@ export default function App() {
             "color: #059669; font-family: 'Nanum Gothic', sans-serif; font-size: 13px; font-weight: bold; line-height: 1.6;"
         );
 
+        const handlePopState = (event: PopStateEvent) => {
+            const path = window.location.pathname;
+            const params = new URLSearchParams(window.location.search);
+            let urlPostId = params.get('id') || params.get('postId');
+            if (!urlPostId && path.startsWith('/rooms/')) {
+                urlPostId = path.split('/')[2];
+            }
+            if (urlPostId) {
+                useAppStore.getState().setSelectedPostId(urlPostId);
+                useAppStore.getState().setActiveSection('detail');
+            } else {
+                useAppStore.getState().setActiveSection('main');
+            }
+        };
+        window.addEventListener('popstate', handlePopState);
+
         return () => {
             unsubscribe();
             unsubscribePosts();
             unsubscribeInquiries();
             window.removeEventListener('submitDirectInquiry', handleDirectInquiry);
+            window.removeEventListener('popstate', handlePopState);
         };
     }, []);
 
-    // Synchronize detail view state dynamically with the browser's URL address bar query parameters
+    // Synchronize detail view state dynamically with the browser's URL address bar using path-based routing
     useEffect(() => {
         try {
             if (activeSection === 'detail' && selectedPostId) {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('postId') !== selectedPostId && params.get('id') !== selectedPostId) {
-                    params.set('postId', selectedPostId);
-                    const newUrl = `${window.location.pathname}?${params.toString()}`;
-                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
-                }
-            } else if (activeSection === 'main') {
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('postId') || params.has('id')) {
+                const targetPath = `/rooms/${selectedPostId}`;
+                if (window.location.pathname !== targetPath) {
+                    const params = new URLSearchParams(window.location.search);
                     params.delete('postId');
                     params.delete('id');
                     const search = params.toString();
-                    const newUrl = window.location.pathname + (search ? `?${search}` : '');
+                    const newUrl = targetPath + (search ? `?${search}` : '');
+                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
+                }
+            } else if (activeSection === 'main') {
+                if (window.location.pathname !== '/' && !window.location.pathname.startsWith('/admin')) {
+                    const params = new URLSearchParams(window.location.search);
+                    params.delete('postId');
+                    params.delete('id');
+                    const search = params.toString();
+                    const newUrl = '/' + (search ? `?${search}` : '');
                     window.history.pushState(null, "", newUrl);
                 }
             }

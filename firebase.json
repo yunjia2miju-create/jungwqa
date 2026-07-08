@@ -1,4 +1,7 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "public": "dist",
     "ignore": [
@@ -7,20 +10,6 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "/api/**",
-        "run": {
-          "serviceId": "iigumi-today-room-tv",
-          "region": "asia-northeast3"
-        }
-      },
-      {
-        "source": "/rooms/**",
-        "run": {
-          "serviceId": "iigumi-today-room-tv",
-          "region": "asia-northeast3"
-        }
-      },
       {
         "source": "**",
         "destination": "/index.html"

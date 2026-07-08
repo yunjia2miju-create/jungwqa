@@ -67,6 +67,7 @@ async function startServer() {
       const destBanner = path.join(assetsDir, 'fixed-master-vr-banner.png');
       if (fs.existsSync(srcBanner)) {
         // Since vr-captured-banner.png is actually an SVG file, we render it to a high-quality raster PNG so social scrapers (KakaoTalk, etc.) can show it!
+        // @ts-ignore
         const { default: sharp } = await import('sharp');
         const svgContent = fs.readFileSync(srcBanner);
         await sharp(svgContent)
@@ -721,6 +722,7 @@ async function startServer() {
       if (contentType.startsWith('image/')) {
         try {
           // Dynamic import to prevent startup binary crashes on minimal machines
+          // @ts-ignore
           const { default: sharp } = await import('sharp');
           const imageInstance = sharp(body);
           const metadata = await imageInstance.metadata();

@@ -202,7 +202,9 @@ export default function App() {
             } else if (activeSection === 'main') {
                 const params = new URLSearchParams(window.location.search);
                 const hasIdOrPostId = params.has('id') || params.has('postId');
-                if ((window.location.pathname !== '/' && !window.location.pathname.startsWith('/admin')) || hasIdOrPostId) {
+                const isRoomsPath = window.location.pathname.startsWith('/rooms/');
+
+                if (!isRoomsPath && ((window.location.pathname !== '/' && !window.location.pathname.startsWith('/admin')) || hasIdOrPostId)) {
                     params.delete('postId');
                     params.delete('id');
                     const search = params.toString();
@@ -351,27 +353,15 @@ export default function App() {
         window.scrollTo(0, 0);
     }, [activeSection]);
 
-    // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const currentId = params.get('id') || params.get('postId');
-        if (selectedPostId) {
-            if (currentId !== selectedPostId) {
-                window.history.pushState({ postId: selectedPostId }, "", `?id=${selectedPostId}`);
-            }
-        } else {
-            // Only clear the query parameter if it is set and we are returning to the main page
-            if (currentId && activeSection === 'main') {
-                window.history.pushState(null, "", window.location.pathname);
-            }
-        }
-    }, [selectedPostId, activeSection]);
-
     // 브라우저 뒤로가기/앞으로가기 (onpopstate) 대응 선로 세팅
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             const params = new URLSearchParams(window.location.search);
-            const id = params.get('id') || params.get('postId');
+            let id = params.get('id') || params.get('postId');
+            if (!id && window.location.pathname.startsWith('/rooms/')) {
+                const pathParts = window.location.pathname.split('/');
+                id = pathParts[2];
+            }
             
             if (id) {
                 const found = useAppStore.getState().posts.find(p => p.id === id);

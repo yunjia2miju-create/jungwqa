@@ -98,6 +98,14 @@
               const itemId = urlParams.get('id') || urlParams.get('postId'); 
               
               let canonicalUrl = window.location.href;
+              try {
+                  const parsedUrl = new URL(canonicalUrl);
+                  parsedUrl.searchParams.delete('id');
+                  parsedUrl.searchParams.delete('postId');
+                  canonicalUrl = parsedUrl.toString();
+              } catch (urlErr) {
+                  console.error(urlErr);
+              }
               if (canonicalUrl.includes('태왕공인중개사사무소.com')) {
                   canonicalUrl = canonicalUrl.replace('태왕공인중개사사무소.com', 'xn--h49a2pelq49bcrfloji4br3e56y.com');
               }
@@ -160,8 +168,14 @@
       try { runDynamicCardEngine(); } catch (err) {}
       window.addEventListener('DOMContentLoaded', function() {
           runDynamicCardEngine();
-          const currentUrl = window.location.href;
-          if (currentUrl.includes('id=')) {
+          let currentUrl = window.location.href;
+          try {
+              const parsedUrl = new URL(currentUrl);
+              parsedUrl.searchParams.delete('id');
+              parsedUrl.searchParams.delete('postId');
+              currentUrl = parsedUrl.toString();
+          } catch (e) {}
+          if (window.location.search.includes('id=') || window.location.search.includes('postId=')) {
               document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
               document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
               const allImgs = Array.from(document.querySelectorAll('img'));

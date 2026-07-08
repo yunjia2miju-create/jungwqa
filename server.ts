@@ -530,38 +530,53 @@ async function startServer() {
       return;
     }
 
-    // Serve local JSON immediately to prevent blocking due to firestore database cold-starts
-    const fallbackResult = readPosts();
-    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
-    res.json(fallbackResult);
+    // 1. Try to fetch from Firestore synchronously first
+    if (firestoreDb && !firestorePermissionFailed) {
+      try {
+        const posts = await executeFirestoreOp(async (dbInstance) => {
+          const postsRef = dbInstance.collection('posts');
+          const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
+          if (!snapshot.empty) {
+            const list: any[] = [];
+            snapshot.forEach((doc: any) => {
+              list.push(doc.data());
+            });
+            cachedPostsList = list;
+            try {
+              writePosts(list);
+            } catch (err) {}
+            return list;
+          } else {
+            // Seed if empty
+            console.log("Firestore posts collection is empty. Seeding defaultPosts...");
+            const batch = dbInstance.batch();
+            defaultPosts.forEach((post) => {
+              const docRef = postsRef.doc(post.id);
+              batch.set(docRef, post);
+            });
+            await batch.commit();
+            cachedPostsList = defaultPosts;
+            try {
+              writePosts(defaultPosts);
+            } catch (err) {}
+            return defaultPosts;
+          }
+        }, null);
 
-    // Trigger Firestore background query asynchronously to refresh local JSON and cache
-    executeFirestoreOp(async (dbInstance) => {
-      const postsRef = dbInstance.collection('posts');
-      const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
-      if (!snapshot.empty) {
-        const list: any[] = [];
-        snapshot.forEach((doc: any) => {
-          list.push(doc.data());
-        });
-        cachedPostsList = list;
-        writePosts(list);
-        console.log("[Firestore Admin] Background posts sync completed successfully.");
-      } else {
-        // Seed if empty
-        console.log("Firestore posts collection is empty. Seeding defaultPosts in background...");
-        const batch = dbInstance.batch();
-        defaultPosts.forEach((post) => {
-          const docRef = postsRef.doc(post.id);
-          batch.set(docRef, post);
-        });
-        await batch.commit();
-        cachedPostsList = defaultPosts;
-        writePosts(defaultPosts);
+        if (posts !== null) {
+          res.setHeader('X-Cache', 'MISS');
+          res.json(posts);
+          return;
+        }
+      } catch (err) {
+        console.error("[Firestore Admin] Synchronous posts fetch failed, falling back to local file:", err);
       }
-    }, null).catch(err => {
-      console.error("[Firestore Admin] Background posts sync failed:", err);
-    });
+    }
+
+    // 2. Safe fallback to local JSON file
+    const fallbackResult = readPosts();
+    res.setHeader('X-Cache', 'FALLBACK');
+    res.json(fallbackResult);
   });
 
   app.post('/api/posts', async (req, res) => {
@@ -775,25 +790,37 @@ async function startServer() {
       return;
     }
 
-    // Serve local JSON immediately to prevent blocking
-    const fallbackResult = readInquiries();
-    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
-    res.json(fallbackResult);
+    // 1. Try to fetch from Firestore synchronously first
+    if (firestoreDb && !firestorePermissionFailed) {
+      try {
+        const inquiries = await executeFirestoreOp(async (dbInstance) => {
+          const inquiriesRef = dbInstance.collection('inquiries');
+          const snapshot = await inquiriesRef.orderBy('createdAt', 'desc').get();
+          const list: any[] = [];
+          snapshot.forEach((doc: any) => {
+            list.push(doc.data());
+          });
+          cachedInquiriesList = list;
+          try {
+            writeInquiries(list);
+          } catch (err) {}
+          return list;
+        }, null);
 
-    // Sync from Firestore in background
-    executeFirestoreOp(async (dbInstance) => {
-      const inquiriesRef = dbInstance.collection('inquiries');
-      const snapshot = await inquiriesRef.orderBy('createdAt', 'desc').get();
-      const list: any[] = [];
-      snapshot.forEach((doc: any) => {
-        list.push(doc.data());
-      });
-      cachedInquiriesList = list;
-      writeInquiries(list);
-      console.log("[Firestore Admin] Background inquiries sync completed.");
-    }, null).catch(err => {
-      console.error("[Firestore Admin] Background inquiries sync failed:", err);
-    });
+        if (inquiries !== null) {
+          res.setHeader('X-Cache', 'MISS');
+          res.json(inquiries);
+          return;
+        }
+      } catch (err) {
+        console.error("[Firestore Admin] Synchronous inquiries fetch failed, falling back to local file:", err);
+      }
+    }
+
+    // 2. Safe fallback to local JSON file
+    const fallbackResult = readInquiries();
+    res.setHeader('X-Cache', 'FALLBACK');
+    res.json(fallbackResult);
   });
 
   app.post('/api/inquiries', async (req, res) => {

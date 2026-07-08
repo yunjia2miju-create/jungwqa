@@ -95,14 +95,25 @@
       function runDynamicCardEngine() {
           try {
               const urlParams = new URLSearchParams(window.location.search);
-              const itemId = urlParams.get('id') || urlParams.get('postId'); 
+              let itemId = urlParams.get('id') || urlParams.get('postId');
+              if (!itemId && window.location.pathname.startsWith('/rooms/')) {
+                  const pathParts = window.location.pathname.split('/');
+                  itemId = pathParts[2];
+              }
               
               let canonicalUrl = window.location.href;
               try {
                   const parsedUrl = new URL(canonicalUrl);
-                  parsedUrl.searchParams.delete('id');
-                  parsedUrl.searchParams.delete('postId');
-                  canonicalUrl = parsedUrl.toString();
+                  const isRoomPath = parsedUrl.pathname.startsWith('/rooms/');
+                  if (isRoomPath) {
+                      // 경로 기반 주소 보존: 쿼리 파라미터만 안전하게 제거
+                      parsedUrl.searchParams.delete('id');
+                      parsedUrl.searchParams.delete('postId');
+                      canonicalUrl = parsedUrl.toString();
+                  } else if (itemId) {
+                      // 쿼리로 들어온 주소는 세련된 고유 경로 주소로 정밀 변환
+                      canonicalUrl = parsedUrl.origin + '/rooms/' + itemId;
+                  }
               } catch (urlErr) {
                   console.error(urlErr);
               }
@@ -171,11 +182,21 @@
           let currentUrl = window.location.href;
           try {
               const parsedUrl = new URL(currentUrl);
-              parsedUrl.searchParams.delete('id');
-              parsedUrl.searchParams.delete('postId');
-              currentUrl = parsedUrl.toString();
+              const isRoomPath = parsedUrl.pathname.startsWith('/rooms/');
+              const urlParams = new URLSearchParams(parsedUrl.search);
+              const itemId = urlParams.get('id') || urlParams.get('postId') || (isRoomPath ? parsedUrl.pathname.split('/')[2] : null);
+              
+              if (isRoomPath) {
+                  parsedUrl.searchParams.delete('id');
+                  parsedUrl.searchParams.delete('postId');
+                  currentUrl = parsedUrl.toString();
+              } else if (itemId) {
+                  currentUrl = parsedUrl.origin + '/rooms/' + itemId;
+              }
           } catch (e) {}
-          if (window.location.search.includes('id=') || window.location.search.includes('postId=')) {
+          
+          const isRoomUrl = currentUrl.includes('/rooms/');
+          if (isRoomUrl) {
               document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
               document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
               const allImgs = Array.from(document.querySelectorAll('img'));

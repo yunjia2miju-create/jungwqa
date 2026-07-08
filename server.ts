@@ -1353,6 +1353,18 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     res.status(404).json({ error: `API 경로를 찾을 수 없습니다: ${req.url}` });
   });
 
+  // Helper to determine the true absolute host URL based on request context
+  function getAbsoluteHostUrl(req: any): string {
+    const host = req.get('host') || '';
+    // 만약 AI Studio 개발 환경이거나 로컬 개발망일 때만 해당 dynamic host 적용
+    if (host.includes('localhost') || host.includes('run.app') || host.includes('aistudio')) {
+      const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+      return `${protocol}://${host}`;
+    }
+    // 그 외 실서버(카카오톡 봇 수집 포함)에서는 소장님의 진짜 대표 도메인을 강력 고정하여 og:url 이 훼손되는 일을 원천 봉쇄함
+    return 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com';
+  }
+
   // Helper to find a post by ID for SSR Meta Injection
   async function getPostById(id: string): Promise<any> {
     if (cachedPostsList) {
@@ -1445,8 +1457,29 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `${req.protocol}://${req.get('host')}${req.path}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              
+              const hostUrl = getAbsoluteHostUrl(req);
+              const newUrl = `${hostUrl}${req.path}`;
+              
+              // 파이어베이스 살아있는 실시간 대표 사진 소스 탐색
+              let finalImg = post.thumbnail || '';
+              if (!finalImg && post.images) {
+                try {
+                  const imgs = typeof post.images === 'string' ? JSON.parse(post.images) : post.images;
+                  if (Array.isArray(imgs) && imgs.length > 0) {
+                    finalImg = imgs[0];
+                  }
+                } catch (e) {}
+              }
+              if (!finalImg) {
+                for (const val of Object.values(post)) {
+                  if (typeof val === 'string' && val.includes('firebasestorage')) {
+                    finalImg = val;
+                    break;
+                  }
+                }
+              }
+              const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1461,9 +1494,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               }
             }
             // Dynamic host replacement for developer's active domain
-            const hostUrl = `${req.protocol}://${req.get('host')}`;
-            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            const hostUrl = getAbsoluteHostUrl(req);
+            if (hostUrl !== 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com') {
+              html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+              html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            }
 
             res.send(html);
             return;
@@ -1504,8 +1539,29 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `${req.protocol}://${req.get('host')}${req.path}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              
+              const hostUrl = getAbsoluteHostUrl(req);
+              const newUrl = `${hostUrl}${req.path}`;
+              
+              // 파이어베이스 살아있는 실시간 대표 사진 소스 탐색
+              let finalImg = post.thumbnail || '';
+              if (!finalImg && post.images) {
+                try {
+                  const imgs = typeof post.images === 'string' ? JSON.parse(post.images) : post.images;
+                  if (Array.isArray(imgs) && imgs.length > 0) {
+                    finalImg = imgs[0];
+                  }
+                } catch (e) {}
+              }
+              if (!finalImg) {
+                for (const val of Object.values(post)) {
+                  if (typeof val === 'string' && val.includes('firebasestorage')) {
+                    finalImg = val;
+                    break;
+                  }
+                }
+              }
+              const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1521,9 +1577,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             }
           }
           // Dynamic host replacement for production client's active domain
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
-          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          const hostUrl = getAbsoluteHostUrl(req);
+          if (hostUrl !== 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com') {
+            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          }
 
           res.send(html);
         } catch (err) {

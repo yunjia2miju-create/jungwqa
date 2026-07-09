@@ -67,7 +67,6 @@ async function startServer() {
       const destBanner = path.join(assetsDir, 'fixed-master-vr-banner.png');
       if (fs.existsSync(srcBanner)) {
         // Since vr-captured-banner.png is actually an SVG file, we render it to a high-quality raster PNG so social scrapers (KakaoTalk, etc.) can show it!
-        // @ts-ignore
         const { default: sharp } = await import('sharp');
         const svgContent = fs.readFileSync(srcBanner);
         await sharp(svgContent)
@@ -92,25 +91,16 @@ async function startServer() {
     console.warn("[Cloud Run Startup] Cannot write local data files on read-only file system, serving safely from memory.", fsErr);
   }
 
-  // Load and initialize Firebase Cloud Database with multi-path robust fallback lookup
-  const configPaths = [
-    path.join(projectRoot, 'firebase-applet-config.json'),
-    path.join(process.cwd(), 'firebase-applet-config.json'),
-    path.join(_dirname, 'firebase-applet-config.json'),
-    'firebase-applet-config.json'
-  ];
+  // Load and initialize Firebase Cloud Database
+  const configPath = path.join(projectRoot, 'firebase-applet-config.json');
   let firebaseAdminConfig: any = null;
   let firestoreDb: any = null;
 
-  for (const p of configPaths) {
-    if (fs.existsSync(p)) {
-      try {
-        firebaseAdminConfig = JSON.parse(fs.readFileSync(p, 'utf-8'));
-        console.log(`[Firebase Config] Successfully loaded config from ${p}`);
-        break;
-      } catch (e) {
-        console.error(`Error reading config from ${p}:`, e);
-      }
+  if (fs.existsSync(configPath)) {
+    try {
+      firebaseAdminConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    } catch (e) {
+      console.error("Error reading firebase-applet-config.json:", e);
     }
   }
 
@@ -132,8 +122,23 @@ async function startServer() {
       try {
         await firestoreDb.collection('_test_probe_').limit(1).get();
       } catch (checkErr: any) {
-        console.warn("[Firestore Admin] Primary database test failed. Remaining on specified database, but marking degraded state.", checkErr.message);
-        firestorePermissionFailed = true;
+        const errMsg = checkErr.message || "";
+        const isPermissionOrDbError = errMsg.includes('PERMISSION_DENIED') || 
+                                       errMsg.includes('database') || 
+                                       String(checkErr).includes('7') ||
+                                       String(checkErr).includes('3');
+        if (isPermissionOrDbError && dbId) {
+          try {
+            const defaultDb = getFirestore(appInstance);
+            await defaultDb.collection('_test_probe_').limit(1).get();
+            firestoreDb = defaultDb;
+            useDefaultDbFallback = true;
+          } catch (fallbackErr) {
+            firestorePermissionFailed = true;
+          }
+        } else {
+          firestorePermissionFailed = true;
+        }
       }
     } catch (err: any) {
       firestorePermissionFailed = true;
@@ -201,64 +206,6 @@ async function startServer() {
     } catch (err) {
       console.error("Error writing users:", err);
     }
-  }
-
-  function mergePosts(localList: any[], dbList: any[]) {
-    const mergedMap = new Map<string, any>();
-    
-    if (Array.isArray(localList)) {
-      localList.forEach(p => {
-        if (p && p.id) {
-          mergedMap.set(p.id, p);
-        }
-      });
-    }
-    
-    if (Array.isArray(dbList)) {
-      dbList.forEach(p => {
-        if (p && p.id) {
-          const existing = mergedMap.get(p.id);
-          const pTime = p.updatedAt || p.createdAt || 0;
-          const existingTime = existing ? (existing.updatedAt || existing.createdAt || 0) : -1;
-          if (pTime > existingTime || !existing) {
-            mergedMap.set(p.id, p);
-          }
-        }
-      });
-    }
-    
-    const result = Array.from(mergedMap.values());
-    result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    return result;
-  }
-
-  function mergeInquiries(localList: any[], dbList: any[]) {
-    const mergedMap = new Map<string, any>();
-    
-    if (Array.isArray(localList)) {
-      localList.forEach(p => {
-        if (p && p.id) {
-          mergedMap.set(p.id, p);
-        }
-      });
-    }
-    
-    if (Array.isArray(dbList)) {
-      dbList.forEach(p => {
-        if (p && p.id) {
-          const existing = mergedMap.get(p.id);
-          const pTime = p.createdAt || 0;
-          const existingTime = existing ? (existing.createdAt || 0) : -1;
-          if (pTime > existingTime || !existing) {
-            mergedMap.set(p.id, p);
-          }
-        }
-      });
-    }
-    
-    const result = Array.from(mergedMap.values());
-    result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    return result;
   }
   
   app.use(express.json({ limit: '50mb' }));
@@ -573,57 +520,38 @@ async function startServer() {
       return;
     }
 
-    // 1. Try to fetch from Firestore synchronously first
-    if (firestoreDb && !firestorePermissionFailed) {
-      try {
-        const posts = await executeFirestoreOp(async (dbInstance) => {
-          const postsRef = dbInstance.collection('posts');
-          const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
-          const localList = readPosts();
-          if (!snapshot.empty) {
-            const list: any[] = [];
-            snapshot.forEach((doc: any) => {
-              list.push(doc.data());
-            });
-            // If Firestore is reachable and returns data, it is the absolute source of truth.
-            // Overwriting local list prevents deleted items from being resurrected.
-            cachedPostsList = list;
-            try {
-              writePosts(list);
-            } catch (err) {}
-            return list;
-          } else {
-            // Seed if empty
-            console.log("Firestore posts collection is empty. Seeding defaultPosts...");
-            const batch = dbInstance.batch();
-            defaultPosts.forEach((post) => {
-              const docRef = postsRef.doc(post.id);
-              batch.set(docRef, post);
-            });
-            await batch.commit();
-            const merged = mergePosts(localList, defaultPosts);
-            cachedPostsList = merged;
-            try {
-              writePosts(merged);
-            } catch (err) {}
-            return merged;
-          }
-        }, null);
-
-        if (posts !== null) {
-          res.setHeader('X-Cache', 'MISS');
-          res.json(posts);
-          return;
-        }
-      } catch (err) {
-        console.error("[Firestore Admin] Synchronous posts fetch failed, falling back to local file:", err);
-      }
-    }
-
-    // 2. Safe fallback to local JSON file
+    // Serve local JSON immediately to prevent blocking due to firestore database cold-starts
     const fallbackResult = readPosts();
-    res.setHeader('X-Cache', 'FALLBACK');
+    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
     res.json(fallbackResult);
+
+    // Trigger Firestore background query asynchronously to refresh local JSON and cache
+    executeFirestoreOp(async (dbInstance) => {
+      const postsRef = dbInstance.collection('posts');
+      const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
+      if (!snapshot.empty) {
+        const list: any[] = [];
+        snapshot.forEach((doc: any) => {
+          list.push(doc.data());
+        });
+        cachedPostsList = list;
+        writePosts(list);
+        console.log("[Firestore Admin] Background posts sync completed successfully.");
+      } else {
+        // Seed if empty
+        console.log("Firestore posts collection is empty. Seeding defaultPosts in background...");
+        const batch = dbInstance.batch();
+        defaultPosts.forEach((post) => {
+          const docRef = postsRef.doc(post.id);
+          batch.set(docRef, post);
+        });
+        await batch.commit();
+        cachedPostsList = defaultPosts;
+        writePosts(defaultPosts);
+      }
+    }, null).catch(err => {
+      console.error("[Firestore Admin] Background posts sync failed:", err);
+    });
   });
 
   app.post('/api/posts', async (req, res) => {
@@ -784,7 +712,6 @@ async function startServer() {
       if (contentType.startsWith('image/')) {
         try {
           // Dynamic import to prevent startup binary crashes on minimal machines
-          // @ts-ignore
           const { default: sharp } = await import('sharp');
           const imageInstance = sharp(body);
           const metadata = await imageInstance.metadata();
@@ -837,39 +764,25 @@ async function startServer() {
       return;
     }
 
-    // 1. Try to fetch from Firestore synchronously first
-    if (firestoreDb && !firestorePermissionFailed) {
-      try {
-        const inquiries = await executeFirestoreOp(async (dbInstance) => {
-          const inquiriesRef = dbInstance.collection('inquiries');
-          const snapshot = await inquiriesRef.orderBy('createdAt', 'desc').get();
-          const localList = readInquiries();
-          const list: any[] = [];
-          snapshot.forEach((doc: any) => {
-            list.push(doc.data());
-          });
-          // If Firestore is reachable, it is the absolute source of truth.
-          cachedInquiriesList = list;
-          try {
-            writeInquiries(list);
-          } catch (err) {}
-          return list;
-        }, null);
-
-        if (inquiries !== null) {
-          res.setHeader('X-Cache', 'MISS');
-          res.json(inquiries);
-          return;
-        }
-      } catch (err) {
-        console.error("[Firestore Admin] Synchronous inquiries fetch failed, falling back to local file:", err);
-      }
-    }
-
-    // 2. Safe fallback to local JSON file
+    // Serve local JSON immediately to prevent blocking
     const fallbackResult = readInquiries();
-    res.setHeader('X-Cache', 'FALLBACK');
+    res.setHeader('X-Cache', 'STALE-WHILE-REVALIDATE');
     res.json(fallbackResult);
+
+    // Sync from Firestore in background
+    executeFirestoreOp(async (dbInstance) => {
+      const inquiriesRef = dbInstance.collection('inquiries');
+      const snapshot = await inquiriesRef.orderBy('createdAt', 'desc').get();
+      const list: any[] = [];
+      snapshot.forEach((doc: any) => {
+        list.push(doc.data());
+      });
+      cachedInquiriesList = list;
+      writeInquiries(list);
+      console.log("[Firestore Admin] Background inquiries sync completed.");
+    }, null).catch(err => {
+      console.error("[Firestore Admin] Background inquiries sync failed:", err);
+    });
   });
 
   app.post('/api/inquiries', async (req, res) => {
@@ -1084,52 +997,6 @@ async function startServer() {
     
     verificationCodes.delete('admin');
     res.json({ success: true, message: "2차 모바일 인증이 최종 완료되었습니다." });
-  });
-
-  // Dynamic sitemap.xml route for SEO indexation
-  app.get('/sitemap.xml', (req, res) => {
-    try {
-      const posts = readPosts();
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-      
-      // 1. Home page
-      xml += `  <url>\n`;
-      xml += `    <loc>https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/</loc>\n`;
-      xml += `    <lastmod>2026-07-08</lastmod>\n`;
-      xml += `    <changefreq>daily</changefreq>\n`;
-      xml += `    <priority>1.0</priority>\n`;
-      xml += `  </url>\n`;
-      
-      // 2. Individual room listings
-      for (const post of posts) {
-        if (post && post.id) {
-          let lastmod = '2026-07-08';
-          if (post.updatedAt || post.createdAt) {
-            try {
-              const dt = new Date(post.updatedAt || post.createdAt);
-              if (!isNaN(dt.getTime())) {
-                lastmod = dt.toISOString().split('T')[0];
-              }
-            } catch (e) {}
-          }
-          xml += `  <url>\n`;
-          xml += `    <loc>https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/rooms/${post.id}</loc>\n`;
-          xml += `    <lastmod>${lastmod}</lastmod>\n`;
-          xml += `    <changefreq>weekly</changefreq>\n`;
-          xml += `    <priority>0.8</priority>\n`;
-          xml += `  </url>\n`;
-        }
-      }
-      
-      xml += `</urlset>\n`;
-      
-      res.header('Content-Type', 'application/xml');
-      res.status(200).send(xml);
-    } catch (err) {
-      console.error("Error generating dynamic sitemap.xml:", err);
-      res.status(500).send("Internal Server Error");
-    }
   });
 
   // Naver Blog Article Auto-Generator using Gemini API with Local Template Fallback
@@ -1486,18 +1353,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     res.status(404).json({ error: `API 경로를 찾을 수 없습니다: ${req.url}` });
   });
 
-  // Helper to determine the true absolute host URL based on request context
-  function getAbsoluteHostUrl(req: any): string {
-    const host = req.get('host') || '';
-    // 만약 AI Studio 개발 환경이거나 로컬 개발망일 때만 해당 dynamic host 적용
-    if (host.includes('localhost') || host.includes('run.app') || host.includes('aistudio')) {
-      const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-      return `${protocol}://${host}`;
-    }
-    // 그 외 실서버(카카오톡 봇 수집 포함)에서는 소장님의 진짜 대표 도메인을 강력 고정하여 og:url 이 훼손되는 일을 원천 봉쇄함
-    return 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com';
-  }
-
   // Helper to find a post by ID for SSR Meta Injection
   async function getPostById(id: string): Promise<any> {
     if (cachedPostsList) {
@@ -1520,9 +1375,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     // Try public Firestore REST API which bypasses container credential limitations and is 100% reliable
     try {
-      const projectId = (firebaseAdminConfig && firebaseAdminConfig.projectId) || "gumi-today-room-tv";
-      const databaseId = (firebaseAdminConfig && firebaseAdminConfig.firestoreDatabaseId) || "ai-studio-26ca0b12-30a2-4105-aae6-8ada4b2f1f60";
-      console.log(`[getPostById] Fetching from REST API - Project: ${projectId}, Database: ${databaseId}, Item ID: ${id}`);
+      const projectId = "gumi-today-room-tv";
+      const databaseId = "ai-studio-26ca0b12-30a2-4105-aae6-8ada4b2f1f60";
       const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/posts/${id}`;
       const res = await fetch(url);
       if (res.ok) {
@@ -1591,85 +1445,25 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
               
-              const hostUrl = getAbsoluteHostUrl(req);
-              const newUrl = `${hostUrl}${req.path}`;
-              
-              // 파이어베이스에 직접 업로드된 "실시간 생생한 현장 사진" 최우선 추출 알고리즘
-              let finalImg = '';
-              const isFirebaseImg = (src: any) => typeof src === 'string' && (src.includes('firebasestorage') || src.includes('googleapis') || src.includes('googleusercontent'));
-
-              // 1. vrThumbnail 수색 (가장 정확한 360 VR 대표 사진)
-              if (isFirebaseImg(post.vrThumbnail)) {
-                finalImg = post.vrThumbnail;
+              if (html.includes('property="og:image"')) {
+                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
-              // 2. thumbnail이 파이어베이스 이미지인지 수색
-              if (!finalImg && isFirebaseImg(post.thumbnail)) {
-                finalImg = post.thumbnail;
-              }
-              // 3. panoImage 수색
-              if (!finalImg && isFirebaseImg(post.panoImage)) {
-                finalImg = post.panoImage;
-              }
-              // 4. images 배열/문자열 파싱 후 파이어베이스 이미지 수색
-              if (!finalImg && post.images) {
-                try {
-                  const imgs = typeof post.images === 'string' ? JSON.parse(post.images) : post.images;
-                  if (Array.isArray(imgs)) {
-                    const firstFb = imgs.find(img => isFirebaseImg(img));
-                    if (firstFb) finalImg = firstFb;
-                  }
-                } catch (e) {}
-              }
-              // 5. panoramas 문자열 파싱 (파이프 '|' 등으로 연결된 형태 분해)
-              if (!finalImg && typeof post.panoramas === 'string' && post.panoramas.length > 0) {
-                const parts = post.panoramas.split('|');
-                const firstFb = parts.find(p => isFirebaseImg(p));
-                if (firstFb) finalImg = firstFb;
-              }
-              // 6. 전수 필드 스캔하여 최초의 파이어베이스 이미지 주소 탐색
-              if (!finalImg) {
-                for (const val of Object.values(post)) {
-                  if (isFirebaseImg(val)) {
-                    finalImg = val as string;
-                    break;
-                  }
-                }
-              }
-              // 7. 파이어베이스 이미지가 전혀 없다면 일반 썸네일 수용 (Unsplash 등 포함)
-              if (!finalImg && post.thumbnail) {
-                finalImg = post.thumbnail;
-              }
-
-              const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
-
-              // 1. 기존의 카카오/네이버가 수집하는 메타 태그 중복 방지를 위한 강력 제거 패턴
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, '');
-
-              // 2. 완벽하게 파싱되어 완성된 고품격 동적 메타 태그 일괄 주입
-              const metaTags = `
-    <meta property="og:title" id="ogTitle" content="${newTitle}">
-    <meta property="og:description" id="ogDesc" content="${newDesc}">
-    <meta property="og:type" content="article">
-    <meta property="og:url" id="ogUrl" content="${newUrl}">
-    <meta property="og:site_name" content="구미 태왕공인중개사사무소">
-    <meta property="og:image" id="ogImage" content="${newImage}">
-    <meta name="description" content="${newDesc}">
-    <link rel="canonical" id="canonicalUrl" href="${newUrl}">`;
-
-              html = html.replace('</head>', `${metaTags}\n  </head>`);
             }
             // Dynamic host replacement for developer's active domain
-            const hostUrl = getAbsoluteHostUrl(req);
-            if (hostUrl !== 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com') {
-              html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-              html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-            }
+            const hostUrl = `${req.protocol}://${req.get('host')}`;
+            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
             res.send(html);
             return;
@@ -1683,15 +1477,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     app.use(vite.middlewares);
   } else {
-    console.log('Static distPath:', distPath);
-    
-    // Serve static files inside /rooms/ prefix correctly to handle any older cached relative paths robustly
-    app.use('/rooms/assets', express.static(path.join(distPath, 'assets')));
-    app.get('/rooms/smarteditor-final.html', (req, res) => {
-      res.sendFile(path.join(distPath, 'smarteditor-final.html'));
-    });
-
-    app.use(express.static(distPath, { index: false }));
+    console.log('Static distPath:', distPath); app.use(express.static(distPath, { index: false }));
     
     app.get('*', async (req, res) => {
       const indexPath = path.join(distPath, 'index.html');
@@ -1710,86 +1496,26 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+
+              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
               
-              const hostUrl = getAbsoluteHostUrl(req);
-              const newUrl = `${hostUrl}${req.path}`;
-              
-              // 파이어베이스에 직접 업로드된 "실시간 생생한 현장 사진" 최우선 추출 알고리즘
-              let finalImg = '';
-              const isFirebaseImg = (src: any) => typeof src === 'string' && (src.includes('firebasestorage') || src.includes('googleapis') || src.includes('googleusercontent'));
-
-              // 1. vrThumbnail 수색 (가장 정확한 360 VR 대표 사진)
-              if (isFirebaseImg(post.vrThumbnail)) {
-                finalImg = post.vrThumbnail;
+              if (html.includes('property="og:image"')) {
+                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+              } else {
+                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
-              // 2. thumbnail이 파이어베이스 이미지인지 수색
-              if (!finalImg && isFirebaseImg(post.thumbnail)) {
-                finalImg = post.thumbnail;
-              }
-              // 3. panoImage 수색
-              if (!finalImg && isFirebaseImg(post.panoImage)) {
-                finalImg = post.panoImage;
-              }
-              // 4. images 배열/문자열 파싱 후 파이어베이스 이미지 수색
-              if (!finalImg && post.images) {
-                try {
-                  const imgs = typeof post.images === 'string' ? JSON.parse(post.images) : post.images;
-                  if (Array.isArray(imgs)) {
-                    const firstFb = imgs.find(img => isFirebaseImg(img));
-                    if (firstFb) finalImg = firstFb;
-                  }
-                } catch (e) {}
-              }
-              // 5. panoramas 문자열 파싱 (파이프 '|' 등으로 연결된 형태 분해)
-              if (!finalImg && typeof post.panoramas === 'string' && post.panoramas.length > 0) {
-                const parts = post.panoramas.split('|');
-                const firstFb = parts.find(p => isFirebaseImg(p));
-                if (firstFb) finalImg = firstFb;
-              }
-              // 6. 전수 필드 스캔하여 최초의 파이어베이스 이미지 주소 탐색
-              if (!finalImg) {
-                for (const val of Object.values(post)) {
-                  if (isFirebaseImg(val)) {
-                    finalImg = val as string;
-                    break;
-                  }
-                }
-              }
-              // 7. 파이어베이스 이미지가 전혀 없다면 일반 썸네일 수용 (Unsplash 등 포함)
-              if (!finalImg && post.thumbnail) {
-                finalImg = post.thumbnail;
-              }
-
-              const newImage = finalImg || `${hostUrl}/assets/fixed-master-vr-banner.png`;
-
-              // 1. 기존의 카카오/네이버가 수집하는 메타 태그 중복 방지를 위한 강력 제거 패턴
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, '');
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, '');
-
-              // 2. 완벽하게 파싱되어 완성된 고품격 동적 메타 태그 일괄 주입
-              const metaTags = `
-    <meta property="og:title" id="ogTitle" content="${newTitle}">
-    <meta property="og:description" id="ogDesc" content="${newDesc}">
-    <meta property="og:type" content="article">
-    <meta property="og:url" id="ogUrl" content="${newUrl}">
-    <meta property="og:site_name" content="구미 태왕공인중개사사무소">
-    <meta property="og:image" id="ogImage" content="${newImage}">
-    <meta name="description" content="${newDesc}">
-    <link rel="canonical" id="canonicalUrl" href="${newUrl}">`;
-
-              html = html.replace('</head>', `${metaTags}\n  </head>`);
             }
           }
           // Dynamic host replacement for production client's active domain
-          const hostUrl = getAbsoluteHostUrl(req);
-          if (hostUrl !== 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com') {
-            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          }
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           res.send(html);
         } catch (err) {

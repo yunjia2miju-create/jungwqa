@@ -107,25 +107,10 @@ export const MainTab = ({
     const [activePanoIndex, setActivePanoIndex] = useState(0);
     const panoImages = useMemo(() => defaultPanoramas.map(p => p.url), [defaultPanoramas]);
 
-    const currentPano = useMemo(() => {
-        return defaultPanoramas[activePanoIndex] || defaultPanoramas[0] || { title: '가상 투어', address: '실시간 가상 투어 공간', url: '' };
-    }, [defaultPanoramas, activePanoIndex]);
-
-    // Ensure activePanoIndex is always within valid bounds of defaultPanoramas
-    useEffect(() => {
-        if (defaultPanoramas.length > 0 && activePanoIndex >= defaultPanoramas.length) {
-            setActivePanoIndex(0);
-        }
-    }, [defaultPanoramas.length, activePanoIndex]);
-
     // 12초 주기로 룸 씬이 부드럽게 자동 슬라이드 전환되는 스마트 시스템
     useEffect(() => {
-        if (defaultPanoramas.length === 0) return;
         const timer = setInterval(() => {
-            setActivePanoIndex(prev => {
-                const len = defaultPanoramas.length;
-                return len > 0 ? (prev + 1) % len : 0;
-            });
+            setActivePanoIndex(prev => (prev + 1) % defaultPanoramas.length);
         }, 12000);
         return () => clearInterval(timer);
     }, [defaultPanoramas.length]);
@@ -905,7 +890,7 @@ export const MainTab = ({
                                 <span className="w-3.5 h-3.5 rounded-full bg-green-500/80 shadow-md"></span>
                             </div>
                             <span className="text-[10px] sm:text-[11px] font-mono font-black text-[#64dfdf] uppercase tracking-widest bg-white/5 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-sm shadow-inner">
-                                TAEWANG 360 VR ENGINE • {currentPano.title}
+                                TAEWANG 360 VR ENGINE • {defaultPanoramas[activePanoIndex].title}
                             </span>
                             <div className="w-14"></div>
                         </div>
@@ -917,16 +902,13 @@ export const MainTab = ({
                                 activeIndex={activePanoIndex} 
                                 onSceneChange={(idx) => setActivePanoIndex(idx)}
                                 height="h-full w-full"
-                                title={currentPano.title}
-                                address={currentPano.address}
+                                title={defaultPanoramas[activePanoIndex].title}
+                                address={defaultPanoramas[activePanoIndex].address}
                             />
 
                             {/* 슬라이더 컨트롤 좌측 버튼 */}
                             <button 
-                                onClick={() => setActivePanoIndex(prev => {
-                                    const len = defaultPanoramas.length;
-                                    return len > 0 ? (prev - 1 + len) % len : 0;
-                                })}
+                                onClick={() => setActivePanoIndex(prev => (prev - 1 + defaultPanoramas.length) % defaultPanoramas.length)}
                                 className="absolute left-4 top-1/2 -translate-y-1/2 z-40 bg-slate-950/60 hover:bg-[#0B2545] hover:text-white text-white w-12 h-12 rounded-full flex items-center justify-center border border-white/10 hover:scale-110 active:scale-95 transition-all shadow-2xl"
                                 aria-label="Previous Panorama Room"
                             >
@@ -935,10 +917,7 @@ export const MainTab = ({
                             
                             {/* 슬라이더 컨트롤 우측 버튼 */}
                             <button 
-                                onClick={() => setActivePanoIndex(prev => {
-                                    const len = defaultPanoramas.length;
-                                    return len > 0 ? (prev + 1) % len : 0;
-                                })}
+                                onClick={() => setActivePanoIndex(prev => (prev + 1) % defaultPanoramas.length)}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 z-40 bg-slate-950/60 hover:bg-[#0B2545] hover:text-white text-white w-12 h-12 rounded-full flex items-center justify-center border border-white/10 hover:scale-110 active:scale-95 transition-all shadow-2xl"
                                 aria-label="Next Panorama Room"
                             >
@@ -950,7 +929,7 @@ export const MainTab = ({
                         <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 select-none text-slate-800">
                             <div className="text-left w-full sm:w-auto">
                                 <span className="text-[9px] font-black text-[#0B2545] uppercase tracking-widest block">CURRENT VR SCENE</span>
-                                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">{currentPano.address}</h4>
+                                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">{defaultPanoramas[activePanoIndex].address}</h4>
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -1534,7 +1513,7 @@ const Carousel3D = ({
                             <div
                                 key={`${p.id}-${idx}`}
                                 onClick={() => handleCardClick(p)}
-                                className="group w-[315px] sm:w-[360px] h-[420px] sm:h-[480px] bg-white rounded-[28px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-1.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0"
+                                className="w-[315px] sm:w-[360px] h-[420px] sm:h-[480px] bg-white rounded-[28px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-1.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0"
                             >
                                 {/* 3D 효과를 배제하고 오직 평면 사진 갤러리 감성을 극대화한 프레임 - 12:9 (4:3) 썸네일로 구성 */}
                                 <div className="relative aspect-[12/9] w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">

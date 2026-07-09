@@ -6,20 +6,3 @@ coverage/
 .env*
 !.env.example
 dist/
-
-# Temporary migration, test, and patch scripts
-*.patch
-*.py
-patch*.js
-patch*.cjs
-patch*.html
-fix*.py
-fix*.cjs
-test*.cjs
-test*.js
-query*.js
-query*.cjs
-update*.py
-raw_firestore.json
-doc.json
-add_debug_endpoint.cjs

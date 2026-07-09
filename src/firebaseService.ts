@@ -11,14 +11,6 @@ import {
 import { db, defaultDb, OperationType, handleFirestoreError, auth } from './firebase';
 import { Post, Inquiry, defaultPosts } from './data';
 
-// Dynamic timeout helper to ensure client-side Firestore operations never block the application
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs))
-  ]);
-}
-
 // --- Posts API ---
 
 /**
@@ -58,15 +50,12 @@ export async function getPostsService(): Promise<Post[]> {
     }
   })());
 
-  const isAdmin = (auth.currentUser && auth.currentUser.email === 'yunjia2miju@gmail.com') || 
-                  (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('taewang_firebase_sim_connected') === 'true');
-
-  // Task B: Fetch from active Firestore database (ALL USERS)
+  // Task B: Fetch from active Firestore database
   fetchTasks.push((async () => {
     try {
       const postsRef = collection(db, 'posts');
       const q = query(postsRef, orderBy('createdAt', 'desc'));
-      const snapshot = await withTimeout(getDocs(q), 2500, "Active posts fetch");
+      const snapshot = await getDocs(q);
       snapshot.forEach(doc => {
         const p = doc.data() as Post;
         mergePost(p);
@@ -76,13 +65,13 @@ export async function getPostsService(): Promise<Post[]> {
     }
   })());
 
-  // Task C: Fetch from legacy default database (if different) in the background
+  // Task C: Fetch from legacy default database (if different) in the background so it never blocks the fast active DB/API loading
   if (db !== defaultDb) {
     (async () => {
       try {
         const legacyRef = collection(defaultDb, 'posts');
         const q = query(legacyRef, orderBy('createdAt', 'desc'));
-        const snapshot = await withTimeout(getDocs(q), 2500, "Legacy posts fetch");
+        const snapshot = await getDocs(q);
         snapshot.forEach(doc => {
           const p = doc.data() as Post;
           if (p && p.id) {
@@ -90,8 +79,8 @@ export async function getPostsService(): Promise<Post[]> {
           }
         });
         
-        // Trigger background migration if legacy posts were discovered (Admins only)
-        if (isAdmin && legacyPosts.length > 0) {
+        // Trigger background migration if legacy posts were discovered
+        if (legacyPosts.length > 0) {
           console.log(`[Migration] Found ${legacyPosts.length} legacy posts. Starting automatic migration in background...`);
           for (const post of legacyPosts) {
             try {
@@ -152,14 +141,13 @@ export async function savePostService(post: Post): Promise<void> {
     title: cleanNbsp(post.title),
     intro: post.intro ? cleanNbsp(post.intro) : undefined,
     body: post.body ? cleanNbsp(post.body) : undefined,
-    remarks: post.remarks ? cleanNbsp(post.remarks) : undefined,
-    updatedAt: Date.now() // Add updatedAt to resolve merge conflicts cleanly
+    remarks: post.remarks ? cleanNbsp(post.remarks) : undefined
   };
 
   // 1. Write to Firestore
   try {
     const docRef = doc(db, 'posts', post.id);
-    await withTimeout(setDoc(docRef, cleanedPost), 2500, "Post save");
+    await setDoc(docRef, cleanedPost);
     console.log("Post successfully saved to Firestore:", post.id);
   } catch (err) {
     console.warn("Post saving to Firestore bypassed (will save to local server file):", err);
@@ -197,7 +185,7 @@ export async function deletePostService(id: string): Promise<void> {
   // 1. Delete from Firestore
   try {
     const docRef = doc(db, 'posts', id);
-    await withTimeout(deleteDoc(docRef), 2500, "Post delete");
+    await deleteDoc(docRef);
   } catch (err) {
     console.warn("Post delete from Firestore bypassed:", err);
     firestoreError = err;
@@ -246,7 +234,7 @@ export async function getInquiriesService(): Promise<Inquiry[]> {
     try {
       const inquiriesRef = collection(db, 'inquiries');
       const q = query(inquiriesRef, orderBy('createdAt', 'desc'));
-      const snapshot = await withTimeout(getDocs(q), 2500, "Inquiries fetch");
+      const snapshot = await getDocs(q);
       const list: Inquiry[] = [];
       snapshot.forEach((doc) => {
         list.push(doc.data() as Inquiry);
@@ -270,7 +258,7 @@ export async function submitInquiryService(inq: Inquiry): Promise<void> {
   // 1. Save to Firestore
   try {
     const docRef = doc(db, 'inquiries', inq.id);
-    await withTimeout(setDoc(docRef, inq), 2500, "Inquiry submit");
+    await setDoc(docRef, inq);
     console.log("Inquiry successfully saved to Firestore:", inq.id);
   } catch (err) {
     console.warn("Inquiry save to Firestore bypassed:", err);
@@ -307,7 +295,7 @@ export async function toggleInquiryProcessedService(id: string, currentProcessed
   // 1. Update in Firestore
   try {
     const docRef = doc(db, 'inquiries', id);
-    await withTimeout(updateDoc(docRef, { processed: !currentProcessed }), 2500, "Inquiry processed toggle");
+    await updateDoc(docRef, { processed: !currentProcessed });
   } catch (err) {
     console.warn("Inquiry toggle in Firestore bypassed:", err);
     firestoreError = err;
@@ -361,7 +349,7 @@ export async function getRegisteredUsersService(): Promise<RegisteredUser[]> {
   // 2. Direct client-side Firestore fallback
   try {
     const q = query(collection(db, 'registered_users'), orderBy('createdAt', 'desc'));
-    const snapshot = await withTimeout(getDocs(q), 2500, "Registered users fetch");
+    const snapshot = await getDocs(q);
     if (!snapshot.empty) {
       const list: RegisteredUser[] = [];
       snapshot.forEach((doc) => {
@@ -387,7 +375,7 @@ export async function saveRegisteredUserService(user: RegisteredUser): Promise<v
   // 1. Save to Client Firestore
   try {
     const docRef = doc(db, 'registered_users', user.email);
-    await withTimeout(setDoc(docRef, user), 2500, "User save");
+    await setDoc(docRef, user);
     console.log("User registered to client Firestore:", user.email);
   } catch (err) {
     console.warn("Failed saving user to client Firestore (will fall back to local/express):", err);
@@ -435,7 +423,7 @@ export async function toggleApproveUserService(email: string, currentApproved: b
   // 1. Update in Client Firestore
   try {
     const docRef = doc(db, 'registered_users', email);
-    await withTimeout(updateDoc(docRef, { approved: !currentApproved }), 2500, "User approval toggle");
+    await updateDoc(docRef, { approved: !currentApproved });
   } catch (err) {
     console.warn("Failed toggling user approval on client Firestore:", err);
     firestoreError = err;
@@ -471,7 +459,7 @@ export async function deleteRegisteredUserService(email: string): Promise<void> 
   // 1. Delete on Client Firestore
   try {
     const docRef = doc(db, 'registered_users', email);
-    await withTimeout(deleteDoc(docRef), 2500, "User delete");
+    await deleteDoc(docRef);
   } catch (err) {
     console.warn("Failed deleting user from client Firestore:", err);
     firestoreError = err;

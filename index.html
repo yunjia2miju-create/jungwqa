@@ -2,6 +2,17 @@
 <html lang="ko">
   <head>
     <script type="text/javascript">
+      window.addEventListener('error', function(e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+      }, true);
+      window.addEventListener('unhandledrejection', function(e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+      }, true);
+      window.onerror = function() {
+          return true;
+      };
       if (typeof FileReader !== 'undefined') {
           const originalAddEventListener = FileReader.prototype.addEventListener;
           FileReader.prototype.addEventListener = function(type, listener, options) {
@@ -84,28 +95,9 @@
       function runDynamicCardEngine() {
           try {
               const urlParams = new URLSearchParams(window.location.search);
-              let itemId = urlParams.get('id') || urlParams.get('postId');
-              if (!itemId && window.location.pathname.startsWith('/rooms/')) {
-                  const pathParts = window.location.pathname.split('/');
-                  itemId = pathParts[2];
-              }
+              const itemId = urlParams.get('id') || urlParams.get('postId'); 
               
               let canonicalUrl = window.location.href;
-              try {
-                  const parsedUrl = new URL(canonicalUrl);
-                  const isRoomPath = parsedUrl.pathname.startsWith('/rooms/');
-                  if (isRoomPath) {
-                      // 경로 기반 주소 보존: 쿼리 파라미터만 안전하게 제거
-                      parsedUrl.searchParams.delete('id');
-                      parsedUrl.searchParams.delete('postId');
-                      canonicalUrl = parsedUrl.toString();
-                  } else if (itemId) {
-                      // 쿼리로 들어온 주소는 세련된 고유 경로 주소로 정밀 변환
-                      canonicalUrl = parsedUrl.origin + '/rooms/' + itemId;
-                  }
-              } catch (urlErr) {
-                  console.error(urlErr);
-              }
               if (canonicalUrl.includes('태왕공인중개사사무소.com')) {
                   canonicalUrl = canonicalUrl.replace('태왕공인중개사사무소.com', 'xn--h49a2pelq49bcrfloji4br3e56y.com');
               }
@@ -168,24 +160,8 @@
       try { runDynamicCardEngine(); } catch (err) {}
       window.addEventListener('DOMContentLoaded', function() {
           runDynamicCardEngine();
-          let currentUrl = window.location.href;
-          try {
-              const parsedUrl = new URL(currentUrl);
-              const isRoomPath = parsedUrl.pathname.startsWith('/rooms/');
-              const urlParams = new URLSearchParams(parsedUrl.search);
-              const itemId = urlParams.get('id') || urlParams.get('postId') || (isRoomPath ? parsedUrl.pathname.split('/')[2] : null);
-              
-              if (isRoomPath) {
-                  parsedUrl.searchParams.delete('id');
-                  parsedUrl.searchParams.delete('postId');
-                  currentUrl = parsedUrl.toString();
-              } else if (itemId) {
-                  currentUrl = parsedUrl.origin + '/rooms/' + itemId;
-              }
-          } catch (e) {}
-          
-          const isRoomUrl = currentUrl.includes('/rooms/');
-          if (isRoomUrl) {
+          const currentUrl = window.location.href;
+          if (currentUrl.includes('id=')) {
               document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
               document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
               const allImgs = Array.from(document.querySelectorAll('img'));

@@ -1,0 +1,532 @@
+diff --git a/index.html b/index.html
+index 754a683..e885088 100644
+--- a/index.html
++++ b/index.html
+@@ -305,48 +305,57 @@
+ 
+       /* [핀셋 보호 영역 폰트/스타일 래핑 엔진] */
+       function wrapSelectionWithStyle(styleName, styleValue) {
+-          const sel = window.getSelection();
+-          if (!sel || !sel.rangeCount) return;
+-          const range = sel.getRangeAt(0);
+-          
+-          if (!range.collapsed) {
+-              const span = document.createElement('span');
+-              span.style[styleName] = styleValue;
++          try {
++              const sel = window.getSelection();
++              if (!sel || typeof sel.rangeCount !== 'number' || sel.rangeCount <= 0) return;
++              const range = sel.getRangeAt(0);
++              if (!range) return;
+               
+-              try {
+-                  range.surroundContents(span);
+-              } catch (e) {
+-                  const frag = range.extractContents();
+-                  span.appendChild(frag);
+-                  range.insertNode(span);
++              if (!range.collapsed) {
++                  const span = document.createElement('span');
++                  span.style[styleName] = styleValue;
++                  
++                  try {
++                      range.surroundContents(span);
++                  } catch (e) {
++                      const frag = range.extractContents();
++                      span.appendChild(frag);
++                      range.insertNode(span);
++                  }
++                  
++                  sel.removeAllRanges();
++                  const newRange = document.createRange();
++                  newRange.selectNodeContents(span);
++                  sel.addRange(newRange);
+               }
+-              
+-              sel.removeAllRanges();
+-              const newRange = document.createRange();
+-              newRange.selectNodeContents(span);
+-              sel.addRange(newRange);
++          } catch (err) {
++              console.error('wrapSelectionWithStyle error:', err);
+           }
+       }
+ 
+       /* [선택 영역 폰트 정보 실시간 역추적 동기화] */
+       document.addEventListener('selectionchange', function() {
+-          const sel = window.getSelection();
+-          if (sel && sel.rangeCount > 0) {
+-              let node = sel.focusNode;
+-              if (node && node.nodeType === 3) node = node.parentNode;
+-              
+-              if (node) {
+-                  const computedStyle = window.getComputedStyle(node);
+-                  const fontFamily = computedStyle.fontFamily;
+-                  const fontSelect = document.getElementById('fb-font-family-mobile');
+-                  if (fontSelect && fontFamily) {
+-                      if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
+-                      else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
+-                      else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
+-                      else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
+-                      else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
++          try {
++              const sel = window.getSelection();
++              if (sel && typeof sel.rangeCount === 'number' && sel.rangeCount > 0) {
++                  let node = sel.focusNode;
++                  if (node && node.nodeType === 3) node = node.parentNode;
++                  
++                  if (node && node instanceof HTMLElement) {
++                      const computedStyle = window.getComputedStyle(node);
++                      const fontFamily = computedStyle.fontFamily;
++                      const fontSelect = document.getElementById('fb-font-family-mobile');
++                      if (fontSelect && fontFamily) {
++                          if (fontFamily.includes('NanumGothic')) fontSelect.value = 'NanumGothic';
++                          else if (fontFamily.includes('MaruBuri')) fontSelect.value = 'MaruBuri';
++                          else if (fontFamily.includes('NanumBarunGothic')) fontSelect.value = 'NanumBarunGothic';
++                          else if (fontFamily.includes('NanumMyeongjo')) fontSelect.value = 'NanumMyeongjo';
++                          else if (fontFamily.includes('NanumSquare')) fontSelect.value = 'NanumSquare';
++                      }
+                   }
+               }
++          } catch (err) {
++              console.error('selectionchange error:', err);
+           }
+       });
+     </script>
+diff --git a/public/smarteditor-final.html b/public/smarteditor-final.html
+index 71911c4..1dec5d6 100644
+--- a/public/smarteditor-final.html
++++ b/public/smarteditor-final.html
+@@ -1542,9 +1542,6 @@
+                         <div class="space-y-4">
+                             <div class="flex items-center justify-between">
+                                 <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (16:9 비율 컴팩트 격자형 배치)</span>
+-                                <button type="button" onclick="clearAllAdditionalPhotos()" class="px-4 py-2 bg-[#D90429] text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm border border-[#D90429]">
+-                                    <i class="fa-solid fa-trash-can"></i> 추가사진 전체 삭제
+-                                </button>
+                             </div>
+                             <div id="additional-photos-stack" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;">
+                                 <!-- Previews will be rendered as compact 220px aspect-video (16:9) cards -->
+@@ -1567,9 +1564,6 @@
+                             <div class="space-y-3">
+                                 <div class="flex items-center justify-between">
+                                     <span class="block text-[20px] font-black text-slate-500 uppercase select-none">파노라마 리스트</span>
+-                                    <button type="button" onclick="clearAllPanoramaPhotos()" class="px-4 py-2 bg-[#D90429] text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm border border-[#D90429]">
+-                                        <i class="fa-solid fa-trash-can"></i> 파노라마 전체 삭제
+-                                    </button>
+                                 </div>
+                                 <div id="pano-photos-list" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;"></div>
+                             </div>
+@@ -2324,8 +2318,11 @@
+             queueToast.style.display = 'block';
+             queueToast.innerText = `사진 ${files.length}장 초고속 멀티 큐 압착 및 전송 중...`;
+ 
+-            const uploadPromises = Array.from(files).map((file, i) => {
+-                return new Promise((resolve) => {
++            const uploadedUrls = [];
++            for (let i = 0; i < files.length; i++) {
++                const file = files[i];
++                queueToast.innerText = `[${i + 1}/${files.length}] 파이어베이스 스토리지 전송 중...`;
++                const url = await new Promise((resolve) => {
+                     const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_' + i;
+                     processImage(file, (dataUrl, fileName) => {
+                         if (window.self !== window.top) {
+@@ -2355,9 +2352,8 @@
+                         }
+                     });
+                 });
+-            });
+-
+-            const uploadedUrls = await Promise.all(uploadPromises);
++                uploadedUrls.push(url);
++            }
+             
+             uploadedUrls.forEach((url) => {
+                 if (!url) return;
+@@ -2381,27 +2377,7 @@
+             notifyParent();
+         }
+ 
+-        function clearAllAdditionalPhotos() {
+-            if (confirm("정말로 모든 추가 사진을 삭제하시겠습니까? (대표사진을 포함한 모든 일반 사진이 삭제됩니다)")) {
+-                generalPhotos = [];
+-                renderGeneralPhotos();
+-                const multipleInput = document.getElementById('multiple-photos-input');
+-                if (multipleInput) multipleInput.value = '';
+-                const mainInput = document.getElementById('main-photo-input');
+-                if (mainInput) mainInput.value = '';
+-                notifyParent();
+-            }
+-        }
+ 
+-        function clearAllPanoramaPhotos() {
+-            if (confirm("정말로 모든 360° 파노라마 사진을 삭제하시겠습니까?")) {
+-                panoramaPhotos = [];
+-                renderPanoramaPhotos();
+-                const panoInput = document.getElementById('multiple-panos-input');
+-                if (panoInput) panoInput.value = '';
+-                notifyParent();
+-            }
+-        }
+ 
+         // General Photos Renderer (16:9 Dynamic Split: Representative vs Additional)
+         function renderGeneralPhotos() {
+diff --git a/server.ts b/server.ts
+index 2279fea..baecffb 100644
+--- a/server.ts
++++ b/server.ts
+@@ -479,6 +479,10 @@ async function startServer() {
+     res.send(svg);
+   });
+ 
++  app.get('/api/debug-getpost/:id', async (req, res) => {
++    res.json(await getPostById(req.params.id));
++  });
++
+   app.get('/api/posts', async (req, res) => {
+     if (cachedPostsList !== null) {
+       res.setHeader('X-Cache', 'HIT');
+@@ -1326,6 +1330,30 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
+         console.warn("[getPostById] Firestore fetch failed, falling back to JSON:", err);
+       }
+     }
++    
++    // REST API fallback for dev environment where admin SDK fails due to missing Application Default Credentials
++    if (firebaseAdminConfig && firebaseAdminConfig.projectId && firebaseAdminConfig.apiKey) {
++      const dbId = firebaseAdminConfig.firestoreDatabaseId || '(default)';
++      const url = `https://firestore.googleapis.com/v1/projects/${firebaseAdminConfig.projectId}/databases/${dbId}/documents/posts/${id}?key=${firebaseAdminConfig.apiKey}`;
++      try {
++        const res = await fetch(url);
++        if (res.ok) {
++          const doc = await res.json();
++          if (doc && doc.fields) {
++            return {
++              id: id,
++              thumbnail: doc.fields.thumbnail?.stringValue || doc.fields.thumbnail?.nullValue || '',
++              dong: doc.fields.dong?.stringValue || '',
++              building: doc.fields.building?.stringValue || '',
++              category: doc.fields.category?.stringValue || ''
++            };
++          }
++        }
++      } catch (e) {
++        console.warn("[getPostById] REST API fetch failed:", e);
++      }
++    }
++
+     try {
+       const posts = readPosts();
+       const found = posts.find((p: any) => p.id === id);
+diff --git a/src/App.tsx b/src/App.tsx
+index 11b05c0..ccd4018 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -390,98 +390,9 @@ export default function App() {
+                     {activeSection === 'main' && <MainTab openPhoneSelectModal={openPhoneSelectModal} showToast={showToast} />}
+                     {activeSection === 'detail' && selectedPost && (
+                         <DetailTab 
+-                            key={`${selectedPost.id}-${selectedPost.updatedAt || selectedPost.createdAt || 0}`}
++                            key={selectedPost.id}
+                             openPhoneSelectModal={openPhoneSelectModal} 
+                             showToast={showToast} 
+-                            images={(() => {
+-                                const list: string[] = [];
+-                                const buster = selectedPost.updatedAt || selectedPost.createdAt || Date.now();
+-                                const appendCb = (url: string) => {
+-                                    if (!url) return url;
+-                                    if (url.startsWith('data:')) return url;
+-                                    const separator = url.includes('?') ? '&' : '?';
+-                                    return `${url}${separator}v=${buster}`;
+-                                };
+-                                if (selectedPost.thumbnail) {
+-                                    list.push(selectedPost.thumbnail.trim());
+-                                }
+-                                const processField = (field: any) => {
+-                                    if (!field) return;
+-                                    if (Array.isArray(field)) {
+-                                        field.forEach(val => {
+-                                            if (val && typeof val === 'string') {
+-                                                list.push(val.trim());
+-                                            }
+-                                        });
+-                                    } else if (typeof field === 'string') {
+-                                        const str = field.trim();
+-                                        if (str) {
+-                                            if (str.includes('|')) {
+-                                                str.split('|').forEach(part => {
+-                                                    const trimmed = part.trim();
+-                                                    if (trimmed) list.push(trimmed);
+-                                                });
+-                                            } else if (str.includes(',') && (str.includes('http') || str.includes('/gallery/') || str.includes('/images/'))) {
+-                                                str.split(',').forEach(part => {
+-                                                    const trimmed = part.trim();
+-                                                    if (trimmed) list.push(trimmed);
+-                                                });
+-                                            } else {
+-                                                list.push(str);
+-                                            }
+-                                        }
+-                                    }
+-                                };
+-                                processField(selectedPost.images);
+-                                processField((selectedPost as any).imageUrls);
+-                                processField((selectedPost as any).additionalImages);
+-                                const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
+-                                const uniqueUrls = Array.from(new Set(list)).filter(url => url && url !== defaultImg);
+-                                return uniqueUrls.map(appendCb);
+-                            })()}
+-                            panoramaImages={(() => {
+-                                const list: string[] = [];
+-                                const buster = selectedPost.updatedAt || selectedPost.createdAt || Date.now();
+-                                const appendCb = (url: string) => {
+-                                    if (!url) return url;
+-                                    if (url.startsWith('data:')) return url;
+-                                    const separator = url.includes('?') ? '&' : '?';
+-                                    return `${url}${separator}v=${buster}`;
+-                                };
+-                                const processField = (field: any) => {
+-                                    if (!field) return;
+-                                    if (Array.isArray(field)) {
+-                                        field.forEach(val => {
+-                                            if (val && typeof val === 'string') {
+-                                                list.push(val.trim());
+-                                            }
+-                                        });
+-                                    } else if (typeof field === 'string') {
+-                                        const str = field.trim();
+-                                        if (str) {
+-                                            if (str.includes('|')) {
+-                                                str.split('|').forEach(part => {
+-                                                    const trimmed = part.trim();
+-                                                    if (trimmed) list.push(trimmed);
+-                                                });
+-                                            } else if (str.includes(',') && (str.includes('http') || str.includes('/panoramas/'))) {
+-                                                str.split(',').forEach(part => {
+-                                                    const trimmed = part.trim();
+-                                                    if (trimmed) list.push(trimmed);
+-                                                });
+-                                            } else {
+-                                                list.push(str);
+-                                            }
+-                                        }
+-                                    }
+-                                };
+-                                processField(selectedPost.panoramas);
+-                                processField(selectedPost.panoImage);
+-                                processField((selectedPost as any).panoramaUrls);
+-                                processField((selectedPost as any).panoramaImages);
+-                                const uniqueUrls = Array.from(new Set(list)).filter(url => url);
+-                                return uniqueUrls.map(appendCb);
+-                            })()}
+                         />
+                     )}
+                     {activeSection === 'admin-login' && (
+diff --git a/src/components/AdminWriteSection.tsx b/src/components/AdminWriteSection.tsx
+index de39c14..0bc912c 100644
+--- a/src/components/AdminWriteSection.tsx
++++ b/src/components/AdminWriteSection.tsx
+@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
+ import { useAppStore } from '../store';
+ import { Post, gumiDongs } from '../data';
+ import { savePostService, getPostsService } from '../firebaseService';
+-import { ref, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
++import { ref, uploadBytesResumable, getDownloadURL, listAll } from 'firebase/storage';
+ import { storage } from '../firebase';
+ 
+ interface AdminWriteSectionProps {
+@@ -49,8 +49,28 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
+         const safeName = `${timestamp}_${randomStr}_${cleanName}`;
+         
+         const storageRef = ref(storage, `${prefix}/${safeName}`);
+-        await uploadBytes(storageRef, blob, { contentType: blob.type });
+-        return await getDownloadURL(storageRef);
++        
++        return new Promise((resolve, reject) => {
++            const uploadTask = uploadBytesResumable(storageRef, blob, { contentType: blob.type });
++            uploadTask.on(
++                'state_changed',
++                (snapshot) => {
++                    // Optional: track progress if needed
++                },
++                (error) => {
++                    console.error("Firebase Storage Upload Error:", error);
++                    reject(error);
++                },
++                async () => {
++                    try {
++                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
++                        resolve(downloadURL);
++                    } catch (err) {
++                        reject(err);
++                    }
++                }
++            );
++        });
+     };
+ 
+     const iframeRef = useRef<HTMLIFrameElement>(null);
+diff --git a/src/components/DetailTab.tsx b/src/components/DetailTab.tsx
+index 3516e75..69ef7e1 100644
+--- a/src/components/DetailTab.tsx
++++ b/src/components/DetailTab.tsx
+@@ -27,14 +27,10 @@ const stripHtml = (text: string | null | undefined): string => {
+ 
+ export const DetailTab = ({ 
+     openPhoneSelectModal,
+-    showToast,
+-    images,
+-    panoramaImages
++    showToast
+ }: { 
+     openPhoneSelectModal: (e: React.MouseEvent, mobilePhone: string, ownerPhone?: string) => void,
+-    showToast?: (msg: string, type?: 'success'|'error') => void,
+-    images?: string[],
+-    panoramaImages?: string[]
++    showToast?: (msg: string, type?: 'success'|'error') => void
+ }) => {
+     const { posts, isAdminLoggedIn, selectedPostId, setSelectedPostId, setActiveSection, isMobileSimulationMode } = useAppStore();
+ 
+@@ -69,6 +65,8 @@ export const DetailTab = ({
+         if (selectedPostId) {
+             window.scrollTo(0, 0);
+             setIsFetchingDetail(true);
++            setActivePanoIndex(0);
++            setZoomedImageId(null);
+             const t = setTimeout(() => setIsFetchingDetail(false), 500);
+             return () => clearTimeout(t);
+         }
+@@ -125,9 +123,6 @@ export const DetailTab = ({
+ 
+     const defaultImg = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80";
+     const imgUrls = React.useMemo(() => {
+-        if (images && images.length > 0) {
+-            return images;
+-        }
+         const list: string[] = [];
+         
+         // Always include the representative photo as part of the overall sub-images album so it can be seen/zoomed
+@@ -171,12 +166,9 @@ export const DetailTab = ({
+         const uniqueUrls = Array.from(new Set(list))
+             .filter(url => url && url !== defaultImg);
+         return uniqueUrls;
+-    }, [images, p.images, p.thumbnail, (p as any).imageUrls, (p as any).additionalImages]);
++    }, [p.images, p.thumbnail, (p as any).imageUrls, (p as any).additionalImages]);
+ 
+     const panoUrls = React.useMemo(() => {
+-        if (panoramaImages && panoramaImages.length > 0) {
+-            return panoramaImages;
+-        }
+         const list: string[] = [];
+         
+         const processField = (field: any) => {
+@@ -213,7 +205,7 @@ export const DetailTab = ({
+         processField((p as any).panoramaImages);
+ 
+         return Array.from(new Set(list)).filter(url => url);
+-    }, [panoramaImages, p.panoramas, p.panoImage, (p as any).panoramaUrls, (p as any).panoramaImages]);
++    }, [p.panoramas, p.panoImage, (p as any).panoramaUrls, (p as any).panoramaImages]);
+ 
+     // Fast-loading Preloader: Calculate next and previous listings to prefetch their panoramas and thumbnails (0-second load tech)
+     const adjacentPanoUrls = React.useMemo(() => {
+@@ -277,36 +269,30 @@ export const DetailTab = ({
+         if (allUrlsToPrefetch.length > 0) {
+             allUrlsToPrefetch.forEach((url, idx) => {
+                 if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+-                    // Prevent double-proxying same-origin or already proxied URLs
+-                    let proxiedUrl = url;
++                    let directUrl = url;
+                     if (url.includes('/api/proxy-image')) {
+                         try {
+                             const base = url.startsWith('http') ? undefined : 'http://dummy.com';
+                             const urlObj = new URL(url, base);
+                             const originalUrl = urlObj.searchParams.get('url');
+                             if (originalUrl) {
+-                                proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}&v=360-pano-${idx}`;
++                                directUrl = originalUrl;
+                             }
+                         } catch (e) {
+                             console.warn("Preloader URL parse error:", e);
+                         }
+-                    } else if (!url.startsWith('/') && !url.startsWith(window.location.origin)) {
+-                        proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(url)}&v=360-pano-${idx}`;
+                     }
+ 
+                     const img = new Image();
+-                    const isSandbox = window.location.hostname.includes('ais-dev') || 
+-                                      window.location.hostname.includes('ais-pre') ||
+-                                      window.location.hostname.includes('localhost') ||
+-                                      window.self !== window.top;
+-                    img.crossOrigin = isSandbox ? "use-credentials" : "anonymous";
+-                    img.src = proxiedUrl;
++                    img.crossOrigin = "anonymous";
++                    img.src = directUrl;
+                 }
+             });
+         }
+     }, [panoUrls, adjacentPanoUrls]);
+ 
+     const [activePanoIndex, setActivePanoIndex] = React.useState(0);
++    const safeActivePanoIndex = Math.min(activePanoIndex, Math.max(0, panoUrls.length - 1));
+ 
+     let embedUrl = String(p.video || '');
+     if (embedUrl.includes('watch?v=')) {
+@@ -599,7 +585,7 @@ export const DetailTab = ({
+                                         <button 
+                                             key={idx}
+                                             onClick={() => setActivePanoIndex(idx)}
+-                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${activePanoIndex === idx ? 'bg-[#0B2545] text-white shadow-md border border-[#0B2545] scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
++                                            className={`px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-black transition-all shrink-0 cursor-pointer ${safeActivePanoIndex === idx ? 'bg-[#0B2545] text-white shadow-md border border-[#0B2545] scale-[1.03]' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 border border-transparent'}`}
+                                         >
+                                             공간 {idx + 1}
+                                         </button>
+@@ -611,7 +597,7 @@ export const DetailTab = ({
+                             <PannellumViewer 
+                                 key={`${p.id}-${panoUrls.length}`}
+                                 images={panoUrls} 
+-                                activeIndex={activePanoIndex} 
++                                activeIndex={safeActivePanoIndex} 
+                                 onSceneChange={(idx) => setActivePanoIndex(idx)} 
+                                 title={p.building || p.title}
+                                 address={p.dong ? `구미시 ${p.dong} ${p.address || ''}`.trim() : p.address}
+@@ -636,7 +622,7 @@ export const DetailTab = ({
+                                     <button 
+                                         key={idx}
+                                         onClick={() => setActivePanoIndex(idx)}
+-                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activePanoIndex === idx ? 'border-[#0B2545] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
++                                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${safeActivePanoIndex === idx ? 'border-[#0B2545] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                     >
+                                         <img src={pano} className="w-full h-full object-cover" alt={`Scene ${idx + 1}`} loading="lazy" />
+                                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+diff --git a/src/components/VrViewer.tsx b/src/components/VrViewer.tsx
+index 42bf112..7293d8c 100644
+--- a/src/components/VrViewer.tsx
++++ b/src/components/VrViewer.tsx
+@@ -243,28 +243,6 @@ const VrViewer: React.FC<VrViewerProps> = ({
+         }
+     };
+ 
+-    // Secure Image Proxy URL generator to prevent browser security isolation errors (CORS, mixed content)
+-    const getProxiedSrc = React.useCallback((imgUrl: string, idx: number) => {
+-        if (!imgUrl) return '';
+-        let currentSrc = imgUrl;
+-        if (currentSrc.includes('/api/proxy-image')) {
+-            try {
+-                // Handle relative paths by passing dummy base
+-                const base = currentSrc.startsWith('http') ? undefined : 'http://dummy.com';
+-                const urlObj = new URL(currentSrc, base);
+-                const originalUrl = urlObj.searchParams.get('url');
+-                if (originalUrl) {
+-                    currentSrc = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}&v=360-pano-${idx}`;
+-                }
+-            } catch (e) {
+-                currentSrc = imgUrl;
+-            }
+-        } else if (!currentSrc.startsWith('/') && !currentSrc.startsWith(window.location.origin)) {
+-            currentSrc = `/api/proxy-image?url=${encodeURIComponent(currentSrc)}&v=360-pano-${idx}`;
+-        }
+-        return currentSrc;
+-    }, []);
+-
+     // Extract the original raw direct URL (bypassing server proxy completely for standard image elements)
+     const getDirectSrc = React.useCallback((imgUrl: string) => {
+         if (!imgUrl) return '';

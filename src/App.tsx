@@ -74,13 +74,9 @@ export default function App() {
                 .then(data => {
                     setPosts(data);
                     
-                    // Parse query parameters and path-based routing for automatic redirection to post detail view
+                    // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
                     const params = new URLSearchParams(window.location.search);
-                    let urlPostId = params.get('id') || params.get('postId');
-                    if (!urlPostId && window.location.pathname.startsWith('/rooms/')) {
-                        const pathParts = window.location.pathname.split('/');
-                        urlPostId = pathParts[2];
-                    }
+                    const urlPostId = params.get('id') || params.get('postId');
                     if (urlPostId) {
                         const post = data.find(p => p.id === urlPostId);
                         if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
@@ -88,14 +84,10 @@ export default function App() {
                             if (videoUrl) {
                                 useAppStore.getState().setVideoPopupUrl(videoUrl);
                             }
-                            window.history.replaceState(null, "", '/');
+                            window.history.replaceState(null, "", window.location.pathname);
                         } else if (post) {
                             useAppStore.getState().setSelectedPostId(urlPostId);
                             useAppStore.getState().setActiveSection('detail');
-                        } else {
-                            // If post is not found (deleted or missing), clear the URL so the user isn't stuck on a dead link
-                            window.history.replaceState(null, "", '/');
-                            useAppStore.getState().setActiveSection('main');
                         }
                     }
                 })
@@ -114,6 +106,27 @@ export default function App() {
         } else {
             window.addEventListener('DOMContentLoaded', fetchData);
         }
+
+        // Real-time Firestore synchronizer for posts and inquiries (Instantly clears local and virtual cache)
+        const unsubscribePosts = onSnapshot(collection(db, 'posts'), () => {
+            getPostsService()
+                .then(data => {
+                    setPosts(data);
+                })
+                .catch(err => console.error("실시간 매물 업데이트 오류:", err));
+        }, (err) => {
+            console.warn("Firestore posts dynamic subscription failed, falling back:", err);
+        });
+
+        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), () => {
+            getInquiriesService()
+                .then(data => {
+                    setInquiries(data);
+                })
+                .catch(err => console.error("실시간 의뢰 업데이트 오류:", err));
+        }, (err) => {
+            console.warn("Firestore inquiries dynamic subscription failed, falling back:", err);
+        });
 
         // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -138,93 +151,32 @@ export default function App() {
             "color: #059669; font-family: 'Nanum Gothic', sans-serif; font-size: 13px; font-weight: bold; line-height: 1.6;"
         );
 
-        const handlePopState = (event: PopStateEvent) => {
-            const path = window.location.pathname;
-            const params = new URLSearchParams(window.location.search);
-            let urlPostId = params.get('id') || params.get('postId');
-            if (!urlPostId && path.startsWith('/rooms/')) {
-                urlPostId = path.split('/')[2];
-            }
-            if (urlPostId) {
-                useAppStore.getState().setSelectedPostId(urlPostId);
-                useAppStore.getState().setActiveSection('detail');
-            } else {
-                useAppStore.getState().setActiveSection('main');
-            }
-        };
-        window.addEventListener('popstate', handlePopState);
-
         return () => {
             unsubscribe();
+            unsubscribePosts();
+            unsubscribeInquiries();
             window.removeEventListener('submitDirectInquiry', handleDirectInquiry);
-            window.removeEventListener('popstate', handlePopState);
         };
     }, []);
 
-    // Set up real-time Firestore listeners ONLY for logged-in admin users to save daily read quota
-    useEffect(() => {
-        if (!isAdminLoggedIn) return;
-
-        const unsubscribePosts = onSnapshot(collection(db, 'posts'), () => {
-            getPostsService()
-                .then(data => {
-                    setPosts(data);
-                })
-                .catch(err => console.error("실시간 매물 업데이트 오류:", err));
-        }, (err) => {
-            console.warn("Firestore posts dynamic subscription failed, falling back:", err);
-        });
-
-        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), () => {
-            getInquiriesService()
-                .then(data => {
-                    setInquiries(data);
-                })
-                .catch(err => console.error("실시간 의뢰 업데이트 오류:", err));
-        }, (err) => {
-            console.warn("Firestore inquiries dynamic subscription failed, falling back:", err);
-        });
-
-        return () => {
-            unsubscribePosts();
-            unsubscribeInquiries();
-        };
-    }, [isAdminLoggedIn]);
-
-    // Synchronize detail view state dynamically with the browser's URL address bar using path-based routing
+    // Synchronize detail view state dynamically with the browser's URL address bar query parameters
     useEffect(() => {
         try {
             if (activeSection === 'detail' && selectedPostId) {
-                const targetPath = `/rooms/${selectedPostId}`;
                 const params = new URLSearchParams(window.location.search);
-                const hasIdOrPostId = params.has('id') || params.has('postId');
-
-                if (window.location.pathname !== targetPath || hasIdOrPostId) {
-                    params.delete('postId');
-                    params.delete('id');
-                    const search = params.toString();
-                    const newUrl = targetPath + (search ? `?${search}` : '');
-                    if (window.location.pathname === targetPath) {
-                        window.history.replaceState({ postId: selectedPostId }, "", newUrl);
-                    } else {
-                        window.history.pushState({ postId: selectedPostId }, "", newUrl);
-                    }
+                if (params.get('postId') !== selectedPostId && params.get('id') !== selectedPostId) {
+                    params.set('postId', selectedPostId);
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
                 }
             } else if (activeSection === 'main') {
                 const params = new URLSearchParams(window.location.search);
-                const hasIdOrPostId = params.has('id') || params.has('postId');
-                const isRoomsPath = window.location.pathname.startsWith('/rooms/');
-
-                if (!isRoomsPath && ((window.location.pathname !== '/' && !window.location.pathname.startsWith('/admin')) || hasIdOrPostId)) {
+                if (params.has('postId') || params.has('id')) {
                     params.delete('postId');
                     params.delete('id');
                     const search = params.toString();
-                    const newUrl = '/' + (search ? `?${search}` : '');
-                    if (window.location.pathname === '/') {
-                        window.history.replaceState(null, "", newUrl);
-                    } else {
-                        window.history.pushState(null, "", newUrl);
-                    }
+                    const newUrl = window.location.pathname + (search ? `?${search}` : '');
+                    window.history.pushState(null, "", newUrl);
                 }
             }
         } catch (e) {
@@ -364,15 +316,27 @@ export default function App() {
         window.scrollTo(0, 0);
     }, [activeSection]);
 
+    // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const currentId = params.get('id') || params.get('postId');
+        if (selectedPostId) {
+            if (currentId !== selectedPostId) {
+                window.history.pushState({ postId: selectedPostId }, "", `?id=${selectedPostId}`);
+            }
+        } else {
+            // Only clear the query parameter if it is set and we are returning to the main page
+            if (currentId && activeSection === 'main') {
+                window.history.pushState(null, "", window.location.pathname);
+            }
+        }
+    }, [selectedPostId, activeSection]);
+
     // 브라우저 뒤로가기/앞으로가기 (onpopstate) 대응 선로 세팅
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             const params = new URLSearchParams(window.location.search);
-            let id = params.get('id') || params.get('postId');
-            if (!id && window.location.pathname.startsWith('/rooms/')) {
-                const pathParts = window.location.pathname.split('/');
-                id = pathParts[2];
-            }
+            const id = params.get('id') || params.get('postId');
             
             if (id) {
                 const found = useAppStore.getState().posts.find(p => p.id === id);

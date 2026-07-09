@@ -4,18 +4,11 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
-// Detect if we are in the AI Studio preview environment or local development
-const isSandbox = typeof window !== 'undefined' && (
-  window.location.hostname.includes('ais-dev') || 
-  window.location.hostname.includes('localhost') || 
-  window.location.hostname.includes('127.0.0.1')
-);
-
 const app = initializeApp(firebaseConfig);
 export const defaultDb = getFirestore(app);
 
-// Use custom named database in sandbox/preview, and default database on the live production website
-export const db = (isSandbox && firebaseConfig.firestoreDatabaseId)
+// Always use the same database for both sandbox and production to ensure perfect synchronization
+export const db = firebaseConfig.firestoreDatabaseId
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : defaultDb;
 export const auth = getAuth();

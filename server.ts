@@ -132,23 +132,8 @@ async function startServer() {
       try {
         await firestoreDb.collection('_test_probe_').limit(1).get();
       } catch (checkErr: any) {
-        const errMsg = checkErr.message || "";
-        const isPermissionOrDbError = errMsg.includes('PERMISSION_DENIED') || 
-                                       errMsg.includes('database') || 
-                                       String(checkErr).includes('7') ||
-                                       String(checkErr).includes('3');
-        if (isPermissionOrDbError && dbId) {
-          try {
-            const defaultDb = getFirestore(appInstance);
-            await defaultDb.collection('_test_probe_').limit(1).get();
-            firestoreDb = defaultDb;
-            useDefaultDbFallback = true;
-          } catch (fallbackErr) {
-            firestorePermissionFailed = true;
-          }
-        } else {
-          firestorePermissionFailed = true;
-        }
+        console.warn("[Firestore Admin] Primary database test failed. Remaining on specified database, but marking degraded state.", checkErr.message);
+        firestorePermissionFailed = true;
       }
     } catch (err: any) {
       firestorePermissionFailed = true;
@@ -600,12 +585,13 @@ async function startServer() {
             snapshot.forEach((doc: any) => {
               list.push(doc.data());
             });
-            const merged = mergePosts(localList, list);
-            cachedPostsList = merged;
+            // If Firestore is reachable and returns data, it is the absolute source of truth.
+            // Overwriting local list prevents deleted items from being resurrected.
+            cachedPostsList = list;
             try {
-              writePosts(merged);
+              writePosts(list);
             } catch (err) {}
-            return merged;
+            return list;
           } else {
             // Seed if empty
             console.log("Firestore posts collection is empty. Seeding defaultPosts...");
@@ -862,12 +848,12 @@ async function startServer() {
           snapshot.forEach((doc: any) => {
             list.push(doc.data());
           });
-          const merged = mergeInquiries(localList, list);
-          cachedInquiriesList = merged;
+          // If Firestore is reachable, it is the absolute source of truth.
+          cachedInquiriesList = list;
           try {
-            writeInquiries(merged);
+            writeInquiries(list);
           } catch (err) {}
-          return merged;
+          return list;
         }, null);
 
         if (inquiries !== null) {

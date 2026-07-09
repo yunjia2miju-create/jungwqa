@@ -154,7 +154,8 @@ export async function savePostService(post: Post): Promise<void> {
     title: cleanNbsp(post.title),
     intro: post.intro ? cleanNbsp(post.intro) : undefined,
     body: post.body ? cleanNbsp(post.body) : undefined,
-    remarks: post.remarks ? cleanNbsp(post.remarks) : undefined
+    remarks: post.remarks ? cleanNbsp(post.remarks) : undefined,
+    updatedAt: Date.now() // Add updatedAt to resolve merge conflicts cleanly
   };
 
   // 1. Write to Firestore

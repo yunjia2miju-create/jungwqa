@@ -1576,10 +1576,10 @@ const Carousel3D = ({
                                     <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-400 truncate max-w-[190px] sm:max-w-[220px]">
-                                                {p.address}
+                                                {p.category === '유튜브' ? '유튜브' : (p.category === '네이버TV' ? '네이버TV' : p.address)}
                                             </span>
                                             <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                                                {p.floor || '지상층'}
+                                                {p.category === '유튜브' ? '유튜브' : (p.category === '네이버TV' ? '네이버TV' : (p.floor || '지상층'))}
                                             </span>
                                         </div>
                                         <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-[#1c2541] line-clamp-1 leading-snug">
@@ -1606,7 +1606,7 @@ const Carousel3D = ({
 
                                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
                                         <div className="text-sm sm:text-base font-black text-red-500 shrink-0">
-                                            {p.transactionType || '월세'} {p.price}
+                                            {(p.category === '유튜브' || p.category === '네이버TV') ? '동영상 매물 리뷰' : (p.transactionType || '월세')} {(p.category === '유튜브' || p.category === '네이버TV') ? '' : p.price}
                                         </div>
                                         <div className="flex-grow flex items-center gap-1.5">
                                             {isVideoCategory && videoUrl ? (

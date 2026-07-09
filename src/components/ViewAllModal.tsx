@@ -186,9 +186,54 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                         </h3>
                                                     </div>
 
-                                                    <div className="text-xl sm:text-2xl font-black text-rose-600 tracking-tight mb-3">
-                                                        {item.price || '가격협의'}
-                                                    </div>
+                                                    {isVideoCategory ? (
+                                                        <div className="w-full h-20 bg-white border border-slate-200 rounded-xl flex flex-col justify-center px-3 py-2 relative overflow-hidden select-none shrink-0 mb-3 shadow-sm">
+                                                            {/* Top Row: YouTube Logo & NAVER Logo */}
+                                                            <div className="flex items-center justify-between px-1 mb-1">
+                                                                {/* YouTube Section */}
+                                                                <div className="flex items-center gap-1">
+                                                                    <div className="bg-red-600 rounded px-1 py-0.5 flex items-center justify-center">
+                                                                        <svg className="w-3.5 h-2.5 fill-white" viewBox="0 0 24 24">
+                                                                            <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
+                                                                            <polygon points="9.545 15.568 15.818 12 9.545 8.432" className="fill-white" />
+                                                                        </svg>
+                                                                    </div>
+                                                                    <span className="text-[10px] sm:text-[11px] font-black text-slate-800 tracking-tighter">YouTube</span>
+                                                                </div>
+
+                                                                {/* NAVER Section */}
+                                                                <div className="flex items-center gap-1">
+                                                                    <div className="bg-[#03C75A] rounded px-1 py-0.5 flex items-center justify-center">
+                                                                        <span className="text-white font-black text-[9px] tracking-tighter leading-none">N</span>
+                                                                    </div>
+                                                                    <span className="text-[10px] sm:text-[11px] font-black text-[#03C75A] tracking-tighter">NAVER</span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Bottom Row: 구미오늘방TV centered / bold text */}
+                                                            <div className="flex items-center justify-between px-1">
+                                                                <span className="text-base sm:text-lg font-black text-slate-950 tracking-tighter leading-none">
+                                                                    구미오늘방TV
+                                                                </span>
+                                                                {/* Small right accent: play icon with hand pointer */}
+                                                                <div className="flex items-center gap-0.5 opacity-90 animate-pulse shrink-0">
+                                                                    <div className="bg-red-500 rounded p-0.5 flex items-center justify-center">
+                                                                        <svg className="w-2.5 h-2.5 fill-white" viewBox="0 0 24 24">
+                                                                            <path d="M8 5v14l11-7z" />
+                                                                        </svg>
+                                                                    </div>
+                                                                    {/* Simple hand pointer SVG */}
+                                                                    <svg className="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5" />
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-xl sm:text-2xl font-black text-rose-600 tracking-tight mb-3">
+                                                            {item.price || '가격협의'}
+                                                        </div>
+                                                    )}
 
                                                     {item.remarks && (
                                                         <p className="text-xs sm:text-sm text-slate-500 font-medium line-clamp-2 mb-4 flex-1">

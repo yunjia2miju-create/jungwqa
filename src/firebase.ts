@@ -4,12 +4,20 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
+// Detect if we are in the AI Studio preview environment or local development
+const isSandbox = typeof window !== 'undefined' && (
+  window.location.hostname.includes('ais-dev') || 
+  window.location.hostname.includes('localhost') || 
+  window.location.hostname.includes('127.0.0.1')
+);
+
 const app = initializeApp(firebaseConfig);
-// V13 규격 당시의 무결점 주소 규격에 따라 파이어베이스 데이터베이스 호출 경로(Database ID)를 원래대로 무결점 원상복구합니다.
-export const db = firebaseConfig.firestoreDatabaseId 
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
 export const defaultDb = getFirestore(app);
+
+// Use custom named database in sandbox/preview, and default database on the live production website
+export const db = (isSandbox && firebaseConfig.firestoreDatabaseId)
+  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+  : defaultDb;
 export const auth = getAuth();
 export const storage = getStorage(app);
 

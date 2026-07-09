@@ -217,6 +217,64 @@ async function startServer() {
       console.error("Error writing users:", err);
     }
   }
+
+  function mergePosts(localList: any[], dbList: any[]) {
+    const mergedMap = new Map<string, any>();
+    
+    if (Array.isArray(localList)) {
+      localList.forEach(p => {
+        if (p && p.id) {
+          mergedMap.set(p.id, p);
+        }
+      });
+    }
+    
+    if (Array.isArray(dbList)) {
+      dbList.forEach(p => {
+        if (p && p.id) {
+          const existing = mergedMap.get(p.id);
+          const pTime = p.updatedAt || p.createdAt || 0;
+          const existingTime = existing ? (existing.updatedAt || existing.createdAt || 0) : -1;
+          if (pTime > existingTime || !existing) {
+            mergedMap.set(p.id, p);
+          }
+        }
+      });
+    }
+    
+    const result = Array.from(mergedMap.values());
+    result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return result;
+  }
+
+  function mergeInquiries(localList: any[], dbList: any[]) {
+    const mergedMap = new Map<string, any>();
+    
+    if (Array.isArray(localList)) {
+      localList.forEach(p => {
+        if (p && p.id) {
+          mergedMap.set(p.id, p);
+        }
+      });
+    }
+    
+    if (Array.isArray(dbList)) {
+      dbList.forEach(p => {
+        if (p && p.id) {
+          const existing = mergedMap.get(p.id);
+          const pTime = p.createdAt || 0;
+          const existingTime = existing ? (existing.createdAt || 0) : -1;
+          if (pTime > existingTime || !existing) {
+            mergedMap.set(p.id, p);
+          }
+        }
+      });
+    }
+    
+    const result = Array.from(mergedMap.values());
+    result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return result;
+  }
   
   app.use(express.json({ limit: '50mb' }));
 
@@ -536,16 +594,18 @@ async function startServer() {
         const posts = await executeFirestoreOp(async (dbInstance) => {
           const postsRef = dbInstance.collection('posts');
           const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
+          const localList = readPosts();
           if (!snapshot.empty) {
             const list: any[] = [];
             snapshot.forEach((doc: any) => {
               list.push(doc.data());
             });
-            cachedPostsList = list;
+            const merged = mergePosts(localList, list);
+            cachedPostsList = merged;
             try {
-              writePosts(list);
+              writePosts(merged);
             } catch (err) {}
-            return list;
+            return merged;
           } else {
             // Seed if empty
             console.log("Firestore posts collection is empty. Seeding defaultPosts...");
@@ -555,11 +615,12 @@ async function startServer() {
               batch.set(docRef, post);
             });
             await batch.commit();
-            cachedPostsList = defaultPosts;
+            const merged = mergePosts(localList, defaultPosts);
+            cachedPostsList = merged;
             try {
-              writePosts(defaultPosts);
+              writePosts(merged);
             } catch (err) {}
-            return defaultPosts;
+            return merged;
           }
         }, null);
 
@@ -796,15 +857,17 @@ async function startServer() {
         const inquiries = await executeFirestoreOp(async (dbInstance) => {
           const inquiriesRef = dbInstance.collection('inquiries');
           const snapshot = await inquiriesRef.orderBy('createdAt', 'desc').get();
+          const localList = readInquiries();
           const list: any[] = [];
           snapshot.forEach((doc: any) => {
             list.push(doc.data());
           });
-          cachedInquiriesList = list;
+          const merged = mergeInquiries(localList, list);
+          cachedInquiriesList = merged;
           try {
-            writeInquiries(list);
+            writeInquiries(merged);
           } catch (err) {}
-          return list;
+          return merged;
         }, null);
 
         if (inquiries !== null) {

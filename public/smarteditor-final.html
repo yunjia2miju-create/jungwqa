@@ -2285,8 +2285,8 @@
                 
                 if (mediaYoutube) mediaYoutube.classList.add('hidden');
                 if (mediaNaverTv) mediaNaverTv.classList.add('hidden');
-                if (mediaBlog) mediaBlog.classList.remove('hidden');
-                if (mediaThumbnail) mediaThumbnail.classList.remove('hidden');
+                if (mediaBlog) mediaBlog.classList.add('hidden');
+                if (mediaThumbnail) mediaThumbnail.classList.add('hidden');
                 if (mediaGallery) mediaGallery.classList.remove('hidden');
                 if (mediaVr) mediaVr.classList.remove('hidden');
                 
@@ -2692,7 +2692,11 @@
             e.target.value = '';
         }
 
-        function processImage(file, callback) {
+        function processImage(file, type, callback) {
+            if (type === "pano" || type === "vrThumbnail") {
+                callback(file, file.name);
+                return;
+            }
             const isSmallSize = file.size <= 1024 * 1024;
             const img = new Image();
             const url = URL.createObjectURL(file);
@@ -2733,10 +2737,13 @@
             queueToast.style.display = 'block';
             queueToast.innerText = `사진 ${files.length}장 초고속 멀티 큐 압착 및 전송 중...`;
 
-            const uploadPromises = Array.from(files).map((file, i) => {
-                return new Promise((resolve) => {
+                        const uploadedUrls = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                queueToast.innerText = `사진 ${files.length}장 중 ${i+1}번째 업로드 중...`;
+                const url = await new Promise((resolve) => {
                     const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_' + i;
-                    processImage(file, (dataUrl, fileName) => {
+                    processImage(file, type, (dataUrl, fileName) => {
                         if (window.self !== window.top) {
                             window.parent.postMessage({
                                 type: 'UPLOAD_FILE',
@@ -2764,9 +2771,8 @@
                         }
                     });
                 });
-            });
-
-            const uploadedUrls = await Promise.all(uploadPromises);
+                uploadedUrls.push(url);
+            }
             
             uploadedUrls.forEach((url) => {
                 if (!url) return;

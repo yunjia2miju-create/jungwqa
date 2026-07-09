@@ -41,8 +41,8 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         return new Blob([u8arr], { type: mime });
     };
 
-    const uploadResizedBlobToStorage = async (base64Data: string, originalName: string, prefix = 'posts'): Promise<string> => {
-        const blob = dataURLtoBlob(base64Data);
+    const uploadResizedBlobToStorage = async (fileData: string | Blob | File, originalName: string, prefix = 'posts'): Promise<string> => {
+        const blob = typeof fileData === 'string' ? dataURLtoBlob(fileData) : fileData;
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
         const cleanName = originalName.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_.-]/g, '_');

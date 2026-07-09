@@ -92,6 +92,10 @@ export default function App() {
                         } else if (post) {
                             useAppStore.getState().setSelectedPostId(urlPostId);
                             useAppStore.getState().setActiveSection('detail');
+                        } else {
+                            // If post is not found (deleted or missing), clear the URL so the user isn't stuck on a dead link
+                            window.history.replaceState(null, "", '/');
+                            useAppStore.getState().setActiveSection('main');
                         }
                     }
                 })

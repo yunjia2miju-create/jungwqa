@@ -177,7 +177,7 @@ export const VrListTab: React.FC<VrListTabProps> = ({ openPhoneSelectModal, show
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    openPhoneSelectModal(e, item.phone || '010-4065-2751', item.ownerPhone);
+                                                    openPhoneSelectModal(e, '010-7590-0111', isAdminLoggedIn ? item.ownerPhone : undefined);
                                                 }}
                                                 className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-3 rounded-xl text-xs sm:text-sm transition-colors flex items-center justify-center gap-1 cursor-pointer"
                                             >

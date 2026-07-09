@@ -226,7 +226,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                         <button 
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                openPhoneSelectModal(e, item.mobilePhone || '010-4065-2751');
+                                                                openPhoneSelectModal(e, '010-7590-0111', isAdminLoggedIn ? item.ownerPhone : undefined);
                                                             }}
                                                             className="bg-[#0B2545] hover:bg-[#1a385f] text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-colors"
                                                         >

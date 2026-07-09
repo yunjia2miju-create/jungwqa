@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppStore } from '../store';
 
 interface ModalsProps {
     showToast: (msg: string, type: 'success' | 'error') => void;
@@ -15,6 +16,7 @@ export function Modals({
     phoneModalData
 }: ModalsProps) {
     const modalRef = useRef<HTMLDivElement>(null);
+    const { isAdminLoggedIn } = useAppStore();
 
     // 외부 클릭 시 모달 닫기
     useEffect(() => {
@@ -80,7 +82,7 @@ export function Modals({
             </p>
             <div className="space-y-3 font-semibold">
                 <a 
-                    href={`tel:${phoneModalData.mobile}`}
+                    href="tel:010-7590-0111"
                     onClick={(e) => {
                         e.stopPropagation();
                         showToast("상담 전용 번호 통화를 안내합니다.", "success");
@@ -89,9 +91,9 @@ export function Modals({
                     className="w-full bg-[#0B2545] hover:bg-[#113866] text-white py-3.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all block text-center"
                 >
                     <i className="fa-solid fa-mobile-screen"></i>
-                    <span>상담 모바일 ({phoneModalData.mobile}) 연결</span>
+                    <span>상담 모바일 (010-7590-0111) 연결</span>
                 </a>
-                {phoneModalData.owner && (
+                {isAdminLoggedIn && phoneModalData.owner && (
                     <div className="pt-2 border-t border-dashed border-slate-100">
                         <span className="block text-[10px] text-amber-600 font-extrabold uppercase tracking-wider mb-2">[관리자 전용] 임대인 공급자 연락망</span>
                         <a 

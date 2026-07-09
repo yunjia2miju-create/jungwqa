@@ -28,6 +28,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
 
     const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
     const [adminTab, setAdminTab] = useState<'inquiry' | 'posts' | 'members'>('inquiry');
+    const [adminPostSubTab, setAdminPostSubTab] = useState<'normal' | '360' | 'video'>('normal');
     
     // Password change states
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -40,7 +41,16 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
     const [selectedBlogPost, setSelectedBlogPost] = useState<Post | null>(null);
 
     // Real-time filtered posts list
-    const filteredPosts = posts.filter(p => {
+    const filteredBySubTab = posts.filter(p => {
+        const isVideo = p.category === '유튜브' || p.category === '네이버TV';
+        const is360 = p.category === '360 VR사진';
+        if (adminPostSubTab === 'normal') return !isVideo && !is360;
+        if (adminPostSubTab === '360') return is360;
+        if (adminPostSubTab === 'video') return isVideo;
+        return true;
+    });
+
+    const filteredPosts = filteredBySubTab.filter(p => {
         if (!adminSearchQuery.trim()) return true;
         const query = adminSearchQuery.trim().toLowerCase();
         
@@ -375,14 +385,41 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
 
             {adminTab === 'posts' && (
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8 animate-fadeIn">
+                    <div className="flex border-b border-slate-200 w-full overflow-x-auto scrollbar-hide shrink-0 mb-6 font-bold">
+                        <button 
+                            onClick={() => setAdminPostSubTab('normal')} 
+                            className={`py-3 px-6 text-sm sm:text-base font-black transition-all whitespace-nowrap cursor-pointer ${
+                                adminPostSubTab === 'normal' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/10' : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                        >
+                            매매/임대 등록 매물
+                        </button>
+                        <button 
+                            onClick={() => setAdminPostSubTab('360')} 
+                            className={`py-3 px-6 text-sm sm:text-base font-black transition-all whitespace-nowrap cursor-pointer ${
+                                adminPostSubTab === '360' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/10' : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                        >
+                            360사진등록
+                        </button>
+                        <button 
+                            onClick={() => setAdminPostSubTab('video')} 
+                            className={`py-3 px-6 text-sm sm:text-base font-black transition-all whitespace-nowrap cursor-pointer ${
+                                adminPostSubTab === 'video' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/10' : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                        >
+                            동영상 등록
+                        </button>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-6">
                         <span className="text-base font-black text-slate-500 uppercase tracking-widest leading-none">
                             {adminSearchQuery.trim() ? (
                                 <span>
-                                    검색 매칭 <span className="text-emerald-600 font-black">{filteredPosts.length}</span>건 / 전체 {posts.length}건
+                                    검색 매칭 <span className="text-emerald-600 font-black">{filteredPosts.length}</span>건 / 전체 {filteredBySubTab.length}건
                                 </span>
                             ) : (
-                                `전체 ${posts.length}건의 발행 매물`
+                                `전체 ${filteredBySubTab.length}건의 발행 매물`
                             )}
                         </span>
                         <button 

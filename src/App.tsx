@@ -107,33 +107,51 @@ export default function App() {
             window.addEventListener('DOMContentLoaded', fetchData);
         }
 
-        // Real-time Firestore synchronizer for posts and inquiries (Instantly clears local and virtual cache)
-        const unsubscribePosts = onSnapshot(collection(db, 'posts'), () => {
-            getPostsService()
-                .then(data => {
-                    setPosts(data);
-                })
-                .catch(err => console.error("실시간 매물 업데이트 오류:", err));
+        // Real-time Firestore synchronizer for posts and inquiries (Direct snapshot mapping to avoid infinite query requests)
+        const unsubscribePosts = onSnapshot(collection(db, 'posts'), (snapshot) => {
+            const list: any[] = [];
+            snapshot.forEach(doc => {
+                list.push({ id: doc.id, ...doc.data() });
+            });
+            const cleanNbsp = (str?: string) => str ? str.replace(/&nbsp;/gi, ' ') : '';
+            const cleanedList = list.map(p => ({
+                ...p,
+                title: cleanNbsp(p.title),
+                intro: p.intro ? cleanNbsp(p.intro) : undefined,
+                body: p.body ? cleanNbsp(p.body) : undefined,
+                remarks: p.remarks ? cleanNbsp(p.remarks) : undefined
+            }));
+            cleanedList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (cleanedList.length > 0) {
+                setPosts(cleanedList);
+            }
         }, (err) => {
             console.warn("Firestore posts dynamic subscription failed, falling back:", err);
         });
 
-        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), () => {
-            getInquiriesService()
-                .then(data => {
-                    setInquiries(data);
-                })
-                .catch(err => console.error("실시간 의뢰 업데이트 오류:", err));
+        const unsubscribeInquiries = onSnapshot(collection(db, 'customer_requests'), (snapshot) => {
+            const list: any[] = [];
+            snapshot.forEach(doc => {
+                list.push({ id: doc.id, ...doc.data() });
+            });
+            list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            setInquiries(list);
         }, (err) => {
             console.warn("Firestore inquiries dynamic subscription failed, falling back:", err);
         });
 
-        // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active
+        // Automatically restore session if verified Google Admin user is logged in or simulated bypass is active (Only in local or preview)
         const unsubscribe = onAuthStateChanged(auth, (user) => {
+            const isSimEnvironment = window.location.hostname === 'localhost' || 
+                                     window.location.hostname.includes('127.0.0.1') || 
+                                     window.location.hostname.includes('run.app') || 
+                                     window.location.hostname.includes('aistudio');
             if (user && user.email === 'yunjia2miju@gmail.com' && user.emailVerified) {
                 setIsAdminLoggedIn(true);
-            } else if (localStorage.getItem('taewang_firebase_sim_connected') === 'true') {
+            } else if (isSimEnvironment && localStorage.getItem('taewang_firebase_sim_connected') === 'true') {
                 setIsAdminLoggedIn(true);
+            } else {
+                setIsAdminLoggedIn(false);
             }
         });
 

@@ -65,7 +65,8 @@ export async function getPostsService(): Promise<Post[]> {
     }
   })());
 
-  // Task C: Fetch from legacy default database (if different) in the background so it never blocks the fast active DB/API loading
+  // Task C: Legacy migration bypassed to ensure zero-risk database sync and avoid infinite Firestore write quota depletion
+  /*
   if (db !== defaultDb) {
     (async () => {
       try {
@@ -79,16 +80,13 @@ export async function getPostsService(): Promise<Post[]> {
           }
         });
         
-        // Trigger background migration if legacy posts were discovered
         if (legacyPosts.length > 0) {
           console.log(`[Migration] Found ${legacyPosts.length} legacy posts. Starting automatic migration in background...`);
           for (const post of legacyPosts) {
             try {
-              // 1. Write to active Firestore database
               const activeDocRef = doc(db, 'posts', post.id);
               await setDoc(activeDocRef, post, { merge: true });
 
-              // 2. Write/Sync to Express backend
               await fetch('/api/posts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -101,11 +99,11 @@ export async function getPostsService(): Promise<Post[]> {
           console.log("[Migration] Automatic migration completed successfully.");
         }
       } catch (err) {
-        // Downgrade to console.debug/info to prevent distracting warning logs when permission is expectedly denied
         console.info("Legacy Firestore database posts fetch bypassed (this is expected when using a custom named database ID):", err);
       }
     })();
   }
+  */
 
   // Wait for Task A (API) and Task B (Active DB) to complete or settle
   await Promise.allSettled(fetchTasks);

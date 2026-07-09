@@ -467,10 +467,10 @@ export const DetailTab = ({
 
                         {/* 소장님 직통 빠른 빠른 문의 전화 버튼 */}
                         <a 
-                            href={`tel:${p.phone || '010-7590-0111'}`}
+                            href="tel:010-7590-0111"
                             onClick={(e) => { 
                                 e.preventDefault(); 
-                                openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined); 
+                                openPhoneSelectModal(e, '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined); 
                             }}
                             className="mt-1 lg:mt-2 w-full bg-[#0B2545] hover:bg-[#113866] text-white font-black py-2.5 lg:py-4 rounded-xl flex items-center justify-center gap-2 lg:gap-3 shadow-md shadow-[#0B2545]/10 transition-all text-center select-none cursor-pointer text-xs lg:text-base"
                         >
@@ -939,10 +939,10 @@ export const DetailTab = ({
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full">
                         <a 
-                            href={`tel:${p.phone || '010-7590-0111'}`} 
+                            href="tel:010-7590-0111" 
                             onClick={(e) => { 
                                 e.preventDefault(); 
-                                openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined); 
+                                openPhoneSelectModal(e, '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined); 
                             }} 
                             className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 sm:py-4.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 shadow-md shadow-emerald-900/30 transition-all select-none cursor-pointer">
                             <i className="fa-solid fa-mobile-screen"></i>

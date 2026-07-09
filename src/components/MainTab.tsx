@@ -1636,7 +1636,7 @@ const Carousel3D = ({
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    openPhoneSelectModal(e, p.phone || '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined);
+                                                    openPhoneSelectModal(e, '010-7590-0111', isAdminLoggedIn ? p.ownerPhone : undefined);
                                                 }}
                                                 className="flex-1 h-9 sm:h-10 rounded-xl bg-[#0B2545] hover:bg-[#1a385f] text-white flex items-center justify-center gap-1 border border-slate-200 shadow-sm transition-all font-black text-[11px] sm:text-xs"
                                                 title="문의 전화 걸기"

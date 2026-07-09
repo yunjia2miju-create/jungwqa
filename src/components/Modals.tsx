@@ -93,7 +93,7 @@ export function Modals({
                     <i className="fa-solid fa-mobile-screen"></i>
                     <span>상담 모바일 (010-7590-0111) 연결</span>
                 </a>
-                {isAdminLoggedIn && phoneModalData.owner && (
+                {isAdminLoggedIn && phoneModalData.owner && phoneModalData.owner.trim() !== "" && phoneModalData.owner.trim() !== "010-7590-0111" && (
                     <div className="pt-2 border-t border-dashed border-slate-100">
                         <span className="block text-[10px] text-amber-600 font-extrabold uppercase tracking-wider mb-2">[관리자 전용] 임대인 공급자 연락망</span>
                         <a 

@@ -171,13 +171,20 @@ export async function savePostService(post: Post): Promise<void> {
   
   // Clean all &nbsp; characters on save to ensure clean database storage
   const cleanNbsp = (str?: string) => str ? str.replace(/&nbsp;/gi, ' ') : '';
-  const cleanedPost: Post = {
+  const cleanedPost: any = {
     ...post,
-    title: cleanNbsp(post.title),
-    intro: post.intro ? cleanNbsp(post.intro) : undefined,
-    body: post.body ? cleanNbsp(post.body) : undefined,
-    remarks: post.remarks ? cleanNbsp(post.remarks) : undefined
+    title: cleanNbsp(post.title)
   };
+  if (post.intro !== undefined) cleanedPost.intro = cleanNbsp(post.intro);
+  if (post.body !== undefined) cleanedPost.body = cleanNbsp(post.body);
+  if (post.remarks !== undefined) cleanedPost.remarks = cleanNbsp(post.remarks);
+
+  // Strip all undefined values so Firestore does not crash
+  Object.keys(cleanedPost).forEach(key => {
+    if (cleanedPost[key] === undefined) {
+      delete cleanedPost[key];
+    }
+  });
 
   // Garbage Collection: Find images that were deleted from the post
   try {

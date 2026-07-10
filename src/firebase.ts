@@ -2,9 +2,21 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
+
+export let analytics: any = null;
+if (typeof window !== 'undefined') {
+  isSupported().then(yes => {
+    if (yes && firebaseConfig.measurementId) {
+      analytics = getAnalytics(app);
+      console.log("Firebase Analytics (GA4) initialized.");
+    }
+  });
+}
+
 // V13 규격 당시의 무결점 주소 규격에 따라 파이어베이스 데이터베이스 호출 경로(Database ID)를 원래대로 무결점 원상복구합니다.
 export const db = firebaseConfig.firestoreDatabaseId 
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)

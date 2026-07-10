@@ -6,12 +6,49 @@ import {
   deleteDoc, 
   query, 
   orderBy,
-  updateDoc
+  updateDoc,
+  getDoc
 } from 'firebase/firestore';
-import { db, defaultDb, OperationType, handleFirestoreError, auth } from './firebase';
+import { db, defaultDb, OperationType, handleFirestoreError, auth, storage } from './firebase';
 import { Post, Inquiry, defaultPosts } from './data';
+import { ref, deleteObject } from 'firebase/storage';
 
 // --- Posts API ---
+
+// Garbage collection helpers for Firebase Storage
+function extractFirebaseUrls(post: Post): string[] {
+  const urls: string[] = [];
+  const regex = /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^\/]+\/o\/([^?]+)/g;
+  
+  const extractFromText = (text: string) => {
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      // Decode the URL-encoded path
+      urls.push(decodeURIComponent(match[1]));
+    }
+  };
+
+  if (post.thumbnail) extractFromText(post.thumbnail);
+  if (post.vrThumbnail) extractFromText(post.vrThumbnail);
+  if (post.panoramas) extractFromText(post.panoramas);
+  if (post.body) extractFromText(post.body);
+  if (post.images) extractFromText(post.images);
+
+  // Return unique paths only
+  return [...new Set(urls)];
+}
+
+async function deleteStorageFiles(paths: string[]) {
+  for (const path of paths) {
+    try {
+      const fileRef = ref(storage, path);
+      await deleteObject(fileRef);
+      console.log(`[Storage GC] Deleted garbage file: ${path}`);
+    } catch (e: any) {
+      console.warn(`[Storage GC] Failed to delete file ${path}:`, e.message);
+    }
+  }
+}
 
 /**
  * Reads all property listings (posts) from Firestore and merges with Express API / Default data
@@ -142,6 +179,25 @@ export async function savePostService(post: Post): Promise<void> {
     remarks: post.remarks ? cleanNbsp(post.remarks) : undefined
   };
 
+  // Garbage Collection: Find images that were deleted from the post
+  try {
+    const docRef = doc(db, 'posts', post.id);
+    const existingDoc = await getDoc(docRef);
+    if (existingDoc.exists()) {
+      const oldPost = existingDoc.data() as Post;
+      const oldUrls = extractFirebaseUrls(oldPost);
+      const newUrls = new Set(extractFirebaseUrls(cleanedPost));
+      
+      const removedUrls = oldUrls.filter(url => !newUrls.has(url));
+      if (removedUrls.length > 0) {
+        // Run in background
+        deleteStorageFiles(removedUrls);
+      }
+    }
+  } catch (err) {
+    console.warn("Storage GC during post update failed:", err);
+  }
+
   // 1. Write to Firestore
   try {
     const docRef = doc(db, 'posts', post.id);
@@ -180,6 +236,22 @@ export async function deletePostService(id: string): Promise<void> {
   const docPath = `posts/${id}`;
   let firestoreError: any = null;
   
+  // Garbage Collection: Delete all associated images in Storage
+  try {
+    const docRef = doc(db, 'posts', id);
+    const existingDoc = await getDoc(docRef);
+    if (existingDoc.exists()) {
+      const oldPost = existingDoc.data() as Post;
+      const oldUrls = extractFirebaseUrls(oldPost);
+      if (oldUrls.length > 0) {
+        // Run in background
+        deleteStorageFiles(oldUrls);
+      }
+    }
+  } catch (err) {
+    console.warn("Storage GC during post delete failed:", err);
+  }
+
   // 1. Delete from Firestore
   try {
     const docRef = doc(db, 'posts', id);

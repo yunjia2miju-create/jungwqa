@@ -2627,6 +2627,20 @@
             }
             
             if (videoId) {
+                const isVertical = inputVal.includes('/shorts/') || inputVal.toLowerCase().includes('vertical') || inputVal.toLowerCase().includes('portrait') || (!inputVal.includes('?v=') && inputVal.includes('shorts'));
+                if (container) {
+                    if (isVertical) {
+                        container.style.setProperty('aspect-ratio', '9 / 16', 'important');
+                        container.style.setProperty('max-width', '360px', 'important');
+                        container.style.setProperty('margin', '0 auto', 'important');
+                        if (iframe) iframe.style.setProperty('aspect-ratio', '9 / 16', 'important');
+                    } else {
+                        container.style.setProperty('aspect-ratio', '16 / 9', 'important');
+                        container.style.setProperty('max-width', '', '');
+                        container.style.setProperty('margin', '', '');
+                        if (iframe) iframe.style.setProperty('aspect-ratio', '16 / 9', 'important');
+                    }
+                }
                 if (iframe) iframe.src = `https://www.youtube.com/embed/${videoId}`;
                 if (container) container.classList.remove('hidden');
                 
@@ -2671,8 +2685,22 @@
             }
             
             // Extract NaverTV / Naver Now video ID
-            const nvMatch = inputVal.match(/(?:tv\.naver\.com|now\.naver\.com)(?:\/v|\/player|\/embed)\/([a-zA-Z0-9_]+)/i);
+            const nvMatch = inputVal.match(/(?:tv\.naver\.com|now\.naver\.com)(?:\/v|\/player|\/embed)\/([a-zA-Z0-9_-]+)/i);
             if (nvMatch && nvMatch[1]) {
+                const isVertical = inputVal.toLowerCase().includes('vertical') || inputVal.toLowerCase().includes('portrait');
+                if (container) {
+                    if (isVertical) {
+                        container.style.setProperty('aspect-ratio', '9 / 16', 'important');
+                        container.style.setProperty('max-width', '360px', 'important');
+                        container.style.setProperty('margin', '0 auto', 'important');
+                        if (iframe) iframe.style.setProperty('aspect-ratio', '9 / 16', 'important');
+                    } else {
+                        container.style.setProperty('aspect-ratio', '16 / 9', 'important');
+                        container.style.setProperty('max-width', '', '');
+                        container.style.setProperty('margin', '', '');
+                        if (iframe) iframe.style.setProperty('aspect-ratio', '16 / 9', 'important');
+                    }
+                }
                 if (iframe) iframe.src = `https://tv.naver.com/embed/${nvMatch[1]}?autoPlay=false`;
                 if (container) container.classList.remove('hidden');
             } else {

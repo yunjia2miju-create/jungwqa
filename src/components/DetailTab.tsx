@@ -776,7 +776,7 @@ export const DetailTab = ({
                                     <img 
                                         src={url.trim()} 
                                         onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
+                                             const target = e.target as HTMLImageElement;
                                             if (target && typeof target === 'object') {
                                                 target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80';
                                             }
@@ -802,6 +802,59 @@ export const DetailTab = ({
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                )}
+
+                {((p.video && p.video.trim()) || (p.naverTv && p.naverTv.trim())) && (
+                    <div className="mb-8">
+                        <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
+                            <i className="fa-solid fa-circle-play text-red-600"></i>
+                            <span>실사 동영상 투어</span>
+                        </h4>
+                        <div className="flex flex-col gap-6 items-center">
+                            {p.video && p.video.trim() && (() => {
+                                const url = p.video.trim();
+                                const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+                                if (ytMatch && ytMatch[1]) {
+                                    const vid = ytMatch[1];
+                                    const isVertical = url.includes('/shorts/') || url.toLowerCase().includes('vertical') || url.toLowerCase().includes('portrait') || url.includes('?v=') === false && url.includes('shorts');
+                                    return (
+                                        <div 
+                                            className={`w-full rounded-2xl overflow-hidden border border-slate-200 bg-black shadow-md relative ${isVertical ? 'max-w-[360px] aspect-[9/16]' : 'w-full aspect-video'}`}
+                                        >
+                                            <iframe 
+                                                src={`https://www.youtube.com/embed/${vid}?autoplay=0&rel=0`}
+                                                className="absolute inset-0 w-full h-full border-0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                            ></iframe>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+                            {p.naverTv && p.naverTv.trim() && (() => {
+                                const url = p.naverTv.trim();
+                                const nvMatch = url.match(/(?:tv\.naver\.com|now\.naver\.com)(?:\/v|\/player|\/embed)\/([a-zA-Z0-9_-]+)/i);
+                                if (nvMatch && nvMatch[1]) {
+                                    const vid = nvMatch[1];
+                                    const isVertical = url.toLowerCase().includes('vertical') || url.toLowerCase().includes('portrait');
+                                    return (
+                                        <div 
+                                            className={`w-full rounded-2xl overflow-hidden border border-slate-200 bg-black shadow-md relative ${isVertical ? 'max-w-[360px] aspect-[9/16]' : 'w-full aspect-video'}`}
+                                        >
+                                            <iframe 
+                                                src={`https://tv.naver.com/embed/${nvMatch[1]}?autoPlay=false`}
+                                                className="absolute inset-0 w-full h-full border-0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                            ></iframe>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
                         </div>
                     </div>
                 )}

@@ -692,10 +692,21 @@
         /* 추가 사진 격자형 컴팩트 축소 레이아웃 글로벌 스타일 */
         #additional-photos-stack {
             display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            align-items: start !important;
             gap: 12px !important;
             justify-content: start !important;
             width: 100% !important;
+        }
+        @media (min-width: 640px) {
+            #additional-photos-stack {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+        @media (min-width: 1024px) {
+            #additional-photos-stack {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
         }
         #additional-photos-stack > div.additional-photo-card {
             width: 100% !important;
@@ -715,9 +726,10 @@
         }
         #additional-photos-stack > div.additional-photo-card img {
             width: 100% !important;
-            aspect-ratio: 16 / 9 !important;
+            aspect-ratio: auto !important;
             height: auto !important;
-            object-fit: cover !important;
+            object-fit: contain !important;
+            display: block !important;
         }
 
         /* 파노라마 사진 격자형 컴팩트 축소 레이아웃 글로벌 스타일 */
@@ -1624,13 +1636,13 @@
                             <span class="text-lg text-slate-400 mt-2">여러 장의 일반 사진을 한 번에 등록하십시오</span>
                         </div>
                         
-                        <!-- 추가 사진 16:9 격자형 리스트 -->
+                        <!-- 추가 사진 격자형 리스트 -->
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (16:9 비율 컴팩트 격자형 배치)</span>
+                                <span class="block text-[20px] font-black text-slate-500 uppercase select-none">추가 첨부 사진 리스트 (원본 비율 유지 및 왜곡 없는 배치)</span>
                             </div>
-                            <div id="additional-photos-stack" class="grid gap-[12px] w-full" style="grid-template-columns: repeat(4, 1fr); justify-content: start;">
-                                <!-- Previews will be rendered as compact 220px aspect-video (16:9) cards -->
+                            <div id="additional-photos-stack" class="grid gap-[12px] w-full" style="justify-content: start;">
+                                <!-- Previews will be rendered as original aspect ratio cards -->
                             </div>
                         </div>
                     </div>
@@ -2877,9 +2889,9 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- 16:9 Image Area with absolute order indicator badge -->
-                            <div class="relative w-full aspect-video overflow-hidden" style="aspect-ratio: 16 / 9 !important;">
-                                <img src="${url}" class="w-full h-full object-cover" loading="lazy">
+                            <!-- Original ratio Image Area with absolute order indicator badge -->
+                            <div class="relative w-full overflow-hidden" style="aspect-ratio: auto !important; height: auto !important;">
+                                <img src="${url}" class="w-full h-auto block" loading="lazy">
                                 <div contenteditable="true" class="rep-overlay-layer absolute inset-0 m-2 flex items-center justify-center text-white font-black text-center text-lg bg-black/30 rounded-lg border-2 border-dashed border-white/50 focus:border-solid focus:border-amber-400 focus:bg-black/50 outline-none transition-all" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);" placeholder="여기에 대표 글자 입력"></div>
                                 <div class="absolute top-1 left-1 bg-black/75 text-white font-black rounded backdrop-blur-xs select-none border border-white/10 shadow-sm" style="font-size: 8px !important; padding: 1px 3px !important; line-height: 1 !important;">
                                     [${idx + 1}]

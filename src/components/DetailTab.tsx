@@ -759,11 +759,11 @@ export const DetailTab = ({
                             <i className="fa-solid fa-camera text-[#0B2545]"></i>
                             <span>실사 추가 사진첩</span>
                         </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                             {imgUrls.map((url, i) => (
                                 <div 
                                     key={i} 
-                                    className={`aspect-[16/9] overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group relative select-none ${zoomedImageId === `img-${i}` ? 'cursor-zoom-out shadow-2xl' : 'cursor-zoom-in hover:shadow-xl hover:border-[#0B2545]/30'}`}
+                                    className={`overflow-hidden rounded-xl border border-slate-150 shadow-sm bg-transparent watermark-container group relative select-none ${zoomedImageId === `img-${i}` ? 'cursor-zoom-out shadow-2xl' : 'cursor-zoom-in hover:shadow-xl hover:border-[#0B2545]/30'}`}
                                     style={{ 
                                         transform: zoomedImageId === `img-${i}` ? 'scale(2)' : 'scale(1)', 
                                         zIndex: zoomedImageId === `img-${i}` ? 999 : 1, 
@@ -781,7 +781,7 @@ export const DetailTab = ({
                                                 target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=675&q=80';
                                             }
                                         }} 
-                                        className={`w-full h-full object-cover transition-transform duration-500 ${zoomedImageId === `img-${i}` ? '' : 'group-hover:scale-105'}`} 
+                                        className={`w-full h-auto block object-contain transition-transform duration-500 ${zoomedImageId === `img-${i}` ? '' : 'group-hover:scale-105'}`} 
                                         alt={`실사 추가 사진 ${i+1}`}
                                         loading="lazy"
                                     />

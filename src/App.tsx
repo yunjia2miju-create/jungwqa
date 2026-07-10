@@ -113,7 +113,7 @@ export default function App() {
                                      window.location.hostname.includes('127.0.0.1') || 
                                      window.location.hostname.includes('run.app') || 
                                      window.location.hostname.includes('aistudio');
-            if (user && user.email === 'yunjia2miju@gmail.com' && user.emailVerified) {
+            if (user && user.email === 'yunjia2miju@gmail.com' ) {
                 setIsAdminLoggedIn(true);
             } else if (isSimEnvironment && localStorage.getItem('taewang_firebase_sim_connected') === 'true') {
                 setIsAdminLoggedIn(true);

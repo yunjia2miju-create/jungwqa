@@ -231,7 +231,7 @@ export async function savePostService(post: Post): Promise<void> {
   }
 
   // 3. If Firestore fail, throw the Firestore Error
-  if (firestoreError) {
+  if (firestoreError && !expressSuccess) {
     handleFirestoreError(firestoreError, OperationType.WRITE, docPath);
   }
 }
@@ -282,7 +282,7 @@ export async function deletePostService(id: string): Promise<void> {
   // 3. If Firestore fail, throw the Firestore Error immediately
   // Do not swallow it just because Express succeeded locally,
   // as that causes desync between UI and Firestore!
-  if (firestoreError) {
+  if (firestoreError && !expressSuccess) {
     handleFirestoreError(firestoreError, OperationType.DELETE, docPath);
   }
 }

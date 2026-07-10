@@ -413,6 +413,7 @@ async function startServer() {
     try {
       return await op(firestoreDb);
     } catch (err: any) {
+      console.error("[Firestore Admin] executeFirestoreOp Error:", err);
       // Quietly fall back to JSON database if any unexpected error occurs
       return fallbackValue;
     }

@@ -18,9 +18,9 @@ import { ref, deleteObject } from 'firebase/storage';
 // Garbage collection helpers for Firebase Storage
 function extractFirebaseUrls(post: Post): string[] {
   const urls: string[] = [];
-  const regex = /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^\/]+\/o\/([^?]+)/g;
   
   const extractFromText = (text: string) => {
+    const regex = /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^\/]+\/o\/([^?]+)/g;
     let match;
     while ((match = regex.exec(text)) !== null) {
       // Decode the URL-encoded path
@@ -223,8 +223,8 @@ export async function savePostService(post: Post): Promise<void> {
     console.warn("Express backend post sync bypassed (offline/static mode)", err);
   }
 
-  // 3. If Firestore fail and Express also fail, throw the Firestore Error
-  if (firestoreError && !expressSuccess) {
+  // 3. If Firestore fail, throw the Firestore Error
+  if (firestoreError) {
     handleFirestoreError(firestoreError, OperationType.WRITE, docPath);
   }
 }
@@ -272,8 +272,10 @@ export async function deletePostService(id: string): Promise<void> {
     console.warn("Express backend delete sync bypassed (offline/static mode)", err);
   }
 
-  // 3. If Firestore fail and Express also fail, throw the Firestore Error
-  if (firestoreError && !expressSuccess) {
+  // 3. If Firestore fail, throw the Firestore Error immediately
+  // Do not swallow it just because Express succeeded locally,
+  // as that causes desync between UI and Firestore!
+  if (firestoreError) {
     handleFirestoreError(firestoreError, OperationType.DELETE, docPath);
   }
 }

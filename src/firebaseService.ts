@@ -38,7 +38,7 @@ export async function getPostsService(): Promise<Post[]> {
   // Task A: Fetch from Express backend
   fetchTasks.push((async () => {
     try {
-      const res = await fetch('/api/posts?t=' + Date.now());
+      const res = await fetch('/api/posts');
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -215,7 +215,7 @@ export async function deletePostService(id: string): Promise<void> {
 export async function getInquiriesService(): Promise<Inquiry[]> {
   // 1. Try Express backend first because it is super fast with server-side caching
   try {
-    const res = await fetch('/api/inquiries?t=' + Date.now());
+    const res = await fetch('/api/inquiries');
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -333,7 +333,7 @@ export interface RegisteredUser {
 export async function getRegisteredUsersService(): Promise<RegisteredUser[]> {
   // 1. Try Express backend first because it is lightning fast
   try {
-    const res = await fetch('/api/users?t=' + Date.now());
+    const res = await fetch('/api/users');
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {

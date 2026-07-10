@@ -2777,11 +2777,11 @@
             queueToast.style.display = 'block';
             queueToast.innerText = `사진 ${files.length}장 초고속 멀티 큐 압착 및 전송 중...`;
 
-                        const uploadedUrls = [];
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                queueToast.innerText = `사진 ${files.length}장 중 ${i+1}번째 업로드 중...`;
-                const url = await new Promise((resolve) => {
+            let completedCount = 0;
+            const totalFiles = files.length;
+
+            const uploadPromises = files.map((file, i) => {
+                return new Promise((resolve) => {
                     const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_' + i;
                     processImage(file, type, (dataUrl, fileName) => {
                         if (window.self !== window.top) {
@@ -2798,9 +2798,13 @@
                             const handler = (msgEvent) => {
                                 if (!msgEvent.data) return;
                                 if (msgEvent.data.type === 'UPLOAD_SUCCESS' && msgEvent.data.payload.uploadType === type && msgEvent.data.payload.fileId === fileId) {
+                                    completedCount++;
+                                    queueToast.innerText = `사진 ${totalFiles}장 중 ${completedCount}장 완료...`;
                                     resolve(msgEvent.data.payload.url);
                                     window.removeEventListener('message', handler);
                                 } else if (msgEvent.data.type === 'UPLOAD_ERROR' && msgEvent.data.payload.uploadType === type && msgEvent.data.payload.fileId === fileId) {
+                                    completedCount++;
+                                    queueToast.innerText = `사진 ${totalFiles}장 중 ${completedCount}장 완료 (일부 실패)...`;
                                     resolve(null);
                                     window.removeEventListener('message', handler);
                                 }
@@ -2811,8 +2815,9 @@
                         }
                     });
                 });
-                uploadedUrls.push(url);
-            }
+            });
+
+            const uploadedUrls = await Promise.all(uploadPromises);
             
             uploadedUrls.forEach((url) => {
                 if (!url) return;
@@ -6124,35 +6129,61 @@ function setRepresentativePhoto(type, idx) {
             if (isUploadingQueue || uploadQueue.length === 0) return;
             isUploadingQueue = true;
             
-            showLoader("사진 및 VR 전송 중...");
+            let queueToast = document.getElementById('upload-queue-toast');
+            if (!queueToast) {
+                queueToast = document.createElement('div');
+                queueToast.id = 'upload-queue-toast';
+                queueToast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl text-sm font-bold z-[999999] transition-all';
+                document.body.appendChild(queueToast);
+            }
+            queueToast.style.display = 'block';
+            
+            let completedCount = 0;
             
             while (uploadQueue.length > 0) {
-                const task = uploadQueue.shift();
-                try {
-                    const uploadType = task.type === 'VR' ? 'pano' : 'images';
-                    const downloadUrl = await uploadFileToServer(task.file, uploadType);
-                    
-                    if (downloadUrl) {
-                        if (task.type === 'VR') {
-                            console.log(`✅ [업로드 큐] VR 파노라마 전송 완료: ${task.file.name} -> ${downloadUrl}`);
-                            if (typeof window.addPanoramaPhoto === 'function') {
-                                window.addPanoramaPhoto(downloadUrl, task.file.name);
-                            }
-                        } else {
-                            console.log(`✅ [업로드 큐] 일반 사진 전송 완료: ${task.file.name} -> ${downloadUrl}`);
-                            if (typeof window.addNormalPhoto === 'function') {
-                                window.addNormalPhoto(downloadUrl, task.file.name);
+                // Grab all currently queued items to upload them in parallel
+                const batch = [...uploadQueue];
+                uploadQueue.length = 0; // Clear the queue for this batch
+                
+                const totalTasks = batch.length;
+                queueToast.innerText = `사진 ${totalTasks}장 초고속 백그라운드 전송 중...`;
+                
+                const uploadPromises = batch.map(async (task) => {
+                    try {
+                        const uploadType = task.type === 'VR' ? 'pano' : 'images';
+                        const downloadUrl = await uploadFileToServer(task.file, uploadType);
+                        
+                        if (downloadUrl) {
+                            if (task.type === 'VR') {
+                                console.log(`✅ [업로드 큐] VR 파노라마 전송 완료: ${task.file.name} -> ${downloadUrl}`);
+                                if (typeof window.addPanoramaPhoto === 'function') {
+                                    window.addPanoramaPhoto(downloadUrl, task.file.name);
+                                }
+                            } else {
+                                console.log(`✅ [업로드 큐] 일반 사진 전송 완료: ${task.file.name} -> ${downloadUrl}`);
+                                if (typeof window.addNormalPhoto === 'function') {
+                                    window.addNormalPhoto(downloadUrl, task.file.name);
+                                }
                             }
                         }
+                    } catch (error) {
+                        console.error("❌ 업로드 실패:", error);
+                        alert(`업로드 실패: ${error.message || error}`);
+                    } finally {
+                        completedCount++;
+                        queueToast.innerText = `총 사진 중 ${completedCount}장 완료...`;
                     }
-                } catch (error) {
-                    console.error("❌ 업로드 실패:", error);
-                    alert(`업로드 실패: ${error.message || error}`);
-                }
+                });
+
+                await Promise.all(uploadPromises);
             }
             
-            hideLoader();
             isUploadingQueue = false;
+            queueToast.style.display = 'none';
+            
+            if (typeof renderGeneralPhotos === 'function') renderGeneralPhotos();
+            if (typeof renderPanoramaPhotos === 'function') renderPanoramaPhotos();
+            if (typeof notifyParent === 'function') notifyParent();
         }
 
         async function handleMobilePhotoUpload(event, isVR = false) {

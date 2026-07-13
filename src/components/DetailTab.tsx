@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Home } from 'lucide-react';
 import { useAppStore } from '../store';
+import { getPostNumber } from '../data';
 
 import PannellumViewer from './PannellumViewer';
 import { Naver360Icon } from './Naver360Icon';
@@ -411,6 +412,7 @@ export const DetailTab = ({
                     {/* 왼쪽: 건축물 정보, 동, 가격 */}
                     <div className="flex-1 min-w-0 w-full">
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-slate-900 leading-tight tracking-tight mb-3 lg:mb-4 flex items-center gap-2 flex-wrap">
+                            <span className="text-[#0B2545] font-black mr-1">{getPostNumber(p.id)}</span>
                             <span>{p.building} {isAdminLoggedIn && p.room ? `${p.room}호` : ''}</span>
                             <button 
                                 onClick={(e) => toggleFavorite(e, p.id)}
@@ -441,7 +443,7 @@ export const DetailTab = ({
                                 <span>매물 요약 정보 (Fact Sheet)</span>
                             </span>
                             <span className="text-[10px] lg:text-xs font-mono font-bold text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded">
-                                #{p.id.substring(0, 8)}
+                                매물번호: {getPostNumber(p.id)}
                             </span>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 lg:gap-y-4.5 text-slate-600 py-0.5">

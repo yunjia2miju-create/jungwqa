@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
+import { getPostNumber } from '../data';
 import { Home, ArrowLeft, Phone } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -148,6 +149,7 @@ export const VrListTab: React.FC<VrListTabProps> = ({ openPhoneSelectModal, show
                                         <div className="mb-3">
                                             <div className="text-[11px] font-bold text-slate-400 mb-1 line-clamp-1">{item.address}</div>
                                             <h3 className="text-lg sm:text-xl font-black text-slate-900 line-clamp-1 group-hover:text-[#03c75a] transition-colors">
+                                                <span className="text-[#0B2545] mr-1">{getPostNumber(item.id)}</span>
                                                 {item.building || '건물명 없음'}
                                                 {isAdminLoggedIn && item.room ? <span className="ml-1 text-sm font-bold text-slate-500">{item.room}호</span> : ''}
                                             </h3>

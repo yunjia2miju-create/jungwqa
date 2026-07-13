@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useAppStore } from '../store';
+import { getPostNumber } from '../data';
 
 
 interface ViewAllModalProps {
@@ -181,6 +182,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                     <div className="mb-3">
                                                         <div className="text-[10px] sm:text-xs font-bold text-slate-400 mb-1 line-clamp-1">{item.address}</div>
                                                         <h3 className="text-base sm:text-lg font-black text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                                                            <span className="text-[#0B2545] mr-1">{getPostNumber(item.id)}</span>
                                                             {item.building || '건물명 없음'}
                                                             {isAdminLoggedIn && item.room ? <span className="ml-1 text-sm font-bold text-slate-500">{item.room}호</span> : ''}
                                                         </h3>

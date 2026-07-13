@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
+import { getPostNumber } from '../data';
 import { ChevronLeft, ChevronRight, Home, Search, Link as LinkIcon, Phone, ArrowUpRight } from 'lucide-react';
 import { submitInquiryService, getInquiriesService } from '../firebaseService';
 import { Naver360Icon } from './Naver360Icon';
@@ -836,6 +837,7 @@ export const MainTab = ({
                                                         )}
                                                     </div>
                                                     <h5 className="text-sm font-black text-slate-900 truncate group-hover:text-[#3a506b] transition-colors leading-snug">
+                                                        <span className="text-[#0B2545] mr-1">{getPostNumber(p.id)}</span>
                                                         {p.building}
                                                     </h5>
                                                     <p className="text-[11px] text-slate-400 font-bold truncate leading-relaxed">
@@ -1583,6 +1585,7 @@ const Carousel3D = ({
                                             </span>
                                         </div>
                                         <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-[#1c2541] line-clamp-1 leading-snug">
+                                            <span className="text-[#0B2545] mr-1">{getPostNumber(p.id)}</span>
                                             {p.building}
                                         </h4>
                                         <p className="text-[11px] font-semibold text-slate-500 line-clamp-1 leading-relaxed">

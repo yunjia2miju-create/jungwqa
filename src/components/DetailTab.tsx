@@ -481,7 +481,7 @@ export const DetailTab = ({
                         {/* 이 매물 인터넷 주소(링크) 복사하기 버튼 */}
                         <button 
                             onClick={() => {
-                                const shareUrl = `${window.location.origin}/item/view/${p.id}`;
+                                const shareUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${p.id}`;
                                 navigator.clipboard.writeText(shareUrl).then(() => {
                                     setShareCopied(true);
                                     if (showToast) {

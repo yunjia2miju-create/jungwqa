@@ -1412,8 +1412,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
   }
 
   // Generate a dynamic OG image using Sharp + SVG template
-  app.get('/api/og-image/:id', async (req, res) => {
-    const itemId = req.params.id;
+  app.get('/assets/generated/:filename', async (req, res) => {
+    const filename = req.params.filename;
+    const itemId = filename.replace('.jpg', '');
     const post = await getPostById(itemId);
     if (!post) {
       return res.status(404).send('Not found');
@@ -1478,10 +1479,10 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     try {
       const { default: sharp } = await import('sharp');
-      const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-      res.setHeader('Content-Type', 'image/png');
+      const jpegBuffer = await sharp(Buffer.from(svg)).jpeg({ quality: 90 }).toBuffer();
+      res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.send(pngBuffer);
+      res.send(jpegBuffer);
     } catch (err) {
       if (post.thumbnail) {
           res.redirect(302, post.thumbnail);
@@ -1524,8 +1525,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = `${req.protocol}://${req.get('host')}/api/og-image/${itemId}`;
+              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${itemId}`;
+              const newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${itemId}.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1576,8 +1577,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = `${req.protocol}://${req.get('host')}/api/og-image/${itemId}`;
+              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${itemId}`;
+              const newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${itemId}.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);

@@ -76,7 +76,10 @@ export default function App() {
                     
                     // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
                     const params = new URLSearchParams(window.location.search);
-                    const urlPostId = params.get('id') || params.get('postId');
+                    let urlPostId = params.get('id') || params.get('postId');
+                    if (!urlPostId && window.location.pathname.startsWith('/item/view/')) {
+                        urlPostId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+                    }
                     if (urlPostId) {
                         const post = data.find(p => p.id === urlPostId);
                         if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
@@ -146,20 +149,22 @@ export default function App() {
     useEffect(() => {
         try {
             if (activeSection === 'detail' && selectedPostId) {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('postId') !== selectedPostId && params.get('id') !== selectedPostId) {
-                    params.set('postId', selectedPostId);
-                    const newUrl = `${window.location.pathname}?${params.toString()}`;
-                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
+                const expectedPath = `/item/view/${selectedPostId}`;
+                if (window.location.pathname !== expectedPath) {
+                    window.history.pushState({ postId: selectedPostId }, "", expectedPath);
                 }
             } else if (activeSection === 'main') {
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('postId') || params.has('id')) {
-                    params.delete('postId');
-                    params.delete('id');
-                    const search = params.toString();
-                    const newUrl = window.location.pathname + (search ? `?${search}` : '');
-                    window.history.pushState(null, "", newUrl);
+                if (window.location.pathname.startsWith('/item/view/')) {
+                    window.history.pushState(null, "", '/');
+                } else {
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.has('postId') || params.has('id')) {
+                        params.delete('postId');
+                        params.delete('id');
+                        const search = params.toString();
+                        const newUrl = window.location.pathname + (search ? `?${search}` : '');
+                        window.history.pushState(null, "", newUrl);
+                    }
                 }
             }
         } catch (e) {
@@ -302,15 +307,17 @@ export default function App() {
     // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const currentId = params.get('id') || params.get('postId');
+        let currentId = params.get('id') || params.get('postId');
+        if (!currentId && window.location.pathname.startsWith('/item/view/')) {
+            currentId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+        }
         if (selectedPostId) {
             if (currentId !== selectedPostId) {
-                window.history.pushState({ postId: selectedPostId }, "", `?id=${selectedPostId}`);
+                window.history.pushState({ postId: selectedPostId }, "", `/item/view/${selectedPostId}`);
             }
         } else {
-            // Only clear the query parameter if it is set and we are returning to the main page
             if (currentId && activeSection === 'main') {
-                window.history.pushState(null, "", window.location.pathname);
+                window.history.pushState(null, "", '/');
             }
         }
     }, [selectedPostId, activeSection]);
@@ -319,7 +326,10 @@ export default function App() {
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             const params = new URLSearchParams(window.location.search);
-            const id = params.get('id') || params.get('postId');
+            let id = params.get('id') || params.get('postId');
+            if (!id && window.location.pathname.startsWith('/item/view/')) {
+                id = window.location.pathname.replace('/item/view/', '').split('/')[0];
+            }
             
             if (id) {
                 const found = useAppStore.getState().posts.find(p => p.id === id);

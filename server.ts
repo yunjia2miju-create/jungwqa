@@ -1401,6 +1401,96 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     return null;
   }
 
+  // Format OG description to remove emojis, chat slang, and enforce double newlines at punctuation
+  function formatOgDescription(rawText: string) {
+    if (!rawText) return '실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.';
+    let text = rawText.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    text = text.replace(/[ㅎㅋㅠㅜ]{1,}/g, '');
+    text = text.replace(/\s+/g, ' ').trim();
+    text = text.replace(/([.,!?])\s*/g, '$1\n\n');
+    return text.trim() || '실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.';
+  }
+
+  // Generate a dynamic OG image using Sharp + SVG template
+  app.get('/api/og-image/:id', async (req, res) => {
+    const itemId = req.params.id;
+    const post = await getPostById(itemId);
+    if (!post) {
+      return res.status(404).send('Not found');
+    }
+    const building = (post.building || '추천 매물').trim();
+    const address = (post.address || post.dong || '구미시').trim();
+    const imageUrl = post.thumbnail || 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&h=675&q=80';
+
+    const escapeXml = (unsafe: string) => unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+    let base64Image = '';
+    try {
+      const client = imageUrl.startsWith('https://') ? https : http;
+      const imageBuffer = await new Promise<Buffer>((resolve, reject) => {
+        client.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (resp) => {
+          if (resp.statusCode && [301, 302, 303, 307, 308].includes(resp.statusCode) && resp.headers.location) {
+            const redirectClient = resp.headers.location.startsWith('https://') ? https : http;
+            redirectClient.get(resp.headers.location, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r2) => {
+                const chunks: Buffer[] = [];
+                r2.on('data', (c) => chunks.push(c));
+                r2.on('end', () => resolve(Buffer.concat(chunks)));
+            }).on('error', reject);
+            return;
+          }
+          if (resp.statusCode && resp.statusCode >= 400) {
+            reject(new Error('Failed to load'));
+          } else {
+            const chunks: Buffer[] = [];
+            resp.on('data', (c) => chunks.push(c));
+            resp.on('end', () => resolve(Buffer.concat(chunks)));
+          }
+        }).on('error', reject);
+      });
+      base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+    } catch (e) {
+      base64Image = '';
+    }
+
+    const safeBuilding = escapeXml(building);
+    const safeAddress = escapeXml(address);
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+      ${base64Image ? `<image href="${base64Image}" x="0" y="0" width="1200" height="675" preserveAspectRatio="xMidYMid slice" />` : `<rect width="1200" height="675" fill="#1e293b" />`}
+      <defs>
+          <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#000000" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.8"/>
+          </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="675" fill="url(#bgGrad)" />
+      <g transform="translate(600, 270)">
+        <rect x="-80" y="-80" width="160" height="160" rx="40" fill="#0B2545" stroke="#ffffff" stroke-width="4" stroke-opacity="0.2" />
+        <polygon points="0,-45 -45,0 -35,0 -35,45 35,45 35,0 45,0" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+        <rect x="-15" y="15" width="30" height="30" fill="#ffffff" rx="4" />
+      </g>
+      <g transform="translate(100, 480)">
+        <rect x="0" y="0" width="1000" height="140" rx="30" fill="#0B2545" fill-opacity="0.95" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2" />
+        <text x="500" y="70" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="46" fill="#ffffff" letter-spacing="-1">${safeBuilding}</text>
+        <text x="500" y="115" text-anchor="middle" font-family="sans-serif" font-weight="normal" font-size="24" fill="#94a3b8" letter-spacing="-0.5">${safeAddress}</text>
+      </g>
+    </svg>`;
+
+    try {
+      const { default: sharp } = await import('sharp');
+      const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(pngBuffer);
+    } catch (err) {
+      if (post.thumbnail) {
+          res.redirect(302, post.thumbnail);
+      } else {
+          res.status(500).send('Error');
+      }
+    }
+  });
+
   // Vite middleware for development or fallback static serving
   const isProd = process.env.NODE_ENV === 'production' || _dirname.endsWith('dist') || _dirname.endsWith('dist/');
   const distPath = isProd
@@ -1415,8 +1505,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     });
 
     // Intercept development requests with id query parameters for hot meta-tag injection
-    app.get(['/', '/rooms/:id'], async (req, res, next) => {
-      const itemId = req.params.id || req.query.id || req.query.postId;
+    app.get(['/', '/rooms/:id', '/item/view/:id'], async (req, res, next) => {
+      let itemId = req.params.id || req.query.id || req.query.postId;
+      if (!itemId && req.path.startsWith('/item/view/')) {
+        itemId = req.path.replace('/item/view/', '').split('/')[0];
+      }
       if (itemId && typeof itemId === 'string') {
         const indexPath = path.join(projectRoot, 'index.html');
         if (fs.existsSync(indexPath)) {
@@ -1430,9 +1523,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const type = post.category || '매물';
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newDesc = formatOgDescription(post.content || post.remarks || '');
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              const newImage = `${req.protocol}://${req.get('host')}/api/og-image/${itemId}`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1472,7 +1565,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           let html = fs.readFileSync(indexPath, 'utf-8');
           const pathParts = req.path.split('/');
           const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
-          const itemId = isRoomPath ? pathParts[2] : (req.query.id || req.query.postId);
+          const isItemViewPath = pathParts.length >= 4 && pathParts[1] === 'item' && pathParts[2] === 'view';
+          const itemId = isRoomPath ? pathParts[2] : (isItemViewPath ? pathParts[3] : (req.query.id || req.query.postId));
           if (itemId && typeof itemId === 'string') {
             const post = await getPostById(itemId);
             if (post) {
@@ -1481,9 +1575,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               const type = post.category || '매물';
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newDesc = formatOgDescription(post.content || post.remarks || '');
               const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
+              const newImage = `${req.protocol}://${req.get('host')}/api/og-image/${itemId}`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);

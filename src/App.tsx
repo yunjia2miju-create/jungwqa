@@ -14,6 +14,7 @@ import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
 import { doc, getDocFromServer, collection, setDoc } from 'firebase/firestore';
+import { getPostNumber } from './data';
 
 // --- Toast Context Helper ---
 export const ToastContext = React.createContext<{ showToast: (msg: string, type?: 'success'|'error') => void } | null>(null);
@@ -76,9 +77,13 @@ export default function App() {
                     
                     // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
                     const params = new URLSearchParams(window.location.search);
-                    let urlPostId = params.get('id') || params.get('postId');
+                    let urlPostId = params.get('postId') || params.get('id');
                     if (!urlPostId && window.location.pathname.startsWith('/item/view/')) {
-                        urlPostId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+                        // In case they just type the old style /item/view/local-123 without query params
+                        const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+                        if (pathId && !pathId.match(/^\d+$/)) {
+                            urlPostId = pathId;
+                        }
                     }
                     if (urlPostId) {
                         const post = data.find(p => p.id === urlPostId);
@@ -149,9 +154,11 @@ export default function App() {
     useEffect(() => {
         try {
             if (activeSection === 'detail' && selectedPostId) {
-                const expectedPath = `/item/view/${selectedPostId}`;
-                if (window.location.pathname !== expectedPath) {
-                    window.history.pushState({ postId: selectedPostId }, "", expectedPath);
+                const postNum = getPostNumber(selectedPostId);
+                const expectedPath = `/item/view/${postNum}`;
+                const currentSearch = new URLSearchParams(window.location.search);
+                if (window.location.pathname !== expectedPath || currentSearch.get('postId') !== selectedPostId) {
+                    window.history.pushState({ postId: selectedPostId }, "", `${expectedPath}?postId=${selectedPostId}`);
                 }
             } else if (activeSection === 'main') {
                 if (window.location.pathname.startsWith('/item/view/')) {
@@ -307,13 +314,14 @@ export default function App() {
     // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        let currentId = params.get('id') || params.get('postId');
+        let currentId = params.get('postId') || params.get('id');
         if (!currentId && window.location.pathname.startsWith('/item/view/')) {
-            currentId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+            const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+            if (pathId && !pathId.match(/^\d+$/)) currentId = pathId;
         }
         if (selectedPostId) {
             if (currentId !== selectedPostId) {
-                window.history.pushState({ postId: selectedPostId }, "", `/item/view/${selectedPostId}`);
+                const postNum = getPostNumber(selectedPostId); window.history.pushState({ postId: selectedPostId }, "", `/item/view/${postNum}?postId=${selectedPostId}`);
             }
         } else {
             if (currentId && activeSection === 'main') {
@@ -326,9 +334,12 @@ export default function App() {
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             const params = new URLSearchParams(window.location.search);
-            let id = params.get('id') || params.get('postId');
+            let id = params.get('postId') || params.get('id');
             if (!id && window.location.pathname.startsWith('/item/view/')) {
-                id = window.location.pathname.replace('/item/view/', '').split('/')[0];
+                const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
+                if (pathId && !pathId.match(/^\d+$/)) {
+                    id = pathId;
+                }
             }
             
             if (id) {

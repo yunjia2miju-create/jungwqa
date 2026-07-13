@@ -511,6 +511,45 @@ async function startServer() {
     res.send(svg);
   });
 
+
+  // Background Pre-warm cache function to ensure near 0ms latency for initial scrapers and users
+  async function warmUpPostsCache() {
+    console.log("[Cache Warm-up] Initializing background posts cache warm-up...");
+    try {
+      await executeFirestoreOp(async (dbInstance) => {
+        const postsRef = dbInstance.collection('posts');
+        const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
+        if (!snapshot.empty) {
+          const list = [];
+          snapshot.forEach((doc) => {
+            list.push(doc.data());
+          });
+          cachedPostsList = list;
+          writePosts(list);
+          console.log(`[Cache Warm-up] Pre-warmed ${list.length} posts into memory cache and posts.json successfully!`);
+        } else {
+          console.log("[Cache Warm-up] Firestore posts collection is empty. Seeding defaultPosts...");
+          const batch = dbInstance.batch();
+          defaultPosts.forEach((post) => {
+            const docRef = postsRef.doc(post.id);
+            batch.set(docRef, post);
+          });
+          await batch.commit();
+          cachedPostsList = defaultPosts;
+          writePosts(defaultPosts);
+          console.log("[Cache Warm-up] Seeded default posts and pre-warmed cache.");
+        }
+      }, null);
+    } catch (warmErr) {
+      console.error("[Cache Warm-up] Error during pre-warm operation:", warmErr);
+    }
+  }
+
+  // Trigger Warm-up immediately during startup
+  warmUpPostsCache().catch((err) => {
+    console.error("[Cache Warm-up] Startup warm-up invocation failed:", err);
+  });
+
   app.get('/api/posts', async (req, res) => {
     if (cachedPostsList !== null) {
       res.setHeader('X-Cache', 'HIT');
@@ -1625,7 +1664,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             }
           }).on('error', reject);
         });
-        base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+        base64Image = `data:image/jpeg;base64,${(imageBuffer as any).toString('base64')}`;
       } else {
         // Fallback logo
         const fallbackPath = path.join(process.cwd(), 'public', 'assets', 'fixed-master-vr-banner.png');
@@ -1710,7 +1749,12 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
             html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
-            // 2. Fetch post details for SSR Meta Injection
+            // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
+            const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+            html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
+            html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
+
+            // 3. Fetch post details for SSR Meta Injection
             const post = await findPostByIdOrNumber(itemId);
             if (post) {
               const dong = post.dong || '구미';
@@ -1719,8 +1763,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
-              const newImage = await ensureOgImageInStorage(post.id, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${post.id}.jpg`;
+              const newUrl = `${hostUrl}/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
+              const newImage = await ensureOgImageInStorage(post.id, post) || `${hostUrl}/assets/generated/${post.id}.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1760,7 +1804,12 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
           html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
-          // 2. Fetch post details for SSR Meta Injection
+          // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
+          const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+          html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
+          html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
+
+          // 3. Fetch post details for SSR Meta Injection
           const itemId = resolveItemId(req);
           const post = await findPostByIdOrNumber(itemId);
           if (post) {
@@ -1770,8 +1819,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             
             const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
             const newDesc = formatOgDescription(post.content || post.remarks || '');
-            const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
-            const newImage = await ensureOgImageInStorage(post.id, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${post.id}.jpg`;
+            const newUrl = `${hostUrl}/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
+            const newImage = await ensureOgImageInStorage(post.id, post) || `${hostUrl}/assets/generated/${post.id}.jpg`;
 
             html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
             html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1807,7 +1856,12 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
           html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
-          // 2. Fetch post details for SSR Meta Injection
+          // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
+          const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+          html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
+          html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
+
+          // 3. Fetch post details for SSR Meta Injection
           const itemId = resolveItemId(req);
           if (itemId) {
             const post = await findPostByIdOrNumber(itemId);
@@ -1818,8 +1872,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
-              const newImage = await ensureOgImageInStorage(post.id, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${post.id}.jpg`;
+              const newUrl = `${hostUrl}/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
+              const newImage = await ensureOgImageInStorage(post.id, post) || `${hostUrl}/assets/generated/${post.id}.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);

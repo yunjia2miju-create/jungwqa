@@ -25,7 +25,16 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', true);
   const port = 3000;
+
+  function getReqProtocol(req: express.Request): string {
+    const host = req.get('host') || '';
+    if (req.headers['x-forwarded-proto'] === 'https' || host.includes('xn--h49a2pelq49bcrfloji4br3e56y.com') || host.includes('today-room')) {
+      return 'https';
+    }
+    return req.protocol || 'http';
+  }
 
   // Robust projectRoot calculation
   const projectRoot = (typeof __dirname !== 'undefined')
@@ -1774,12 +1783,12 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             let html = fs.readFileSync(indexPath, 'utf-8');
             
             // 1. Dynamic host replacement first (excluding core meta overrides below)
-            const hostUrl = `${req.protocol}://${req.get('host')}`;
+            const hostUrl = `${getReqProtocol(req)}://${req.get('host')}`;
             html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
             html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
             // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
-            const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+            const currentUrl = `${getReqProtocol(req)}://${req.get('host')}${req.originalUrl}`;
             html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
             html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
 
@@ -1833,12 +1842,12 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           let html = fs.readFileSync(indexPath, 'utf-8');
 
           // 1. Dynamic host replacement first (excluding core meta overrides below)
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          const hostUrl = `${getReqProtocol(req)}://${req.get('host')}`;
           html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
           html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
-          const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+          const currentUrl = `${getReqProtocol(req)}://${req.get('host')}${req.originalUrl}`;
           html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
           html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
 
@@ -1889,12 +1898,12 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           let html = fs.readFileSync(indexPath, 'utf-8');
 
           // 1. Dynamic host replacement first (excluding core meta overrides below)
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          const hostUrl = `${getReqProtocol(req)}://${req.get('host')}`;
           html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
           html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
-          const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+          const currentUrl = `${getReqProtocol(req)}://${req.get('host')}${req.originalUrl}`;
           html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
           html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
 

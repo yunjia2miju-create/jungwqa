@@ -78,23 +78,27 @@ export default function App() {
                     // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
                     const params = new URLSearchParams(window.location.search);
                     let urlPostId = params.get('postId') || params.get('id');
-                    if (!urlPostId && window.location.pathname.startsWith('/item/view/')) {
-                        // In case they just type the old style /item/view/local-123 without query params
+                    
+                    let resolvedPost = null;
+                    if (urlPostId) {
+                        resolvedPost = data.find(p => p.id === urlPostId || getPostNumber(p.id) === urlPostId);
+                    } else if (window.location.pathname.startsWith('/item/view/')) {
                         const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
-                        if (pathId && !pathId.match(/^\d+$/)) {
-                            urlPostId = pathId;
+                        if (pathId) {
+                            resolvedPost = data.find(p => p.id === pathId || getPostNumber(p.id) === pathId);
                         }
                     }
-                    if (urlPostId) {
-                        const post = data.find(p => p.id === urlPostId);
-                        if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
+
+                    if (resolvedPost) {
+                        const post = resolvedPost;
+                        if (post.category === '유튜브' || post.category === '네이버TV') {
                             const videoUrl = post.video || post.naverTv || post.naverBlogUrl || post.blogUrl || (String(post.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
                             if (videoUrl) {
                                 useAppStore.getState().setVideoPopupUrl(videoUrl);
                             }
                             window.history.replaceState(null, "", window.location.pathname);
-                        } else if (post) {
-                            useAppStore.getState().setSelectedPostId(urlPostId);
+                        } else {
+                            useAppStore.getState().setSelectedPostId(post.id);
                             useAppStore.getState().setActiveSection('detail');
                         }
                     }

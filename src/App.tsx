@@ -14,7 +14,6 @@ import { getPostsService, getInquiriesService } from './firebaseService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
 import { doc, getDocFromServer, collection, setDoc } from 'firebase/firestore';
-import { getPostNumber } from './data';
 
 // --- Toast Context Helper ---
 export const ToastContext = React.createContext<{ showToast: (msg: string, type?: 'success'|'error') => void } | null>(null);
@@ -77,28 +76,17 @@ export default function App() {
                     
                     // Parse query parameters for automatic redirection to post detail view (e.g. from Naver Blog VR links)
                     const params = new URLSearchParams(window.location.search);
-                    let urlPostId = params.get('postId') || params.get('id');
-                    
-                    let resolvedPost = null;
+                    const urlPostId = params.get('id') || params.get('postId');
                     if (urlPostId) {
-                        resolvedPost = data.find(p => p.id === urlPostId || getPostNumber(p.id) === urlPostId);
-                    } else if (window.location.pathname.startsWith('/item/view/')) {
-                        const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
-                        if (pathId) {
-                            resolvedPost = data.find(p => p.id === pathId || getPostNumber(p.id) === pathId);
-                        }
-                    }
-
-                    if (resolvedPost) {
-                        const post = resolvedPost;
-                        if (post.category === '유튜브' || post.category === '네이버TV') {
+                        const post = data.find(p => p.id === urlPostId);
+                        if (post && (post.category === '유튜브' || post.category === '네이버TV')) {
                             const videoUrl = post.video || post.naverTv || post.naverBlogUrl || post.blogUrl || (String(post.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
                             if (videoUrl) {
                                 useAppStore.getState().setVideoPopupUrl(videoUrl);
                             }
                             window.history.replaceState(null, "", window.location.pathname);
-                        } else {
-                            useAppStore.getState().setSelectedPostId(post.id);
+                        } else if (post) {
+                            useAppStore.getState().setSelectedPostId(urlPostId);
                             useAppStore.getState().setActiveSection('detail');
                         }
                     }
@@ -158,24 +146,20 @@ export default function App() {
     useEffect(() => {
         try {
             if (activeSection === 'detail' && selectedPostId) {
-                const postNum = getPostNumber(selectedPostId);
-                const expectedPath = `/item/view/${postNum}`;
-                const currentSearch = new URLSearchParams(window.location.search);
-                if (window.location.pathname !== expectedPath || currentSearch.get('postId') !== selectedPostId) {
-                    window.history.pushState({ postId: selectedPostId }, "", `${expectedPath}?postId=${selectedPostId}`);
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('postId') !== selectedPostId && params.get('id') !== selectedPostId) {
+                    params.set('postId', selectedPostId);
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.pushState({ postId: selectedPostId }, "", newUrl);
                 }
             } else if (activeSection === 'main') {
-                if (window.location.pathname.startsWith('/item/view/')) {
-                    window.history.pushState(null, "", '/');
-                } else {
-                    const params = new URLSearchParams(window.location.search);
-                    if (params.has('postId') || params.has('id')) {
-                        params.delete('postId');
-                        params.delete('id');
-                        const search = params.toString();
-                        const newUrl = window.location.pathname + (search ? `?${search}` : '');
-                        window.history.pushState(null, "", newUrl);
-                    }
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('postId') || params.has('id')) {
+                    params.delete('postId');
+                    params.delete('id');
+                    const search = params.toString();
+                    const newUrl = window.location.pathname + (search ? `?${search}` : '');
+                    window.history.pushState(null, "", newUrl);
                 }
             }
         } catch (e) {
@@ -318,18 +302,15 @@ export default function App() {
     // [인터넷 상세 주소창 제어 및 다이렉트 링크 기능] 실시간 동적 변환
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        let currentId = params.get('postId') || params.get('id');
-        if (!currentId && window.location.pathname.startsWith('/item/view/')) {
-            const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
-            if (pathId && !pathId.match(/^\d+$/)) currentId = pathId;
-        }
+        const currentId = params.get('id') || params.get('postId');
         if (selectedPostId) {
             if (currentId !== selectedPostId) {
-                const postNum = getPostNumber(selectedPostId); window.history.pushState({ postId: selectedPostId }, "", `/item/view/${postNum}?postId=${selectedPostId}`);
+                window.history.pushState({ postId: selectedPostId }, "", `?id=${selectedPostId}`);
             }
         } else {
+            // Only clear the query parameter if it is set and we are returning to the main page
             if (currentId && activeSection === 'main') {
-                window.history.pushState(null, "", '/');
+                window.history.pushState(null, "", window.location.pathname);
             }
         }
     }, [selectedPostId, activeSection]);
@@ -338,13 +319,7 @@ export default function App() {
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
             const params = new URLSearchParams(window.location.search);
-            let id = params.get('postId') || params.get('id');
-            if (!id && window.location.pathname.startsWith('/item/view/')) {
-                const pathId = window.location.pathname.replace('/item/view/', '').split('/')[0];
-                if (pathId && !pathId.match(/^\d+$/)) {
-                    id = pathId;
-                }
-            }
+            const id = params.get('id') || params.get('postId');
             
             if (id) {
                 const found = useAppStore.getState().posts.find(p => p.id === id);

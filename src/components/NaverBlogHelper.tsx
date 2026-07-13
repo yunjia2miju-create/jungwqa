@@ -443,7 +443,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
     const repImgUrl = bestThumb || (allImages.length > 0 ? allImages[0] : '');
     const additionalImages = allImages.filter(img => img !== repImgUrl && img !== post?.thumbnail && img !== post?.vrThumbnail);
     const hasVr = post ? (!!(post.panoramas && post.panoramas.trim()) || !!(post.panoImage && post.panoImage.trim())) : false;
-    const vrLinkUrl = post ? `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${post.id}` : '';
+    const vrLinkUrl = post ? `${window.location.origin}/?postId=${post.id}` : '';
 
     // Optional click-to-run AI processing button
     const handleRunAiProcessing = async () => {

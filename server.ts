@@ -10,7 +10,6 @@ import dotenv from 'dotenv';
 import { defaultPosts } from './src/data.ts';
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
 import { GoogleGenAI } from '@google/genai';
 
 const _filename = typeof __filename !== 'undefined'
@@ -25,16 +24,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  app.set('trust proxy', true);
   const port = 3000;
-
-  function getReqProtocol(req: express.Request): string {
-    const host = req.get('host') || '';
-    if (req.headers['x-forwarded-proto'] === 'https' || host.includes('xn--h49a2pelq49bcrfloji4br3e56y.com') || host.includes('today-room')) {
-      return 'https';
-    }
-    return req.protocol || 'http';
-  }
 
   // Robust projectRoot calculation
   const projectRoot = (typeof __dirname !== 'undefined')
@@ -121,8 +111,7 @@ async function startServer() {
     try {
       if (admin.apps.length === 0) {
         admin.initializeApp({
-          projectId: firebaseAdminConfig.projectId,
-          storageBucket: firebaseAdminConfig.storageBucket || `${firebaseAdminConfig.projectId}.appspot.com`
+          projectId: firebaseAdminConfig.projectId
         });
       }
       const dbId = firebaseAdminConfig.firestoreDatabaseId;
@@ -518,45 +507,6 @@ async function startServer() {
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=600');
     res.send(svg);
-  });
-
-
-  // Background Pre-warm cache function to ensure near 0ms latency for initial scrapers and users
-  async function warmUpPostsCache() {
-    console.log("[Cache Warm-up] Initializing background posts cache warm-up...");
-    try {
-      await executeFirestoreOp(async (dbInstance) => {
-        const postsRef = dbInstance.collection('posts');
-        const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
-        if (!snapshot.empty) {
-          const list = [];
-          snapshot.forEach((doc) => {
-            list.push(doc.data());
-          });
-          cachedPostsList = list;
-          writePosts(list);
-          console.log(`[Cache Warm-up] Pre-warmed ${list.length} posts into memory cache and posts.json successfully!`);
-        } else {
-          console.log("[Cache Warm-up] Firestore posts collection is empty. Seeding defaultPosts...");
-          const batch = dbInstance.batch();
-          defaultPosts.forEach((post) => {
-            const docRef = postsRef.doc(post.id);
-            batch.set(docRef, post);
-          });
-          await batch.commit();
-          cachedPostsList = defaultPosts;
-          writePosts(defaultPosts);
-          console.log("[Cache Warm-up] Seeded default posts and pre-warmed cache.");
-        }
-      }, null);
-    } catch (warmErr) {
-      console.error("[Cache Warm-up] Error during pre-warm operation:", warmErr);
-    }
-  }
-
-  // Trigger Warm-up immediately during startup
-  warmUpPostsCache().catch((err) => {
-    console.error("[Cache Warm-up] Startup warm-up invocation failed:", err);
   });
 
   app.get('/api/posts', async (req, res) => {
@@ -1451,315 +1401,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     return null;
   }
 
-  
-  // Helper to ensure OG image exists in Firebase Storage
-  async function ensureOgImageInStorage(postId, post) {
-    if (!admin.apps.length) return null;
-    try {
-      const bucket = getStorage().bucket();
-      const destinationPath = `gallery/${postId}.jpg`;
-      const bucketName = bucket.name;
-      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/gallery%2F${postId}.jpg?alt=media`;
-
-      const file = bucket.file(destinationPath);
-      const [exists] = await file.exists();
-      if (exists) {
-        return publicUrl;
-      }
-
-      const building = (post.building || '추천 매물').trim();
-      const address = (post.address || post.dong || '구미시').trim();
-      let imageUrl = post.thumbnail || post.spatial1Url;
-
-      // 1. Try to fetch from panoramas/ first
-      let base64Image = '';
-      try {
-        const sourcePath = `panoramas/${postId}.jpg`;
-        const sourceFile = bucket.file(sourcePath);
-        const [sourceExists] = await sourceFile.exists();
-        
-        let imageBuffer;
-        if (sourceExists) {
-          const [data] = await sourceFile.download();
-          imageBuffer = data;
-        } else if (imageUrl) {
-          const client = imageUrl.startsWith('https://') ? require('https') : require('http');
-          imageBuffer = await new Promise((resolve, reject) => {
-            client.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (resp) => {
-              if (resp.statusCode && [301, 302, 303, 307, 308].includes(resp.statusCode) && resp.headers.location) {
-                const redirectClient = resp.headers.location.startsWith('https://') ? require('https') : require('http');
-                redirectClient.get(resp.headers.location, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r2) => {
-                    const chunks = [];
-                    r2.on('data', (c) => chunks.push(c));
-                    r2.on('end', () => resolve(Buffer.concat(chunks)));
-                }).on('error', reject);
-                return;
-              }
-              if (resp.statusCode && resp.statusCode >= 400) {
-                reject(new Error('Failed to load'));
-              } else {
-                const chunks = [];
-                resp.on('data', (c) => chunks.push(c));
-                resp.on('end', () => resolve(Buffer.concat(chunks)));
-              }
-            }).on('error', reject);
-          });
-        }
-        
-        if (imageBuffer) {
-           base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
-        }
-      } catch(e) {
-          console.warn("Failed to fetch image for sharp processing:", e);
-      }
-
-      if (!base64Image) {
-        const fallbackPath = require('path').join(process.cwd(), 'public', 'assets', 'fixed-master-vr-banner.png');
-        if (fs.existsSync(fallbackPath)) {
-            const fbBuffer = fs.readFileSync(fallbackPath);
-            base64Image = `data:image/png;base64,${fbBuffer.toString('base64')}`;
-        }
-      }
-
-      const escapeXml = (unsafe) => unsafe ? unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';
-      const safeBuilding = escapeXml(building);
-      const safeAddress = escapeXml(address);
-
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
-        ${base64Image ? `<image href="${base64Image}" x="0" y="0" width="1200" height="675" preserveAspectRatio="xMidYMid slice" />` : `<rect width="1200" height="675" fill="#1e293b" />`}
-        <defs>
-            <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#000000" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#000000" stop-opacity="0.8"/>
-            </linearGradient>
-        </defs>
-        <rect x="0" y="0" width="1200" height="675" fill="url(#bgGrad)" />
-        <g transform="translate(600, 270)">
-          <rect x="-80" y="-80" width="160" height="160" rx="40" fill="#0B2545" stroke="#ffffff" stroke-width="4" stroke-opacity="0.2" />
-          <polygon points="0,-45 -45,0 -35,0 -35,45 35,45 35,0 45,0" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
-          <rect x="-15" y="15" width="30" height="30" fill="#ffffff" rx="4" />
-        </g>
-        <g transform="translate(100, 480)">
-          <rect x="0" y="0" width="1000" height="140" rx="30" fill="#0B2545" fill-opacity="0.95" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2" />
-          <text x="500" y="70" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="46" fill="#ffffff" letter-spacing="-1">${safeBuilding}</text>
-          <text x="500" y="115" text-anchor="middle" font-family="sans-serif" font-weight="normal" font-size="24" fill="#94a3b8" letter-spacing="-0.5">${safeAddress}</text>
-        </g>
-      </svg>`;
-
-      const { default: sharp } = await import('sharp');
-      const jpegBuffer = await sharp(Buffer.from(svg)).jpeg({ quality: 90 }).toBuffer();
-      
-      await file.save(jpegBuffer, {
-         metadata: { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000' }
-      });
-      console.log(`Successfully saved OG image to ${destinationPath}`);
-      
-      return publicUrl;
-    } catch (e) {
-      console.error("Error generating/uploading OG image:", e);
-      return null;
-    }
-  }
-
-
-
-  // Helper to calculate the 5-digit sequential post number for Imweb routing
-  function getPostNumber(id) {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const positiveHash = Math.abs(hash);
-    const fiveDigit = (positiveHash % 90000) + 10000;
-    return fiveDigit.toString();
-  }
-
-  // Helper to extract the unique item ID from request query or parameters
-  function resolveItemId(req) {
-    // 1. URL 경로(req.path) 분석을 최우선으로 합니다. 
-    // 경로에 직접 포함된 정보(예: /item/view/58290)는 크롤러가 쿼리 파라미터를 제거해도 안전하게 보존되기 때문입니다.
-    const pathParts = req.path.split('/');
-    const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
-    const isItemViewPath = pathParts.length >= 4 && pathParts[1] === 'item' && pathParts[2] === 'view';
-    
-    if (isItemViewPath && pathParts[3] && pathParts[3].trim() !== '') {
-      return pathParts[3].trim();
-    }
-    if (isRoomPath && pathParts[2] && pathParts[2].trim() !== '') {
-      return pathParts[2].trim();
-    }
-
-    // 2. 경로에서 추출되지 않은 경우에 한해 query 파라미터를 보조적으로 확인합니다.
-    if (req.query.postId && typeof req.query.postId === 'string' && req.query.postId.trim() !== '') {
-      return req.query.postId.trim();
-    }
-    if (req.query.id && typeof req.query.id === 'string' && req.query.id.trim() !== '') {
-      return req.query.id.trim();
-    }
-    if (req.params.postId && typeof req.params.postId === 'string' && req.params.postId.trim() !== '') {
-      return req.params.postId.trim();
-    }
-    if (req.params.id && typeof req.params.id === 'string' && req.params.id.trim() !== '') {
-      return req.params.id.trim();
-    }
-    return null;
-  }
-
-  // Unified helper to load a post by either raw document ID or its 5-digit Imweb number hash
-  async function findPostByIdOrNumber(idOrNum) {
-    if (!idOrNum) return null;
-    const cleanId = idOrNum.trim();
-
-    // 1. Check direct match in active runtime cache
-    if (cachedPostsList) {
-      const found = cachedPostsList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
-      if (found) return found;
-    }
-
-    // 2. Check local JSON file fallback
-    try {
-      const localList = readPosts();
-      if (localList && Array.isArray(localList)) {
-        const found = localList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
-        if (found) {
-          cachedPostsList = localList;
-          return found;
-        }
-      }
-    } catch (e) {
-      console.warn("[findPostByIdOrNumber] readPosts check failed:", e);
-    }
-
-    // 3. 만약 5자리 숫자(Imweb 해시 번호)이거나 실제 포스트 ID인데 캐시/로컬 파일에 없다면,
-    // 신규 등록된 포스트일 수 있으므로 최신 Firestore 데이터를 완전히 새로 갱신(Refetch & Warm-up)하여 다시 한 번 확인합니다.
-    console.log(`[findPostByIdOrNumber] Target "${cleanId}" not found in initial cache. Triggering active Firestore refresh to resolve...`);
-    try {
-      await warmUpPostsCache(); // 강제 최신화 및 캐시 예열 호출
-      if (cachedPostsList) {
-        const found = cachedPostsList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
-        if (found) {
-          console.log(`[findPostByIdOrNumber] Successfully resolved "${cleanId}" after active Firestore refresh!`);
-          return found;
-        }
-      }
-    } catch (refetchErr) {
-      console.error("[findPostByIdOrNumber] Active Firestore refetch failed:", refetchErr);
-    }
-
-    // 4. Direct Firestore document query (마지막 보루)
-    const directPost = await getPostById(cleanId);
-    if (directPost) return directPost;
-
-    console.warn(`[findPostByIdOrNumber] Failed to resolve post for "${cleanId}" after all fallback methods.`);
-    return null;
-  }
-
-  // Format OG description to remove emojis, chat slang, and enforce double newlines at punctuation
-  function formatOgDescription(rawText: string) {
-    if (!rawText) return '실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.';
-    let text = rawText.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
-    text = text.replace(/[ㅎㅋㅠㅜ]{1,}/g, '');
-    text = text.replace(/\s+/g, ' ').trim();
-    text = text.replace(/([.,!?])\s*/g, '$1\n\n');
-    return text.trim() || '실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.';
-  }
-
-  // Generate a dynamic OG image using Sharp + SVG template
-  app.get('/assets/generated/:filename', async (req, res) => {
-    const filename = req.params.filename;
-    const itemId = filename.replace('.jpg', '');
-    const post = await getPostById(itemId);
-    if (!post) {
-      return res.status(404).send('Not found');
-    }
-    const building = (post.building || '추천 매물').trim();
-    const address = (post.address || post.dong || '구미시').trim();
-    const imageUrl = post.thumbnail;
-
-    const escapeXml = (unsafe: string) => unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-
-    let base64Image = '';
-    try {
-      if (imageUrl) {
-        const client = imageUrl.startsWith('https://') ? https : http;
-        const imageBuffer = await new Promise((resolve, reject) => {
-          client.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (resp) => {
-            if (resp.statusCode && [301, 302, 303, 307, 308].includes(resp.statusCode) && resp.headers.location) {
-              const redirectClient = resp.headers.location.startsWith('https://') ? https : http;
-              redirectClient.get(resp.headers.location, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r2) => {
-                  const chunks = [];
-                  r2.on('data', (c) => chunks.push(c));
-                  r2.on('end', () => resolve(Buffer.concat(chunks)));
-              }).on('error', reject);
-              return;
-            }
-            if (resp.statusCode && resp.statusCode >= 400) {
-              reject(new Error('Failed to load'));
-            } else {
-              const chunks = [];
-              resp.on('data', (c) => chunks.push(c));
-              resp.on('end', () => resolve(Buffer.concat(chunks)));
-            }
-          }).on('error', reject);
-        });
-        base64Image = `data:image/jpeg;base64,${(imageBuffer as any).toString('base64')}`;
-      } else {
-        // Fallback logo
-        const fallbackPath = path.join(process.cwd(), 'public', 'assets', 'fixed-master-vr-banner.png');
-        if (fs.existsSync(fallbackPath)) {
-            const fbBuffer = fs.readFileSync(fallbackPath);
-            base64Image = `data:image/png;base64,${fbBuffer.toString('base64')}`;
-        }
-      }
-    } catch (e) {
-      const fallbackPath = path.join(process.cwd(), 'public', 'assets', 'fixed-master-vr-banner.png');
-      if (fs.existsSync(fallbackPath)) {
-          const fbBuffer = fs.readFileSync(fallbackPath);
-          base64Image = `data:image/png;base64,${fbBuffer.toString('base64')}`;
-      } else {
-          base64Image = '';
-      }
-    }
-
-    const safeBuilding = escapeXml(building);
-    const safeAddress = escapeXml(address);
-
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
-      ${base64Image ? `<image href="${base64Image}" x="0" y="0" width="1200" height="675" preserveAspectRatio="xMidYMid slice" />` : `<rect width="1200" height="675" fill="#1e293b" />`}
-      <defs>
-          <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#000000" stop-opacity="0.3"/>
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.8"/>
-          </linearGradient>
-      </defs>
-      <rect x="0" y="0" width="1200" height="675" fill="url(#bgGrad)" />
-      <g transform="translate(600, 270)">
-        <rect x="-80" y="-80" width="160" height="160" rx="40" fill="#0B2545" stroke="#ffffff" stroke-width="4" stroke-opacity="0.2" />
-        <polygon points="0,-45 -45,0 -35,0 -35,45 35,45 35,0 45,0" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
-        <rect x="-15" y="15" width="30" height="30" fill="#ffffff" rx="4" />
-      </g>
-      <g transform="translate(100, 480)">
-        <rect x="0" y="0" width="1000" height="140" rx="30" fill="#0B2545" fill-opacity="0.95" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2" />
-        <text x="500" y="70" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="46" fill="#ffffff" letter-spacing="-1">${safeBuilding}</text>
-        <text x="500" y="115" text-anchor="middle" font-family="sans-serif" font-weight="normal" font-size="24" fill="#94a3b8" letter-spacing="-0.5">${safeAddress}</text>
-      </g>
-    </svg>`;
-
-    try {
-      const { default: sharp } = await import('sharp');
-      const jpegBuffer = await sharp(Buffer.from(svg)).jpeg({ quality: 90 }).toBuffer();
-      res.setHeader('Content-Type', 'image/jpeg');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.send(jpegBuffer);
-    } catch (err) {
-      if (post.thumbnail) {
-          res.redirect(302, post.thumbnail);
-      } else {
-          res.status(500).send('Error');
-      }
-    }
-  });
-
   // Vite middleware for development or fallback static serving
   const isProd = process.env.NODE_ENV === 'production' || _dirname.endsWith('dist') || _dirname.endsWith('dist/');
   const distPath = isProd
@@ -1774,39 +1415,24 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     });
 
     // Intercept development requests with id query parameters for hot meta-tag injection
-    app.get(['/', '/rooms/:id', '/item/view/:postId'], async (req, res, next) => {
-      const itemId = resolveItemId(req);
-      if (itemId) {
+    app.get(['/', '/rooms/:id'], async (req, res, next) => {
+      const itemId = req.params.id || req.query.id || req.query.postId;
+      if (itemId && typeof itemId === 'string') {
         const indexPath = path.join(projectRoot, 'index.html');
         if (fs.existsSync(indexPath)) {
           try {
             let html = fs.readFileSync(indexPath, 'utf-8');
-            
-            // 1. Dynamic host replacement first (excluding core meta overrides below)
-            const hostUrl = `${getReqProtocol(req)}://${req.get('host')}`;
-            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-
-            // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
-            const currentUrl = `${getReqProtocol(req)}://${req.get('host')}${req.originalUrl}`;
-            html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
-            html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
-
-            // 3. Fetch post details for SSR Meta Injection
-            console.log("URL =", req.originalUrl);
-            console.log("PATH =", req.path);
-            console.log("itemId =", itemId);
-            const post = await findPostByIdOrNumber(itemId);
-            console.log("post =", post ? { id: post.id, title: post.title, dong: post.dong, building: post.building } : "NOT FOUND");
+            html = await vite.transformIndexHtml(req.originalUrl, html);
+            const post = await getPostById(itemId);
             if (post) {
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
               const type = post.category || '매물';
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `${hostUrl}/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
-              const newImage = await ensureOgImageInStorage(post.id, post) || `${hostUrl}/assets/generated/${post.id}.jpg`;
+              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1820,6 +1446,10 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
                 html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
             }
+            // Dynamic host replacement for developer's active domain
+            const hostUrl = `${req.protocol}://${req.get('host')}`;
+            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
             res.send(html);
             return;
@@ -1835,91 +1465,25 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
   } else {
     console.log('Static distPath:', distPath); app.use(express.static(distPath, { index: false }));
     
-    app.get('/item/view/:postId', async (req, res) => {
-      const indexPath = path.join(distPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        try {
-          let html = fs.readFileSync(indexPath, 'utf-8');
-
-          // 1. Dynamic host replacement first (excluding core meta overrides below)
-          const hostUrl = `${getReqProtocol(req)}://${req.get('host')}`;
-          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-
-          // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
-          const currentUrl = `${getReqProtocol(req)}://${req.get('host')}${req.originalUrl}`;
-          html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
-          html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
-
-          // 3. Fetch post details for SSR Meta Injection
-          const itemId = resolveItemId(req);
-          console.log("URL =", req.originalUrl);
-          console.log("PATH =", req.path);
-          console.log("itemId =", itemId);
-          const post = await findPostByIdOrNumber(itemId);
-          console.log("post =", post ? { id: post.id, title: post.title, dong: post.dong, building: post.building } : "NOT FOUND");
-          if (post) {
-            const dong = post.dong || '구미';
-            const building = post.building || '추천 매물';
-            const type = post.category || '매물';
-            
-            const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-            const newDesc = formatOgDescription(post.content || post.remarks || '');
-            const newUrl = `${hostUrl}/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
-            const newImage = await ensureOgImageInStorage(post.id, post) || `${hostUrl}/assets/generated/${post.id}.jpg`;
-
-            html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-            html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-            html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-            html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
-            html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
-            
-            if (html.includes('property="og:image"')) {
-              html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-            } else {
-              html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-            }
-          }
-
-          res.send(html);
-        } catch (err) {
-          console.error("Error inject dynamic OG tags:", err);
-          res.sendFile(indexPath);
-        }
-      } else {
-        res.status(500).send(`📢 index.html을 찾을 수 없습니다.`);
-      }
-    });
-
     app.get('*', async (req, res) => {
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         try {
           let html = fs.readFileSync(indexPath, 'utf-8');
-
-          // 1. Dynamic host replacement first (excluding core meta overrides below)
-          const hostUrl = `${getReqProtocol(req)}://${req.get('host')}`;
-          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-
-          // 2. Fallback to current URL to prevent OG domain mismatch if post is missing or loading
-          const currentUrl = `${getReqProtocol(req)}://${req.get('host')}${req.originalUrl}`;
-          html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${currentUrl}" />`);
-          html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
-
-          // 3. Fetch post details for SSR Meta Injection
-          const itemId = resolveItemId(req);
-          if (itemId) {
-            const post = await findPostByIdOrNumber(itemId);
+          const pathParts = req.path.split('/');
+          const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
+          const itemId = isRoomPath ? pathParts[2] : (req.query.id || req.query.postId);
+          if (itemId && typeof itemId === 'string') {
+            const post = await getPostById(itemId);
             if (post) {
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
               const type = post.category || '매물';
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `${hostUrl}/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
-              const newImage = await ensureOgImageInStorage(post.id, post) || `${hostUrl}/assets/generated/${post.id}.jpg`;
+              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1934,6 +1498,10 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               }
             }
           }
+          // Dynamic host replacement for production client's active domain
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           res.send(html);
         } catch (err) {

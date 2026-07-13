@@ -1704,6 +1704,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
         if (fs.existsSync(indexPath)) {
           try {
             let html = fs.readFileSync(indexPath, 'utf-8');
+            
+            // 1. Dynamic host replacement first (excluding core meta overrides below)
+            const hostUrl = `${req.protocol}://${req.get('host')}`;
+            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
+            // 2. Fetch post details for SSR Meta Injection
             const post = await findPostByIdOrNumber(itemId);
             if (post) {
               const dong = post.dong || '구미';
@@ -1727,10 +1734,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
                 html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
             }
-            // Dynamic host replacement for development
-            const hostUrl = `${req.protocol}://${req.get('host')}`;
-            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
             res.send(html);
             return;
@@ -1751,6 +1754,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       if (fs.existsSync(indexPath)) {
         try {
           let html = fs.readFileSync(indexPath, 'utf-8');
+
+          // 1. Dynamic host replacement first (excluding core meta overrides below)
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
+          // 2. Fetch post details for SSR Meta Injection
           const itemId = resolveItemId(req);
           const post = await findPostByIdOrNumber(itemId);
           if (post) {
@@ -1775,10 +1785,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
             }
           }
-          // Dynamic host replacement for production client's active domain
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
-          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           res.send(html);
         } catch (err) {
@@ -1795,6 +1801,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       if (fs.existsSync(indexPath)) {
         try {
           let html = fs.readFileSync(indexPath, 'utf-8');
+
+          // 1. Dynamic host replacement first (excluding core meta overrides below)
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
+          // 2. Fetch post details for SSR Meta Injection
           const itemId = resolveItemId(req);
           if (itemId) {
             const post = await findPostByIdOrNumber(itemId);
@@ -1821,10 +1834,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               }
             }
           }
-          // Dynamic host replacement for production client's active domain
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
-          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           res.send(html);
         } catch (err) {

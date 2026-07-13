@@ -1421,36 +1421,51 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     }
     const building = (post.building || '추천 매물').trim();
     const address = (post.address || post.dong || '구미시').trim();
-    const imageUrl = post.thumbnail || 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&h=675&q=80';
+    const imageUrl = post.thumbnail;
 
     const escapeXml = (unsafe: string) => unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
     let base64Image = '';
     try {
-      const client = imageUrl.startsWith('https://') ? https : http;
-      const imageBuffer = await new Promise<Buffer>((resolve, reject) => {
-        client.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (resp) => {
-          if (resp.statusCode && [301, 302, 303, 307, 308].includes(resp.statusCode) && resp.headers.location) {
-            const redirectClient = resp.headers.location.startsWith('https://') ? https : http;
-            redirectClient.get(resp.headers.location, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r2) => {
-                const chunks: Buffer[] = [];
-                r2.on('data', (c) => chunks.push(c));
-                r2.on('end', () => resolve(Buffer.concat(chunks)));
-            }).on('error', reject);
-            return;
-          }
-          if (resp.statusCode && resp.statusCode >= 400) {
-            reject(new Error('Failed to load'));
-          } else {
-            const chunks: Buffer[] = [];
-            resp.on('data', (c) => chunks.push(c));
-            resp.on('end', () => resolve(Buffer.concat(chunks)));
-          }
-        }).on('error', reject);
-      });
-      base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+      if (imageUrl) {
+        const client = imageUrl.startsWith('https://') ? https : http;
+        const imageBuffer = await new Promise((resolve, reject) => {
+          client.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (resp) => {
+            if (resp.statusCode && [301, 302, 303, 307, 308].includes(resp.statusCode) && resp.headers.location) {
+              const redirectClient = resp.headers.location.startsWith('https://') ? https : http;
+              redirectClient.get(resp.headers.location, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r2) => {
+                  const chunks = [];
+                  r2.on('data', (c) => chunks.push(c));
+                  r2.on('end', () => resolve(Buffer.concat(chunks)));
+              }).on('error', reject);
+              return;
+            }
+            if (resp.statusCode && resp.statusCode >= 400) {
+              reject(new Error('Failed to load'));
+            } else {
+              const chunks = [];
+              resp.on('data', (c) => chunks.push(c));
+              resp.on('end', () => resolve(Buffer.concat(chunks)));
+            }
+          }).on('error', reject);
+        });
+        base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+      } else {
+        // Fallback logo
+        const fallbackPath = path.join(process.cwd(), 'public', 'assets', 'fixed-master-vr-banner.png');
+        if (fs.existsSync(fallbackPath)) {
+            const fbBuffer = fs.readFileSync(fallbackPath);
+            base64Image = `data:image/png;base64,${fbBuffer.toString('base64')}`;
+        }
+      }
     } catch (e) {
-      base64Image = '';
+      const fallbackPath = path.join(process.cwd(), 'public', 'assets', 'fixed-master-vr-banner.png');
+      if (fs.existsSync(fallbackPath)) {
+          const fbBuffer = fs.readFileSync(fallbackPath);
+          base64Image = `data:image/png;base64,${fbBuffer.toString('base64')}`;
+      } else {
+          base64Image = '';
+      }
     }
 
     const safeBuilding = escapeXml(building);
@@ -1506,8 +1521,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     });
 
     // Intercept development requests with id query parameters for hot meta-tag injection
-    app.get(['/', '/rooms/:id', '/item/view/:id'], async (req, res, next) => {
-      let itemId = req.params.id || req.query.id || req.query.postId;
+    app.get(['/', '/rooms/:id', '/item/view/:postId'], async (req, res, next) => {
+      let itemId = req.params.postId || req.params.id || req.query.id || req.query.postId;
       if (!itemId && req.path.startsWith('/item/view/')) {
         itemId = req.path.replace('/item/view/', '').split('/')[0];
       }
@@ -1516,7 +1531,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
         if (fs.existsSync(indexPath)) {
           try {
             let html = fs.readFileSync(indexPath, 'utf-8');
-            html = await vite.transformIndexHtml(req.originalUrl, html);
             const post = await getPostById(itemId);
             if (post) {
               const dong = post.dong || '구미';
@@ -1540,7 +1554,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
                 html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
               }
             }
-            // Dynamic host replacement for developer's active domain
+            // Dynamic host replacement for development
             const hostUrl = `${req.protocol}://${req.get('host')}`;
             html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
             html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
@@ -1559,6 +1573,50 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
   } else {
     console.log('Static distPath:', distPath); app.use(express.static(distPath, { index: false }));
     
+    app.get('/item/view/:postId', async (req, res) => {
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        try {
+          let html = fs.readFileSync(indexPath, 'utf-8');
+          const itemId = req.params.postId;
+          const post = await getPostById(itemId);
+          if (post) {
+            const dong = post.dong || '구미';
+            const building = post.building || '추천 매물';
+            const type = post.category || '매물';
+            
+            const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
+            const newDesc = formatOgDescription(post.content || post.remarks || '');
+            const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${itemId}`;
+            const newImage = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${itemId}.jpg`;
+
+            html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+            html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+            html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+            html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+            html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
+            
+            if (html.includes('property="og:image"')) {
+              html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+            } else {
+              html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+            }
+          }
+          // Dynamic host replacement for production client's active domain
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
+          res.send(html);
+        } catch (err) {
+          console.error("Error inject dynamic OG tags:", err);
+          res.sendFile(indexPath);
+        }
+      } else {
+        res.status(500).send(`📢 index.html을 찾을 수 없습니다.`);
+      }
+    });
+
     app.get('*', async (req, res) => {
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {

@@ -1514,6 +1514,69 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
   }
 
 
+
+  // Helper to calculate the 5-digit sequential post number for Imweb routing
+  function getPostNumber(id) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const positiveHash = Math.abs(hash);
+    const fiveDigit = (positiveHash % 90000) + 10000;
+    return fiveDigit.toString();
+  }
+
+  // Helper to extract the unique item ID from request query or parameters
+  function resolveItemId(req) {
+    if (req.query.postId && typeof req.query.postId === 'string' && req.query.postId.trim() !== '') {
+      return req.query.postId.trim();
+    }
+    if (req.query.id && typeof req.query.id === 'string' && req.query.id.trim() !== '') {
+      return req.query.id.trim();
+    }
+    if (req.params.postId && typeof req.params.postId === 'string' && req.params.postId.trim() !== '') {
+      return req.params.postId.trim();
+    }
+    if (req.params.id && typeof req.params.id === 'string' && req.params.id.trim() !== '') {
+      return req.params.id.trim();
+    }
+    const pathParts = req.path.split('/');
+    const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
+    const isItemViewPath = pathParts.length >= 4 && pathParts[1] === 'item' && pathParts[2] === 'view';
+    if (isRoomPath && pathParts[2]) return pathParts[2];
+    if (isItemViewPath && pathParts[3]) return pathParts[3];
+    return null;
+  }
+
+  // Unified helper to load a post by either raw document ID or its 5-digit Imweb number hash
+  async function findPostByIdOrNumber(idOrNum) {
+    if (!idOrNum) return null;
+    const cleanId = idOrNum.trim();
+
+    // 1. Check direct match in active runtime cache
+    if (cachedPostsList) {
+      const found = cachedPostsList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
+      if (found) return found;
+    }
+
+    // 2. Check local JSON file fallback
+    try {
+      const localList = readPosts();
+      if (localList && Array.isArray(localList)) {
+        const found = localList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
+        if (found) return found;
+      }
+    } catch (e) {
+      console.warn("[findPostByIdOrNumber] readPosts check failed:", e);
+    }
+
+    // 3. Direct Firestore document query
+    const directPost = await getPostById(cleanId);
+    if (directPost) return directPost;
+
+    return null;
+  }
+
   // Format OG description to remove emojis, chat slang, and enforce double newlines at punctuation
   function formatOgDescription(rawText: string) {
     if (!rawText) return '실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.';
@@ -1635,16 +1698,13 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     // Intercept development requests with id query parameters for hot meta-tag injection
     app.get(['/', '/rooms/:id', '/item/view/:postId'], async (req, res, next) => {
-      let itemId = req.params.postId || req.params.id || req.query.id || req.query.postId;
-      if (!itemId && req.path.startsWith('/item/view/')) {
-        itemId = req.path.replace('/item/view/', '').split('/')[0];
-      }
-      if (itemId && typeof itemId === 'string') {
+      const itemId = resolveItemId(req);
+      if (itemId) {
         const indexPath = path.join(projectRoot, 'index.html');
         if (fs.existsSync(indexPath)) {
           try {
             let html = fs.readFileSync(indexPath, 'utf-8');
-            const post = await getPostById(itemId);
+            const post = await findPostByIdOrNumber(itemId);
             if (post) {
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
@@ -1652,8 +1712,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${itemId}`;
-              const newImage = await ensureOgImageInStorage(itemId, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${itemId}.jpg`;
+              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
+              const newImage = await ensureOgImageInStorage(post.id, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${post.id}.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1691,8 +1751,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       if (fs.existsSync(indexPath)) {
         try {
           let html = fs.readFileSync(indexPath, 'utf-8');
-          const itemId = req.params.postId;
-          const post = await getPostById(itemId);
+          const itemId = resolveItemId(req);
+          const post = await findPostByIdOrNumber(itemId);
           if (post) {
             const dong = post.dong || '구미';
             const building = post.building || '추천 매물';
@@ -1700,8 +1760,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             
             const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
             const newDesc = formatOgDescription(post.content || post.remarks || '');
-            const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${itemId}`;
-            const newImage = await ensureOgImageInStorage(itemId, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${itemId}.jpg`;
+            const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
+            const newImage = await ensureOgImageInStorage(post.id, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${post.id}.jpg`;
 
             html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
             html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
@@ -1735,12 +1795,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       if (fs.existsSync(indexPath)) {
         try {
           let html = fs.readFileSync(indexPath, 'utf-8');
-          const pathParts = req.path.split('/');
-          const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
-          const isItemViewPath = pathParts.length >= 4 && pathParts[1] === 'item' && pathParts[2] === 'view';
-          const itemId = isRoomPath ? pathParts[2] : (isItemViewPath ? pathParts[3] : (req.query.id || req.query.postId));
-          if (itemId && typeof itemId === 'string') {
-            const post = await getPostById(itemId);
+          const itemId = resolveItemId(req);
+          if (itemId) {
+            const post = await findPostByIdOrNumber(itemId);
             if (post) {
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
@@ -1748,8 +1805,8 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
               
               const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
               const newDesc = formatOgDescription(post.content || post.remarks || '');
-              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${itemId}`;
-              const newImage = await ensureOgImageInStorage(itemId, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${itemId}.jpg`;
+              const newUrl = `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/item/view/${getPostNumber(post.id)}?postId=${post.id}`;
+              const newImage = await ensureOgImageInStorage(post.id, post) || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/assets/generated/${post.id}.jpg`;
 
               html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
               html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);

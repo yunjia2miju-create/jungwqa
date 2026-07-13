@@ -1567,6 +1567,20 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
   // Helper to extract the unique item ID from request query or parameters
   function resolveItemId(req) {
+    // 1. URL 경로(req.path) 분석을 최우선으로 합니다. 
+    // 경로에 직접 포함된 정보(예: /item/view/58290)는 크롤러가 쿼리 파라미터를 제거해도 안전하게 보존되기 때문입니다.
+    const pathParts = req.path.split('/');
+    const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
+    const isItemViewPath = pathParts.length >= 4 && pathParts[1] === 'item' && pathParts[2] === 'view';
+    
+    if (isItemViewPath && pathParts[3] && pathParts[3].trim() !== '') {
+      return pathParts[3].trim();
+    }
+    if (isRoomPath && pathParts[2] && pathParts[2].trim() !== '') {
+      return pathParts[2].trim();
+    }
+
+    // 2. 경로에서 추출되지 않은 경우에 한해 query 파라미터를 보조적으로 확인합니다.
     if (req.query.postId && typeof req.query.postId === 'string' && req.query.postId.trim() !== '') {
       return req.query.postId.trim();
     }
@@ -1579,11 +1593,6 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     if (req.params.id && typeof req.params.id === 'string' && req.params.id.trim() !== '') {
       return req.params.id.trim();
     }
-    const pathParts = req.path.split('/');
-    const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
-    const isItemViewPath = pathParts.length >= 4 && pathParts[1] === 'item' && pathParts[2] === 'view';
-    if (isRoomPath && pathParts[2]) return pathParts[2];
-    if (isItemViewPath && pathParts[3]) return pathParts[3];
     return null;
   }
 
@@ -1603,16 +1612,36 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
       const localList = readPosts();
       if (localList && Array.isArray(localList)) {
         const found = localList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
-        if (found) return found;
+        if (found) {
+          cachedPostsList = localList;
+          return found;
+        }
       }
     } catch (e) {
       console.warn("[findPostByIdOrNumber] readPosts check failed:", e);
     }
 
-    // 3. Direct Firestore document query
+    // 3. 만약 5자리 숫자(Imweb 해시 번호)이거나 실제 포스트 ID인데 캐시/로컬 파일에 없다면,
+    // 신규 등록된 포스트일 수 있으므로 최신 Firestore 데이터를 완전히 새로 갱신(Refetch & Warm-up)하여 다시 한 번 확인합니다.
+    console.log(`[findPostByIdOrNumber] Target "${cleanId}" not found in initial cache. Triggering active Firestore refresh to resolve...`);
+    try {
+      await warmUpPostsCache(); // 강제 최신화 및 캐시 예열 호출
+      if (cachedPostsList) {
+        const found = cachedPostsList.find((p) => p.id === cleanId || getPostNumber(p.id) === cleanId);
+        if (found) {
+          console.log(`[findPostByIdOrNumber] Successfully resolved "${cleanId}" after active Firestore refresh!`);
+          return found;
+        }
+      }
+    } catch (refetchErr) {
+      console.error("[findPostByIdOrNumber] Active Firestore refetch failed:", refetchErr);
+    }
+
+    // 4. Direct Firestore document query (마지막 보루)
     const directPost = await getPostById(cleanId);
     if (directPost) return directPost;
 
+    console.warn(`[findPostByIdOrNumber] Failed to resolve post for "${cleanId}" after all fallback methods.`);
     return null;
   }
 
@@ -1755,7 +1784,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${currentUrl}" />`);
 
             // 3. Fetch post details for SSR Meta Injection
+            console.log("URL =", req.originalUrl);
+            console.log("PATH =", req.path);
+            console.log("itemId =", itemId);
             const post = await findPostByIdOrNumber(itemId);
+            console.log("post =", post ? { id: post.id, title: post.title, dong: post.dong, building: post.building } : "NOT FOUND");
             if (post) {
               const dong = post.dong || '구미';
               const building = post.building || '추천 매물';
@@ -1811,7 +1844,11 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
           // 3. Fetch post details for SSR Meta Injection
           const itemId = resolveItemId(req);
+          console.log("URL =", req.originalUrl);
+          console.log("PATH =", req.path);
+          console.log("itemId =", itemId);
           const post = await findPostByIdOrNumber(itemId);
+          console.log("post =", post ? { id: post.id, title: post.title, dong: post.dong, building: post.building } : "NOT FOUND");
           if (post) {
             const dong = post.dong || '구미';
             const building = post.building || '추천 매물';

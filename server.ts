@@ -1401,6 +1401,54 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     return null;
   }
 
+  // Helper to inject dynamic post metadata for KakaoTalk and search engine scrapers
+  function injectPostMeta(html: string, post: any, originalUrl: string, hostUrl: string): string {
+    const isRecommendedMark = post.isRecommended ? '⭐추천⭐ ' : '';
+    const transactionAndPrice = post.transactionType && post.price ? `[${post.transactionType} ${post.price}]` : '';
+    const postTitle = post.title || `${post.dong || '구미'} ${post.building || '추천 매물'} ${post.category || '매물'}`;
+    const newTitle = `${isRecommendedMark}${transactionAndPrice} ${postTitle} | 태왕공인중개사사무소`;
+
+    // Extract clean plain text for description
+    const rawText = post.intro || post.remarks || post.body || '';
+    const cleanText = rawText.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    const newDesc = cleanText 
+      ? (cleanText.length > 120 ? cleanText.substring(0, 120) + '...' : cleanText)
+      : `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
+
+    const newUrl = `${hostUrl}${originalUrl}`;
+
+    // Optimize image with absolute proxy-image path so KakaoTalk scraping never fails
+    let newImage = `${hostUrl}/assets/fixed-master-vr-banner.png`;
+    if (post.thumbnail) {
+      if (post.thumbnail.startsWith('http://') || post.thumbnail.startsWith('https://')) {
+        newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(post.thumbnail)}`;
+      } else if (post.thumbnail.startsWith('/')) {
+        newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(hostUrl + post.thumbnail)}`;
+      } else {
+        newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(hostUrl + '/' + post.thumbnail)}`;
+      }
+    }
+
+    // Dynamic replacement
+    html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
+    html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
+    html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
+    html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
+    html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
+    
+    if (html.includes('property="og:image"')) {
+      html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+    } else {
+      html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+    }
+
+    // Dynamic host replacement for developer's/production active domain
+    html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+    html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+
+    return html;
+  }
+
   // Vite middleware for development or fallback static serving
   const isProd = process.env.NODE_ENV === 'production' || _dirname.endsWith('dist') || _dirname.endsWith('dist/');
   const distPath = isProd
@@ -1424,33 +1472,14 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
             let html = fs.readFileSync(indexPath, 'utf-8');
             html = await vite.transformIndexHtml(req.originalUrl, html);
             const post = await getPostById(itemId);
-            if (post) {
-              const dong = post.dong || '구미';
-              const building = post.building || '추천 매물';
-              const type = post.category || '매물';
-              
-              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
-
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
-              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
-              
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
-            }
-            // Dynamic host replacement for developer's active domain
             const hostUrl = `${req.protocol}://${req.get('host')}`;
-            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-
+            if (post) {
+              html = injectPostMeta(html, post, req.originalUrl, hostUrl);
+            } else {
+              // Standard host replacement even if post not found
+              html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+              html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            }
             res.send(html);
             return;
           } catch (e) {
@@ -1473,35 +1502,20 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           const pathParts = req.path.split('/');
           const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
           const itemId = isRoomPath ? pathParts[2] : (req.query.id || req.query.postId);
+          const hostUrl = `${req.protocol}://${req.get('host')}`;
+
           if (itemId && typeof itemId === 'string') {
             const post = await getPostById(itemId);
             if (post) {
-              const dong = post.dong || '구미';
-              const building = post.building || '추천 매물';
-              const type = post.category || '매물';
-              
-              const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-              const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-              const newUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-              const newImage = post.thumbnail || `${req.protocol}://${req.get('host')}/assets/fixed-master-vr-banner.png`;
-
-              html = html.replace(/<meta[^>]*property="og:title"[^>]*>/gi, `<meta id="ogTitle" property="og:title" content="${newTitle}" />`);
-              html = html.replace(/<meta[^>]*property="og:description"[^>]*>/gi, `<meta id="ogDesc" property="og:description" content="${newDesc}" />`);
-              html = html.replace(/<meta[^>]*property="og:url"[^>]*>/gi, `<meta id="ogUrl" property="og:url" content="${newUrl}" />`);
-              html = html.replace(/<meta[^>]*name="description"[^>]*>/gi, `<meta name="description" content="${newDesc}" />`);
-              html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
-              
-              if (html.includes('property="og:image"')) {
-                html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
-              } else {
-                html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
-              }
+              html = injectPostMeta(html, post, req.originalUrl, hostUrl);
+            } else {
+              html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+              html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
             }
+          } else {
+            html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
+            html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
           }
-          // Dynamic host replacement for production client's active domain
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
-          html = html.replace(/https:\/\/www\.xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
-          html = html.replace(/https:\/\/xn--h49a2pelq49bcrfloji4br3e56y\.com/gi, hostUrl);
 
           res.send(html);
         } catch (err) {

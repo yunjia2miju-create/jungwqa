@@ -287,9 +287,16 @@ async function startServer() {
     '/website/jpg/fixed-master-vr-banner.jpg',
     '/%EC%9B%B9%EC%82%AC%EC%9D%B4%ED%8A%B8/jpg/vr-captured-banner.jpg'
   ], (req, res) => {
-    res.setHeader('Content-Type', 'image/jpeg');
     const p1 = path.join(projectRoot, 'public/website/vr-captured-banner.jpg');
     if (fs.existsSync(p1)) {
+      const stat = fs.statSync(p1);
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Accept-Ranges', 'bytes');
       res.sendFile(p1);
     } else {
       res.status(404).send('Banner not found');
@@ -639,6 +646,7 @@ async function startServer() {
     if (imageCache.has(imageUrl)) {
       const cached = imageCache.get(imageUrl)!;
       res.setHeader('Content-Type', cached.contentType);
+      res.setHeader('Content-Length', cached.body.length);
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -738,6 +746,7 @@ async function startServer() {
       imageCache.set(imageUrl, { body: finalBody, contentType: finalContentType });
 
       res.setHeader('Content-Type', finalContentType);
+      res.setHeader('Content-Length', finalBody.length);
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -1441,14 +1450,19 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
     
     if (html.includes('property="og:image"')) {
-      html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height|:type|:secure_url)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+      html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height|:type|:secure_url|:url)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
     } else {
       html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
     }
-    if (html.includes('property="og:image:secure_url"')) {
-      html = html.replace(/<meta[^>]*property="og:image:secure_url"[^>]*>/gi, `<meta property="og:image:secure_url" content="${newImage}" />`);
+    if (html.includes('property="og:image:url"')) {
+      html = html.replace(/<meta[^>]*property="og:image:url"[^>]*>/gi, `<meta id="ogImageUrl" property="og:image:url" content="${newImage}" />`);
     } else {
-      html = html.replace('</head>', `<meta property="og:image:secure_url" content="${newImage}" />\n</head>`);
+      html = html.replace('</head>', `<meta id="ogImageUrl" property="og:image:url" content="${newImage}" />\n</head>`);
+    }
+    if (html.includes('property="og:image:secure_url"')) {
+      html = html.replace(/<meta[^>]*property="og:image:secure_url"[^>]*>/gi, `<meta id="ogImageSecureUrl" property="og:image:secure_url" content="${newImage}" />`);
+    } else {
+      html = html.replace('</head>', `<meta id="ogImageSecureUrl" property="og:image:secure_url" content="${newImage}" />\n</head>`);
     }
 
     // Dynamic host replacement for developer's/production active domain

@@ -63,7 +63,8 @@
     <meta id="ogUrl" property="og:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/">
     <meta property="og:site_name" content="구미 태왕공인중개사사무소">
     <meta id="ogImage" property="og:image" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg">
-    <meta property="og:image:secure_url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg">
+    <meta id="ogImageUrl" property="og:image:url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg">
+    <meta id="ogImageSecureUrl" property="og:image:secure_url" content="https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -150,12 +151,14 @@
                   const ogDescEl = document.getElementById('ogDesc');
                   if (ogDescEl) { ogDescEl.setAttribute('content', newDesc); }
                   const itemImage = actualScreenImg || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg`;
-                  const ogImageEl = document.getElementById('ogImage');
-                  if (ogImageEl) { ogImageEl.setAttribute('content', itemImage); }
+                  document.getElementById('ogImage')?.setAttribute('content', itemImage);
+                  document.getElementById('ogImageUrl')?.setAttribute('content', itemImage);
+                  document.getElementById('ogImageSecureUrl')?.setAttribute('content', itemImage);
               } else {
                   const itemImage = actualScreenImg || 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg';
-                  const ogImageEl = document.getElementById('ogImage');
-                  if (ogImageEl) { ogImageEl.setAttribute('content', itemImage); }
+                  document.getElementById('ogImage')?.setAttribute('content', itemImage);
+                  document.getElementById('ogImageUrl')?.setAttribute('content', itemImage);
+                  document.getElementById('ogImageSecureUrl')?.setAttribute('content', itemImage);
               }
           } catch (e) { console.error('Dynamic card engine error:', e); }
       }

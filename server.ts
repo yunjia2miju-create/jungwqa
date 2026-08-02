@@ -57,61 +57,25 @@ async function startServer() {
       fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), 'utf-8');
     }
 
-    // Programmatically convert SVG/PNG banner to real raster JPG as fixed-master-vr-banner.jpg and vr-captured-banner.jpg using sharp
+    // Ensure public/website/vr-captured-banner.jpg exists
     try {
-      const assetsDir = path.join(projectRoot, 'public', 'assets');
       const webDir = path.join(projectRoot, 'public', 'website');
-      const webJpgDir = path.join(projectRoot, 'public', 'website', 'jpg');
-      if (!fs.existsSync(assetsDir)) {
-        fs.mkdirSync(assetsDir, { recursive: true });
-      }
       if (!fs.existsSync(webDir)) {
         fs.mkdirSync(webDir, { recursive: true });
       }
-      if (!fs.existsSync(webJpgDir)) {
-        fs.mkdirSync(webJpgDir, { recursive: true });
-      }
+      const targetJpg = path.join(webDir, 'vr-captured-banner.jpg');
+      const srcSvg = path.join(projectRoot, 'public', 'vr-tour-banner.svg');
 
-      const srcBanner = path.join(assetsDir, 'vr-captured-banner.png');
-      const destBannerJpg = path.join(assetsDir, 'fixed-master-vr-banner.jpg');
-      const destCapturedJpg = path.join(assetsDir, 'vr-captured-banner.jpg');
-      const destBannerPng = path.join(assetsDir, 'fixed-master-vr-banner.png');
-
-      const webDirectCapturedJpg = path.join(webDir, 'vr-captured-banner.jpg');
-      const webDirectMasterJpg = path.join(webDir, 'fixed-master-vr-banner.jpg');
-      const webCapturedJpg = path.join(webJpgDir, 'vr-captured-banner.jpg');
-      const webMasterJpg = path.join(webJpgDir, 'fixed-master-vr-banner.jpg');
-
-      const { default: sharp } = await import('sharp');
-      if (fs.existsSync(srcBanner)) {
-        const svgContent = fs.readFileSync(srcBanner);
+      if (!fs.existsSync(targetJpg) && fs.existsSync(srcSvg)) {
+        const { default: sharp } = await import('sharp');
+        const svgContent = fs.readFileSync(srcSvg);
         await sharp(svgContent)
           .jpeg({ quality: 90 })
-          .toFile(destBannerJpg);
-        await sharp(svgContent)
-          .jpeg({ quality: 90 })
-          .toFile(destCapturedJpg);
-        await sharp(svgContent)
-          .png()
-          .toFile(destBannerPng);
-        console.log("[Server Startup] Rendered SVG vr-captured-banner to JPG via sharp successfully!");
-      } else if (fs.existsSync(destBannerPng) && !fs.existsSync(destBannerJpg)) {
-        await sharp(destBannerPng)
-          .jpeg({ quality: 90 })
-          .toFile(destBannerJpg);
-      }
-
-      // Copy to public/website and public/website/jpg directory as requested
-      if (fs.existsSync(destCapturedJpg)) {
-        fs.copyFileSync(destCapturedJpg, webDirectCapturedJpg);
-        fs.copyFileSync(destCapturedJpg, webCapturedJpg);
-      }
-      if (fs.existsSync(destBannerJpg)) {
-        fs.copyFileSync(destBannerJpg, webDirectMasterJpg);
-        fs.copyFileSync(destBannerJpg, webMasterJpg);
+          .toFile(targetJpg);
+        console.log("[Server Startup] Generated public/website/vr-captured-banner.jpg from SVG banner successfully!");
       }
     } catch (bannerErr) {
-      console.warn("[Server Startup] Failed to convert/copy master banner to JPG via sharp:", bannerErr);
+      console.warn("[Server Startup] Failed to generate website banner JPG:", bannerErr);
     }
   } catch (fsErr) {
     console.warn("[Cloud Run Startup] Cannot write local data files on read-only file system, serving safely from memory.", fsErr);
@@ -313,38 +277,19 @@ async function startServer() {
     }
   });
 
-  app.get(['/assets/vr-captured-banner.jpg', '/website/vr-captured-banner.jpg', '/website/jpg/vr-captured-banner.jpg', '/웹사이트/jpg/vr-captured-banner.jpg', '/%EC%9B%B9%EC%82%AC%EC%9D%B4%ED%8A%B8/jpg/vr-captured-banner.jpg'], (req, res) => {
+  app.get([
+    '/website/vr-captured-banner.jpg',
+    '/assets/vr-captured-banner.jpg',
+    '/assets/fixed-master-vr-banner.jpg',
+    '/website/fixed-master-vr-banner.jpg',
+    '/website/jpg/vr-captured-banner.jpg',
+    '/website/jpg/fixed-master-vr-banner.jpg',
+    '/%EC%9B%B9%EC%82%AC%EC%9D%B4%ED%8A%B8/jpg/vr-captured-banner.jpg'
+  ], (req, res) => {
     res.setHeader('Content-Type', 'image/jpeg');
     const p1 = path.join(projectRoot, 'public/website/vr-captured-banner.jpg');
-    const p2 = path.join(projectRoot, 'public/website/jpg/vr-captured-banner.jpg');
-    const p3 = path.join(projectRoot, 'public/assets/vr-captured-banner.jpg');
-    const p4 = path.join(projectRoot, 'dist/assets/vr-captured-banner.jpg');
-    if (fs.existsSync(p1)) res.sendFile(p1);
-    else if (fs.existsSync(p2)) res.sendFile(p2);
-    else if (fs.existsSync(p3)) res.sendFile(p3);
-    else if (fs.existsSync(p4)) res.sendFile(p4);
-    else res.status(404).send('Banner not found');
-  });
-
-  app.get('/assets/vr-captured-banner.png', (req, res) => {
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.sendFile(path.join(projectRoot, 'public/assets/vr-captured-banner.png'));
-  });
-
-  app.get(['/assets/fixed-master-vr-banner.jpg', '/website/fixed-master-vr-banner.jpg', '/website/jpg/fixed-master-vr-banner.jpg', '/웹사이트/jpg/fixed-master-vr-banner.jpg', '/%EC%9B%B9%EC%82%AC%EC%9D%B4%ED%8A%B8/jpg/fixed-master-vr-banner.jpg'], (req, res) => {
-    res.setHeader('Content-Type', 'image/jpeg');
-    const p1 = path.join(projectRoot, 'public/website/fixed-master-vr-banner.jpg');
-    const p2 = path.join(projectRoot, 'public/website/jpg/fixed-master-vr-banner.jpg');
-    const p3 = path.join(projectRoot, 'public/assets/fixed-master-vr-banner.jpg');
-    const p4 = path.join(projectRoot, 'dist/assets/fixed-master-vr-banner.jpg');
     if (fs.existsSync(p1)) {
       res.sendFile(p1);
-    } else if (fs.existsSync(p2)) {
-      res.sendFile(p2);
-    } else if (fs.existsSync(p3)) {
-      res.sendFile(p3);
-    } else if (fs.existsSync(p4)) {
-      res.sendFile(p4);
     } else {
       res.status(404).send('Banner not found');
     }
@@ -1476,7 +1421,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     const newUrl = `${hostUrl}${originalUrl}`;
 
     // Optimize image with absolute proxy-image path so KakaoTalk scraping never fails
-    let newImage = `${hostUrl}/assets/fixed-master-vr-banner.jpg`;
+    let newImage = `${hostUrl}/website/vr-captured-banner.jpg`;
     if (post.thumbnail) {
       if (post.thumbnail.startsWith('http://') || post.thumbnail.startsWith('https://')) {
         newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(post.thumbnail)}`;

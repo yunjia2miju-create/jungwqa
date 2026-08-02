@@ -24,7 +24,8 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const port = 3000;
+  app.set('trust proxy', true);
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   // Robust projectRoot calculation
   const projectRoot = (typeof __dirname !== 'undefined')
@@ -1440,9 +1441,14 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     html = html.replace(/<link[^>]*rel="canonical"[^>]*>/gi, `<link rel="canonical" id="canonicalUrl" href="${newUrl}" />`);
     
     if (html.includes('property="og:image"')) {
-      html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
+      html = html.replace(/<meta[^>]*property="og:image"(?!:width|:height|:type|:secure_url)[^>]*>/gi, `<meta id="ogImage" property="og:image" content="${newImage}" />`);
     } else {
       html = html.replace('</head>', `<meta id="ogImage" property="og:image" content="${newImage}" />\n</head>`);
+    }
+    if (html.includes('property="og:image:secure_url"')) {
+      html = html.replace(/<meta[^>]*property="og:image:secure_url"[^>]*>/gi, `<meta property="og:image:secure_url" content="${newImage}" />`);
+    } else {
+      html = html.replace('</head>', `<meta property="og:image:secure_url" content="${newImage}" />\n</head>`);
     }
 
     // Dynamic host replacement for developer's/production active domain
@@ -1505,7 +1511,9 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
           const pathParts = req.path.split('/');
           const isRoomPath = pathParts.length >= 3 && pathParts[1] === 'rooms';
           const itemId = isRoomPath ? pathParts[2] : (req.query.id || req.query.postId);
-          const hostUrl = `${req.protocol}://${req.get('host')}`;
+          const rawProto = (req.headers['x-forwarded-proto'] as string) || req.protocol;
+          const proto = (rawProto === 'http' && !req.get('host')?.includes('localhost')) ? 'https' : rawProto;
+          const hostUrl = `${proto}://${req.get('host')}`;
 
           if (itemId && typeof itemId === 'string') {
             const post = await getPostById(itemId);

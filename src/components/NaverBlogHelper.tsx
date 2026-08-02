@@ -672,7 +672,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
         const postTitleHtml = `<h2 style="font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; font-size: 24px; font-weight: bold; color: #0f172a; text-align: center; margin-top: 20px; margin-bottom: 25px; line-height: 1.4;">${title}</h2>`;
 
         // 3) [ORIGINAL BODY TEXT, IN-LINE IMAGES, & 360° VR LINK]: Pure text keeping double-line breaks (\n\n) & VR Link button.
-        const directProductionWebsiteGreenLogoUrl = '/assets/fixed-master-vr-banner.png';
+        const directProductionWebsiteGreenLogoUrl = '/assets/fixed-master-vr-banner.jpg';
 
         const vrLinkHtml = hasVr 
             ? `<div style="text-align: center; margin: 30px 0;">
@@ -1459,7 +1459,7 @@ ${unmapped.length > 0 ? `- 기타 명시사항:\n${unmapped.map(line => `  • $
                                                         >
                                                             <div className="relative">
                                                                 <img 
-                                                                    src="/assets/fixed-master-vr-banner.png" 
+                                                                    src="/assets/fixed-master-vr-banner.jpg" 
                                                                     alt="태왕 전용 360도 VR 실감투어 클릭" 
                                                                     className="w-full h-auto block"
                                                                     style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }}

@@ -44,36 +44,38 @@ const TaewangFloatingBar: React.FC<FloatingBarProps> = () => {
   return ReactDOM.createPortal(
     <div className="taewang-floating-viewport-root select-none">
       
-      {/* 1. 빠른 이동 카테고리 패널 (사장님 요청: 코드는 보존하고 화면에서만 숨김 처리) */}
-      {/* <div className={`taewang-quick-nav-panel ${isOpen ? 'mobile-visible' : ''}`}> ... </div> */}
-      <div className={`taewang-quick-nav-panel ${isOpen ? 'mobile-visible' : ''} !hidden`} style={{ display: 'none' }}>
+      {/* 1. 빠른 이동 카테고리 패널: '빠른 카테고리'와 '360° VR사진'은 노출하고, 나머지는 코드를 유지한 채 화면에서만 숨김 */}
+      <div className={`taewang-quick-nav-panel ${isOpen ? 'mobile-visible' : ''}`}>
         <div className="taewang-quick-header">
           <i className="fa-solid fa-compass taewang-compass-spin"></i>
           <span>빠른 카테고리</span>
         </div>
         
         <div className="taewang-quick-body">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleScrollTo(item.id)}
-              className="taewang-quick-item"
-              title={`${item.label} 바로가기`}
-            >
-              <span className="taewang-quick-item-icon">
-                <i className={`fa-solid ${item.icon}`}></i>
-              </span>
-              <span className="taewang-quick-item-text">{item.label}</span>
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const isAlwaysVisible = item.id === 'vr-showcase-section'; // 360° VR사진만 표시
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleScrollTo(item.id)}
+                className={`taewang-quick-item ${!isAlwaysVisible ? '!hidden' : ''}`}
+                style={!isAlwaysVisible ? { display: 'none' } : undefined}
+                title={`${item.label} 바로가기`}
+              >
+                <span className="taewang-quick-item-icon">
+                  <i className={`fa-solid ${item.icon}`}></i>
+                </span>
+                <span className="taewang-quick-item-text">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* 2. 모바일/태블릿용 빠른이동 토글 버튼 (화면 숨김 처리) */}
+      {/* 2. 모바일/태블릿용 빠른이동 토글 버튼 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`taewang-mobile-toggle-btn ${isOpen ? 'active' : ''} !hidden`}
-        style={{ display: 'none' }}
+        className={`taewang-mobile-toggle-btn ${isOpen ? 'active' : ''}`}
         title="카테고리 이동 메뉴"
       >
         <i className={`fa-solid ${isOpen ? 'fa-xmark text-sm' : 'fa-compass text-base'}`}></i>

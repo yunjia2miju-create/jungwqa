@@ -1329,13 +1329,15 @@ export const MainTab = ({
                     </div>
                 </div>
 
-                {/* 하단 폼 및 가이드 영역은 기존처럼 max-w-7xl로 중앙 정렬 배치하여 가독성 유지 */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full space-y-36 pt-12">
-                    {/* [상담 및 매물 등록 의뢰 신청 구역] - 백엔드 연동과 조화된 고급 폼 */}
-                    <div 
-                        id="direct-consulting-section" 
-                        className="bg-[#1c2541] rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-white/5 relative overflow-hidden"
-                    >
+            </div>
+
+            {/* 하단 폼 및 가이드 영역은 화면에 온전히 노출 */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full space-y-36 pt-12 pb-24">
+                {/* [상담 및 매물 등록 의뢰 신청 구역] - 백엔드 연동과 조화된 고급 폼 */}
+                <div 
+                    id="direct-consulting-section" 
+                    className="bg-[#1c2541] rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-white/5 relative overflow-hidden"
+                >
                         <div className="absolute inset-0 bg-gradient-to-tr from-[#1c2541] to-[#3a506b] opacity-40"></div>
                         
                         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -1418,8 +1420,6 @@ export const MainTab = ({
                     </div>
                 </div>
 
-            </div>
-        
                 <ViewAllModal 
                     isOpen={viewAllCategory !== null}
                     onClose={() => setViewAllCategory(null)}

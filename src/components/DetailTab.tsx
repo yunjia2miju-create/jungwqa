@@ -7,6 +7,7 @@ import { useAppStore } from '../store';
 import PannellumViewer from './PannellumViewer';
 import { Naver360Icon } from './Naver360Icon';
 import { NaverBlogHelperModal } from './NaverBlogHelper';
+import { formatDisplayPrice } from '../utils/priceFormatter';
 
 const cleanNbsp = (text: string | null | undefined): string => {
     if (!text) return '';
@@ -101,18 +102,6 @@ export const DetailTab = ({
             </div>
         );
     }
-
-    const formatDisplayPrice = (price: any, transactionType: any) => {
-        const safePrice = String(price || '');
-        const safeType = String(transactionType || '월세');
-        if (safeType === '매매') return `매매 ${safePrice}만원`;
-        if (safeType === '전세') return `전세 ${safePrice}만원`;
-        if (safeType === '월세' && safePrice.includes('/')) {
-            const parts = safePrice.split('/');
-            return `보 ${parts[0]}만 / 월 ${parts[1]}만`;
-        }
-        return safePrice;
-    };
 
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024 || isMobileSimulationMode);
 
@@ -396,6 +385,7 @@ export const DetailTab = ({
                             <span className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black border tracking-wide shadow-sm ${
                                 p.transactionType === '매매' ? 'bg-indigo-600 text-white border-indigo-700' :
                                 p.transactionType === '전세' ? 'bg-amber-500 text-white border-amber-600' :
+                                p.transactionType?.includes('타입') ? 'bg-emerald-600 text-white border-emerald-700 shadow-emerald-500/20' :
                                 'bg-[#0B2545] text-white border-[#0B2545]'
                             }`}>
                                 {p.transactionType || '월세'}
@@ -1151,6 +1141,7 @@ export const DetailTab = ({
                                                     <span className={`text-[10.5px] sm:text-[11px] font-black px-2 py-0.5 rounded-md border ${
                                                         rec.transactionType === '매매' ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60' :
                                                         rec.transactionType === '전세' ? 'bg-amber-50 text-amber-700 border-amber-200/85' :
+                                                        rec.transactionType?.includes('타입') ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
                                                         'bg-[#0B2545]/10 text-[#0B2545] border-[#0B2545]/20'
                                                     }`}>
                                                         {rec.transactionType || '월세'}

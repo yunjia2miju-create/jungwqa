@@ -4,6 +4,7 @@ import { Post, gumiDongs } from '../data';
 import { savePostService, getPostsService } from '../firebaseService';
 import { ref, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
 import { storage } from '../firebase';
+import { cleanPrice } from '../utils/priceFormatter';
 
 interface AdminWriteSectionProps {
     showToast: (msg: string, type: 'success' | 'error') => void;
@@ -242,7 +243,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             room: data.room || '',
             floor: data.floor || '',
             totalFloor: data.totalFloor || '',
-            price: data.price || '',
+            price: cleanPrice(data.price),
             manageFee: (data.manageFee && /^\d+$/.test(data.manageFee.trim())) ? data.manageFee.trim() + '만' : (data.manageFee || ''),
             phone: data.phone || '',
             ownerPhone: data.ownerPhone || '',

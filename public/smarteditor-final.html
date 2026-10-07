@@ -1443,10 +1443,16 @@
 
                     <div>
                         <span class="block text-[22px] font-black text-slate-500 uppercase mb-4 select-none">거래 유형</span>
-                        <div class="flex gap-3.5">
+                        <div class="flex flex-wrap gap-3.5">
                             <button onclick="setTransactionType('월세')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-emerald-500 border-emerald-600 text-white shadow-sm">월세</button>
                             <button onclick="setTransactionType('전세')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">전세</button>
                             <button onclick="setTransactionType('매매')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">매매</button>
+                            <button onclick="setTransactionType('84A형 타입')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">84A형 타입</button>
+                            <button onclick="setTransactionType('84B형 타입')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">84B형 타입</button>
+                            <button onclick="setTransactionType('141형 타입')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">141형 타입</button>
+                            <button onclick="setTransactionType('132형 타입')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">132형 타입</button>
+                            <button onclick="setTransactionType('162형 타입')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">162형 타입</button>
+                            <button onclick="setTransactionType('114형 타입')" type="button" class="trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs">114형 타입</button>
                         </div>
                     </div>
                 </div>
@@ -1515,7 +1521,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">임대 금액 (만 원)</label>
-                        <input type="text" id="post-price" oninput="notifyParentDebounced()" placeholder="예: 200/35 또는 5000" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="post-price" oninput="notifyParentDebounced()" placeholder="예: 200/35 또는 5000 또는 상담문의" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">관리금 합산 (만 원)</label>
@@ -2389,10 +2395,10 @@
             document.getElementById('post-transactionType').value = val;
             const buttons = document.querySelectorAll('.trans-btn');
             buttons.forEach(btn => {
-                if (btn.innerText === val) {
-                    btn.className = "trans-btn py-4 px-6 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-emerald-500 border-emerald-600 text-white shadow-sm";
+                if (btn.innerText.trim() === String(val).trim()) {
+                    btn.className = "trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-emerald-500 border-emerald-600 text-white shadow-sm";
                 } else {
-                    btn.className = "trans-btn py-4 px-6 rounded-2xl border text-[18px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50";
+                    btn.className = "trans-btn py-5 px-8 rounded-2xl border text-[20px] font-black transition-all cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs";
                 }
             });
             notifyParent();
@@ -2471,7 +2477,7 @@
                 room: document.getElementById('post-room').value,
                 floor: document.getElementById('post-floor').value,
                 totalFloor: document.getElementById('post-totalFloor').value,
-                price: document.getElementById('post-price').value,
+                price: (function() { var p = (document.getElementById('post-price') ? document.getElementById('post-price').value : '') || ''; return /상담|문의|협의/.test(p) ? p.replace(/\s*만\s*원?/g, '').trim() : p; })(),
                 manageFee: document.getElementById('post-manageFee').value,
                 phone: document.getElementById('post-phone').value,
                 ownerPhone: document.getElementById('post-ownerPhone').value,
@@ -5084,7 +5090,7 @@ function setRepresentativePhoto(type, idx) {
                 room: document.getElementById('post-room').value,
                 floor: document.getElementById('post-floor').value,
                 totalFloor: document.getElementById('post-totalFloor').value,
-                price: document.getElementById('post-price').value,
+                price: (function() { var p = (document.getElementById('post-price') ? document.getElementById('post-price').value : '') || ''; return /상담|문의|협의/.test(p) ? p.replace(/\s*만\s*원?/g, '').trim() : p; })(),
                 manageFee: document.getElementById('post-manageFee').value,
                 phone: document.getElementById('post-phone').value,
                 ownerPhone: document.getElementById('post-ownerPhone').value,

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useAppStore } from '../store';
+import { formatCardPrice } from '../utils/priceFormatter';
 
 
 interface ViewAllModalProps {
@@ -231,7 +232,7 @@ export const ViewAllModal: React.FC<ViewAllModalProps> = ({
                                                         </div>
                                                     ) : (
                                                         <div className="text-xl sm:text-2xl font-black text-rose-600 tracking-tight mb-3">
-                                                            {item.price || '가격협의'}
+                                                            {formatCardPrice(item.price, item.transactionType) || '가격협의'}
                                                         </div>
                                                     )}
 

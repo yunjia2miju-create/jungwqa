@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { Home, ArrowLeft, Phone } from 'lucide-react';
 import { NaverVrBadge } from './NaverVrBadge';
 import { motion } from 'motion/react';
+import { formatCardPrice } from '../utils/priceFormatter';
 
 interface VrListTabProps {
     openPhoneSelectModal: (e: React.MouseEvent, mobilePhone: string, ownerPhone?: string) => void;
@@ -160,7 +161,7 @@ export const VrListTab: React.FC<VrListTabProps> = ({ openPhoneSelectModal, show
                                         </div>
 
                                         <div className="text-2xl font-black text-rose-600 tracking-tight mb-3">
-                                            {item.price || '가격협의'}
+                                            {formatCardPrice(item.price, item.transactionType) || '가격협의'}
                                         </div>
 
                                         {item.remarks && (

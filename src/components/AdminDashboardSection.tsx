@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { getPostsService, deletePostService, getInquiriesService, toggleInquiryProcessedService, getRegisteredUsersService, toggleApproveUserService, deleteRegisteredUserService } from '../firebaseService';
 import { NaverBlogHelperModal } from './NaverBlogHelper';
 import { Post } from '../data';
+import { formatCardPrice } from '../utils/priceFormatter';
 
 // Strips HTML tags for clean textual display
 function stripHtml(htmlStr: string | undefined): string {
@@ -474,7 +475,7 @@ export function AdminDashboardSection({ showToast }: AdminDashboardSectionProps)
                                                 {p.isRecommended && <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] sm:text-xs font-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg shadow-sm leading-none whitespace-nowrap">추천★</span>}
                                                 <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-lg leading-none font-mono whitespace-nowrap">ID: {p.id.replace('default-', '')}</span>
                                             </div>
-                                            <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-xs sm:text-sm text-slate-400 font-bold ml-1 font-mono">({p.price})</span></h4>
+                                            <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-1">{p.building || '건물명 없음'} {p.room ? `${p.room}호` : ''} <span className="text-xs sm:text-sm text-slate-400 font-bold ml-1 font-mono">({formatCardPrice(p.price, p.transactionType)})</span></h4>
                                             <p className="text-xs sm:text-sm text-slate-400 font-bold leading-relaxed line-clamp-2">{stripHtml(p.title) || '등록된 타이틀 내용 없음'}</p>
                                         </div>
                                     </div>

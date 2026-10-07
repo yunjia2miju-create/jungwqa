@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Post } from '../data';
 import { Sparkles, Copy, Check, RotateCcw, HelpCircle, ExternalLink, RefreshCw, X, Shield, FileText } from 'lucide-react';
+import { cleanPrice } from '../utils/priceFormatter';
 
 // Strict readability & double line break rules enforcement function for AI-processed text
 export function enforceReadabilityRules(text: string): string {
@@ -522,7 +523,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
         const category = details['category'] || post.category || '원룸';
         const transactionType = details['transactionType'] || post.transactionType || '월세';
         const address = details['address'] || `경상북도 구미시 ${post.dong} ${post.address || ''}`;
-        const price = details['price'] || post.price;
+        const price = cleanPrice(details['price'] || post.price);
         const manageFee = details['manageFee'] || post.manageFee || '없음';
         
         let floorInfo = '';
@@ -770,7 +771,7 @@ export function NaverBlogHelperModal({ post, isOpen, onClose }: NaverBlogHelperM
         const category = details['category'] || post.category || '원룸';
         const transactionType = details['transactionType'] || post.transactionType || '월세';
         const address = details['address'] || `경상북도 구미시 ${post.dong} ${post.address || ''}`;
-        const price = details['price'] || post.price;
+        const price = cleanPrice(details['price'] || post.price);
         const manageFee = details['manageFee'] || post.manageFee || '없음';
         const floorInfo = details['floor'] || `${post.floor ? post.floor + '층' : '해당층'} / ${post.totalFloor ? '전체 ' + post.totalFloor + '층' : '전체층'}`;
         const roomsInfo = details['rooms'] || (post.category === '원룸' ? '방 1 / 욕실 1' : '상세 확인');

@@ -8,6 +8,7 @@ import { ViewAllModal } from './ViewAllModal';
 import { HillstatePamphletSection } from './HillstatePamphletSection';
 import { motion, AnimatePresence } from 'motion/react';
 import VrViewer from './VrViewer';
+import { formatCardPrice, cleanPrice } from '../utils/priceFormatter';
 
 // 아임웹(imweb) HQ 스타일의 리모델링 대문 컴포넌트
 export const MainTab = ({ 
@@ -829,7 +830,7 @@ export const MainTab = ({
                                                             {p.category}
                                                         </span>
                                                         <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 shrink-0">
-                                                            {p.price}
+                                                            {formatCardPrice(p.price)}
                                                         </span>
                                                         {p.floor && (
                                                             <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded shrink-0">
@@ -1632,7 +1633,7 @@ const Carousel3D = ({
 
                                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
                                         <div className="text-sm sm:text-base font-black text-red-500 shrink-0">
-                                            {(p.category === '유튜브' || p.category === '네이버TV') ? '동영상 매물 리뷰' : (p.transactionType || '월세')} {(p.category === '유튜브' || p.category === '네이버TV') ? '' : p.price}
+                                            {(p.category === '유튜브' || p.category === '네이버TV') ? '동영상 매물 리뷰' : formatCardPrice(p.price, p.transactionType || '월세')}
                                         </div>
                                         <div className="flex-grow flex items-center gap-1.5">
                                             {isVideoCategory && videoUrl ? (

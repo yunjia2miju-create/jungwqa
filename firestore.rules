@@ -138,5 +138,11 @@ service cloud.firestore {
         
       allow delete: if isAdmin();
     }
+
+    // 4. Site Assets & Brochure Settings (힐스테이트 공식 팜플렛 등 사이트 공통 클라우드 에셋)
+    match /site_assets/{assetId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

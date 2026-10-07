@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db, defaultDb, OperationType, handleFirestoreError, auth, storage } from './firebase';
 import { Post, Inquiry, defaultPosts } from './data';
-import { ref, deleteObject } from 'firebase/storage';
+import { ref, deleteObject, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // --- Posts API ---
 
@@ -562,4 +562,84 @@ export async function deleteRegisteredUserService(email: string): Promise<void> 
   if (firestoreError && !expressSuccess) {
     handleFirestoreError(firestoreError, OperationType.DELETE, docPath);
   }
+}
+
+// --- Hillstate Brochure Cloud Assets API ---
+
+/**
+ * Uploads a file directly to Firebase Storage under 'hillstate/'
+ */
+export async function uploadHillstateFileToStorage(file: File | Blob, originalName: string): Promise<string> {
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const cleanName = originalName.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_.-]/g, '_');
+  const safePath = `hillstate/${timestamp}_${randomStr}_${cleanName}`;
+
+  const storageRef = ref(storage, safePath);
+  const contentType = (file as any).type || 'image/png';
+  await uploadBytes(storageRef, file, { contentType });
+  return await getDownloadURL(storageRef);
+}
+
+/**
+ * Saves Hillstate brochure cloud assets (masterplan image, section photos, plan photos)
+ * to Firestore and syncs with backend server API
+ */
+export async function saveHillstateAssetsService(data: {
+  masterplanImage?: string;
+  sectionPhotos?: { [key: number]: string[] };
+  planPhotos?: { [key: string]: string[] };
+}): Promise<void> {
+  // 1. Try saving to Firestore
+  try {
+    const docRef = doc(db, 'site_assets', 'hillstate_brochure');
+    await setDoc(docRef, { ...data, updatedAt: Date.now() }, { merge: true });
+    console.log('[Firestore] Hillstate assets saved successfully.');
+  } catch (err) {
+    console.warn('[Firestore] Failed saving to site_assets/hillstate_brochure:', err);
+  }
+
+  // 2. Try syncing with Server API
+  try {
+    await fetch('/api/hillstate-assets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch (err) {
+    console.warn('[API] Failed syncing hillstate assets to /api/hillstate-assets:', err);
+  }
+}
+
+/**
+ * Retrieves Hillstate brochure cloud assets from Firestore or Server API
+ */
+export async function getHillstateAssetsService(): Promise<{
+  masterplanImage?: string;
+  sectionPhotos?: { [key: number]: string[] };
+  planPhotos?: { [key: string]: string[] };
+} | null> {
+  // 1. Try Firestore first
+  try {
+    const docRef = doc(db, 'site_assets', 'hillstate_brochure');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as any;
+    }
+  } catch (err) {
+    console.info('[Firestore] Fetching site_assets/hillstate_brochure bypassed:', err);
+  }
+
+  // 2. Fallback to Server API
+  try {
+    const res = await fetch('/api/hillstate-assets');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Object.keys(data).length > 0) return data;
+    }
+  } catch (err) {
+    console.warn('[API] Failed fetching from /api/hillstate-assets:', err);
+  }
+
+  return null;
 }

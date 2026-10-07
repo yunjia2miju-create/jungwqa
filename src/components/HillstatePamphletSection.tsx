@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { 
+  uploadHillstateFileToStorage, 
+  saveHillstateAssetsService, 
+  getHillstateAssetsService 
+} from '../firebaseService';
+import { 
   Building2, 
   Compass, 
   GraduationCap, 
@@ -29,7 +34,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 
 // 고화질 선명도 유지하면서 저장 용량을 최적화하는 이미지 압축 유틸리티 (스마트폰 원본 고용량 방지)
@@ -170,23 +176,76 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageFile = (file: File) => {
+  // 파이어베이스 클라우드 영구 저장 상태 관리
+  const [isCloudUploading, setIsCloudUploading] = useState<boolean>(false);
+  const [cloudUploadMessage, setCloudUploadMessage] = useState<string>('');
+
+  // 0. 컴포넌트 마운트 시 파이어베이스 클라우드(스토리지 & DB) 영구 저장 에셋 자동 동기화
+  useEffect(() => {
+    getHillstateAssetsService().then((assets) => {
+      if (assets) {
+        if (assets.masterplanImage) {
+          setMasterplanImage(assets.masterplanImage);
+          localStorage.setItem('taewang_hillstate_masterplan_image', assets.masterplanImage);
+        }
+        if (assets.sectionPhotos && typeof assets.sectionPhotos === 'object') {
+          setSectionPhotos((prev) => {
+            const merged = { ...prev };
+            for (const [secKey, list] of Object.entries(assets.sectionPhotos!)) {
+              if (Array.isArray(list) && list.length > 0) {
+                merged[Number(secKey)] = list;
+              }
+            }
+            return merged;
+          });
+        }
+        if (assets.planPhotos && typeof assets.planPhotos === 'object') {
+          setPlanPhotos((prev) => {
+            const merged = { ...prev };
+            for (const [planKey, list] of Object.entries(assets.planPhotos!)) {
+              if (Array.isArray(list) && list.length > 0) {
+                merged[planKey] = list;
+              }
+            }
+            return merged;
+          });
+        }
+      }
+    }).catch((e) => console.info('Cloud assets fetch bypassed:', e));
+  }, []);
+
+  const handleImageFile = async (file: File) => {
     if (!isAdminLoggedIn) return;
     if (!file) return;
+
+    // 즉시 로컬 미리보기 반영
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
       if (dataUrl) {
         setMasterplanImage(dataUrl);
         setImageLoadFailed(false);
-        try {
-          localStorage.setItem('taewang_hillstate_masterplan_image', dataUrl);
-        } catch (err) {
-          console.warn('LocalStorage quota limit reached', err);
-        }
       }
     };
     reader.readAsDataURL(file);
+
+    // 파이어베이스 스토리지 및 클라우드 영구 업로드
+    setIsCloudUploading(true);
+    setCloudUploadMessage('단지 배치도 전경을 파이어베이스 클라우드에 영구 저장하는 중...');
+    try {
+      const cloudUrl = await uploadHillstateFileToStorage(file, file.name || '1 배치도-전경.png');
+      setMasterplanImage(cloudUrl);
+      setImageLoadFailed(false);
+      localStorage.setItem('taewang_hillstate_masterplan_image', cloudUrl);
+      await saveHillstateAssetsService({ masterplanImage: cloudUrl });
+      setCloudUploadMessage('파이어베이스 클라우드 영구 저장 완료! 전 세계 모든 방문자에게 즉시 공개됩니다.');
+      setTimeout(() => setCloudUploadMessage(''), 4000);
+    } catch (err) {
+      console.warn('Firebase upload error, saved to local cache:', err);
+      setCloudUploadMessage('');
+    } finally {
+      setIsCloudUploading(false);
+    }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -203,12 +262,14 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (file) handleImageFile(file);
   };
 
-  const handleResetImage = (e: React.MouseEvent) => {
+  const handleResetImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isAdminLoggedIn) return;
+    if (!window.confirm("배치도 전경 사진을 기본 설정으로 초기화하시겠습니까?")) return;
     localStorage.removeItem('taewang_hillstate_masterplan_image');
     setMasterplanImage('/1 배치도-전경.png');
     setImageLoadFailed(false);
+    await saveHillstateAssetsService({ masterplanImage: '/1 배치도-전경.png' });
   };
 
   // 카탈로그 1, 2, 3, 4, 5 섹션별 원본 사진 목록 상태 관리 (카테고리당 최대 10장, 깃허브 public 폴더 기본 매핑 & IndexedDB/로컬스토리지 영구 보존)
@@ -349,26 +410,39 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     }
 
     const filesToRead = files.slice(0, remainingSlots);
-    const optimizedUrls: string[] = [];
+    setIsCloudUploading(true);
+    setCloudUploadMessage(`${secNum}번 카테고리 사진을 파이어베이스 클라우드에 영구 저장하는 중...`);
+    const finalUrls: string[] = [];
 
     for (const file of filesToRead) {
-      const url = await optimizeImageForStorage(file);
-      if (url) optimizedUrls.push(url);
+      try {
+        const cloudUrl = await uploadHillstateFileToStorage(file, file.name);
+        if (cloudUrl) finalUrls.push(cloudUrl);
+      } catch (err) {
+        console.warn('Firebase storage upload fallback to local dataUrl:', err);
+        const localUrl = await optimizeImageForStorage(file);
+        if (localUrl) finalUrls.push(localUrl);
+      }
     }
 
-    if (optimizedUrls.length > 0) {
+    if (finalUrls.length > 0) {
       setSectionPhotos((prev) => {
-        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...finalUrls].slice(0, 10);
         saveSectionPhotosToDB(secNum, updated);
         try {
           localStorage.setItem(`taewang_hillstate_section_imgs_${secNum}`, JSON.stringify(updated));
         } catch (err) {
           console.warn('LocalStorage quota limit, safely stored in IndexedDB', err);
         }
-        return { ...prev, [secNum]: updated };
+        const newAll = { ...prev, [secNum]: updated };
+        saveHillstateAssetsService({ sectionPhotos: newAll });
+        return newAll;
       });
+      setCloudUploadMessage(`${secNum}번 카테고리 사진이 파이어베이스 클라우드에 영구 저장되었습니다!`);
+      setTimeout(() => setCloudUploadMessage(''), 4000);
     }
 
+    setIsCloudUploading(false);
     e.target.value = '';
   };
 
@@ -377,13 +451,16 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (!isAdminLoggedIn) return;
     setSectionPhotos((prev) => {
       const updated = (prev[secNum] || []).filter((_, idx) => idx !== indexToRemove);
-      saveSectionPhotosToDB(secNum, updated);
+      const finalList = updated.length === 0 ? [`/${secNum}.png`] : updated;
+      saveSectionPhotosToDB(secNum, finalList);
       try {
-        localStorage.setItem(`taewang_hillstate_section_imgs_${secNum}`, JSON.stringify(updated));
+        localStorage.setItem(`taewang_hillstate_section_imgs_${secNum}`, JSON.stringify(finalList));
       } catch (err) {
         console.warn(err);
       }
-      return { ...prev, [secNum]: updated };
+      const newAll = { ...prev, [secNum]: finalList };
+      saveHillstateAssetsService({ sectionPhotos: newAll });
+      return newAll;
     });
   };
 
@@ -403,7 +480,9 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
       } catch (err) {
         console.warn(err);
       }
-      return { ...prev, [secNum]: list };
+      const newAll = { ...prev, [secNum]: list };
+      saveHillstateAssetsService({ sectionPhotos: newAll });
+      return newAll;
     });
   };
 
@@ -412,8 +491,12 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (!window.confirm(`${secNum}번 카테고리의 모든 사진을 삭제하시겠습니까?`)) return;
     localStorage.removeItem(`taewang_hillstate_section_imgs_${secNum}`);
     localStorage.removeItem(`taewang_hillstate_section_img_${secNum}`);
-    saveSectionPhotosToDB(secNum, []);
-    setSectionPhotos((prev) => ({ ...prev, [secNum]: [`/${secNum}.png`] }));
+    saveSectionPhotosToDB(secNum, [`/${secNum}.png`]);
+    setSectionPhotos((prev) => {
+      const newAll = { ...prev, [secNum]: [`/${secNum}.png`] };
+      saveHillstateAssetsService({ sectionPhotos: newAll });
+      return newAll;
+    });
   };
 
   // 섹션 드래그 앤 드롭 파일 첨부 처리
@@ -433,25 +516,39 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     }
 
     const filesToRead = files.slice(0, remainingSlots);
-    const optimizedUrls: string[] = [];
+    setIsCloudUploading(true);
+    setCloudUploadMessage(`${secNum}번 카테고리 사진을 파이어베이스 클라우드에 영구 저장하는 중...`);
+    const finalUrls: string[] = [];
 
     for (const file of filesToRead) {
-      const url = await optimizeImageForStorage(file);
-      if (url) optimizedUrls.push(url);
+      try {
+        const cloudUrl = await uploadHillstateFileToStorage(file, file.name);
+        if (cloudUrl) finalUrls.push(cloudUrl);
+      } catch (err) {
+        console.warn('Firebase storage upload fallback to local dataUrl:', err);
+        const localUrl = await optimizeImageForStorage(file);
+        if (localUrl) finalUrls.push(localUrl);
+      }
     }
 
-    if (optimizedUrls.length > 0) {
+    if (finalUrls.length > 0) {
       setSectionPhotos((prev) => {
-        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...finalUrls].slice(0, 10);
         saveSectionPhotosToDB(secNum, updated);
         try {
           localStorage.setItem(`taewang_hillstate_section_imgs_${secNum}`, JSON.stringify(updated));
         } catch (err) {
           console.warn(err);
         }
-        return { ...prev, [secNum]: updated };
+        const newAll = { ...prev, [secNum]: updated };
+        saveHillstateAssetsService({ sectionPhotos: newAll });
+        return newAll;
       });
+      setCloudUploadMessage(`${secNum}번 카테고리 사진이 파이어베이스 클라우드에 영구 저장되었습니다!`);
+      setTimeout(() => setCloudUploadMessage(''), 4000);
     }
+
+    setIsCloudUploading(false);
   };
 
   // 섹션별 다중 사진 갤러리 컴포넌트 (최대 10장)
@@ -625,27 +722,40 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     }
 
     const filesToRead = files.slice(0, remainingSlots);
-    const optimizedUrls: string[] = [];
+    setIsCloudUploading(true);
+    setCloudUploadMessage(`${pType}형 평면도 사진을 파이어베이스 클라우드에 영구 저장하는 중...`);
+    const finalUrls: string[] = [];
 
     for (const file of filesToRead) {
-      const url = await optimizeImageForStorage(file);
-      if (url) optimizedUrls.push(url);
+      try {
+        const cloudUrl = await uploadHillstateFileToStorage(file, file.name);
+        if (cloudUrl) finalUrls.push(cloudUrl);
+      } catch (err) {
+        console.warn('Firebase storage upload fallback to local dataUrl:', err);
+        const localUrl = await optimizeImageForStorage(file);
+        if (localUrl) finalUrls.push(localUrl);
+      }
     }
 
-    if (optimizedUrls.length > 0) {
+    if (finalUrls.length > 0) {
       setPlanPhotos((prev) => {
-        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...finalUrls].slice(0, 10);
         savePlanPhotosToDB(pType, updated);
         try {
           localStorage.setItem(`taewang_hillstate_plan_imgs_${pType}`, JSON.stringify(updated));
         } catch (err) {
           console.warn('LocalStorage quota limit, safely stored in IndexedDB', err);
         }
-        return { ...prev, [pType]: updated };
+        const newAll = { ...prev, [pType]: updated };
+        saveHillstateAssetsService({ planPhotos: newAll });
+        return newAll;
       });
-      setPlanActiveIndex((prev) => ({ ...prev, [pType]: (baseList.length) }));
+      setPlanActiveIndex((prev) => ({ ...prev, [pType]: baseList.length }));
+      setCloudUploadMessage(`${pType}형 평면도 사진이 파이어베이스 클라우드에 영구 저장되었습니다!`);
+      setTimeout(() => setCloudUploadMessage(''), 4000);
     }
 
+    setIsCloudUploading(false);
     e.target.value = '';
   };
 
@@ -660,7 +770,9 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
       } catch (err) {
         console.warn(err);
       }
-      return { ...prev, [pType]: finalList };
+      const newAll = { ...prev, [pType]: finalList };
+      saveHillstateAssetsService({ planPhotos: newAll });
+      return newAll;
     });
     setPlanActiveIndex((prev) => {
       const cur = prev[pType] || 0;
@@ -676,7 +788,11 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (!window.confirm(`${pType}형의 모든 평면도 사진을 삭제하시겠습니까?`)) return;
     localStorage.removeItem(`taewang_hillstate_plan_imgs_${pType}`);
     savePlanPhotosToDB(pType, [`/${pType}.png`]);
-    setPlanPhotos((prev) => ({ ...prev, [pType]: [`/${pType}.png`] }));
+    setPlanPhotos((prev) => {
+      const newAll = { ...prev, [pType]: [`/${pType}.png`] };
+      saveHillstateAssetsService({ planPhotos: newAll });
+      return newAll;
+    });
     setPlanActiveIndex((prev) => ({ ...prev, [pType]: 0 }));
   };
 
@@ -696,26 +812,40 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     }
 
     const filesToRead = files.slice(0, remainingSlots);
-    const optimizedUrls: string[] = [];
+    setIsCloudUploading(true);
+    setCloudUploadMessage(`${pType}형 평면도 사진을 파이어베이스 클라우드에 영구 저장하는 중...`);
+    const finalUrls: string[] = [];
 
     for (const file of filesToRead) {
-      const url = await optimizeImageForStorage(file);
-      if (url) optimizedUrls.push(url);
+      try {
+        const cloudUrl = await uploadHillstateFileToStorage(file, file.name);
+        if (cloudUrl) finalUrls.push(cloudUrl);
+      } catch (err) {
+        console.warn('Firebase storage upload fallback to local dataUrl:', err);
+        const localUrl = await optimizeImageForStorage(file);
+        if (localUrl) finalUrls.push(localUrl);
+      }
     }
 
-    if (optimizedUrls.length > 0) {
+    if (finalUrls.length > 0) {
       setPlanPhotos((prev) => {
-        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...finalUrls].slice(0, 10);
         savePlanPhotosToDB(pType, updated);
         try {
           localStorage.setItem(`taewang_hillstate_plan_imgs_${pType}`, JSON.stringify(updated));
         } catch (err) {
           console.warn(err);
         }
-        return { ...prev, [pType]: updated };
+        const newAll = { ...prev, [pType]: updated };
+        saveHillstateAssetsService({ planPhotos: newAll });
+        return newAll;
       });
-      setPlanActiveIndex((prev) => ({ ...prev, [pType]: (baseList.length) }));
+      setPlanActiveIndex((prev) => ({ ...prev, [pType]: baseList.length }));
+      setCloudUploadMessage(`${pType}형 평면도 사진이 파이어베이스 클라우드에 영구 저장되었습니다!`);
+      setTimeout(() => setCloudUploadMessage(''), 4000);
     }
+
+    setIsCloudUploading(false);
   };
 
   // 84A, 84B, 114, 132, 162 세대별 평면도 전용 고화질 비주얼 박스 (사진 첨부 / 교체 / 확대)

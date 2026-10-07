@@ -36,6 +36,7 @@ async function startServer() {
   const POSTS_FILE = path.join(DATA_DIR, 'posts.json');
   const INQUIRIES_FILE = path.join(DATA_DIR, 'inquiries.json');
   const USERS_FILE = path.join(DATA_DIR, 'users.json');
+  const HILLSTATE_ASSETS_FILE = path.join(DATA_DIR, 'hillstate_assets.json');
 
   // Ensure data directory exists with robust read-only fallback to prevent startup/deploy crashes
   try {
@@ -56,6 +57,11 @@ async function startServer() {
     // Ensure users.json exists
     if (!fs.existsSync(USERS_FILE)) {
       fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    }
+
+    // Ensure hillstate_assets.json exists
+    if (!fs.existsSync(HILLSTATE_ASSETS_FILE)) {
+      fs.writeFileSync(HILLSTATE_ASSETS_FILE, JSON.stringify({}, null, 2), 'utf-8');
     }
 
     // Ensure public/website/vr-captured-banner.jpg exists
@@ -953,6 +959,61 @@ async function startServer() {
     writeUsers(users);
 
     res.json(users);
+  });
+
+  // Hillstate Pamphlet Cloud Assets endpoints (Firebase + Server sync)
+  app.get('/api/hillstate-assets', async (req, res) => {
+    try {
+      const firestoreResult = await executeFirestoreOp(async (dbInstance) => {
+        const docRef = dbInstance.collection('site_assets').doc('hillstate_brochure');
+        const snap = await docRef.get();
+        if (snap.exists) return snap.data();
+        return null;
+      }, null);
+
+      if (firestoreResult) {
+        return res.json(firestoreResult);
+      }
+
+      if (fs.existsSync(HILLSTATE_ASSETS_FILE)) {
+        const raw = fs.readFileSync(HILLSTATE_ASSETS_FILE, 'utf-8');
+        return res.json(JSON.parse(raw));
+      }
+
+      return res.json({});
+    } catch (e) {
+      console.warn('[Hillstate Assets] GET error:', e);
+      return res.json({});
+    }
+  });
+
+  app.post('/api/hillstate-assets', async (req, res) => {
+    try {
+      const payload = req.body || {};
+
+      await executeFirestoreOp(async (dbInstance) => {
+        const docRef = dbInstance.collection('site_assets').doc('hillstate_brochure');
+        await docRef.set(payload, { merge: true });
+        console.log('[Firestore Admin] Hillstate assets saved to site_assets/hillstate_brochure');
+        return true;
+      }, false);
+
+      try {
+        let existing = {};
+        if (fs.existsSync(HILLSTATE_ASSETS_FILE)) {
+          existing = JSON.parse(fs.readFileSync(HILLSTATE_ASSETS_FILE, 'utf-8') || '{}');
+        }
+        const merged = { ...existing, ...payload };
+        fs.writeFileSync(HILLSTATE_ASSETS_FILE, JSON.stringify(merged, null, 2), 'utf-8');
+      } catch (fileErr) {
+        console.warn('[Hillstate Assets] Local file save failed:', fileErr);
+      }
+
+      return res.json({ success: true });
+    } catch (e: any) {
+      console.error('[Hillstate Assets] POST error:', e);
+      return res.status(500).json({ error: e.message });
+    }
   });
 
   // API 404 Fallback

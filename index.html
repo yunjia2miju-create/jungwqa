@@ -110,84 +110,11 @@
               
               const ogUrlEl = document.getElementById('ogUrl');
               if (ogUrlEl) { ogUrlEl.setAttribute('content', canonicalUrl); }
-              
-              let actualScreenImg = '';
-              try {
-                  const selectors = ['.main-preview-img', '#detailMainImg', '#mainImage', '.property-img', '.gallery-top img', 'img[alt="매물 대표 사진"]', 'img[alt="VR 대표 실사 썸네일"]', '#detail-section img', '#vr-starter-thumbnail-mask img'];
-                  for (let i = 0; i < selectors.length; i++) {
-                      const img = document.querySelector(selectors[i]);
-                      if (img && img.src && (img.src.includes('firebasestorage') || img.src.includes('googleapis'))) {
-                          actualScreenImg = img.src;
-                          break;
-                      }
-                  }
-                  if (!actualScreenImg) {
-                      const allImgs = Array.from(document.querySelectorAll('img'));
-                      const firebaseImg = allImgs.find(img => {
-                          const src = img.src || '';
-                          return (src.includes('firebasestorage') || src.includes('googleapis')) && !src.includes('/fonts%2F') && img.offsetWidth > 100 && img.offsetHeight > 100;
-                      }) || allImgs.find(img => {
-                          const src = img.src || '';
-                          return (src.includes('firebasestorage') || src.includes('googleapis')) && !src.includes('/fonts%2F');
-                      });
-                      if (firebaseImg && firebaseImg.src) { actualScreenImg = firebaseImg.src; }
-                  }
-                  if (!actualScreenImg) {
-                      const targetImg = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img') || document.querySelector('.gallery-top img') || document.querySelector('img[alt="매물 대표 사진"]') || document.querySelector('img[alt="VR 대표 실사 썸네일"]') || document.querySelector('#detail-section img') || document.querySelector('#vr-starter-thumbnail-mask img') || document.querySelector('img[src*="/images/"]');
-                      if (targetImg && targetImg.src) { actualScreenImg = targetImg.src; }
-                  }
-                  if (actualScreenImg && actualScreenImg.startsWith('/')) { actualScreenImg = window.location.origin + actualScreenImg; }
-              } catch (imgErr) { console.error('Firebase storage sensor error:', imgErr); }
-
-              if (itemId) {
-                  const dong = document.getElementById('selectedDong')?.value || "구미"; 
-                  const building = document.getElementById('buildingName')?.value || "추천 매물";
-                  const type = document.querySelector('.btn-item.active')?.innerText || "매물";
-                  const newTitle = `태왕공인중개사사무소 - [${dong} ${building} ${type}]`;
-                  const newDesc = `실제 발로 뛴 생생한 현장 인프라와 360도 VR 화면을 다이렉트로 확인하세요.`;
-                  
-                  const ogTitleEl = document.getElementById('ogTitle');
-                  if (ogTitleEl) { ogTitleEl.setAttribute('content', newTitle); }
-                  const ogDescEl = document.getElementById('ogDesc');
-                  if (ogDescEl) { ogDescEl.setAttribute('content', newDesc); }
-                  const itemImage = actualScreenImg || `https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg`;
-                  document.getElementById('ogImage')?.setAttribute('content', itemImage);
-                  document.getElementById('ogImageUrl')?.setAttribute('content', itemImage);
-                  document.getElementById('ogImageSecureUrl')?.setAttribute('content', itemImage);
-              } else {
-                  const itemImage = actualScreenImg || 'https://www.xn--h49a2pelq49bcrfloji4br3e56y.com/website/vr-captured-banner.jpg';
-                  document.getElementById('ogImage')?.setAttribute('content', itemImage);
-                  document.getElementById('ogImageUrl')?.setAttribute('content', itemImage);
-                  document.getElementById('ogImageSecureUrl')?.setAttribute('content', itemImage);
-              }
           } catch (e) { console.error('Dynamic card engine error:', e); }
       }
       try { runDynamicCardEngine(); } catch (err) {}
       window.addEventListener('DOMContentLoaded', function() {
           runDynamicCardEngine();
-          const currentUrl = window.location.href;
-          if (currentUrl.includes('id=')) {
-              document.getElementById('ogUrl')?.setAttribute('content', currentUrl);
-              document.getElementById('canonicalUrl')?.setAttribute('href', currentUrl);
-              const allImgs = Array.from(document.querySelectorAll('img'));
-              const firebaseImg = allImgs.find(img => img.src && (img.src.includes('firebasestorage') || img.src.includes('googleapis')));
-              let realImg = '';
-              if (firebaseImg && firebaseImg.src) { realImg = firebaseImg.src; }
-              else {
-                  const imgEl = document.querySelector('.main-preview-img') || document.querySelector('#detailMainImg') || document.querySelector('#mainImage') || document.querySelector('.property-img') || document.querySelector('.gallery-top img') || document.querySelector('img[alt="매물 대표 사진"]');
-                  if (imgEl && imgEl.src) { realImg = imgEl.src; }
-              }
-              if (realImg) {
-                  if (realImg.startsWith('/')) { realImg = window.location.origin + realImg; }
-                  document.getElementById('ogImage')?.setAttribute('content', realImg);
-              }
-          }
-      });
-      window.addEventListener('load', function() {
-          runDynamicCardEngine();
-          var observer = new MutationObserver(runDynamicCardEngine);
-          var targetNode = document.getElementById('root');
-          if (targetNode) { observer.observe(targetNode, { childList: true, subtree: true }); }
       });
     </script>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { Home, ArrowLeft, Phone } from 'lucide-react';
+import { NaverVrBadge } from './NaverVrBadge';
 import { motion } from 'motion/react';
 
 interface VrListTabProps {
@@ -125,7 +126,7 @@ export const VrListTab: React.FC<VrListTabProps> = ({ openPhoneSelectModal, show
                                         />
                                         
                                         {/* Category & Status Badges */}
-                                        <div className="absolute top-3.5 left-3.5 flex gap-1.5 flex-wrap">
+                                        <div className="absolute top-3.5 left-3.5 flex gap-1.5 flex-wrap z-10">
                                             <span className="bg-[#0B2545] text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg uppercase shadow-lg shadow-black/20">
                                                 {item.category}
                                             </span>
@@ -136,8 +137,13 @@ export const VrListTab: React.FC<VrListTabProps> = ({ openPhoneSelectModal, show
                                             )}
                                         </div>
 
+                                        {/* Naver Real Estate Style Central VR 360 Badge Overlay */}
+                                        <div className="absolute inset-0 bg-black/25 group-hover:bg-black/40 flex items-center justify-center transition-all duration-300 z-10">
+                                            <NaverVrBadge className="transform group-hover:scale-110 transition-transform duration-300" />
+                                        </div>
+
                                         {/* VR Badge Indicator with animation */}
-                                        <div className="absolute top-3.5 right-3.5 bg-[#05D975] text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-lg shadow-lg shadow-emerald-500/35 flex items-center gap-1">
+                                        <div className="absolute top-3.5 right-3.5 bg-[#05D975] text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-lg shadow-lg shadow-emerald-500/35 flex items-center gap-1 z-10">
                                             <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                                             <span>360° VR</span>
                                         </div>

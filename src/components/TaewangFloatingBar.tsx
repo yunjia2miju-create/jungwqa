@@ -44,8 +44,9 @@ const TaewangFloatingBar: React.FC<FloatingBarProps> = () => {
   return ReactDOM.createPortal(
     <div className="taewang-floating-viewport-root select-none">
       
-      {/* 1. 빠른 이동 카테고리 패널 */}
-      <div className={`taewang-quick-nav-panel ${isOpen ? 'mobile-visible' : ''}`}>
+      {/* 1. 빠른 이동 카테고리 패널 (사장님 요청: 코드는 보존하고 화면에서만 숨김 처리) */}
+      {/* <div className={`taewang-quick-nav-panel ${isOpen ? 'mobile-visible' : ''}`}> ... </div> */}
+      <div className={`taewang-quick-nav-panel ${isOpen ? 'mobile-visible' : ''} !hidden`} style={{ display: 'none' }}>
         <div className="taewang-quick-header">
           <i className="fa-solid fa-compass taewang-compass-spin"></i>
           <span>빠른 카테고리</span>
@@ -68,10 +69,11 @@ const TaewangFloatingBar: React.FC<FloatingBarProps> = () => {
         </div>
       </div>
 
-      {/* 2. 모바일/태블릿용 빠른이동 토글 버튼 (데스크톱에서는 숨김) */}
+      {/* 2. 모바일/태블릿용 빠른이동 토글 버튼 (화면 숨김 처리) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`taewang-mobile-toggle-btn ${isOpen ? 'active' : ''}`}
+        className={`taewang-mobile-toggle-btn ${isOpen ? 'active' : ''} !hidden`}
+        style={{ display: 'none' }}
         title="카테고리 이동 메뉴"
       >
         <i className={`fa-solid ${isOpen ? 'fa-xmark text-sm' : 'fa-compass text-base'}`}></i>

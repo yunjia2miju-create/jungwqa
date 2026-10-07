@@ -1430,15 +1430,30 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
 
     const newUrl = `${hostUrl}${originalUrl}`;
 
-    // Optimize image with absolute proxy-image path so KakaoTalk scraping never fails
+    // Extract representative image for post (thumbnail -> first image -> first panorama)
+    let rawImg = post.thumbnail;
+    if (!rawImg && post.images) {
+      if (Array.isArray(post.images) && post.images.length > 0) {
+        rawImg = post.images[0];
+      } else if (typeof post.images === 'string' && post.images.trim()) {
+        rawImg = post.images.split(',')[0].trim();
+      }
+    }
+    if (!rawImg && post.panoramas && typeof post.panoramas === 'string' && post.panoramas.trim()) {
+      const pList = post.panoramas.split(/[,|]/);
+      if (pList[0] && (pList[0].startsWith('http') || pList[0].startsWith('/'))) {
+        rawImg = pList[0].trim();
+      }
+    }
+
     let newImage = `${hostUrl}/website/vr-captured-banner.jpg`;
-    if (post.thumbnail) {
-      if (post.thumbnail.startsWith('http://') || post.thumbnail.startsWith('https://')) {
-        newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(post.thumbnail)}`;
-      } else if (post.thumbnail.startsWith('/')) {
-        newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(hostUrl + post.thumbnail)}`;
+    if (rawImg) {
+      if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
+        newImage = rawImg;
+      } else if (rawImg.startsWith('/')) {
+        newImage = `${hostUrl}${rawImg}`;
       } else {
-        newImage = `${hostUrl}/api/proxy-image?url=${encodeURIComponent(hostUrl + '/' + post.thumbnail)}`;
+        newImage = `${hostUrl}/${rawImg}`;
       }
     }
 

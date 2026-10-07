@@ -554,6 +554,7 @@ export default function App() {
                                     <p>대표 : 유정화 | 등록번호 : 47190-2016-00027</p>
                                     <p>소재지 : 구미시 송정대로 6길18 (송정동 472-10번지)</p>
                                     <p>연락처 : <a href="tel:054-455-6789" className="hover:text-emerald-500 transition-colors">054-455-6789</a>, <a href="tel:010-7590-0111" className="hover:text-emerald-500 transition-colors">010-7590-0111</a></p>
+                                    <p>온라인대행 : (주) 에스피파트너스 ㅣ 대표자 : 최유정 ㅣ 사업자등록번호 : 752-86-02608</p>
                                 </div>
                                 <p className="text-[11px] sm:text-xs text-slate-400 font-normal leading-relaxed pt-1.5 break-keep max-w-2xl">
                                     본 사이트에 게시된 모든 매물 사진 및 360° 파노라마 VR 이미지 등 일체의 콘텐츠는 태왕공인중개사사무소의 고유 자산이며, 저작권법의 보호를 받습니다.<br />서면 동의 없는 임의 도용, 무단 전재 및 재배포를 엄격히 금지합니다.

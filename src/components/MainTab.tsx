@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { ChevronLeft, ChevronRight, Home, Search, Link as LinkIcon, Phone, ArrowUpRight } from 'lucide-react';
 import { submitInquiryService, getInquiriesService } from '../firebaseService';
 import { Naver360Icon } from './Naver360Icon';
+import { NaverVrBadge } from './NaverVrBadge';
 import { ViewAllModal } from './ViewAllModal';
 import { motion, AnimatePresence } from 'motion/react';
 import VrViewer from './VrViewer';
@@ -734,11 +735,11 @@ export const MainTab = ({
                         </span>
                     </h1>
 
-                    <p className="text-slate-200 text-sm sm:text-lg lg:text-xl leading-relaxed font-semibold max-w-4xl mx-auto">
-                        태왕공인중개사사무소는 오랜 경험과 정직함을 바탕으로 구미 전 지역의 프리미엄 부동산 정보를 선별하여 제공합니다.
-                        <br />
-                        신뢰할 수 있는 구미 대표 자사몰에서 단 한 줄의 정직한 인연을 통해 소중한 주거 공간의 가치를 발견해 보세요.
-                    </p>
+                    <div className="flex flex-col items-center gap-3 my-2">
+                        <div className="text-3xl sm:text-5xl lg:text-6xl font-black text-amber-300 tracking-tight drop-shadow-[0_4px_20px_rgba(252,211,77,0.35)]">
+                            힐스테이트 <span className="text-white drop-shadow-[0_4px_24px_rgba(255,255,255,0.4)]">"구미더퍼스트"</span>
+                        </div>
+                    </div>
 
                     <div className="flex flex-wrap justify-center gap-5 pt-4">
                         <a 
@@ -985,7 +986,8 @@ export const MainTab = ({
             </div>
 
             {/* [카테고리별 3D 슬라이드 판 & 기기별 반응형 최적화 - PC상에서는 화면을 가득 채우는 전체 화면 슬라이더 적용] */}
-            <div className="w-full py-24 space-y-36">
+            {/* 사장님 요청: 코드는 일체 삭제하지 않고 화면에만 숨김 처리 (hidden) */}
+            <div className="hidden w-full py-24 space-y-36">
 
                 {/* 1. 원룸 추천 매물 구역 */}
                 <div id="oneroom-section" className="space-y-12 w-full scroll-mt-28">
@@ -1508,27 +1510,47 @@ const Carousel3D = ({
                         const blogUrl = customBlogUrl || 'https://blog.naver.com/yunjia2miju';
                         const isVideoCategory = p.category === '유튜브' || p.category === '네이버TV';
                         const videoUrl = p.video || p.naverTv || p.naverBlogUrl || p.blogUrl || (String(p.remarks || '').match(/(https?:\/\/[^\s]+)/)?.[1]);
+                        const isVrCategory = p.category === '360 VR사진' || (p.panoramas && typeof p.panoramas === 'string' && p.panoramas.trim().length > 0) || p.vrThumbnail;
+
+                        let cardImg = p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail);
+                        if (!cardImg && p.panoramas && typeof p.panoramas === 'string' && p.panoramas.trim().length > 0) {
+                            const pList = p.panoramas.split(/[,|]/);
+                            if (pList[0] && (pList[0].startsWith('http') || pList[0].startsWith('/'))) {
+                                cardImg = pList[0].trim();
+                            }
+                        }
+                        if (!cardImg) {
+                            cardImg = 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&h=675&q=80';
+                        }
 
                         return (
                             <div
                                 key={`${p.id}-${idx}`}
                                 onClick={() => handleCardClick(p)}
-                                className="w-[315px] sm:w-[360px] h-[420px] sm:h-[480px] bg-white rounded-[28px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-1.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0"
+                                className="w-[315px] sm:w-[360px] h-[420px] sm:h-[480px] bg-white rounded-[28px] border border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(100,223,223,0.12)] hover:-translate-y-1.5 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col justify-between shrink-0 group"
                             >
                                 {/* 3D 효과를 배제하고 오직 평면 사진 갤러리 감성을 극대화한 프레임 - 12:9 (4:3) 썸네일로 구성 */}
                                 <div className="relative aspect-[12/9] w-full bg-slate-50 overflow-hidden shrink-0 border-b border-slate-100">
                                     <img 
-                                        src={p.category === '360 VR사진' ? (p.vrThumbnail || p.thumbnail) : (p.thumbnail || p.vrThumbnail)} 
+                                        src={cardImg} 
                                         alt={p.building} 
                                         referrerPolicy="no-referrer"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                         style={{ aspectRatio: '12/9' }}
                                     />
-                                    <div className="absolute top-3 left-3 flex gap-1.5">
+                                    <div className="absolute top-3 left-3 flex gap-1.5 z-10">
                                         <span className="bg-[#1c2541] text-white text-[9px] font-black px-2.5 py-1 rounded-md shadow-md uppercase">
                                             {p.category}
                                         </span>
                                     </div>
+
+                                    {/* 네이버 부동산 스타일 360 VR 오버레이 배지 오버레이 */}
+                                    {isVrCategory && !isVideoCategory && (
+                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/35 flex items-center justify-center transition-all duration-300 z-10">
+                                            <NaverVrBadge className="transform group-hover:scale-110 transition-transform duration-300" />
+                                        </div>
+                                    )}
+
                                     {isVideoCategory && (
                                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-all duration-300">
                                             {p.category === '유튜브' ? (

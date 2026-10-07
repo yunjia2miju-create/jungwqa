@@ -211,14 +211,14 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     setImageLoadFailed(false);
   };
 
-  // 카탈로그 1, 2, 3, 4, 5 섹션별 원본 사진 목록 상태 관리 (카테고리당 최대 10장, IndexedDB & 로컬스토리지 영구 보존)
+  // 카탈로그 1, 2, 3, 4, 5 섹션별 원본 사진 목록 상태 관리 (카테고리당 최대 10장, 깃허브 public 폴더 기본 매핑 & IndexedDB/로컬스토리지 영구 보존)
   const [sectionPhotos, setSectionPhotos] = useState<{ [key: number]: string[] }>(() => {
     const loadList = (secNum: number) => {
       try {
         const stored = localStorage.getItem(`taewang_hillstate_section_imgs_${secNum}`);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) return parsed.slice(0, 10);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
         }
         // 과거 단일 사진이 저장되어 있다면 자동 마이그레이션
         const oldSingle = localStorage.getItem(`taewang_hillstate_section_img_${secNum}`);
@@ -226,7 +226,8 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
       } catch (e) {
         console.warn(e);
       }
-      return [];
+      // 깃허브 public 폴더의 공식 기본 파일 (1.png, 2.png, 3.png, 4.png, 5.png)
+      return [`/${secNum}.png`];
     };
     return {
       1: loadList(1),
@@ -237,21 +238,22 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     };
   });
 
-  // 84A, 84B, 114, 132, 162 세대별 평면도 사진 관리 (타입당 최대 10장, IndexedDB & 로컬스토리지 영구 보존)
+  // 84A, 84B, 114, 132, 162 세대별 평면도 사진 관리 (타입당 최대 10장, 깃허브 public 폴더 기본 매핑 & IndexedDB/로컬스토리지 영구 보존)
   const [planPhotos, setPlanPhotos] = useState<{ [key: string]: string[] }>(() => {
     const loadPlan = (pType: string) => {
       try {
         const stored = localStorage.getItem(`taewang_hillstate_plan_imgs_${pType}`);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) return parsed.slice(0, 10);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
         }
         const single = localStorage.getItem(`taewang_hillstate_plan_img_${pType}`);
         if (single) return [single];
       } catch (e) {
         console.warn(e);
       }
-      return [];
+      // 깃허브 public 폴더의 공식 기본 파일 (84A.png, 84B.png, 114.png, 132.png, 162.png)
+      return [`/${pType}.png`];
     };
     return {
       '84A': loadPlan('84A'),
@@ -335,8 +337,10 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (files.length === 0) return;
 
     const secNum = targetUploadSection;
-    const currentList = sectionPhotos[secNum] || [];
-    const remainingSlots = 10 - currentList.length;
+    const rawList = sectionPhotos[secNum] || [];
+    const isDefaultOnly = rawList.length === 1 && rawList[0] === `/${secNum}.png`;
+    const baseList = isDefaultOnly ? [] : rawList;
+    const remainingSlots = 10 - baseList.length;
 
     if (remainingSlots <= 0) {
       alert("이 카테고리에는 이미 최대 10장의 사진이 모두 등록되어 있습니다. 기존 사진을 삭제 후 추가해 주세요.");
@@ -354,7 +358,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
 
     if (optimizedUrls.length > 0) {
       setSectionPhotos((prev) => {
-        const updated = [...(prev[secNum] || []), ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
         saveSectionPhotosToDB(secNum, updated);
         try {
           localStorage.setItem(`taewang_hillstate_section_imgs_${secNum}`, JSON.stringify(updated));
@@ -409,7 +413,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     localStorage.removeItem(`taewang_hillstate_section_imgs_${secNum}`);
     localStorage.removeItem(`taewang_hillstate_section_img_${secNum}`);
     saveSectionPhotosToDB(secNum, []);
-    setSectionPhotos((prev) => ({ ...prev, [secNum]: [] }));
+    setSectionPhotos((prev) => ({ ...prev, [secNum]: [`/${secNum}.png`] }));
   };
 
   // 섹션 드래그 앤 드롭 파일 첨부 처리
@@ -419,8 +423,10 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
     if (files.length === 0) return;
 
-    const currentList = sectionPhotos[secNum] || [];
-    const remainingSlots = 10 - currentList.length;
+    const rawList = sectionPhotos[secNum] || [];
+    const isDefaultOnly = rawList.length === 1 && rawList[0] === `/${secNum}.png`;
+    const baseList = isDefaultOnly ? [] : rawList;
+    const remainingSlots = 10 - baseList.length;
     if (remainingSlots <= 0) {
       alert("이 카테고리에는 이미 최대 10장의 사진이 모두 등록되어 있습니다.");
       return;
@@ -436,7 +442,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
 
     if (optimizedUrls.length > 0) {
       setSectionPhotos((prev) => {
-        const updated = [...(prev[secNum] || []), ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
         saveSectionPhotosToDB(secNum, updated);
         try {
           localStorage.setItem(`taewang_hillstate_section_imgs_${secNum}`, JSON.stringify(updated));
@@ -497,7 +503,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
                 onClick={() => setModalZoomData({ images: photos, currentIndex: idx, title: `${secNum}. ${title}`, sectionNum: secNum })}
               >
                 <img 
-                  src={url} 
+                  src={url.startsWith('data:') ? url : encodeURI(url)} 
                   alt={`${secNum}. ${title} - 사진 ${idx + 1}`} 
                   className="w-full h-full object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
                 />
@@ -607,8 +613,10 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (files.length === 0) return;
 
     const pType = targetUploadPlan;
-    const currentList = planPhotos[pType] || [];
-    const remainingSlots = 10 - currentList.length;
+    const rawList = planPhotos[pType] || [];
+    const isDefaultOnly = rawList.length === 1 && rawList[0] === `/${pType}.png`;
+    const baseList = isDefaultOnly ? [] : rawList;
+    const remainingSlots = 10 - baseList.length;
 
     if (remainingSlots <= 0) {
       alert(`${pType}형에는 이미 최대 10장의 평면도 사진이 모두 등록되어 있습니다. 기존 사진을 삭제 후 추가해 주세요.`);
@@ -626,7 +634,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
 
     if (optimizedUrls.length > 0) {
       setPlanPhotos((prev) => {
-        const updated = [...(prev[pType] || []), ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
         savePlanPhotosToDB(pType, updated);
         try {
           localStorage.setItem(`taewang_hillstate_plan_imgs_${pType}`, JSON.stringify(updated));
@@ -635,7 +643,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
         }
         return { ...prev, [pType]: updated };
       });
-      setPlanActiveIndex((prev) => ({ ...prev, [pType]: (planPhotos[pType]?.length || 0) }));
+      setPlanActiveIndex((prev) => ({ ...prev, [pType]: (baseList.length) }));
     }
 
     e.target.value = '';
@@ -645,13 +653,14 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (!isAdminLoggedIn) return;
     setPlanPhotos((prev) => {
       const updated = (prev[pType] || []).filter((_, idx) => idx !== indexToRemove);
-      savePlanPhotosToDB(pType, updated);
+      const finalList = updated.length === 0 ? [`/${pType}.png`] : updated;
+      savePlanPhotosToDB(pType, finalList);
       try {
-        localStorage.setItem(`taewang_hillstate_plan_imgs_${pType}`, JSON.stringify(updated));
+        localStorage.setItem(`taewang_hillstate_plan_imgs_${pType}`, JSON.stringify(finalList));
       } catch (err) {
         console.warn(err);
       }
-      return { ...prev, [pType]: updated };
+      return { ...prev, [pType]: finalList };
     });
     setPlanActiveIndex((prev) => {
       const cur = prev[pType] || 0;
@@ -666,8 +675,8 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     if (!isAdminLoggedIn) return;
     if (!window.confirm(`${pType}형의 모든 평면도 사진을 삭제하시겠습니까?`)) return;
     localStorage.removeItem(`taewang_hillstate_plan_imgs_${pType}`);
-    savePlanPhotosToDB(pType, []);
-    setPlanPhotos((prev) => ({ ...prev, [pType]: [] }));
+    savePlanPhotosToDB(pType, [`/${pType}.png`]);
+    setPlanPhotos((prev) => ({ ...prev, [pType]: [`/${pType}.png`] }));
     setPlanActiveIndex((prev) => ({ ...prev, [pType]: 0 }));
   };
 
@@ -677,8 +686,10 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
     const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
     if (files.length === 0) return;
 
-    const currentList = planPhotos[pType] || [];
-    const remainingSlots = 10 - currentList.length;
+    const rawList = planPhotos[pType] || [];
+    const isDefaultOnly = rawList.length === 1 && rawList[0] === `/${pType}.png`;
+    const baseList = isDefaultOnly ? [] : rawList;
+    const remainingSlots = 10 - baseList.length;
     if (remainingSlots <= 0) {
       alert(`${pType}형에는 이미 최대 10장의 사진이 모두 등록되어 있습니다.`);
       return;
@@ -694,7 +705,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
 
     if (optimizedUrls.length > 0) {
       setPlanPhotos((prev) => {
-        const updated = [...(prev[pType] || []), ...optimizedUrls].slice(0, 10);
+        const updated = [...baseList, ...optimizedUrls].slice(0, 10);
         savePlanPhotosToDB(pType, updated);
         try {
           localStorage.setItem(`taewang_hillstate_plan_imgs_${pType}`, JSON.stringify(updated));
@@ -703,7 +714,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
         }
         return { ...prev, [pType]: updated };
       });
-      setPlanActiveIndex((prev) => ({ ...prev, [pType]: (planPhotos[pType]?.length || 0) }));
+      setPlanActiveIndex((prev) => ({ ...prev, [pType]: (baseList.length) }));
     }
   };
 
@@ -800,7 +811,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
               })}
             >
               <img 
-                src={currentPhoto} 
+                src={currentPhoto.startsWith('data:') ? currentPhoto : encodeURI(currentPhoto)} 
                 alt={`${type}형 평면도 사진`} 
                 className="w-full h-full object-contain p-2 mx-auto transition-transform duration-500 group-hover:scale-105"
               />
@@ -1038,12 +1049,14 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
                     className="relative cursor-zoom-in rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black/60 group-hover:border-amber-400/50 transition-all duration-300"
                   >
                     <img 
-                      src={masterplanImage} 
+                      src={masterplanImage.startsWith('data:') ? masterplanImage : encodeURI(masterplanImage)} 
                       alt="힐스테이트 구미더퍼스트 1 배치도-전경 원본 사진" 
                       className="w-full h-auto max-h-[680px] object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
                       onError={() => {
-                        // If file isn't uploaded yet, try fallback SVG
-                        if (!masterplanImage.startsWith('data:') && masterplanImage !== '/hillstate/masterplan-perspective.svg') {
+                        // If file isn't uploaded yet, try fallback images
+                        if (!masterplanImage.startsWith('data:') && masterplanImage !== '/hillstate/masterplan-perspective.png' && masterplanImage !== '/hillstate/masterplan-perspective.svg') {
+                          setMasterplanImage('/hillstate/masterplan-perspective.png');
+                        } else if (masterplanImage === '/hillstate/masterplan-perspective.png') {
                           setMasterplanImage('/hillstate/masterplan-perspective.svg');
                         } else {
                           setImageLoadFailed(true);
@@ -2031,7 +2044,7 @@ export const HillstatePamphletSection: React.FC<HillstatePamphletSectionProps> =
             onClick={(e) => e.stopPropagation()}
           >
             <img 
-              src={masterplanImage} 
+              src={masterplanImage.startsWith('data:') ? masterplanImage : encodeURI(masterplanImage)} 
               alt="힐스테이트 구미더퍼스트 1 배치도-전경 원본 확대" 
               className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] border border-white/10"
             />

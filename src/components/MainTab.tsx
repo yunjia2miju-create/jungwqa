@@ -5,6 +5,7 @@ import { submitInquiryService, getInquiriesService } from '../firebaseService';
 import { Naver360Icon } from './Naver360Icon';
 import { NaverVrBadge } from './NaverVrBadge';
 import { ViewAllModal } from './ViewAllModal';
+import { HillstatePamphletSection } from './HillstatePamphletSection';
 import { motion, AnimatePresence } from 'motion/react';
 import VrViewer from './VrViewer';
 
@@ -984,6 +985,9 @@ export const MainTab = ({
                     </div>
                 </div>
             </div>
+
+            {/* [힐스테이트 구미더퍼스트 모델하우스 연속 스크롤 안내 팜플렛 구역 - 최신 360 VR 매물 바로 밑 배치] */}
+            <HillstatePamphletSection isAdminLoggedIn={isAdminLoggedIn} />
 
             {/* [카테고리별 3D 슬라이드 판 & 기기별 반응형 최적화 - PC상에서는 화면을 가득 채우는 전체 화면 슬라이더 적용] */}
             {/* 사장님 요청: 코드는 일체 삭제하지 않고 화면에만 숨김 처리 (hidden) */}

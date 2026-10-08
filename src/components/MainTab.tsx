@@ -715,10 +715,10 @@ export const MainTab = ({
                 <div className="absolute inset-0 bg-gradient-to-b from-[#0B2545] via-[#081D33] to-[#040E1A] opacity-100"></div>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent)]"></div>
 
-                <div className="relative z-10 max-w-5xl mx-auto w-full text-center space-y-8 px-4 flex flex-col items-center">
+                <div className="relative z-10 max-w-6xl mx-auto w-full text-center space-y-8 sm:space-y-10 px-4 flex flex-col items-center">
                     
                     {/* 360 집 모양 VR 아이콘 */}
-                    <div className="relative mb-3 animate-[pulse_3s_ease-in-out_infinite]">
+                    <div className="relative mb-2 animate-[pulse_3s_ease-in-out_infinite]">
                         <Naver360Icon className="w-36 h-36 sm:w-44 sm:h-44 drop-shadow-[0_16px_48px_rgba(100,223,223,0.35)] hover:scale-110 active:scale-95 transition-all duration-500 cursor-pointer" />
                     </div>
 
@@ -728,20 +728,29 @@ export const MainTab = ({
                         </span>
                     </div>
 
-                    <h1 className="flex flex-col items-center gap-3.5 select-none">
-                        <span className="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-none drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
-                            360 공간 현장 VR 투어
+                    <h1 className="flex flex-col items-center gap-4 sm:gap-6 select-none w-full">
+                        {/* 힐스테이트 구미더퍼스트 (줄바꿈 없이 완벽한 단일 한 줄로 고정 및 웅장한 크기) */}
+                        <span className="whitespace-nowrap text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white tracking-tight sm:tracking-tighter leading-none drop-shadow-[0_15px_40px_rgba(0,0,0,0.7)]">
+                            힐스테이트 구미더퍼스트
                         </span>
-                        <span className="text-xl sm:text-3xl lg:text-4xl font-black text-[#64dfdf] tracking-tight leading-none drop-shadow-[0_5px_15px_rgba(100,223,223,0.3)] mt-1">
+                        
+                        {/* 054-455-6789 (한 줄 고정 & 눈에 확 띄는 골드 옐로우) */}
+                        <a 
+                            href="tel:054-455-6789"
+                            className="inline-flex items-center justify-center gap-2 sm:gap-4 px-5 sm:px-10 py-2 sm:py-3.5 rounded-full bg-amber-400/10 hover:bg-amber-400/25 border-2 border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-amber-200 transition-all duration-300 shadow-[0_0_35px_rgba(251,191,36,0.4)] hover:scale-105 active:scale-95 cursor-pointer my-1 group whitespace-nowrap"
+                            title="전화 바로걸기: 054-455-6789"
+                        >
+                            <Phone className="w-6 h-6 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-amber-300 fill-amber-300/30 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
+                            <span className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wider sm:tracking-widest font-mono text-amber-300 drop-shadow-[0_6px_25px_rgba(252,211,77,0.75)] leading-none whitespace-nowrap">
+                                054-455-6789
+                            </span>
+                        </a>
+
+                        {/* 단 한줄의 정직한 가치 (한 줄 고정) */}
+                        <span className="whitespace-nowrap text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#64dfdf] tracking-tight leading-none drop-shadow-[0_8px_25px_rgba(100,223,223,0.4)] mt-1">
                             단 한줄의 정직한 가치
                         </span>
                     </h1>
-
-                    <div className="flex flex-col items-center gap-3 my-2">
-                        <div className="text-3xl sm:text-5xl lg:text-6xl font-black text-amber-300 tracking-tight drop-shadow-[0_4px_20px_rgba(252,211,77,0.35)]">
-                            힐스테이트 <span className="text-white drop-shadow-[0_4px_24px_rgba(255,255,255,0.4)]">"구미더퍼스트"</span>
-                        </div>
-                    </div>
 
                     <div className="flex flex-wrap justify-center gap-5 pt-4">
                         <a 

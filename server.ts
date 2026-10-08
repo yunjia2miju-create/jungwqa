@@ -1554,6 +1554,24 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
     ? (_dirname.endsWith('dist') || _dirname.endsWith('dist/') ? _dirname : path.join(_dirname, 'dist'))
     : path.join(projectRoot, 'dist');
 
+  // Support Korean & static filenames (e.g., 축하금.png) in public/ and root folder with no-cache for instant replacement
+  app.use((req, res, next) => {
+    try {
+      const decodedPath = decodeURIComponent(req.path);
+      const publicPath = path.join(projectRoot, 'public', decodedPath);
+      if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
+        res.set('Cache-Control', 'no-cache, must-revalidate, max-age=0');
+        return res.sendFile(publicPath);
+      }
+      const rootPath = path.join(projectRoot, decodedPath);
+      if (fs.existsSync(rootPath) && fs.statSync(rootPath).isFile() && (decodedPath.endsWith('.png') || decodedPath.endsWith('.jpg') || decodedPath.endsWith('.jpeg') || decodedPath.endsWith('.webp') || decodedPath.endsWith('.gif'))) {
+        res.set('Cache-Control', 'no-cache, must-revalidate, max-age=0');
+        return res.sendFile(rootPath);
+      }
+    } catch (e) {}
+    next();
+  });
+
   if (!isProd) {
     const { createServer } = await import('vite');
     const vite = await createServer({

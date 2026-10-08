@@ -873,6 +873,41 @@ export const MainTab = ({
                 </div>
             </div>
 
+            {/* [축하금 특별 대형 사진 구역: 스마트 통합검색 바로 밑 & 실시간 360 가상 현장 투어 바로 위] */}
+            <div 
+                id="celebration-bonus-section" 
+                className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-4 relative z-20"
+            >
+                <div className="bg-white rounded-3xl p-4 sm:p-7 shadow-xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                    <div className="flex items-center gap-2">
+                        <span className="bg-amber-500/10 border border-amber-400/40 text-amber-700 text-xs sm:text-sm font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+                            SPECIAL BENEFIT
+                        </span>
+                    </div>
+
+                    <h3 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                        🎁 축하금 특별 혜택 안내
+                    </h3>
+
+                    {/* 축하금 대형 사진 슬롯 프레임 (깃허브 public/축하금.png 업로드 즉시 자동 반영) */}
+                    <div className="w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner transition-all duration-300 hover:border-amber-400/60">
+                        <img 
+                            src={encodeURI('/축하금.png')} 
+                            alt="축하금 안내 대형 사진" 
+                            className="w-full h-auto max-h-[850px] object-contain mx-auto block rounded-2xl transition-transform duration-500 hover:scale-[1.01]"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (!target.src.includes('1.png.png') && !target.src.includes('1.png')) {
+                                    target.src = '/1.png.png';
+                                } else if (!target.src.endsWith('/1.png')) {
+                                    target.src = '/1.png';
+                                }
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+
             {/* [실시간 360° 공간 가상 투어 구역]: 스마트 통합검색 밑과 360 최신 매물 사이에 이동 설치 완료 */}
             <div 
                 id="vr-showcase-section"

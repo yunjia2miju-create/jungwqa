@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
-import { ChevronLeft, ChevronRight, Home, Search, Link as LinkIcon, Phone, ArrowUpRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Search, Link as LinkIcon, Phone, ArrowUpRight, Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { submitInquiryService, getInquiriesService } from '../firebaseService';
 import { Naver360Icon } from './Naver360Icon';
 import { NaverVrBadge } from './NaverVrBadge';
@@ -34,6 +34,29 @@ export const MainTab = ({
     const [searchInput, setSearchInput] = useState('');
     const [filteredPosts, setFilteredPosts] = useState<any[]>([]);
     const [isMobile, setIsMobile] = useState(false);
+    const [isVideoMuted, setIsVideoMuted] = useState(true);
+    const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+    const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+    const toggleHeroVideoMute = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (heroVideoRef.current) {
+            heroVideoRef.current.muted = !isVideoMuted;
+            setIsVideoMuted(!isVideoMuted);
+        }
+    };
+
+    const toggleHeroVideoPlay = () => {
+        if (heroVideoRef.current) {
+            if (heroVideoRef.current.paused) {
+                heroVideoRef.current.play();
+                setIsVideoPlaying(true);
+            } else {
+                heroVideoRef.current.pause();
+                setIsVideoPlaying(false);
+            }
+        }
+    };
 
     // 스마트 통합검색 실시간 팝업 검색결과 목록 추출용
     const searchResults = useMemo(() => {
@@ -715,53 +738,84 @@ export const MainTab = ({
                 <div className="absolute inset-0 bg-gradient-to-b from-[#0B2545] via-[#081D33] to-[#040E1A] opacity-100"></div>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent)]"></div>
 
-                <div className="relative z-10 max-w-6xl mx-auto w-full text-center space-y-8 sm:space-y-10 px-4 flex flex-col items-center">
+                <div className="relative z-10 max-w-6xl mx-auto w-full text-center space-y-6 sm:space-y-8 px-4 flex flex-col items-center">
                     
-                    {/* 360 집 모양 VR 아이콘 */}
-                    <div className="relative mb-2 animate-[pulse_3s_ease-in-out_infinite]">
-                        <Naver360Icon className="w-36 h-36 sm:w-44 sm:h-44 drop-shadow-[0_16px_48px_rgba(100,223,223,0.35)] hover:scale-110 active:scale-95 transition-all duration-500 cursor-pointer" />
+                    {/* [방법 1: 9:16 스마트폰 목업 / 프리미엄 중앙 카드형 (인스타그램·쇼츠 스타일 세로 영상)] */}
+                    <div className="relative mx-auto flex flex-col items-center select-none w-full">
+                        {/* 스마트폰 목업 바디 프레임 */}
+                        <div className="relative w-[280px] xs:w-[320px] sm:w-[380px] md:w-[420px] aspect-[9/16] max-h-[760px] bg-[#030914] rounded-[42px] sm:rounded-[52px] p-2.5 sm:p-3.5 shadow-[0_25px_80px_rgba(0,0,0,0.85),0_0_60px_rgba(100,223,223,0.18)] border-2 sm:border-[3px] border-slate-700/70 ring-1 ring-white/10 group transition-all duration-300">
+                            
+                            {/* 상단 다이내믹 아일랜드 / 스피커 카메라 노치 */}
+                            <div className="absolute top-4 sm:top-5 left-1/2 -translate-x-1/2 w-24 sm:w-28 h-4 sm:h-5 bg-black/90 rounded-full z-20 flex items-center justify-center pointer-events-none border border-white/10 shadow-inner">
+                                <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700/80 mr-2"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-950/80"></div>
+                            </div>
+
+                            {/* 비디오 재생 스크린 본체 */}
+                            <div className="relative w-full h-full rounded-[32px] sm:rounded-[42px] overflow-hidden bg-black shadow-inner flex items-center justify-center">
+                                <video
+                                    ref={heroVideoRef}
+                                    src="/video.mp4"
+                                    autoPlay
+                                    muted={isVideoMuted}
+                                    loop
+                                    playsInline
+                                    className="w-full h-full object-cover rounded-[32px] sm:rounded-[42px] cursor-pointer"
+                                    onClick={toggleHeroVideoPlay}
+                                />
+
+                                {/* 재생 / 일시정지 상태 오버레이 표시 (터치 시 잠깐 반응) */}
+                                {!isVideoPlaying && (
+                                    <div 
+                                        onClick={toggleHeroVideoPlay}
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 cursor-pointer backdrop-blur-[2px]"
+                                    >
+                                        <div className="w-16 h-16 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shadow-2xl backdrop-blur-md">
+                                            <Play className="w-8 h-8 fill-white ml-1" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 우측 하단 소리 ON/OFF 토글 버튼 */}
+                                <button
+                                    type="button"
+                                    onClick={toggleHeroVideoMute}
+                                    className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/65 hover:bg-black/85 text-white backdrop-blur-md border border-white/20 text-xs font-black transition-all shadow-lg active:scale-95 cursor-pointer"
+                                    title={isVideoMuted ? "소리 켜기" : "소리 끄기"}
+                                >
+                                    {isVideoMuted ? (
+                                        <>
+                                            <VolumeX className="w-3.5 h-3.5 text-amber-300" />
+                                            <span className="text-[11px] text-amber-300">소리 켜기</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                                            <span className="text-[11px] text-emerald-400">소리 끄기</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col items-center gap-2">
-                        <span className="text-[#64dfdf] text-xs sm:text-sm lg:text-base font-black uppercase tracking-[0.3em] bg-white/5 border border-white/10 px-6 py-2.5 rounded-full backdrop-blur-md shadow-2xl">
-                            GUMI TAEWANG REAL ESTATE
-                        </span>
-                    </div>
-
-                    <h1 className="flex flex-col items-center gap-4 sm:gap-6 select-none w-full">
-                        {/* 힐스테이트 구미더퍼스트 (줄바꿈 없이 완벽한 단일 한 줄로 고정 및 웅장한 크기) */}
-                        <span className="whitespace-nowrap text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white tracking-tight sm:tracking-tighter leading-none drop-shadow-[0_15px_40px_rgba(0,0,0,0.7)]">
-                            힐스테이트 구미더퍼스트
-                        </span>
-                        
-                        {/* 054-455-6789 (한 줄 고정 & 눈에 확 띄는 골드 옐로우) */}
+                    <div className="flex flex-wrap justify-center gap-4 pt-2">
                         <a 
                             href="tel:054-455-6789"
-                            className="inline-flex items-center justify-center gap-2 sm:gap-4 px-5 sm:px-10 py-2 sm:py-3.5 rounded-full bg-amber-400/10 hover:bg-amber-400/25 border-2 border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-amber-200 transition-all duration-300 shadow-[0_0_35px_rgba(251,191,36,0.4)] hover:scale-105 active:scale-95 cursor-pointer my-1 group whitespace-nowrap"
-                            title="전화 바로걸기: 054-455-6789"
+                            className="bg-amber-400 hover:bg-amber-300 text-slate-950 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-xl hover:shadow-2xl flex items-center gap-2 cursor-pointer"
                         >
-                            <Phone className="w-6 h-6 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-amber-300 fill-amber-300/30 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
-                            <span className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wider sm:tracking-widest font-mono text-amber-300 drop-shadow-[0_6px_25px_rgba(252,211,77,0.75)] leading-none whitespace-nowrap">
-                                054-455-6789
-                            </span>
+                            <Phone className="w-5 h-5 fill-slate-950" />
+                            <span>054-455-6789 전화 상담</span>
                         </a>
-
-                        {/* 단 한줄의 정직한 가치 (한 줄 고정) */}
-                        <span className="whitespace-nowrap text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#64dfdf] tracking-tight leading-none drop-shadow-[0_8px_25px_rgba(100,223,223,0.4)] mt-1">
-                            단 한줄의 정직한 가치
-                        </span>
-                    </h1>
-
-                    <div className="flex flex-wrap justify-center gap-5 pt-4">
                         <a 
                             href="#property-search-section" 
-                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-lg px-10 py-5 rounded-full shadow-xl hover:shadow-2xl"
+                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-xl hover:shadow-2xl flex items-center"
                         >
                             실시간 매물 보러가기
                         </a>
                         <a 
                             href="#direct-consulting-section" 
-                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-lg px-10 py-5 rounded-full shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-xl hover:shadow-2xl backdrop-blur-sm flex items-center"
                         >
                             1:1 중개 의뢰하기
                         </a>

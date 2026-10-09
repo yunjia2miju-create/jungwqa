@@ -1564,7 +1564,7 @@ ${cleanIntro ? `[공간 안내]\n\n${cleanIntro}\n\n` : ''}${bodyWithImagesAndVr
         return res.sendFile(publicPath);
       }
       const rootPath = path.join(projectRoot, decodedPath);
-      if (fs.existsSync(rootPath) && fs.statSync(rootPath).isFile() && (decodedPath.endsWith('.png') || decodedPath.endsWith('.jpg') || decodedPath.endsWith('.jpeg') || decodedPath.endsWith('.webp') || decodedPath.endsWith('.gif'))) {
+      if (fs.existsSync(rootPath) && fs.statSync(rootPath).isFile() && (decodedPath.endsWith('.png') || decodedPath.endsWith('.jpg') || decodedPath.endsWith('.jpeg') || decodedPath.endsWith('.webp') || decodedPath.endsWith('.gif') || decodedPath.endsWith('.mp4'))) {
         res.set('Cache-Control', 'no-cache, must-revalidate, max-age=0');
         return res.sendFile(rootPath);
       }

@@ -73,13 +73,26 @@ async function startServer() {
       const targetJpg = path.join(webDir, 'vr-captured-banner.jpg');
       const srcSvg = path.join(projectRoot, 'public', 'vr-tour-banner.svg');
 
-      if (!fs.existsSync(targetJpg) && fs.existsSync(srcSvg)) {
+      let isValidJpg = false;
+      if (fs.existsSync(targetJpg)) {
+        try {
+          const header = Buffer.alloc(2);
+          const fd = fs.openSync(targetJpg, 'r');
+          fs.readSync(fd, header, 0, 2, 0);
+          fs.closeSync(fd);
+          isValidJpg = header[0] === 0xff && header[1] === 0xd8;
+        } catch (e) {
+          isValidJpg = false;
+        }
+      }
+
+      if (!isValidJpg && fs.existsSync(srcSvg)) {
         const { default: sharp } = await import('sharp');
         const svgContent = fs.readFileSync(srcSvg);
         await sharp(svgContent)
-          .jpeg({ quality: 90 })
+          .jpeg({ quality: 92 })
           .toFile(targetJpg);
-        console.log("[Server Startup] Generated public/website/vr-captured-banner.jpg from SVG banner successfully!");
+        console.log("[Server Startup] Generated clean public/website/vr-captured-banner.jpg from SVG banner successfully!");
       }
     } catch (bannerErr) {
       console.warn("[Server Startup] Failed to generate website banner JPG:", bannerErr);

@@ -735,39 +735,39 @@ export const MainTab = ({
             {/* [최상단 비주얼 브랜드 히어로 배너]: 소장님의 지시에 따라 오직 텍스트로만 웅장하고 미니멀하게 구성 */}
             <div 
                 id="hero-desktop-wrapper" 
-                className="relative w-full h-auto min-h-[520px] lg:min-h-[620px] bg-[#051124] flex items-center justify-center overflow-hidden border-b border-slate-900 select-none px-6 pt-28 sm:pt-36 pb-20 sm:pb-24"
+                className="relative w-full h-auto min-h-[520px] lg:min-h-[620px] bg-[#051124] flex items-center justify-center overflow-hidden border-b border-slate-900 select-none px-0 sm:px-6 pt-20 sm:pt-32 md:pt-36 pb-14 sm:pb-20"
             >
                 {/* 깊고 고급스러운 웅장함을 주는 딥 킹스 네이비(Deep King's Navy) 바탕 백그라운드 */}
                 <div className="absolute inset-0 bg-gradient-to-b from-[#0B2545] via-[#081D33] to-[#040E1A] opacity-100"></div>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent)]"></div>
 
-                <div className="relative z-10 max-w-6xl mx-auto w-full text-center space-y-6 sm:space-y-8 px-4 flex flex-col items-center">
+                <div className="relative z-10 max-w-6xl mx-auto w-full text-center space-y-6 sm:space-y-8 px-0 sm:px-4 flex flex-col items-center">
                     
                     {/* [방법 1: 9:16 스마트폰 목업 / 프리미엄 중앙 카드형 (인스타그램·쇼츠 스타일 세로 영상)] */}
                     <div className="relative mx-auto flex flex-col items-center select-none w-full">
-                        {/* 스마트폰 목업 바디 프레임 */}
-                        <div className="relative w-[280px] xs:w-[320px] sm:w-[380px] md:w-[420px] aspect-[9/16] max-h-[760px] bg-[#030914] rounded-[42px] sm:rounded-[52px] p-2.5 sm:p-3.5 shadow-[0_25px_80px_rgba(0,0,0,0.85),0_0_60px_rgba(100,223,223,0.18)] border-2 sm:border-[3px] border-slate-700/70 ring-1 ring-white/10 group transition-all duration-300">
+                        {/* 스마트폰 목업 바디 프레임: PC상에서는 기존(420px) 대비 2배(840px), 모바일상에서는 기종에 맞게 화면 꽉 채움 */}
+                        <div className="relative w-full max-w-full sm:max-w-[480px] md:max-w-[700px] lg:max-w-[840px] aspect-[9/16] bg-[#030914] rounded-none sm:rounded-[44px] md:rounded-[56px] p-0 sm:p-3 md:p-4.5 shadow-[0_25px_80px_rgba(0,0,0,0.85),0_0_60px_rgba(100,223,223,0.18)] border-0 sm:border-2 md:border-[3px] border-slate-700/70 ring-0 sm:ring-1 ring-white/10 group transition-all duration-300">
                             
-                            {/* 상단 다이내믹 아일랜드 / 스피커 카메라 노치 */}
-                            <div className="absolute top-4 sm:top-5 left-1/2 -translate-x-1/2 w-24 sm:w-28 h-4 sm:h-5 bg-black/90 rounded-full z-20 flex items-center justify-center pointer-events-none border border-white/10 shadow-inner">
-                                <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700/80 mr-2"></div>
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-950/80"></div>
+                            {/* 상단 다이내믹 아일랜드 / 스피커 카메라 노치 (모바일 기기에서는 화면 가림 방지를 위해 숨김, 태블릿/PC 목업에서만 노출) */}
+                            <div className="hidden sm:flex absolute top-4 sm:top-5 md:top-6 left-1/2 -translate-x-1/2 w-28 md:w-44 h-4.5 md:h-7 bg-black/90 rounded-full z-20 items-center justify-center pointer-events-none border border-white/10 shadow-inner">
+                                <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-slate-900 border border-slate-700/80 mr-2 md:mr-3"></div>
+                                <div className="w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full bg-blue-950/80"></div>
                             </div>
 
-                            {/* 비디오 재생 스크린 본체 */}
-                            <div className="relative w-full h-full rounded-[32px] sm:rounded-[42px] overflow-hidden bg-black shadow-inner flex items-center justify-center">
+                            {/* 비디오 재생 스크린 본체: 모바일에서는 꽉 차게, PC에서는 2배 크기로 시원하게 렌더링 */}
+                            <div className="relative w-full h-full rounded-none sm:rounded-[34px] md:rounded-[46px] overflow-hidden bg-black shadow-inner flex items-center justify-center">
                                 <video
                                     ref={heroVideoRef}
                                     autoPlay
                                     muted={isVideoMuted}
                                     loop
                                     playsInline
-                                    className="w-full h-full object-cover rounded-[32px] sm:rounded-[42px] cursor-pointer"
+                                    className="w-full h-full object-cover rounded-none sm:rounded-[34px] md:rounded-[46px] cursor-pointer"
                                     onClick={toggleHeroVideoPlay}
                                 >
+                                    <source src={`/video.mp4?v=${videoCacheBuster}`} type="video/mp4" />
                                     <source src={`${encodeURI('/비디오.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
                                     <source src={`${encodeURI('/축하금.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
-                                    <source src={`/video.mp4?v=${videoCacheBuster}`} type="video/mp4" />
                                     <source src={`${encodeURI('/힐스테이트.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
                                     <source src={`${encodeURI('/힐링에너지.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
                                 </video>
@@ -778,28 +778,28 @@ export const MainTab = ({
                                         onClick={toggleHeroVideoPlay}
                                         className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 cursor-pointer backdrop-blur-[2px]"
                                     >
-                                        <div className="w-16 h-16 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shadow-2xl backdrop-blur-md">
-                                            <Play className="w-8 h-8 fill-white ml-1" />
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shadow-2xl backdrop-blur-md">
+                                            <Play className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 fill-white ml-1" />
                                         </div>
                                     </div>
                                 )}
 
-                                {/* 우측 하단 소리 ON/OFF 토글 버튼 */}
+                                {/* 우측 하단 소리 ON/OFF 토글 버튼 (PC/모바일 반응형 사이즈) */}
                                 <button
                                     type="button"
                                     onClick={toggleHeroVideoMute}
-                                    className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/65 hover:bg-black/85 text-white backdrop-blur-md border border-white/20 text-xs font-black transition-all shadow-lg active:scale-95 cursor-pointer"
+                                    className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-20 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-full bg-black/75 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 text-xs sm:text-sm font-black transition-all shadow-xl active:scale-95 cursor-pointer"
                                     title={isVideoMuted ? "소리 켜기" : "소리 끄기"}
                                 >
                                     {isVideoMuted ? (
                                         <>
-                                            <VolumeX className="w-3.5 h-3.5 text-amber-300" />
-                                            <span className="text-[11px] text-amber-300">소리 켜기</span>
+                                            <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-amber-300" />
+                                            <span className="text-[11px] sm:text-xs md:text-sm text-amber-300">소리 켜기</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-                                            <span className="text-[11px] text-emerald-400">소리 끄기</span>
+                                            <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-emerald-400" />
+                                            <span className="text-[11px] sm:text-xs md:text-sm text-emerald-400">소리 끄기</span>
                                         </>
                                     )}
                                 </button>
@@ -807,23 +807,23 @@ export const MainTab = ({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-4 pt-2">
+                    <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pt-3 sm:pt-4 px-4 w-full">
                         <a 
                             href="tel:054-455-6789"
-                            className="bg-amber-400 hover:bg-amber-300 text-slate-950 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-xl hover:shadow-2xl flex items-center gap-2 cursor-pointer"
+                            className="bg-amber-400 hover:bg-amber-300 text-slate-950 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-xl hover:shadow-2xl flex items-center gap-2 cursor-pointer"
                         >
                             <Phone className="w-5 h-5 fill-slate-950" />
                             <span>054-455-6789 전화 상담</span>
                         </a>
                         <a 
                             href="#property-search-section" 
-                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-xl hover:shadow-2xl flex items-center"
+                            className="bg-white text-[#0b132b] hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-xl hover:shadow-2xl flex items-center"
                         >
                             실시간 매물 보러가기
                         </a>
                         <a 
                             href="#direct-consulting-section" 
-                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-xl hover:shadow-2xl backdrop-blur-sm flex items-center"
+                            className="bg-white/10 text-white hover:bg-white/25 border border-white/10 hover:scale-105 active:scale-95 transition-all font-black text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-xl hover:shadow-2xl backdrop-blur-sm flex items-center"
                         >
                             1:1 중개 의뢰하기
                         </a>

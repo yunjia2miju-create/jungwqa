@@ -963,13 +963,75 @@ export const DetailTab = ({
 
 
                 <div className="mt-8">
-                    <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center space-x-1.5">
-                        <i className="fa-solid fa-map-location-dot text-[#0B2545]"></i>
-                        <span>실시간 대화형 정밀 위치</span>
-                    </h4>
-                    <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-md relative bg-slate-100">
-                        <iframe width="100%" height="100%" frameBorder="0" style={{border:0}} src={`https://maps.google.com/maps?q=${encodeURIComponent(p.address)}&t=&z=18&ie=UTF8&iwloc=&output=embed`} loading="lazy" allowFullScreen></iframe>
-                    </div>
+                    {(() => {
+                        const isBonggok59_1 = (p.address && p.address.includes('59-1') && p.address.includes('봉곡')) || (p.building && p.building.includes('힐스테이트'));
+                        const targetLat = p.lat || (isBonggok59_1 ? 36.142546 : undefined);
+                        const targetLng = p.lng || (isBonggok59_1 ? 128.316064 : undefined);
+                        const mapQuery = (targetLat && targetLng) 
+                            ? `${targetLat},${targetLng}` 
+                            : (p.roadAddress || p.address);
+                        const searchKeyword = p.roadAddress || p.address || (isBonggok59_1 ? '구미시 봉곡동 59-1' : '구미시');
+
+                        return (
+                            <div>
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                                    <h4 className="text-md font-bold text-slate-900 flex items-center space-x-1.5">
+                                        <i className="fa-solid fa-map-location-dot text-[#0B2545]"></i>
+                                        <span>실시간 대화형 정밀 위치</span>
+                                    </h4>
+                                    {isBonggok59_1 && (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold">
+                                            <i className="fa-solid fa-circle-check text-emerald-600"></i>
+                                            봉곡동 59-1 (힐스테이트 현장 정밀 좌표 적용)
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-100 shadow-md relative bg-slate-100">
+                                    <iframe 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameBorder="0" 
+                                        style={{border:0}} 
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=&z=18&ie=UTF8&iwloc=&output=embed`} 
+                                        loading="lazy" 
+                                        allowFullScreen
+                                        title="매물 정밀 위치 지도"
+                                    ></iframe>
+                                </div>
+                                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-slate-600 font-medium">
+                                        <span><strong>지번:</strong> {p.address || `${p.dong || '봉곡동'} 59-1`}</span>
+                                        {p.roadAddress && (
+                                            <span className="text-slate-500"><strong>도로명:</strong> {p.roadAddress}</span>
+                                        )}
+                                        {targetLat && targetLng && (
+                                            <span className="text-emerald-700 font-bold"><strong>좌표:</strong> {targetLat.toFixed(5)}, {targetLng.toFixed(5)}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <a 
+                                            href={`https://map.kakao.com/link/search/${encodeURIComponent(searchKeyword)}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="px-2.5 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold rounded-lg transition-colors flex items-center gap-1"
+                                        >
+                                            <i className="fa-solid fa-location-arrow text-[11px]"></i>
+                                            카카오맵
+                                        </a>
+                                        <a 
+                                            href={`https://map.naver.com/v5/search/${encodeURIComponent(searchKeyword)}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="px-2.5 py-1.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center gap-1"
+                                        >
+                                            <i className="fa-solid fa-map text-[11px]"></i>
+                                            네이버지도
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 <div className="mt-12 p-6 sm:p-10 bg-[#0B2545] text-white rounded-3xl shadow-xl flex flex-col justify-center items-center gap-6 border border-slate-700/50 w-full max-w-sm sm:max-w-none mx-auto" style={{ background: '#0B2545 !important', backgroundColor: '#0B2545 !important', backgroundImage: 'none !important' }}>

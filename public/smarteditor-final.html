@@ -1472,23 +1472,82 @@
                         <input type="hidden" id="post-dong" value="송정동">
                     </div>
 
-                    <div>
-                        <label class="block text-[22px] font-black text-slate-500 uppercase mb-3">상세 지번 입력</label>
-                        <div class="flex gap-4">
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-[22px] font-black text-slate-500 uppercase">상세 지번 입력</label>
+                                <span class="text-xs font-bold text-slate-400">지번 또는 건물번호</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    id="post-address" 
+                                    onkeydown="if(event.key==='Enter'){event.preventDefault();applyDirectAddress();}"
+                                    placeholder="예: 봉곡동 59-1 또는 59-1" 
+                                    class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[20px] font-bold focus:outline-none focus:border-emerald-500"
+                                >
+                                <button id="btn-location-search" onclick="searchPage1Address()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white text-[17px] font-bold px-5 py-4 rounded-2xl cursor-pointer transition-colors duration-200 shrink-0 flex items-center gap-1.5" title="카카오 우편번호 서비스 팝업 검색">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>우편번호</span>
+                                </button>
+                                <button id="btn-direct-apply" onclick="applyDirectAddress()" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[17px] font-bold px-5 py-4 rounded-2xl cursor-pointer transition-colors duration-200 shrink-0 flex items-center gap-1.5" title="입력한 지번을 지도에 즉시 반영">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>위치반영</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-500 mb-1.5">도로명 주소 (선택 / 구글 지도 핀 정밀도 향상)</label>
                             <input 
                                 type="text" 
-                                id="post-address" 
-                                onchange="notifyParent()"
-                                placeholder="예: 송정동 456-12" 
-                                class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-7 py-5 text-[22px] font-bold focus:outline-none focus:border-emerald-500"
+                                id="post-roadAddress" 
+                                oninput="notifyParentDebounced()"
+                                onkeydown="if(event.key==='Enter'){event.preventDefault();applyDirectAddress();}"
+                                placeholder="예: 봉곡남로 30 또는 봉곡로6길 (미등기 토지 지번일 경우 도로명 입력)" 
+                                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-base font-bold focus:outline-none focus:border-emerald-500"
                             >
-                            <button id="btn-location-search" onclick="searchPage1Address()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white text-[22px] font-bold px-7 py-5 rounded-2xl cursor-pointer transition-colors duration-200">위치조회</button>
+                        </div>
+
+                        <!-- 토지/신축 특수 지번 빠른 원터치 및 안내 박스 -->
+                        <div class="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl space-y-2.5 text-xs text-amber-900">
+                            <div class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-exclamation text-amber-600 text-base mt-0.5 shrink-0"></i>
+                                <div class="leading-relaxed">
+                                    <strong class="text-amber-950 font-black">💡 '봉곡동 59-1' 등 신축 현장/토지 지번 안내</strong>
+                                    <p class="mt-1 text-slate-700">
+                                        아파트 신축 현장(힐스테이트 부지 등)이나 토지 지번은 아직 개별 건물 도로명/우편번호가 부여되지 않아 <strong>카카오 우편번호 창에 나오지 않거나</strong>, 구글 지도가 <strong>인근 건물(59-7번지 등)로 엉뚱하게 튕길 수 있습니다.</strong><br>
+                                        이때 아래 <strong>[원터치 정밀 좌표]</strong> 버튼을 누르시면 실제 현장 위치(선주고 뒤편 부지)에 정확히 핀이 꽂힙니다.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="pt-1 flex flex-wrap items-center gap-2">
+                                <button type="button" onclick="applyBonggok59_1()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors">
+                                    <i class="fa-solid fa-location-crosshairs"></i>
+                                    <span>📍 봉곡동 59-1 (힐스테이트 현장) 원터치 정밀 좌표 적용</span>
+                                </button>
+                                <button type="button" onclick="resetToCustomCoords()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors">
+                                    <i class="fa-solid fa-sliders"></i>
+                                    <span>좌표 직접 입력</span>
+                                </button>
+                            </div>
+                            <!-- 좌표 직접 지정 패널 (토글) -->
+                            <div id="panel-custom-coords" class="hidden pt-2 border-t border-amber-200/60 grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600">위도 (Latitude)</label>
+                                    <input type="text" id="post-lat" placeholder="예: 36.142546" onchange="notifyParent()" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600">경도 (Longitude)</label>
+                                    <input type="text" id="post-lng" placeholder="예: 128.316064" onchange="notifyParent()" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div id="page1-map-container" class="hidden">
-                    <div id="page1-map-preview" class="w-full h-[320px] rounded-2xl border border-slate-200"></div>
+                    <div id="page1-map-preview" class="w-full h-[320px] rounded-2xl border border-slate-200 overflow-hidden"></div>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-3" id="wrapper-room-floors-container">
@@ -2420,6 +2479,51 @@
             }, 1500);
         }
 
+        // Precise Map Rendering Engine (Hybrid Address + Exact Lat/Lng Coordinates)
+        function renderMapWithResolvedCoordinates(addr, roadAddr, lat, lng) {
+            const container = document.getElementById('page1-map-container');
+            const preview = document.getElementById('page1-map-preview');
+            if (!container || !preview) return;
+            
+            container.classList.remove('hidden');
+            
+            let query = '';
+            let label = '';
+            
+            const isBonggok59_1 = (addr && addr.includes('봉곡') && addr.includes('59-1')) || (roadAddr && roadAddr.includes('59-1'));
+            
+            if (lat && lng) {
+                query = `${lat},${lng}`;
+                label = `정밀 좌표 (${lat}, ${lng})`;
+            } else if (isBonggok59_1) {
+                query = `36.142546,128.316064`;
+                label = `봉곡동 59-1 (힐스테이트 구미더퍼스트 현장 정밀 좌표 적용)`;
+                if (document.getElementById('post-lat')) document.getElementById('post-lat').value = '36.142546';
+                if (document.getElementById('post-lng')) document.getElementById('post-lng').value = '128.316064';
+            } else {
+                query = roadAddr || addr || '구미시';
+                label = roadAddr || addr;
+            }
+            
+            preview.innerHTML = `
+                <div class="relative w-full h-[320px] rounded-2xl overflow-hidden border border-slate-200">
+                    <iframe width="100%" height="100%" frameBorder="0" style="border:0;" src="https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=17&ie=UTF8&iwloc=&output=embed" allowFullScreen loading="lazy"></iframe>
+                    <div class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-xs text-white text-xs px-4 py-2.5 rounded-xl flex items-center justify-between shadow-xl">
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fa-solid fa-location-dot text-emerald-400 shrink-0"></i>
+                            <span class="font-bold truncate">${label}</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-300 shrink-0 font-bold bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded-md">실시간 핀 결속</span>
+                    </div>
+                </div>
+            `;
+            
+            const btn = document.getElementById('btn-location-search');
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>조회완료</span>`;
+            }
+        }
+
         // Map Geocoding & Address Selection (Daum Postcode + Google Maps Embed)
         function searchPage1Address() {
             if (typeof daum === 'undefined' || typeof daum.Postcode === 'undefined') {
@@ -2427,32 +2531,101 @@
                 return;
             }
             
-            const btn = document.getElementById('btn-location-search');
+            const postDong = document.getElementById('post-dong') ? document.getElementById('post-dong').value : '';
+            const currentAddr = document.getElementById('post-address') ? document.getElementById('post-address').value.trim() : '';
+            
+            let initialQuery = currentAddr;
+            if (!initialQuery && postDong) {
+                initialQuery = '구미시 ' + postDong;
+            }
             
             new daum.Postcode({
+                q: initialQuery,
                 oncomplete: function(data) {
-                    // 카카오 주소 API에서 획득한 주소
-                    const addr = data.jibunAddress || data.autoJibunAddress || data.roadAddress || data.address;
+                    const jibun = data.jibunAddress || data.autoJibunAddress || '';
+                    const road = data.roadAddress || data.autoRoadAddress || '';
+                    const fullAddr = jibun || road || data.address;
                     
-                    document.getElementById('post-address').value = addr;
+                    document.getElementById('post-address').value = fullAddr;
+                    if (road && document.getElementById('post-roadAddress')) {
+                        document.getElementById('post-roadAddress').value = road;
+                    }
+                    if (data.bname && document.getElementById('post-dong')) {
+                        selectDongByName(data.bname);
+                    }
                     
-                    document.getElementById('page1-map-container').classList.remove('hidden');
+                    if (document.getElementById('post-lat')) document.getElementById('post-lat').value = '';
+                    if (document.getElementById('post-lng')) document.getElementById('post-lng').value = '';
                     
-                    // 구글 지도 iFrame 통신망으로 100% 하이브리드 연동 (lat/lng 대신 주소 쿼리로 좌표 핀 완벽 결속)
-                    setTimeout(() => {
-                        document.getElementById('page1-map-preview').innerHTML = `<iframe width="100%" height="100%" frameBorder="0" style="border:0; border-radius:12px;" src="https://maps.google.com/maps?q=${encodeURIComponent(addr)}&t=&z=16&ie=UTF8&iwloc=&output=embed" allowFullScreen loading="lazy"></iframe>`;
-                        
-                        showLocationToast("위치 조회가 완료되었습니다.", true);
-                        if (btn) {
-                            btn.innerHTML = "✅ 조회완료";
-                            btn.classList.remove('bg-slate-900', 'hover:bg-slate-800');
-                            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
-                        }
-                        
-                        notifyParent();
-                    }, 100);
+                    renderMapWithResolvedCoordinates(fullAddr, road);
+                    showLocationToast("주소 조회가 완료되었습니다.", true);
+                    notifyParent();
                 }
             }).open();
+        }
+
+        // Direct input address confirmation
+        function applyDirectAddress() {
+            const postDong = document.getElementById('post-dong') ? document.getElementById('post-dong').value : '송정동';
+            let addrInput = document.getElementById('post-address') ? document.getElementById('post-address').value.trim() : '';
+            const roadInput = document.getElementById('post-roadAddress') ? document.getElementById('post-roadAddress').value.trim() : '';
+            const latVal = document.getElementById('post-lat') && document.getElementById('post-lat').value ? parseFloat(document.getElementById('post-lat').value) : undefined;
+            const lngVal = document.getElementById('post-lng') && document.getElementById('post-lng').value ? parseFloat(document.getElementById('post-lng').value) : undefined;
+            
+            if (!addrInput && !roadInput) {
+                showLocationToast("지번 또는 도로명을 입력해주세요.", false);
+                return;
+            }
+            
+            if (/^\d+(-\d+)?$/.test(addrInput)) {
+                addrInput = `경상북도 구미시 ${postDong} ${addrInput}`;
+                document.getElementById('post-address').value = addrInput;
+            } else if (addrInput && !addrInput.includes('구미')) {
+                addrInput = `경상북도 구미시 ${addrInput}`;
+                document.getElementById('post-address').value = addrInput;
+            }
+            
+            if (addrInput.includes('봉곡') && addrInput.includes('59-1')) {
+                applyBonggok59_1();
+                return;
+            }
+            
+            renderMapWithResolvedCoordinates(addrInput, roadInput, latVal, lngVal);
+            showLocationToast("지도 위치가 즉시 갱신되었습니다.", true);
+            notifyParent();
+        }
+
+        // 1-Click precision coordinates for Bonggok-dong 59-1 (Hillstate Gumi The First site)
+        function applyBonggok59_1() {
+            const postDongInput = document.getElementById('post-dong');
+            if (postDongInput) postDongInput.value = '봉곡동';
+            updateDongGridHighlight('봉곡동');
+            document.getElementById('post-address').value = '경상북도 구미시 봉곡동 59-1번지 일원';
+            if (document.getElementById('post-roadAddress')) {
+                document.getElementById('post-roadAddress').value = '봉곡남로 30 인근 (힐스테이트 구미더퍼스트 현장)';
+            }
+            if (document.getElementById('post-building') && !document.getElementById('post-building').value) {
+                document.getElementById('post-building').value = '힐스테이트 구미더퍼스트';
+            }
+            if (document.getElementById('post-lat')) document.getElementById('post-lat').value = '36.142546';
+            if (document.getElementById('post-lng')) document.getElementById('post-lng').value = '128.316064';
+            
+            renderMapWithResolvedCoordinates('경상북도 구미시 봉곡동 59-1번지 일원', '봉곡남로 30 인근', 36.142546, 128.316064);
+            showLocationToast("봉곡동 59-1 정밀 좌표로 핀이 완벽 결속되었습니다!", true);
+            notifyParent();
+        }
+
+        function resetToCustomCoords() {
+            const panel = document.getElementById('panel-custom-coords');
+            if (panel) {
+                panel.classList.toggle('hidden');
+            }
+        }
+
+        function selectDongByName(dongName) {
+            const dongInput = document.getElementById('post-dong');
+            if (dongInput) dongInput.value = dongName;
+            updateDongGridHighlight(dongName);
         }
 
         // Extract dataset and notify parent React
@@ -2467,12 +2640,20 @@
                 finalVrThumbnail = '';
             }
 
+            const latInput = document.getElementById('post-lat');
+            const lngInput = document.getElementById('post-lng');
+            const latVal = latInput && latInput.value ? parseFloat(latInput.value) : undefined;
+            const lngVal = lngInput && lngInput.value ? parseFloat(lngInput.value) : undefined;
+
             const data = {
                 roomType: activeRoom,
                 category: document.getElementById('post-category').value,
                 transactionType: document.getElementById('post-transactionType').value,
                 dong: document.getElementById('post-dong').value,
                 address: document.getElementById('post-address').value,
+                roadAddress: document.getElementById('post-roadAddress') ? document.getElementById('post-roadAddress').value : '',
+                lat: latVal,
+                lng: lngVal,
                 building: document.getElementById('post-building').value,
                 room: document.getElementById('post-room').value,
                 floor: document.getElementById('post-floor').value,
@@ -5081,11 +5262,19 @@ function setRepresentativePhoto(type, idx) {
 
             notifyParent();
             // Prepare package payload for immediate synchronization
+            const latInput = document.getElementById('post-lat');
+            const lngInput = document.getElementById('post-lng');
+            const latVal = latInput && latInput.value ? parseFloat(latInput.value) : undefined;
+            const lngVal = lngInput && lngInput.value ? parseFloat(lngInput.value) : undefined;
+
             const data = {
                 category: document.getElementById('post-category').value,
                 transactionType: document.getElementById('post-transactionType').value,
                 dong: document.getElementById('post-dong').value,
                 address: document.getElementById('post-address').value,
+                roadAddress: document.getElementById('post-roadAddress') ? document.getElementById('post-roadAddress').value : '',
+                lat: latVal,
+                lng: lngVal,
                 building: document.getElementById('post-building').value,
                 room: document.getElementById('post-room').value,
                 floor: document.getElementById('post-floor').value,
@@ -5335,18 +5524,23 @@ function setRepresentativePhoto(type, idx) {
 
                 if (data.category) setCategory(data.category);
                 if (data.transactionType) setTransactionType(data.transactionType);
-                if (data.dong) document.getElementById('post-dong').value = data.dong;
+                if (data.dong) {
+                    document.getElementById('post-dong').value = data.dong;
+                    updateDongGridHighlight(data.dong);
+                }
+                if (data.roadAddress && document.getElementById('post-roadAddress')) {
+                    document.getElementById('post-roadAddress').value = data.roadAddress;
+                }
+                if (data.lat && document.getElementById('post-lat')) {
+                    document.getElementById('post-lat').value = data.lat;
+                }
+                if (data.lng && document.getElementById('post-lng')) {
+                    document.getElementById('post-lng').value = data.lng;
+                }
                 if (data.address) {
                     const addr = data.address;
                     document.getElementById('post-address').value = addr;
-                    document.getElementById('page1-map-container').classList.remove('hidden');
-                    document.getElementById('page1-map-preview').innerHTML = `<iframe width="100%" height="100%" frameBorder="0" style="border:0; border-radius:12px;" src="https://maps.google.com/maps?q=${encodeURIComponent(addr)}&t=&z=16&ie=UTF8&iwloc=&output=embed" allowFullScreen loading="lazy"></iframe>`;
-                    const btn = document.getElementById('btn-location-search');
-                    if (btn) {
-                        btn.innerHTML = "✅ 조회완료";
-                        btn.classList.remove('bg-slate-900', 'hover:bg-slate-800');
-                        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
-                    }
+                    renderMapWithResolvedCoordinates(addr, data.roadAddress, data.lat, data.lng);
                 }
                 if (data.building) document.getElementById('post-building').value = data.building;
                 if (data.room) document.getElementById('post-room').value = data.room;

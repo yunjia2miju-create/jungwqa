@@ -23,7 +23,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
     // Form Initial State
     const [formData, setFormData] = useState<Partial<Post>>({
         category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-        title: '', remarks: '', intro: '', body: '', address: '', video: '', naverTv: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
+        title: '', remarks: '', intro: '', body: '', address: '', roadAddress: '', lat: undefined, lng: undefined, video: '', naverTv: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
     });
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -134,7 +134,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
                 }
                 const payload = currentEditPost || {
                     category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-                    title: '', remarks: '', intro: '', body: '', address: '', video: '', naverTv: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
+                    title: '', remarks: '', intro: '', body: '', address: '', roadAddress: '', lat: undefined, lng: undefined, video: '', naverTv: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
                 };
                 iframeRef.current.contentWindow.postMessage({
                     type: 'LOAD_DATA',
@@ -218,7 +218,7 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
         } else {
             setFormData({
                 category: '원룸', transactionType: '월세', dong: '송정동', building: '', room: '', floor: '', totalFloor: '', price: '', manageFee: '', phone: '010-7590-0111', ownerPhone: '',
-                title: '', remarks: '', intro: '', body: '', address: '', video: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
+                title: '', remarks: '', intro: '', body: '', address: '', roadAddress: '', lat: undefined, lng: undefined, video: '', blogUrl: '', thumbnail: '', images: '', panoramas: '', isRecommended: false, isShortTerm: false
             });
         }
     }, [editingPostId, currentEditPost]);
@@ -260,6 +260,13 @@ export function AdminWriteSection({ showToast }: AdminWriteSectionProps) {
             video: data.video || '',
             naverTv: data.naverTv || '',
             address: data.address || '',
+            roadAddress: data.roadAddress || '',
+            lat: (typeof data.lat === 'number' && !isNaN(data.lat)) 
+                ? data.lat 
+                : (data.lat && !isNaN(parseFloat(data.lat)) ? parseFloat(data.lat) : ((data.address && data.address.includes('봉곡') && data.address.includes('59-1')) ? 36.142546 : undefined)),
+            lng: (typeof data.lng === 'number' && !isNaN(data.lng)) 
+                ? data.lng 
+                : (data.lng && !isNaN(parseFloat(data.lng)) ? parseFloat(data.lng) : ((data.address && data.address.includes('봉곡') && data.address.includes('59-1')) ? 128.316064 : undefined)),
             isRecommended: data.isRecommended === true || String(data.isRecommended) === 'true',
             isShortTerm: data.isShortTerm === true || String(data.isShortTerm) === 'true',
             contractPeriod: data.contractPeriod ? parseInt(data.contractPeriod, 10) : undefined,

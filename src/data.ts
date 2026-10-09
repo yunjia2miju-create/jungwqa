@@ -22,6 +22,9 @@ export interface Post {
     video?: string;
     naverTv?: string;
     address: string;
+    roadAddress?: string;
+    lat?: number;
+    lng?: number;
     transactionType: string;
     isRecommended: boolean;
     contractPeriod?: number;

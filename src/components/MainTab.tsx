@@ -58,6 +58,9 @@ export const MainTab = ({
         }
     };
 
+    // 깃허브 새 동영상 업로드 시 브라우저 캐시 없이 즉시 최신 영상 로드용
+    const videoCacheBuster = useMemo(() => Date.now(), []);
+
     // 스마트 통합검색 실시간 팝업 검색결과 목록 추출용
     const searchResults = useMemo(() => {
         const query = searchInput.toLowerCase().trim();
@@ -755,14 +758,19 @@ export const MainTab = ({
                             <div className="relative w-full h-full rounded-[32px] sm:rounded-[42px] overflow-hidden bg-black shadow-inner flex items-center justify-center">
                                 <video
                                     ref={heroVideoRef}
-                                    src="/video.mp4"
                                     autoPlay
                                     muted={isVideoMuted}
                                     loop
                                     playsInline
                                     className="w-full h-full object-cover rounded-[32px] sm:rounded-[42px] cursor-pointer"
                                     onClick={toggleHeroVideoPlay}
-                                />
+                                >
+                                    <source src={`${encodeURI('/비디오.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
+                                    <source src={`${encodeURI('/축하금.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
+                                    <source src={`/video.mp4?v=${videoCacheBuster}`} type="video/mp4" />
+                                    <source src={`${encodeURI('/힐스테이트.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
+                                    <source src={`${encodeURI('/힐링에너지.mp4')}?v=${videoCacheBuster}`} type="video/mp4" />
+                                </video>
 
                                 {/* 재생 / 일시정지 상태 오버레이 표시 (터치 시 잠깐 반응) */}
                                 {!isVideoPlaying && (
